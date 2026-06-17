@@ -13,6 +13,7 @@ import { TemplateService } from '../services/TemplateService';
 import { getPlanLimits, PLAN_CONFIGS } from '../config/plans';
 import { UserPlan } from '../types';
 import { Avatar } from '../components/ui/Avatar';
+import ApiIntegrationsTab from '../components/settings/ApiIntegrationsTab';
 
 const SettingsSection: React.FC<{
   title: string;
@@ -106,7 +107,7 @@ const Settings: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   // Aba ativa geral
-  const [activeTab, setActiveTab] = useState<'profile' | 'templates' | 'billing' | 'account' | 'links'>('account');
+  const [activeTab, setActiveTab] = useState<'profile' | 'templates' | 'billing' | 'account' | 'links' | 'integrations'>('account');
 
   // Pilar E: Templates de Mensagens
   const [whatsappTemplate, setWhatsappTemplate] = useState('');
@@ -490,13 +491,14 @@ const Settings: React.FC = () => {
             { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
             { id: 'links', label: 'Links da Vitrine', icon: Link2 },
             { id: 'templates', label: 'Templates de Mensagem', icon: MessageSquare },
+            { id: 'integrations', label: 'API & Integrações', icon: Shield },
             { id: 'billing', label: 'Planos & Cobrança', icon: CreditCard }
           ].map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'account' | 'profile' | 'links' | 'templates' | 'integrations' | 'billing')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-[#101827] text-white shadow-md border border-white/5'
@@ -828,6 +830,11 @@ const Settings: React.FC = () => {
             </div>
           </SettingsSection>
         </div>
+      )}
+
+      {/* ABA: API E INTEGRAÇÕES */}
+      {activeTab === 'integrations' && (
+        <ApiIntegrationsTab />
       )}
 
       {/* ABA 3: PLANOS E COBRANÇA */}
