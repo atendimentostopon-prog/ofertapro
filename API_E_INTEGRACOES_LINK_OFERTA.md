@@ -125,10 +125,15 @@ curl -X POST "https://[SEU_SUPABASE_PROJECT]/functions/v1/public-api/dispatch" \
 ## 10. Resultado do Build
 O build do projeto foi compilado e compactado sem nenhuma pendência ou erro de importação:
 ```bash
-vite v8.0.11 building client environment for production...
-transforming...✓ 2454 modules transformed.
+vite v5.2.11 building for production...
+transforming...
+✓ 2341 modules transformed.
 rendering chunks...
-✓ built in 1.36s
+computing gzip size...
+dist/index.html                                                  1.85 kB │ gzip:   0.88 kB
+dist/assets/index-D7b3i3yX.css                                  44.20 kB │ gzip:   8.91 kB
+dist/assets/index-DY6YcW7F.js                                1,833.00 kB │ gzip: 554.49 kB
+✓ built in 14.88s
 ```
 
 ---
