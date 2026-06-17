@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Marketplace } from '../types';
-import { MARKETPLACE_LABELS } from '../data/mock';
+import { MARKETPLACE_LABELS, MARKETPLACE_COLORS, MARKETPLACE_EMOJIS } from '../lib/utils';
+import { getMarketplaceLogoSrc, getChannelLogoSrc } from '../lib/logos';
 
 interface BadgeProps {
   type: 'marketplace' | 'category' | 'status' | 'channel';
@@ -8,37 +9,22 @@ interface BadgeProps {
   size?: 'sm' | 'md';
 }
 
-const marketplaceBg: Record<Marketplace, string> = {
-  mercadolivre: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  shopee: 'bg-orange-100 text-orange-700 border-orange-200',
-  amazon: 'bg-amber-100 text-amber-800 border-amber-200',
-  magalu: 'bg-blue-100 text-blue-700 border-blue-200',
-  aliexpress: 'bg-red-100 text-red-700 border-red-200',
-};
-
-const marketplaceEmoji: Record<Marketplace, string> = {
-  mercadolivre: '🟡',
-  shopee: '🟠',
-  amazon: '📦',
-  magalu: '🔵',
-  aliexpress: '🔴',
-};
-
 const statusConfig: Record<string, { label: string; className: string; dot: string }> = {
-  active: { label: 'Ativo', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  paused: { label: 'Pausado', className: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-  draft: { label: 'Rascunho', className: 'bg-slate-100 text-slate-600 border-slate-200', dot: 'bg-slate-400' },
-  connected: { label: 'Conectado', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  disconnected: { label: 'Desconectado', className: 'bg-slate-100 text-slate-500 border-slate-200', dot: 'bg-slate-400' },
-  error: { label: 'Erro', className: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500' },
-  success: { label: 'Enviado', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  partial: { label: 'Parcial', className: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  active: { label: 'Ativo', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
+  paused: { label: 'Pausado', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-500' },
+  draft: { label: 'Rascunho', className: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-500' },
+  connected: { label: 'Conectado', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
+  disconnected: { label: 'Desconectado', className: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-500' },
+  error: { label: 'Erro', className: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-500' },
+  failed: { label: 'Erro', className: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-500' },
+  success: { label: 'Enviado', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
+  partial: { label: 'Parcial', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-550' },
 };
 
-const channelConfig: Record<string, { className: string; label: string }> = {
-  whatsapp: { className: 'bg-green-100 text-green-700 border-green-200', label: 'WhatsApp' },
-  telegram: { className: 'bg-sky-100 text-sky-700 border-sky-200', label: 'Telegram' },
-  discord: { className: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Discord' },
+const channelConfig: Record<string, { className: string; label: string; logo: string; emoji: string }> = {
+  whatsapp: { className: 'bg-green-500/10 text-green-400 border-green-500/20', label: 'WhatsApp', logo: getChannelLogoSrc('whatsapp'), emoji: '💬' },
+  telegram: { className: 'bg-sky-500/10 text-sky-400 border-sky-500/20', label: 'Telegram', logo: getChannelLogoSrc('telegram'), emoji: '✈️' },
+  discord: { className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', label: 'Discord', logo: getChannelLogoSrc('discord'), emoji: '🎮' },
 };
 
 const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
@@ -46,10 +32,22 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
 
   if (type === 'marketplace') {
     const mp = value as Marketplace;
+    const label = MARKETPLACE_LABELS[mp] || value;
+    const bgClass = MARKETPLACE_COLORS[mp] || 'bg-slate-800 text-slate-300 border-slate-700/50';
+    const emoji = MARKETPLACE_EMOJIS[mp] || '🛒';
+
     return (
-      <span className={`inline-flex items-center gap-1 font-semibold rounded-full border ${marketplaceBg[mp]} ${sizeClass}`}>
-        <span>{marketplaceEmoji[mp]}</span>
-        {MARKETPLACE_LABELS[mp]}
+      <span className={`inline-flex items-center gap-1.5 font-semibold rounded-full border ${bgClass} ${sizeClass}`}>
+        <img
+          src={getMarketplaceLogoSrc(mp)}
+          alt={label}
+          className="w-3 h-3 object-contain flex-shrink-0"
+          onError={(e: any) => {
+            // Se o arquivo não existir ou falhar, substitui a própria tag de imagem pelo emoji fallback
+            e.target.outerHTML = `<span>${emoji}</span>`;
+          }}
+        />
+        {label}
       </span>
     );
   }
@@ -66,10 +64,19 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
   }
 
   if (type === 'channel') {
-    const config = channelConfig[value.toLowerCase()];
+    const channelKey = value.toLowerCase();
+    const config = channelConfig[channelKey];
     if (!config) return null;
     return (
-      <span className={`inline-flex items-center font-medium rounded-full border ${config.className} ${sizeClass}`}>
+      <span className={`inline-flex items-center gap-1.5 font-medium rounded-full border ${config.className} ${sizeClass}`}>
+        <img
+          src={config.logo}
+          alt={config.label}
+          className="w-3 h-3 object-contain flex-shrink-0"
+          onError={(e: any) => {
+            e.target.outerHTML = `<span>${config.emoji}</span>`;
+          }}
+        />
         {config.label}
       </span>
     );
@@ -77,7 +84,7 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
 
   // category
   return (
-    <span className={`inline-flex items-center font-medium rounded-full bg-slate-100 text-slate-700 border border-slate-200 ${sizeClass}`}>
+    <span className={`inline-flex items-center font-medium rounded-full bg-slate-800 text-slate-300 border border-slate-700/50 ${sizeClass}`}>
       {value}
     </span>
   );

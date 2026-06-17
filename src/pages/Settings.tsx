@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  User, Link2, MessageSquare, Link, BarChart3, Save,
+  User as UserIcon, Link2, MessageSquare, Link, BarChart3, Save,
   Check, Copy, ExternalLink, Globe, Bell, Shield,
-  CreditCard, ChevronRight, Palette
+  CreditCard, Palette, Camera, Loader2, LogOut, AlertCircle, Sparkles, CheckCircle2, Trophy, HelpCircle
 } from 'lucide-react';
-import { mockUser } from '../data/mock';
+import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
+import { compressImage, uploadAvatarImage } from '../lib/image-utils';
+import { FEATURES } from '../config/features';
+import { FeedbackService } from '../services/FeedbackService';
+import { TemplateService } from '../services/TemplateService';
+import { getPlanLimits, PLAN_CONFIGS } from '../config/plans';
+import { UserPlan } from '../types';
+import { Avatar } from '../components/ui/Avatar';
 
 const SettingsSection: React.FC<{
   title: string;
@@ -12,17 +20,17 @@ const SettingsSection: React.FC<{
   icon: React.ElementType;
   children: React.ReactNode;
 }> = ({ title, description, icon: Icon, children }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-    <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-        <Icon className="w-4 h-4 text-indigo-600" />
+  <div className="glass-card overflow-hidden border-white/5 shadow-sm">
+    <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+        <Icon className="w-4.5 h-4.5 text-indigo-400" size={18} />
       </div>
       <div>
-        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-        {description && <p className="text-xs text-slate-400">{description}</p>}
+        <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">{title}</h3>
+        {description && <p className="text-[12px] font-medium text-slate-400 mt-0.5">{description}</p>}
       </div>
     </div>
-    <div className="p-6 space-y-4">{children}</div>
+    <div className="p-6 space-y-5">{children}</div>
   </div>
 );
 
@@ -32,9 +40,9 @@ const Field: React.FC<{
   children: React.ReactNode;
 }> = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="text-sm font-medium text-slate-700">{label}</label>
+    <label className="text-sm font-medium text-slate-350">{label}</label>
     {children}
-    {hint && <p className="text-xs text-slate-400">{hint}</p>}
+    {hint && <p className="text-xs text-slate-500">{hint}</p>}
   </div>
 );
 
@@ -45,12 +53,12 @@ const Toggle: React.FC<{ label: string; description?: string; defaultChecked?: b
   return (
     <div className="flex items-center justify-between py-1">
       <div>
-        <p className="text-sm font-medium text-slate-800">{label}</p>
-        {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
+        <p className="text-sm font-medium text-slate-200">{label}</p>
+        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
       </div>
       <button
         onClick={() => setChecked(!checked)}
-        className={`relative w-11 h-6 rounded-full transition-all duration-200 ${checked ? 'bg-indigo-600' : 'bg-slate-200'}`}
+        className={`relative w-11 h-6 rounded-full transition-all duration-200 ${checked ? 'bg-indigo-600' : 'bg-zinc-800'}`}
       >
         <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
@@ -59,253 +67,900 @@ const Toggle: React.FC<{ label: string; description?: string; defaultChecked?: b
 };
 
 const Settings: React.FC = () => {
+  const { user, refreshProfile } = useUser();
   const [saved, setSaved] = useState(false);
-  const [username, setUsername] = useState(mockUser.username);
-  const [displayName, setDisplayName] = useState(mockUser.name);
-  const [description, setDescription] = useState(mockUser.description || '');
-  const [email, setEmail] = useState(mockUser.email);
-  const [messageTemplate, setMessageTemplate] = useState(
-    `🔥 *{nome_oferta}*\n\n💰 De {preco_original} por *{preco_promocional}*\n🏷 Cupom: *{cupom}*\n\n🔗 {link_afiliado}\n\n_OfertaPro — As melhores ofertas do dia!_`
-  );
-  const [shortener, setShortener] = useState('bitly');
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const publicAvatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Perfil state
+  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [preferredName, setPreferredName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  // Vitrine pública state
+  const [publicName, setPublicName] = useState('');
+  const [publicAvatarUrl, setPublicAvatarUrl] = useState('');
+  const [bio, setBio] = useState('');
+  const [isPublicActive, setIsPublicActive] = useState(true);
+  const [uploadingPublicAvatar, setUploadingPublicAvatar] = useState(false);
+  const [publicTheme, setPublicTheme] = useState('default');
+
+  // Links sociais da vitrine
+  const [whatsappGroupUrl, setWhatsappGroupUrl] = useState('');
+  const [telegramGroupUrl, setTelegramGroupUrl] = useState('');
+  const [discordGroupUrl, setDiscordGroupUrl] = useState('');
+
+  // Erros locais de campos sociais
+  const [whatsappError, setWhatsappError] = useState(false);
+  const [telegramError, setTelegramError] = useState(false);
+  const [discordError, setDiscordError] = useState(false);
+
+  // Encurtador local
+  const [shortener, setShortener] = useState(() => {
+    return localStorage.getItem('link_shortener') || 'bitly';
+  });
   const [copied, setCopied] = useState(false);
 
-  const publicUrl = `ofertapro.com/${username}`;
+  // Aba ativa geral
+  const [activeTab, setActiveTab] = useState<'profile' | 'templates' | 'billing' | 'account' | 'links'>('account');
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Pilar E: Templates de Mensagens
+  const [whatsappTemplate, setWhatsappTemplate] = useState('');
+  const [telegramTemplate, setTelegramTemplate] = useState('');
+  const [discordTemplate, setDiscordTemplate] = useState('');
+  const [currentEditingTemplateTab, setCurrentEditingTemplateTab] = useState<'whatsapp' | 'telegram' | 'discord'>('whatsapp');
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
+  // Pilar D: Limites de Uso
+  const [activeOffersCount, setActiveOffersCount] = useState(0);
+  const [connectedChannelsCount, setConnectedChannelsCount] = useState(0);
+  const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
+
+  // Mock de oferta para renderização do preview de templates
+  const mockOffer = {
+    name: 'Teclado Mecânico Gamer Corsair K70 RGB',
+    originalPrice: '899.90',
+    salePrice: '599.90',
+    discount: 33,
+    coupon: 'CORSAIR10',
+    marketplace: 'amazon',
+    category: 'Eletrônicos'
+  };
+
+  const loadUsageStats = async () => {
+    if (!user) return;
+    try {
+      const [offersRes, channelsRes] = await Promise.all([
+        supabase.from('offers').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'active'),
+        supabase.from('channels').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'connected')
+      ]);
+      setActiveOffersCount(offersRes.count || 0);
+      setConnectedChannelsCount(channelsRes.count || 0);
+    } catch (err) {
+      console.error('Erro ao carregar métricas de limites:', err);
+    }
+  };
+
+  const loadTemplates = async () => {
+    if (!user) return;
+    try {
+      setLoadingTemplates(true);
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setWhatsappTemplate(data.whatsapp_template || '');
+        setTelegramTemplate(data.telegram_template || '');
+        setDiscordTemplate(data.discord_template || '');
+      } else {
+        // Inicializar com padrões
+        setWhatsappTemplate(TemplateService.getDefaultTemplate('whatsapp'));
+        setTelegramTemplate(TemplateService.getDefaultTemplate('telegram'));
+        setDiscordTemplate(TemplateService.getDefaultTemplate('discord'));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar templates:', err);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '');
+      setFullName(user.full_name || '');
+      setAvatarUrl(user.avatar_url || '');
+      setPreferredName(user.preferred_name || '');
+      setPhone(user.phone || '');
+
+      setPublicName(user.publicName || user.public_display_name || user.full_name || '');
+      setPublicAvatarUrl(user.public_avatar_url || user.publicAvatarUrl || '');
+      setBio(user.bio || '');
+      setIsPublicActive(user.public_page_active ?? user.isPublicActive ?? true);
+      setPublicTheme(user.public_theme || 'default');
+
+      setWhatsappGroupUrl(user.whatsapp_group_url || '');
+      setTelegramGroupUrl(user.telegram_group_url || '');
+      setDiscordGroupUrl(user.discord_group_url || '');
+
+      // Buscar contagens de uso para faturamento
+      loadUsageStats();
+
+      // Buscar templates dinâmicos
+      loadTemplates();
+    }
+  }, [user]);
+
+  // Validar e Formatar URLs de grupos sociais
+  const formatAndValidateLink = (url: string, type: 'whatsapp' | 'telegram' | 'discord'): { valid: boolean; normalized: string } => {
+    let val = url.trim();
+    if (val === '') return { valid: true, normalized: '' };
+    
+    // Prefixar com https:// caso o usuário não digite
+    if (!/^https?:\/\//i.test(val)) {
+      val = 'https://' + val;
+    }
+    
+    const lowerVal = val.toLowerCase();
+    let valid = false;
+    
+    if (type === 'whatsapp') {
+      valid = lowerVal.includes('chat.whatsapp.com') || lowerVal.includes('wa.me') || lowerVal.includes('api.whatsapp.com');
+    } else if (type === 'telegram') {
+      valid = lowerVal.includes('t.me') || lowerVal.includes('telegram.me');
+    } else if (type === 'discord') {
+      valid = lowerVal.includes('discord.gg') || lowerVal.includes('discord.com/invite') || lowerVal.includes('discord.com/channels') || lowerVal.includes('discordapp.com');
+    }
+    
+    return { valid, normalized: valid ? val : url };
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadingAvatar(true);
+    try {
+      const localPreview = URL.createObjectURL(file);
+      setAvatarUrl(localPreview);
+
+      const compressed = await compressImage(file);
+      const publicUrl = await uploadAvatarImage(compressed, user.id, 'profile');
+      
+      setAvatarUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Erro no upload do avatar:', err);
+      alert('Erro ao carregar avatar. Tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handlePublicAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadingPublicAvatar(true);
+    try {
+      const localPreview = URL.createObjectURL(file);
+      setPublicAvatarUrl(localPreview);
+
+      const compressed = await compressImage(file);
+      const uploadedUrl = await uploadAvatarImage(compressed, user.id, 'public');
+      
+      setPublicAvatarUrl(uploadedUrl);
+    } catch (err: any) {
+      console.error('Erro no upload da foto pública:', err);
+      alert('Erro ao carregar foto pública. Tente novamente.');
+    } finally {
+      setUploadingPublicAvatar(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    if (!fullName.trim()) {
+      alert('Nome da Conta é obrigatório.');
+      return;
+    }
+    if (!publicName.trim()) {
+      alert('Nome Público da Vitrine é obrigatório.');
+      return;
+    }
+    if (!username.trim() || username.length < 3) {
+      alert('Slug da vitrine é obrigatório e deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
+    if (cleanUsername !== username) {
+      alert('Slug inválido. Não use espaços ou caracteres especiais.');
+      return;
+    }
+
+    // Validar e formatar links das redes sociais
+    const wppVal = formatAndValidateLink(whatsappGroupUrl, 'whatsapp');
+    const telVal = formatAndValidateLink(telegramGroupUrl, 'telegram');
+    const discVal = formatAndValidateLink(discordGroupUrl, 'discord');
+
+    setWhatsappError(!wppVal.valid);
+    setTelegramError(!telVal.valid);
+    setDiscordError(!discVal.valid);
+
+    if (!wppVal.valid || !telVal.valid || !discVal.valid) {
+      alert('Por favor, corrija os links inválidos das redes sociais destacados.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (cleanUsername !== user.username) {
+        const { data: existingUser, error: checkError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', cleanUsername)
+          .neq('id', user.id)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+        if (existingUser) {
+          alert('Este slug já está em uso por outro usuário. Escolha outro.');
+          setSaving(false);
+          return;
+        }
+      }
+
+      // 1. Salvar dados de Perfil
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          // Conta
+          full_name: fullName.trim(),
+          preferred_name: preferredName.trim() || null,
+          phone: phone.trim() || null,
+          avatar_url: avatarUrl || null,
+
+          // Vitrine
+          public_name: publicName.trim(),
+          public_display_name: publicName.trim(),
+          username: cleanUsername,
+          public_url: cleanUsername,
+          bio: bio.trim() || null,
+          public_avatar_url: publicAvatarUrl || null,
+          is_public_active: isPublicActive,
+          public_page_active: isPublicActive,
+          public_theme: publicTheme,
+          public_page_created: true,
+
+          // Links Sociais
+          whatsapp_group_url: wppVal.normalized || null,
+          telegram_group_url: telVal.normalized || null,
+          discord_group_url: discVal.normalized || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // 2. Salvar Templates de Mensagem em user_settings
+      const currentWhatsapp = whatsappTemplate || TemplateService.getDefaultTemplate('whatsapp');
+      const currentTelegram = telegramTemplate || TemplateService.getDefaultTemplate('telegram');
+      const currentDiscord = discordTemplate || TemplateService.getDefaultTemplate('discord');
+
+      // Validar templates antes de salvar
+      const valWpp = TemplateService.validateTemplate(currentWhatsapp);
+      const valTel = TemplateService.validateTemplate(currentTelegram);
+      const valDisc = TemplateService.validateTemplate(currentDiscord);
+
+      if (!valWpp.valid) {
+        alert(`Erro no template de WhatsApp: ${valWpp.error}`);
+        setSaving(false);
+        return;
+      }
+      if (!valTel.valid) {
+        alert(`Erro no template de Telegram: ${valTel.error}`);
+        setSaving(false);
+        return;
+      }
+      if (!valDisc.valid) {
+        alert(`Erro no template de Discord: ${valDisc.error}`);
+        setSaving(false);
+        return;
+      }
+
+      // Gravar no Supabase (user_settings)
+      const { error: settingsError } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          whatsapp_template: currentWhatsapp,
+          telegram_template: currentTelegram,
+          discord_template: currentDiscord,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (settingsError) throw settingsError;
+
+      // Salva preferências locais legadas
+      localStorage.setItem('link_shortener', shortener);
+
+      await refreshProfile();
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err: any) {
+      console.error('Erro ao salvar configurações:', err);
+      alert(`Erro: ${err.message || 'Falha ao salvar configurações.'}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(publicUrl);
+    navigator.clipboard.writeText(`${window.location.origin}/u/${username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Simulação de Upgrade (SaaS Monetização)
+  const handleUpgradePlan = async (targetPlan: UserPlan) => {
+    if (!user) return;
+    setUpdatingPlan(targetPlan);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ plan: targetPlan })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      await refreshProfile();
+      loadUsageStats();
+      
+      alert(`Parabéns! Sua conta foi atualizada para o plano ${targetPlan.toUpperCase()} com sucesso! 🚀`);
+    } catch (err: any) {
+      console.error('Erro ao atualizar plano:', err);
+      alert('Erro ao atualizar plano.');
+    } finally {
+      setUpdatingPlan(null);
+    }
+  };
+
+  // Injetar variável no cursor do textarea
+  const injectVariable = (variable: string) => {
+    if (currentEditingTemplateTab === 'whatsapp') {
+      setWhatsappTemplate(prev => prev + ' ' + variable);
+    } else if (currentEditingTemplateTab === 'telegram') {
+      setTelegramTemplate(prev => prev + ' ' + variable);
+    } else if (currentEditingTemplateTab === 'discord') {
+      setDiscordTemplate(prev => prev + ' ' + variable);
+    }
+  };
+
+  const limits = getPlanLimits(user.plan);
+
+  // Obter template para renderização de preview
+  const getActiveTemplateContent = () => {
+    if (currentEditingTemplateTab === 'whatsapp') return whatsappTemplate;
+    if (currentEditingTemplateTab === 'telegram') return telegramTemplate;
+    return discordTemplate;
+  };
+
+  const getActiveTemplatePlaceholder = () => {
+    return TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+  };
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-slide-up">
+    <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Configurações</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Personalize sua conta e preferências</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
+          <p className="text-[15px] font-medium text-[#94A3B8] mt-1">Gerencie seu perfil, planos e templates de disparo</p>
         </div>
         <button
           onClick={handleSave}
-          className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg shadow-indigo-200"
+          disabled={saving}
+          className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg shadow-indigo-950/40 disabled:opacity-50"
         >
-          {saved ? <><Check className="w-4 h-4" /> Salvo!</> : <><Save className="w-4 h-4" /> Salvar</>}
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <><Check className="w-4 h-4" /> Salvo!</>
+          ) : (
+            <><Save className="w-4 h-4" /> Salvar Alterações</>
+          )}
         </button>
       </div>
 
-      {/* Profile */}
-      <SettingsSection title="Perfil Público" description="Como você aparece para seus seguidores" icon={User}>
-        {/* Avatar */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-400 to-purple-400">
-              <img
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=4f46e5`}
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center">
-              <Palette className="w-3 h-3 text-white" />
-            </button>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-800">{displayName}</p>
-            <p className="text-xs text-slate-400">Clique no ícone para alterar a foto</p>
-          </div>
-        </div>
-
-        <Field label="Nome de Exibição" hint="Como seu nome aparece na página pública">
-          <input
-            type="text"
-            value={displayName}
-            onChange={e => setDisplayName(e.target.value)}
-            className="input-modern"
-          />
-        </Field>
-
-        <Field label="Descrição / Bio" hint="Apresente-se para seus seguidores (máx. 200 caracteres)">
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={3}
-            maxLength={200}
-            className="input-modern resize-none"
-            placeholder="Afiliado especializado em eletrônicos..."
-          />
-          <p className="text-xs text-slate-400 text-right">{description.length}/200</p>
-        </Field>
-
-        <Field label="E-mail">
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="input-modern"
-          />
-        </Field>
-      </SettingsSection>
-
-      {/* Public URL */}
-      <SettingsSection title="Página Pública" description="URL personalizada para compartilhar suas ofertas" icon={Globe}>
-        <Field label="Nome de usuário" hint="Apenas letras minúsculas, números e hífens. Ex: meu-usuario">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">
-                ofertapro.com/
-              </span>
-              <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                className="input-modern pl-32"
-              />
-            </div>
-          </div>
-        </Field>
-
-        <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <Globe className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          <span className="text-sm text-indigo-600 font-medium flex-1">{publicUrl}</span>
-          <button
-            onClick={copyUrl}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 transition-colors"
-          >
-            {copied ? <><Check className="w-3.5 h-3.5 text-emerald-500" /> Copiado!</> : <><Copy className="w-3.5 h-3.5" /> Copiar</>}
-          </button>
-          <a
-            href={`/u/${username}`}
-            target="_blank"
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-600 transition-colors"
-          >
-            <ExternalLink className="w-3.5 h-3.5" /> Abrir
-          </a>
-        </div>
-      </SettingsSection>
-
-      {/* Message Template */}
-      <SettingsSection title="Modelo de Mensagem" description="Template padrão usado no disparo de ofertas" icon={MessageSquare}>
-        <Field
-          label="Modelo padrão"
-          hint="Use as variáveis: {nome_oferta}, {preco_original}, {preco_promocional}, {cupom}, {link_afiliado}"
-        >
-          <textarea
-            value={messageTemplate}
-            onChange={e => setMessageTemplate(e.target.value)}
-            rows={6}
-            className="input-modern resize-none font-mono text-xs"
-          />
-        </Field>
-
-        {/* Preview */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-slate-500">Prévia da mensagem:</p>
-          <div className="whatsapp-bubble text-xs w-fit max-w-full">
-            <p className="font-bold text-slate-700">🔥 iPhone 15 Pro Max 256GB</p>
-            <p className="text-slate-600 mt-1">💰 De R$ 9.999 por <strong>R$ 7.499</strong></p>
-            <p className="text-slate-600">🏷 Cupom: <strong>IPHONE15PRO</strong></p>
-            <p className="text-blue-600 mt-1">🔗 ofertapro.com/l/abc123</p>
-            <p className="text-slate-500 text-[10px] mt-1.5 italic">OfertaPro — As melhores ofertas do dia!</p>
-          </div>
-        </div>
-      </SettingsSection>
-
-      {/* Link Shortener */}
-      <SettingsSection title="Encurtador de Links" description="Configure o encurtamento dos seus links de afiliado" icon={Link}>
-        <Field label="Serviço de encurtamento">
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 'bitly', label: 'bit.ly', desc: 'Gratuito' },
-              { value: 'tinyurl', label: 'TinyURL', desc: 'Gratuito' },
-              { value: 'custom', label: 'Domínio Próprio', desc: 'Pro ⭐' },
-            ].map(s => (
+      {/* Tabs Menu Principal */}
+      <div className="w-full overflow-x-auto scrollbar-none py-1">
+        <div className="flex border border-white/5 bg-[#0B1020]/45 p-1.5 rounded-2xl gap-2 shadow-sm flex-nowrap min-w-max">
+          {[
+            { id: 'account', label: 'Minha Conta', icon: UserIcon },
+            { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
+            { id: 'links', label: 'Links da Vitrine', icon: Link2 },
+            { id: 'templates', label: 'Templates de Mensagem', icon: MessageSquare },
+            { id: 'billing', label: 'Planos & Cobrança', icon: CreditCard }
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
               <button
-                key={s.value}
-                onClick={() => setShortener(s.value)}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  shortener === s.value
-                    ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
-                    : 'border-slate-200 hover:border-slate-300'
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'bg-[#101827] text-white shadow-md border border-white/5'
+                    : 'text-slate-450 hover:text-slate-200 hover:bg-[#101827]/40'
                 }`}
               >
-                <p className="text-sm font-semibold">{s.label}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{s.desc}</p>
+                <Icon className="w-4 h-4" />
+                {tab.label}
               </button>
-            ))}
-          </div>
-        </Field>
-
-        {shortener === 'custom' && (
-          <Field label="Domínio personalizado" hint="Ex: links.meusite.com.br">
-            <input type="text" placeholder="links.meusite.com.br" className="input-modern" />
-          </Field>
-        )}
-      </SettingsSection>
-
-      {/* Tracking */}
-      <SettingsSection title="Tracking e Analytics" description="Preferências de rastreamento e métricas" icon={BarChart3}>
-        <div className="space-y-3 divide-y divide-slate-100">
-          <Toggle label="Rastreamento de cliques" description="Registre cada clique nos seus links de afiliado" defaultChecked />
-          <div className="pt-3">
-            <Toggle label="Notificações por e-mail" description="Receba resumos semanais de performance" defaultChecked />
-          </div>
-          <div className="pt-3">
-            <Toggle label="Relatórios automáticos" description="Gere relatórios mensais automaticamente" />
-          </div>
-          <div className="pt-3">
-            <Toggle label="Alertas de erros" description="Seja notificado quando um disparo falhar" defaultChecked />
-          </div>
-        </div>
-      </SettingsSection>
-
-      {/* Danger Zone */}
-      <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-red-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <Shield className="w-4 h-4 text-red-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Zona de Perigo</h3>
-            <p className="text-xs text-slate-400">Ações irreversíveis da conta</p>
-          </div>
-        </div>
-        <div className="p-6 space-y-3">
-          <button className="w-full flex items-center justify-between p-3 rounded-xl border border-red-200 hover:bg-red-50 transition-colors group">
-            <div className="text-left">
-              <p className="text-sm font-medium text-red-700">Excluir todas as ofertas</p>
-              <p className="text-xs text-slate-400">Remove permanentemente todas suas ofertas cadastradas</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600" />
-          </button>
-          <button className="w-full flex items-center justify-between p-3 rounded-xl border border-red-200 hover:bg-red-50 transition-colors group">
-            <div className="text-left">
-              <p className="text-sm font-medium text-red-700">Desconectar todos os canais</p>
-              <p className="text-xs text-slate-400">Remove a conexão com todos os grupos e canais</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600" />
-          </button>
-          <button className="w-full flex items-center justify-between p-3 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 transition-colors group">
-            <div className="text-left">
-              <p className="text-sm font-bold text-red-700">Excluir minha conta</p>
-              <p className="text-xs text-slate-400">Esta ação é permanente e não pode ser desfeita</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-red-500 group-hover:text-red-700" />
-          </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Save button bottom */}
-      <div className="flex justify-end pb-4">
-        <button onClick={handleSave} className="btn-gradient flex items-center gap-2 text-sm px-6 py-3 shadow-lg shadow-indigo-200">
-          {saved ? <><Check className="w-4 h-4" /> Configurações salvas!</> : <><Save className="w-4 h-4" /> Salvar configurações</>}
-        </button>
-      </div>
+      {/* ========================================================== */}
+      {/* ABA 1: VITRINE PÚBLICA */}
+      {/* ========================================================== */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6">
+          <SettingsSection title="Página de Vendas Pública" description="Aparência e informações visíveis na sua página de ofertas" icon={UserIcon}>
+            <div className="flex items-center gap-6">
+              <div className="relative group">
+                <input
+                  type="file"
+                  ref={publicAvatarInputRef}
+                  onChange={handlePublicAvatarChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div 
+                  onClick={() => !uploadingPublicAvatar && publicAvatarInputRef.current?.click()}
+                  className={`w-20 h-20 rounded-2xl overflow-hidden bg-[#101827] border transition-all duration-300 cursor-pointer ${
+                    uploadingPublicAvatar ? 'border-indigo-500' : 'border-white/10 shadow-md group-hover:border-indigo-400'
+                  }`}
+                >
+                  {uploadingPublicAvatar ? (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-900/80">
+                      <Loader2 className="w-6 h-6 text-indigo-450 animate-spin" />
+                    </div>
+                  ) : (
+                    <Avatar
+                      src={publicAvatarUrl || avatarUrl}
+                      name={publicName || user.email}
+                      size="xl"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  )}
+                  {!uploadingPublicAvatar && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-[13px] font-bold text-slate-200">Foto da Vitrine</h4>
+                <p className="text-[11px] text-[#94A3B8] max-w-xs leading-normal">Carregue a foto que aparecerá no topo do seu catálogo público.</p>
+              </div>
+            </div>
+
+            <Field label="Nome de Exibição" hint="Nome público no topo da vitrine">
+              <input
+                type="text"
+                value={publicName}
+                onChange={e => setPublicName(e.target.value)}
+                className="input-modern text-xs"
+                required
+              />
+            </Field>
+
+            <Field label="Bio da Vitrine" hint="Breve mensagem de boas-vindas aos seguidores (máx. 200 caracteres)">
+              <textarea
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                rows={3}
+                maxLength={200}
+                className="input-modern resize-none text-xs"
+                placeholder="Ex: Pegue as melhores ofertas e cupons atualizados diariamente!"
+              />
+              <p className="text-[10px] text-slate-500 text-right">{bio.length}/200</p>
+            </Field>
+
+            <Field label="Link de Acesso (URL Personalizada)">
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-mono select-none">
+                  {window.location.origin}/u/
+                </span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  className="input-modern pl-40 text-xs font-mono"
+                  required
+                />
+              </div>
+            </Field>
+
+            {/* URL Actions */}
+            <div className="flex flex-wrap items-center gap-3 p-3 bg-[#0B1020]/50 rounded-xl border border-white/5">
+              <Globe className="w-4 h-4 text-slate-500" />
+              <span className="text-xs text-indigo-400 font-bold flex-1 truncate">{window.location.origin}/u/{username}</span>
+              <button
+                onClick={copyUrl}
+                className="flex items-center gap-1 text-[11px] font-bold text-slate-300 hover:text-indigo-400 transition-colors"
+              >
+                {copied ? 'Copiado!' : 'Copiar Link'}
+              </button>
+              <a
+                href={`/u/${username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[11px] font-bold text-slate-300 hover:text-indigo-400 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Visualizar
+              </a>
+            </div>
+
+            {/* Tema */}
+            <Field label="Tema de Cores">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
+                  { id: 'indigo', name: 'Índigo', color: 'bg-indigo-600' },
+                  { id: 'emerald', name: 'Esmeralda', color: 'bg-emerald-600' },
+                  { id: 'dark', name: 'Escuro/Dark', color: 'bg-zinc-800' }
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setPublicTheme(t.id)}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border text-center transition-all ${
+                      publicTheme === t.id 
+                        ? 'border-indigo-500 bg-indigo-600/25 text-indigo-300 shadow-sm' 
+                        : 'border-white/5 bg-[#0B1020]/50 text-slate-400 hover:bg-[#101827]/50'
+                    }`}
+                  >
+                    <div className={`w-3.5 h-3.5 rounded-full ${t.color}`} />
+                    <span className="text-[11px] font-bold">{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            {/* Status Switch */}
+            <div className="flex items-center justify-between py-2 border-t border-white/5 mt-4 pt-4">
+              <div>
+                <p className="text-xs font-bold text-slate-200">Status da Página Pública</p>
+                <p className="text-[11px] text-[#94A3B8] mt-0.5">Disponibilizar vitrine na internet.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPublicActive(!isPublicActive)}
+                className={`relative w-11 h-6 rounded-full transition-all duration-200 ${isPublicActive ? 'bg-indigo-600' : 'bg-zinc-800'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPublicActive ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+          </SettingsSection>
+        </div>
+      )}
+
+      {/* ========================================================== */}
+      {/* ABA: LINKS DA VITRINE */}
+      {/* ========================================================== */}
+      {activeTab === 'links' && (
+        <div className="space-y-6">
+          <SettingsSection title="Links Públicos da Vitrine" description="Configure os links de convite para os seus canais e grupos de ofertas" icon={Link2}>
+            <Field label="Link do Grupo WhatsApp" hint="Insira o link de convite do grupo do WhatsApp (wa.me/... ou chat.whatsapp.com/...)">
+              <input
+                type="text"
+                value={whatsappGroupUrl}
+                onChange={e => { setWhatsappGroupUrl(e.target.value); setWhatsappError(false); }}
+                className={`input-modern text-xs ${whatsappError ? 'border-red-500 bg-red-950/10' : ''}`}
+                placeholder="Ex: chat.whatsapp.com/ABC123xyz"
+              />
+              {whatsappError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
+            </Field>
+
+            <Field label="Link do Canal/Grupo Telegram" hint="Insira o link público do seu canal ou grupo no Telegram (t.me/... ou telegram.me/...)">
+              <input
+                type="text"
+                value={telegramGroupUrl}
+                onChange={e => { setTelegramGroupUrl(e.target.value); setTelegramError(false); }}
+                className={`input-modern text-xs ${telegramError ? 'border-red-500 bg-red-950/10' : ''}`}
+                placeholder="Ex: t.me/meucanal"
+              />
+              {telegramError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
+            </Field>
+
+            <Field label="Link do Convite Discord" hint="Insira o link do convite do seu servidor do Discord (discord.gg/... ou discord.com/invite/...)">
+              <input
+                type="text"
+                value={discordGroupUrl}
+                onChange={e => { setDiscordGroupUrl(e.target.value); setDiscordError(false); }}
+                className={`input-modern text-xs ${discordError ? 'border-red-500 bg-red-950/10' : ''}`}
+                placeholder="Ex: discord.gg/abcde"
+              />
+              {discordError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
+            </Field>
+          </SettingsSection>
+        </div>
+      )}
+
+      {/*       {/* ABA 2: TEMPLATES DE MENSAGENS */}
+      {/* ========================================================== */}
+      {activeTab === 'templates' && (
+        <div className="space-y-6">
+          <SettingsSection title="Templates de Mensagem" description="Personalize a mensagem de envio para cada canal utilizando variáveis dinâmicas" icon={MessageSquare}>
+            
+            {/* Limit Check: Planos Free não suportam custom templates */}
+            {!limits.customTemplates && (
+              <div className="p-4 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
+                <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h4 className="text-xs font-bold text-slate-200">Customização disponível no plano Starter! 🚀</h4>
+                  <p className="text-[11px] text-[#94A3B8] font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('billing')}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-[11px] transition-colors shadow-md shadow-indigo-900/40 flex-shrink-0"
+                >
+                  Fazer Upgrade
+                </button>
+              </div>
+            )}
+
+            {/* Abas por canal */}
+            <div className="flex border-b border-white/5 pb-2 gap-2">
+              {[
+                { id: 'whatsapp', label: 'WhatsApp 💬' },
+                { id: 'telegram', label: 'Telegram ✈️' },
+                { id: 'discord', label: 'Discord 🎮' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setCurrentEditingTemplateTab(tab.id as any)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    currentEditingTemplateTab === tab.id
+                      ? 'bg-[#101827] text-slate-200 border border-white/5'
+                      : 'text-slate-450 hover:text-slate-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-2">
+              {/* Textarea e Variáveis */}
+              <div className="md:col-span-8 space-y-3">
+                <Field
+                  label={`Estrutura da Mensagem (${currentEditingTemplateTab.toUpperCase()})`}
+                  hint="Escreva o texto e clique nas variáveis ao lado para injetar"
+                >
+                  <textarea
+                    value={getActiveTemplateContent()}
+                    placeholder={getActiveTemplatePlaceholder()}
+                    onChange={e => {
+                      if (!limits.customTemplates) return; // Bloquear edição
+                      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(e.target.value);
+                      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(e.target.value);
+                      else setDiscordTemplate(e.target.value);
+                    }}
+                    disabled={!limits.customTemplates || loadingTemplates}
+                    rows={8}
+                    className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-[#070A12]/50 cursor-not-allowed text-slate-500 border-white/5' : ''}`}
+                  />
+                </Field>
+
+                {/* Variáveis dinâmicas para clicar */}
+                <div>
+                  <p className="text-xs font-bold text-slate-350 mb-2">Variáveis Disponíveis:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TemplateService.listAvailableVariables().map(v => (
+                      <button
+                        key={v.name}
+                        type="button"
+                        onClick={() => limits.customTemplates && injectVariable(v.name)}
+                        className={`px-2.5 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/50 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
+                          !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        title={v.description}
+                      >
+                        {v.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ações */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={!limits.customTemplates || loadingTemplates}
+                    onClick={() => {
+                      const def = TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+                      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(def);
+                      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(def);
+                      else setDiscordTemplate(def);
+                    }}
+                    className="px-3 py-2 border border-white/5 hover:border-white/10 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-colors"
+                  >
+                    Restaurar Padrão
+                  </button>
+                </div>
+              </div>
+
+              {/* Lado Direito: Preview da Mensagem */}
+              <div className="md:col-span-4 space-y-3 bg-[#0B1020]/30 rounded-xl p-4 border border-white/5 flex flex-col justify-between">
+                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Preview no Canal</p>
+                
+                {/* Whatsapp Preview bubble */}
+                <div className="text-xs max-w-full min-h-[140px] flex flex-col justify-end bg-[#070A12]/80 border border-white/5 p-3 shadow-sm rounded-xl text-slate-300">
+                  <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap">
+                    {TemplateService.renderTemplate(
+                      getActiveTemplateContent() || getActiveTemplatePlaceholder(),
+                      mockOffer,
+                      user,
+                      `ofertapro.com/r/xyz`
+                    )}
+                  </p>
+                </div>
+                
+                <p className="text-[9.5px] text-slate-500 font-medium text-center">As variáveis serão preenchidas com dados da oferta em runtime.</p>
+              </div>
+            </div>
+          </SettingsSection>
+        </div>
+      )}
+
+      {/* ABA 3: PLANOS E COBRANÇA */}
+      {/* ========================================================== */}
+      {activeTab === 'billing' && (
+        <div className="space-y-6">
+          <SettingsSection title="Planos & Cobrança" description="Status do seu plano de faturamento no OfertaPro" icon={CreditCard}>
+            <div className="p-6 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-450 flex-shrink-0">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="space-y-1.5 font-medium">
+                <h4 className="text-sm font-bold text-white">Plano Beta Gratuito Ativo 🚀</h4>
+                <p className="text-xs text-[#94A3B8] leading-relaxed">
+                  O OfertaPro está atualmente em fase de testes beta pública e é 100% gratuito. Todos os recursos PRO estão liberados por padrão para a sua conta, sem bloqueios de uso, limites de ofertas cadastradas ou restrições nos canais conectados.
+                </p>
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400 rounded-xl">
+                  Recursos PRO Liberados: Sem limites ou cobranças no Beta
+                </div>
+              </div>
+            </div>
+          </SettingsSection>
+        </div>
+      )}
+
+      {/* ABA 4: MINHA CONTA */}
+      {/* ========================================================== */}
+      {activeTab === 'account' && (
+        <div className="space-y-6">
+          <SettingsSection title="Configurações da Conta" description="Suas informações internas e de contato no OfertaPro" icon={UserIcon}>
+            <div className="flex items-center gap-5 p-4 bg-[#0B1020]/50 rounded-2xl border border-white/5 mb-2">
+              <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  onChange={handleAvatarChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div className={`w-14 h-14 rounded-full overflow-hidden bg-[#101827] border border-white/10 flex-shrink-0 shadow-inner group-hover:border-indigo-500 transition-all ${
+                  uploadingAvatar ? 'opacity-50' : ''
+                }`}>
+                  {uploadingAvatar ? (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-900/80">
+                      <Loader2 className="w-4 h-4 text-indigo-450 animate-spin" />
+                    </div>
+                  ) : (
+                    <Avatar
+                      src={avatarUrl}
+                      name={fullName || user.email}
+                      size="lg"
+                    />
+                  )}
+                </div>
+                {!uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full">
+                    <Camera className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-white truncate">{preferredName || fullName || 'Usuário'}</p>
+                <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
+              </div>
+            </div>
+
+            <Field label="Nome da Conta" hint="Nome completo usado internamente no seu painel administrativo">
+              <input
+                type="text"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                className="input-modern text-xs"
+              />
+            </Field>
+
+            <Field label="Como podemos te chamar?" hint="Nome preferido ou apelido para saudações e exibição no painel">
+              <input
+                type="text"
+                value={preferredName}
+                onChange={e => setPreferredName(e.target.value)}
+                placeholder="Ex: João"
+                className="input-modern text-xs"
+              />
+            </Field>
+
+            <Field label="Telefone de Contato" hint="Seu telefone/WhatsApp comercial com DDD">
+              <input
+                type="text"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="Ex: (11) 99999-9999"
+                className="input-modern text-xs"
+              />
+            </Field>
+
+            <Field label="E-mail de Cadastro" hint="Seu e-mail de acesso de login (somente leitura)">
+              <input
+                type="email"
+                value={user.email}
+                disabled
+                className="input-modern bg-[#070A12]/50 text-slate-500 border-white/5 cursor-not-allowed text-xs"
+              />
+            </Field>
+
+            <Field label="Código do Usuário (ID)" hint="Identificador de segurança da sua conta">
+              <input
+                type="text"
+                value={user.id}
+                disabled
+                className="input-modern bg-[#070A12]/50 text-slate-500 border-white/5 font-mono text-[10px] cursor-not-allowed"
+              />
+            </Field>
+
+            {/* Logout button */}
+            <div className="pt-4 border-t border-white/5">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (window.confirm('Tem certeza que deseja sair da conta?')) {
+                    await supabase.auth.signOut();
+                    window.location.href = '/login';
+                  }
+                }}
+                className="btn-secondary hover:bg-rose-950/20 hover:text-rose-450 hover:border-rose-900/50 transition-colors text-xs px-4 py-2 flex items-center gap-2"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sair da Conta
+              </button>
+            </div>
+           </SettingsSection>
+        </div>
+      )}
+
     </div>
   );
 };

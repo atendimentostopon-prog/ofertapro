@@ -1,98 +1,259 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthService } from './services/AuthService';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Offers from './pages/Offers';
+import NewOfferPage from './pages/NewOfferPage';
 import Channels from './pages/Channels';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import Feedbacks from './pages/Feedbacks';
 import PublicPage from './pages/PublicPage';
-import Layout from './components/Layout';
+import RedirectPage from './pages/RedirectPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import { UserProvider } from './context/UserContext';
+import { ToastProvider } from './context/ToastContext';
+import { supabase } from './lib/supabase';
+import DebugSupabase from './pages/DebugSupabase';
+
+const isPublicRoute = () => {
+  const path = window.location.pathname;
+  const privatePaths = ['/dashboard', '/offers', '/channels', '/history', '/settings', '/feedbacks'];
+  return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
+};
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  console.log("[BOOT] main render");
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [bootError, setBootError] = useState<any>(null);
 
-  const handleLogin = () => setIsLoggedIn(true);
-  const handleLogout = () => setIsLoggedIn(false);
+  useEffect(() => {
+    console.time("[BOOT] total");
+    console.log("[BOOT] App mounted");
+    console.log("[BOOT] Checking Supabase session...");
+
+    let active = true;
+
+    // Timeout individual de 3 segundos para a verificação de sessão (getSession)
+    const timeoutId = setTimeout(() => {
+      if (active && loading) {
+        console.warn("[BOOT] getSession timeout reached! Forcing loading to false.");
+        console.timeEnd("[BOOT] getSession");
+        console.timeEnd("[BOOT] total");
+        if (!isPublicRoute()) {
+          setBootError(new Error("Falha ao verificar sessão."));
+        }
+        console.log("[BOOT] bootLoading false");
+        setLoading(false);
+      }
+    }, 3000);
+
+    const initAuth = async () => {
+      try {
+        console.time("[BOOT] getSession");
+        console.log("[BOOT] before getSession");
+        
+        // Corrida com timeout para garantir resiliência
+        const sessionResult = await Promise.race([
+          AuthService.getSession(),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout em getSession")), 3000))
+        ]);
+
+        console.timeEnd("[BOOT] getSession");
+        console.log("[BOOT] after getSession", { hasSession: !!sessionResult });
+        
+        if (active) {
+          clearTimeout(timeoutId);
+          setSession(sessionResult);
+          
+          if (!sessionResult) {
+            // Se não houver sessão ativa, o carregamento do App termina imediatamente
+            console.log("[BOOT] No session, closing boot loaders");
+            console.timeEnd("[BOOT] total");
+            console.log("[BOOT] bootLoading false");
+            setLoading(false);
+          } else {
+            // Se houver sessão, o UserContext assume a continuação (loadProfile)
+            console.log("[BOOT] Session active. UserContext will load profile.");
+            console.log("[BOOT] bootLoading false");
+            setLoading(false);
+          }
+        }
+      } catch (err: any) {
+        console.error("[BOOT] Error fetching session:", err);
+        try {
+          console.timeEnd("[BOOT] getSession");
+        } catch (e) {
+          // ignore timer end error
+        }
+        try {
+          console.timeEnd("[BOOT] total");
+        } catch (e) {
+          // ignore timer end error
+        }
+        
+        if (active) {
+          clearTimeout(timeoutId);
+          if (!isPublicRoute()) {
+            setBootError(new Error("Falha ao verificar sessão."));
+          }
+          console.log("[BOOT] bootLoading false");
+          setLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    let subscription: any;
+    try {
+      subscription = AuthService.onAuthStateChange(sessionResult => {
+        console.log("[BOOT] Auth state changed, new session:", !!sessionResult);
+        if (active) {
+          setSession(sessionResult);
+        }
+      });
+    } catch (err) {
+      console.error("[BOOT] Error subscribing to auth state changes:", err);
+    }
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await AuthService.signOut();
+  };
+
+  if (bootError && !isPublicRoute()) {
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] p-6 text-center animate-fade-in text-[#F8FAFC]">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
+          ⚠️
+        </div>
+        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o OfertaPro</h2>
+        <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
+          {bootError.message || "O carregamento demorou mais que o esperado. Você pode tentar novamente ou limpar a sessão local."}
+        </p>
+        <p className="text-xs text-[#64748B] mt-2 max-w-xs leading-normal">
+          Você pode tentar novamente ou redefinir suas credenciais para tentar destravar o aplicativo.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 mt-8">
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-gradient px-6 py-2.5 font-bold text-sm"
+          >
+            Tentar novamente
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                await supabase.auth.signOut();
+              } catch (e) {
+                console.error("[BOOT] Erro ao deslogar:", e);
+              }
+              try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('ofertapro'))) {
+                    keysToRemove.push(key);
+                  }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+              } catch (e) {
+                console.error(e);
+              }
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.href = '/login';
+            }}
+            className="btn-secondary px-6 py-2.5 font-semibold text-sm"
+          >
+            Sair e ir para Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#070A12]">
+        <div className="w-8 h-8 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const isLoggedIn = !!session;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public page — no auth required */}
-        <Route path="/u/:username" element={<PublicPage />} />
+    <ToastProvider>
+      <UserProvider onBootError={(err) => setBootError(err)}>
+        <BrowserRouter>
+        <Routes>
+          {/* Root Redirect */}
+          <Route path="/" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
 
-        {/* Auth */}
-        <Route
-          path="/login"
-          element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
-        />
+          {/* Diagnostic route */}
+          <Route path="/debug-boot" element={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] p-6 text-center text-[#F8FAFC]">
+              <h2 className="text-xl font-bold text-white mb-2">React carregou com sucesso.</h2>
+              <p className="text-sm text-[#94A3B8]">Esta é uma rota pública de diagnóstico que ignora o Supabase e o UserContext.</p>
+            </div>
+          } />
 
-        {/* Protected routes */}
-        <Route
-          path="/dashboard"
-          element={
-            isLoggedIn ? (
-              <Layout onLogout={handleLogout}>
-                <Dashboard />
-              </Layout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/offers"
-          element={
-            isLoggedIn ? (
-              <Layout onLogout={handleLogout}>
-                <Offers />
-              </Layout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/channels"
-          element={
-            isLoggedIn ? (
-              <Layout onLogout={handleLogout}>
-                <Channels />
-              </Layout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            isLoggedIn ? (
-              <Layout onLogout={handleLogout}>
-                <History />
-              </Layout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            isLoggedIn ? (
-              <Layout onLogout={handleLogout}>
-                <Settings />
-              </Layout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+          <Route path="/debug-supabase" element={<DebugSupabase />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Public links */}
+          <Route path="/l/:id" element={<RedirectPage />} />
+          <Route path="/r/:id" element={<RedirectPage />} />
+          <Route path="/:username" element={<PublicPage />} />
+          <Route path="/u/:username" element={<PublicPage />} />
+
+          {/* Auth */}
+          <Route
+            path="/login"
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login onLogin={() => {}} />}
+          />
+
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Dashboard /></ProtectedRoute>
+          } />
+          <Route path="/offers" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Offers /></ProtectedRoute>
+          } />
+          <Route path="/offers/new" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><NewOfferPage /></ProtectedRoute>
+          } />
+          <Route path="/channels" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Channels /></ProtectedRoute>
+          } />
+          <Route path="/history" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><History /></ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Settings /></ProtectedRoute>
+          } />
+          <Route path="/feedbacks" element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Feedbacks /></ProtectedRoute>
+          } />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
+        </Routes>
+        </BrowserRouter>
+      </UserProvider>
+    </ToastProvider>
   );
 };
 

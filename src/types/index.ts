@@ -2,12 +2,35 @@
 // TYPES DO OFERTAPRO
 // ===========================
 
-export type Marketplace = 'mercadolivre' | 'shopee' | 'amazon' | 'magalu' | 'aliexpress';
+export type Marketplace = 'mercadolivre' | 'shopee' | 'amazon' | 'magalu' | 'aliexpress' | 'kabum';
 export type OfferStatus = 'active' | 'paused' | 'draft';
 export type ChannelType = 'whatsapp' | 'telegram' | 'discord';
-export type ChannelStatus = 'connected' | 'disconnected' | 'error';
-export type HistoryStatus = 'success' | 'partial' | 'error';
-export type UserPlan = 'free' | 'pro' | 'enterprise';
+export type ChannelStatus = 'connected' | 'disconnected' | 'error' | 'pending';
+export type HistoryStatus = 'success' | 'partial' | 'error' | 'sent' | 'failed';
+export type UserPlan = 'free' | 'starter' | 'pro' | 'enterprise';
+
+
+export interface DispatchResult {
+  channelId: string;
+  channelName: string;
+  channelType: ChannelType;
+  success: boolean;
+  status: 'sent' | 'failed';
+  message: string;
+  error?: string;
+  errorMessage?: string;
+  sentAt: string;
+}
+
+export interface UserSettings {
+  id: string;
+  user_id: string;
+  whatsapp_template?: string;
+  telegram_template?: string;
+  discord_template?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface Offer {
   id: string;
@@ -35,6 +58,7 @@ export interface Channel {
   members?: number;
   lastSync?: string;
   identifier?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface HistoryEntry {
@@ -49,18 +73,38 @@ export interface HistoryEntry {
   clicks: number;
   error?: string;
   channelCount: number;
+  successful_channels?: string[];
+  failed_channels?: string[];
+  success_count?: number;
+  failure_count?: number;
+  dispatch_results?: DispatchResult[];
 }
 
 export interface User {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
-  avatar?: string;
+  avatar_url?: string;
   username: string;
   plan: UserPlan;
   publicUrl: string;
-  description?: string;
+  bio?: string;
   joinedAt: string;
+  onboarded: boolean;
+  isPublicActive: boolean;
+  publicName?: string;
+  public_name?: string;
+  publicAvatarUrl?: string;
+  public_page_active?: boolean;
+  public_page_created?: boolean;
+  public_display_name?: string;
+  public_avatar_url?: string;
+  public_theme?: string;
+  preferred_name?: string;
+  phone?: string;
+  whatsapp_group_url?: string;
+  telegram_group_url?: string;
+  discord_group_url?: string;
 }
 
 export interface DashboardMetric {
