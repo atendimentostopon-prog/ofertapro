@@ -50,59 +50,78 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     };
   };
 
+  const activeFetchPromiseRef = React.useRef<Promise<User | null> | null>(null);
+  const fetchedUserIdRef = React.useRef<string | null>(null);
+
   const fetchProfile = async (userId: string, email: string): Promise<User | null> => {
-    console.log("[USER] loading profile start");
-    try {
-      console.log(`[BOOT][UserContext] Buscando perfil do Supabase para o usuário ID: ${userId}`);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[USER] loading profile error', error);
-        return null;
-      }
-
-      if (data) {
-        console.log('[USER] loading profile success');
-        return {
-          id: data.id,
-          full_name: data.full_name || 'Usuário',
-          email: email,
-          avatar_url: data.avatar_url,
-          username: data.username || '',
-          plan: (data.plan || 'free') as any,
-          publicUrl: data.public_url || data.username || '',
-          bio: data.bio || '',
-          joinedAt: data.created_at || data.joined_at || new Date().toISOString(),
-          onboarded: data.onboarded ?? false,
-          isPublicActive: data.is_public_active ?? false,
-          publicName: data.public_name || data.full_name || 'Usuário',
-          publicAvatarUrl: data.public_avatar_url || data.avatar_url,
-          public_page_active: data.public_page_active ?? true,
-          public_page_created: data.public_page_created ?? false,
-          public_display_name: data.public_display_name || '',
-          public_avatar_url: data.public_avatar_url || '',
-          public_theme: data.public_theme || 'default',
-          preferred_name: data.preferred_name || '',
-          phone: data.phone || '',
-          whatsapp_group_url: data.whatsapp_group_url || '',
-          telegram_group_url: data.telegram_group_url || '',
-          discord_group_url: data.discord_group_url || '',
-        } as User;
-      }
-
-      console.warn('[BOOT][UserContext] Perfil não encontrado na tabela public.profiles');
-      return getFallbackProfile(userId, email);
-    } catch (err) {
-      console.error('[USER] loading profile error', err);
-      return null;
-    } finally {
-      console.log("[USER] loading profile finally");
+    // Se já houver um fetch idêntico em andamento para o mesmo usuário, compartilha a Promise
+    if (activeFetchPromiseRef.current && fetchedUserIdRef.current === userId) {
+      console.log(`[BOOT][UserContext] Reutilizando busca de perfil em andamento para ID: ${userId}`);
+      return activeFetchPromiseRef.current;
     }
+
+    console.log("[USER] loading profile start for ID:", userId);
+    fetchedUserIdRef.current = userId;
+
+    const runFetch = async (): Promise<User | null> => {
+      try {
+        console.log(`[BOOT][UserContext] Buscando perfil do Supabase para o usuário ID: ${userId}`);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('[USER] loading profile error', error);
+          return null;
+        }
+
+        if (data) {
+          console.log('[USER] loading profile success');
+          return {
+            id: data.id,
+            full_name: data.full_name || 'Usuário',
+            email: email,
+            avatar_url: data.avatar_url,
+            username: data.username || '',
+            plan: (data.plan || 'free') as any,
+            publicUrl: data.public_url || data.username || '',
+            bio: data.bio || '',
+            joinedAt: data.created_at || data.joined_at || new Date().toISOString(),
+            onboarded: data.onboarded ?? false,
+            isPublicActive: data.is_public_active ?? false,
+            publicName: data.public_name || data.full_name || 'Usuário',
+            publicAvatarUrl: data.public_avatar_url || data.avatar_url,
+            public_page_active: data.public_page_active ?? true,
+            public_page_created: data.public_page_created ?? false,
+            public_display_name: data.public_display_name || '',
+            public_avatar_url: data.public_avatar_url || '',
+            public_theme: data.public_theme || 'default',
+            preferred_name: data.preferred_name || '',
+            phone: data.phone || '',
+            whatsapp_group_url: data.whatsapp_group_url || '',
+            telegram_group_url: data.telegram_group_url || '',
+            discord_group_url: data.discord_group_url || '',
+          } as User;
+        }
+
+        console.warn('[BOOT][UserContext] Perfil não encontrado na tabela public.profiles');
+        return getFallbackProfile(userId, email);
+      } catch (err) {
+        console.error('[USER] loading profile error', err);
+        return null;
+      } finally {
+        activeFetchPromiseRef.current = null;
+        console.log("[USER] loading profile finally");
+      }
+    };
+
+    const promise = runFetch();
+    activeFetchPromiseRef.current = promise;
+    return promise;
   };
+
 
   const refreshProfile = async () => {
     try {
