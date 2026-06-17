@@ -858,7 +858,7 @@ const NewOfferPage: React.FC = () => {
                     </div>
                   )}
                   <p className="text-indigo-400 text-[9.5px] mt-2 underline truncate">
-                    🔗 ofertapro.com/r/...
+                    🔗 linkoferta.vercel.app/o/...
                   </p>
                 </div>
               </div>

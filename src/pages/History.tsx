@@ -290,7 +290,8 @@ const History: React.FC = () => {
         affiliateLink: offer.affiliate_link,
         marketplace: offer.marketplace,
         description: offer.description,
-        channelIds: offer.channels
+        channelIds: offer.channels,
+        shortCode: offer.short_code
       });
 
       loadHistory();

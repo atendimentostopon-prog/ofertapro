@@ -16,6 +16,10 @@ import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
 import { supabase } from './lib/supabase';
 import DebugSupabase from './pages/DebugSupabase';
+import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
+import TermosUso from './pages/TermosUso';
+import PoliticaCookies from './pages/PoliticaCookies';
+import CookieBanner from './components/CookieBanner';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
@@ -139,7 +143,7 @@ const App: React.FC = () => {
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o OfertaPro</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o Link Oferta</h2>
         <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
           {bootError.message || "O carregamento demorou mais que o esperado. Você pode tentar novamente ou limpar a sessão local."}
         </p>
@@ -164,7 +168,7 @@ const App: React.FC = () => {
                 const keysToRemove = [];
                 for (let i = 0; i < localStorage.length; i++) {
                   const key = localStorage.key(i);
-                  if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('ofertapro'))) {
+                  if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('ofertapro') || key.includes('linkoferta'))) {
                     keysToRemove.push(key);
                   }
                 }
@@ -213,7 +217,13 @@ const App: React.FC = () => {
 
           <Route path="/debug-supabase" element={<DebugSupabase />} />
 
+          {/* Legal Pages */}
+          <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+          <Route path="/termos-de-uso" element={<TermosUso />} />
+          <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
+
           {/* Public links */}
+          <Route path="/o/:shortCode" element={<RedirectPage />} />
           <Route path="/l/:id" element={<RedirectPage />} />
           <Route path="/r/:id" element={<RedirectPage />} />
           <Route path="/:username" element={<PublicPage />} />
@@ -251,6 +261,7 @@ const App: React.FC = () => {
           {/* Fallback */}
           <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
         </Routes>
+        <CookieBanner />
         </BrowserRouter>
       </UserProvider>
     </ToastProvider>

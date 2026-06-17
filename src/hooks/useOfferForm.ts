@@ -413,20 +413,23 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
       });
 
       let savedOfferId = '';
+      let savedOfferShortCode = '';
       
       try {
         const savePromise = (async () => {
           if (offerToEdit) {
             await OfferService.updateOffer(offerToEdit.id, offerData);
-            return offerToEdit.id;
+            return { id: offerToEdit.id, shortCode: offerToEdit.shortCode || offerToEdit.short_code };
           } else {
             const result = await OfferService.createOffer(offerData);
-            return result.id;
+            return { id: result.id, shortCode: result.short_code };
           }
         })();
 
-        savedOfferId = await withTimeout(savePromise, 15000, "Salvar oferta");
-        console.log("[OFFER_SUBMIT] save offer success", savedOfferId);
+        const saveResult = await withTimeout(savePromise, 15000, "Salvar oferta");
+        savedOfferId = saveResult.id;
+        savedOfferShortCode = saveResult.shortCode;
+        console.log("[OFFER_SUBMIT] save offer success", savedOfferId, savedOfferShortCode);
       } catch (saveErr: any) {
         console.error("[OFFER_SUBMIT] save offer error", saveErr);
         throw saveErr;
@@ -450,6 +453,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
           marketplace: form.marketplace,
           description: form.category,
           channelIds: selectedChannels,
+          shortCode: savedOfferShortCode,
           onChannelStart: (channelName, channelType) => {
             setProgressStep('sending');
             setCurrentChannelSending(channelName);

@@ -94,7 +94,7 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
         </div>
 
         <a
-          href={`/l/${offer.id}?src=public_page`}
+          href={offer.short_code ? `/o/${offer.short_code}?src=public_page` : `/l/${offer.id}?src=public_page`}
           target="_blank"
           rel="noopener noreferrer"
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-bold transition-all shadow-md active:scale-[0.98] ${theme.primaryBtn}`}
@@ -167,7 +167,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
           </button>
         )}
         <a
-          href={`/l/${offer.id}?src=public_page`}
+          href={offer.short_code ? `/o/${offer.short_code}?src=public_page` : `/l/${offer.id}?src=public_page`}
           target="_blank"
           rel="noopener noreferrer"
           className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all shadow-md active:scale-[0.98] ${theme.primaryBtn}`}
@@ -261,7 +261,7 @@ const PublicPage: React.FC = () => {
   useEffect(() => {
     if (profile) {
       const displayName = profile.public_display_name || profile.full_name || 'Usuário';
-      document.title = `${displayName} | Vitrine OfertaPro`;
+      document.title = `${displayName} | Vitrine Link Oferta`;
       
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
@@ -269,7 +269,7 @@ const PublicPage: React.FC = () => {
         metaDesc.setAttribute('name', 'description');
         document.head.appendChild(metaDesc);
       }
-      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no OfertaPro.`);
+      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no Link Oferta.`);
       
       let ogTitle = document.querySelector('meta[property="og:title"]');
       if (!ogTitle) {
@@ -277,7 +277,7 @@ const PublicPage: React.FC = () => {
         ogTitle.setAttribute('property', 'og:title');
         document.head.appendChild(ogTitle);
       }
-      ogTitle.setAttribute('content', `${displayName} - OfertaPro`);
+      ogTitle.setAttribute('content', `${displayName} - Link Oferta`);
     }
   }, [profile]);
 
@@ -409,26 +409,6 @@ const PublicPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#070A12] text-[#F8FAFC]">
-      {/* Top Navigation Bar */}
-      <nav className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center shadow-lg">
-              <Zap className="w-4 h-4 text-white" fill="white" />
-            </div>
-            <span className="font-bold text-white text-base tracking-tight">OfertaPro</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a href="/login" className="text-[13px] text-[#94A3B8] hover:text-white font-semibold transition-colors">
-              Entrar
-            </a>
-            <a href="/login" className="btn-gradient text-[13px] px-3.5 py-2">
-              Criar minha vitrine
-            </a>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Banner */}
       <div className={`relative ${currentTheme.banner} overflow-hidden border-b border-white/[0.06] transition-colors duration-500`}>
         <div className="absolute inset-0">
@@ -436,7 +416,7 @@ const PublicPage: React.FC = () => {
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-t from-pink-500/10 to-transparent rounded-full blur-3xl opacity-20 transform -translate-x-1/4 translate-y-1/4" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-12">
           <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6">
             {/* Avatar */}
             <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-white/10 shadow-2xl flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#6366F1]">
@@ -457,7 +437,7 @@ const PublicPage: React.FC = () => {
                   Verificado
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] mb-3 font-mono">ofertapro.com/u/{profile.username}</p>
+              <p className="text-xs text-[#94A3B8] mb-3 font-mono">linkoferta.vercel.app/u/{profile.username}</p>
               
               <p className="text-sm text-[#94A3B8] max-w-xl leading-relaxed">
                 {profile.bio || 'Confira as melhores ofertas e descontos em tempo real.'}
@@ -466,9 +446,7 @@ const PublicPage: React.FC = () => {
               {/* Stats reais */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 mt-6">
                 {[
-                  { value: activeOffers.length, label: 'Ofertas ativas' },
-                  { value: totalClicksReal.toLocaleString('pt-BR'), label: 'Cliques totais' },
-                  { value: formatCurrency(totalSavingsReal), label: 'Desconto acumulado' },
+                  { value: activeOffers.length, label: activeOffers.length === 1 ? 'Oferta ativa' : 'Ofertas ativas' }
                 ].map((s, idx) => (
                   <div key={idx} className="flex flex-col items-center md:items-start">
                     <span className="text-lg font-black text-white tracking-tight">{s.value}</span>
@@ -536,7 +514,7 @@ const PublicPage: React.FC = () => {
       </div>
 
       {/* Marketplace Tabs */}
-      <div className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-[72px] z-30">
+      <div className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-2 overflow-x-auto py-2.5 scrollbar-hide">
             {marketplaceList.map(mp => {
@@ -662,19 +640,24 @@ const PublicPage: React.FC = () => {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] bg-[#0B1020] mt-16 py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center shadow-lg mb-4">
-            <Zap className="w-5 h-5 text-white" fill="white" />
+      {/* Footer LGPD-compliant */}
+      <footer className="border-t border-white/[0.06] bg-[#0B1020] mt-16 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
+            <p className="text-xs text-[#94A3B8]">
+              &copy; {new Date().getFullYear()} <span className="font-bold text-white">{profile.public_name || profile.public_display_name || profile.full_name || 'Vitrine'}</span>. Todos os direitos reservados.
+            </p>
           </div>
-          <h4 className="font-black text-white text-lg mb-2 tracking-tight">OfertaPro</h4>
-          <p className="text-xs text-[#94A3B8] max-w-sm mb-6 leading-relaxed">
-            A plataforma líder para influenciadores gerenciarem e compartilharem as melhores ofertas com suas audiências.
-          </p>
-          <a href="/login" className="btn-secondary text-xs px-6 py-2.5">
-            Criar minha vitrine grátis
-          </a>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
+            <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-white transition-colors">Termos de Uso</a>
+            <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-white transition-colors">Política de Privacidade</a>
+            <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-white transition-colors">Política de Cookies</a>
+          </div>
+          <div className="text-center md:text-right">
+            <span className="text-[10px] font-bold text-[#64748B] tracking-wider uppercase">
+              Criado com <a href="/login" className="text-indigo-400 hover:text-indigo-300 font-extrabold hover:underline">Link Oferta</a>
+            </span>
+          </div>
         </div>
       </footer>
     </div>

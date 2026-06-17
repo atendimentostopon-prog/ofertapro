@@ -1,5 +1,5 @@
 // ===========================
-// TYPES DO OFERTAPRO
+// TYPES DO LINK OFERTA
 // ===========================
 
 export type Marketplace = 'mercadolivre' | 'shopee' | 'amazon' | 'magalu' | 'aliexpress' | 'kabum';
@@ -48,6 +48,8 @@ export interface Offer {
   createdAt: string;
   channels: string[];
   description?: string;
+  shortCode?: string;
+  short_code?: string;
 }
 
 export interface Channel {

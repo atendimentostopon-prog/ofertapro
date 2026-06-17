@@ -104,7 +104,7 @@ const OnboardingChecklist: React.FC = () => {
         <div className="space-y-1">
           <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            Primeiros Passos no OfertaPro
+            Primeiros Passos no Link Oferta
           </h2>
           <p className="text-xs text-slate-500 font-medium">Complete as etapas abaixo para configurar sua estrutura de vendas.</p>
         </div>

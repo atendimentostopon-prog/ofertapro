@@ -19,6 +19,7 @@ interface DispatchParams {
   marketplace: string;
   description?: string;
   channelIds: string[];
+  shortCode?: string;
   onChannelStart?: (channelName: string, channelType: string) => void;
   onStepChange?: (stepText: string) => void;
 }
@@ -73,6 +74,39 @@ export const dispatchOffer = async (params: DispatchParams) => {
   }
 
   try {
+    // Resolver ou gerar shortCode se necessário
+    let shortCode = params.shortCode;
+    if (!shortCode) {
+      console.log("[DISPATCH] shortCode ausente nos parametros, buscando do banco de dados...");
+      const { data: offerData, error: offerErr } = await supabase
+        .from('offers')
+        .select('short_code')
+        .eq('id', offerId)
+        .single();
+      
+      if (!offerErr && offerData && offerData.short_code) {
+        shortCode = offerData.short_code;
+      }
+    }
+
+    if (!shortCode) {
+      console.log("[DISPATCH] shortCode ausente no banco de dados. Gerando dinamicamente...");
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let localCode = '';
+      for (let i = 0; i < 6; i++) {
+        localCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      // Tentar salvar no banco em background
+      supabase
+        .from('offers')
+        .update({ short_code: localCode })
+        .eq('id', offerId)
+        .then(({ error }) => {
+          if (error) console.error("[DISPATCH] erro ao salvar shortCode gerado em background:", error);
+        });
+      shortCode = localCode;
+    }
+
     // 1. Buscar perfil do usuário e configurações de canais
     if (onStepChange) {
       onStepChange('Carregando informações do perfil e canais...');
@@ -125,7 +159,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             template,
             params,
             profile,
-            `${window.location.origin}/r/${offerId}?src=discord`
+            `${window.location.origin}/o/${shortCode}?src=discord`
           );
 
           try {
@@ -135,6 +169,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
                 offerId,
                 offerName,
                 offerImage,
+                shortCode,
                 customDescription: renderedMessage
               });
             });
@@ -155,7 +190,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             throw new Error('Configuração do Telegram incompleta: token ou chat_id ausente.');
           }
 
-          const trackingLink = `${window.location.origin}/r/${offerId}?src=telegram`;
+          const trackingLink = `${window.location.origin}/o/${shortCode}?src=telegram`;
 
           try {
             await executeWithRetry(async () => {

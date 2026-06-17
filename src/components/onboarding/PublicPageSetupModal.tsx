@@ -881,7 +881,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     <Star className="w-2 h-2 fill-current mr-0.5" /> Verificado
                   </span>
                 </div>
-                <p className="text-[8px] text-slate-500 font-mono">ofertapro.com/u/{username || 'slug'}</p>
+                <p className="text-[8px] text-slate-500 font-mono">linkoferta.vercel.app/u/{username || 'slug'}</p>
                 
                 <p className="text-[10px] text-slate-400 mt-2 line-clamp-2 leading-relaxed">
                   {bio || 'Sua descrição aparecerá aqui. Adicione uma bio informativa para seus visitantes.'}
@@ -941,7 +941,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
             {/* Footer do preview do celular */}
             <div className="py-2 bg-[#0B1020]/50 border-t border-white/5 text-center flex flex-col items-center">
-              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine OfertaPro</span>
+              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine Link Oferta</span>
             </div>
           </div>
         </div>

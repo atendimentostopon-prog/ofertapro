@@ -51,11 +51,13 @@ export const sender = {
 
     const embed: DiscordEmbed = {
       title: offer.offerName,
-      url: `${window.location.origin}/r/${offer.offerId}?src=discord`, // Link de rastreio
+      url: offer.shortCode 
+        ? `${window.location.origin}/o/${offer.shortCode}?src=discord`
+        : `${window.location.origin}/r/${offer.offerId}?src=discord`, // Link de rastreio
       color: 0x4f46e5, // Indigo 600
       fields,
       footer: {
-        text: 'OfertaPro • Enviado via Painel',
+        text: 'Link Oferta • Enviado via Painel',
       },
       timestamp: new Date().toISOString()
     };

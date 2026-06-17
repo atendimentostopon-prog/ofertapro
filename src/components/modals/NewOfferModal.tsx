@@ -849,7 +849,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   )}
   
                   <p className="text-indigo-450 text-[9.5px] mt-2 underline truncate">
-                    🔗 ofertapro.com/r/...
+                    🔗 linkoferta.vercel.app/o/...
                   </p>
                 </div>
               </div>

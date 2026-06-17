@@ -226,7 +226,9 @@ const OfferCard: React.FC<OfferCardProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const shortLink = `${window.location.origin}/l/${offer.id}`;
+                const shortLink = offer.shortCode
+                  ? `${window.location.origin}/o/${offer.shortCode}`
+                  : `${window.location.origin}/l/${offer.id}`;
                 navigator.clipboard.writeText(shortLink)
                   .then(() => {
                     toast('Link encurtado copiado!', 'success');

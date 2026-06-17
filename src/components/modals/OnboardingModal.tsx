@@ -150,7 +150,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase mb-1">
               <Sparkles className="w-3.5 h-3.5" />
-              Seja Bem-vindo ao OfertaPro
+              Seja Bem-vindo ao Link Oferta
             </div>
             <h2 className="text-2xl font-bold tracking-tight">Configure sua conta em segundos</h2>
             <p className="text-sm text-indigo-100 max-w-sm mx-auto">
@@ -233,7 +233,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
                 </label>
                 <div className="relative flex items-center">
                   <span className="absolute left-3.5 text-xs font-bold text-[#64748B] select-none">
-                    ofertapro.com/u/
+                    linkoferta.vercel.app/u/
                   </span>
                   <input
                     type="text"
@@ -246,7 +246,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
                   />
                 </div>
                 <p className="text-[10px] text-[#64748B] leading-normal">
-                  Este será o endereço da sua vitrine pública (ex: ofertapro.com/u/promocoes). Use apenas letras minúsculas, números e hífens.
+                  Este será o endereço da sua vitrine pública (ex: linkoferta.vercel.app/u/promocoes). Use apenas letras minúsculas, números e hífens.
                 </p>
               </div>
 

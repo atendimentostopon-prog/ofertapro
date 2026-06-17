@@ -23,10 +23,16 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className = '' })
   };
 
   const renderFallback = () => {
+    // Filtra classes de redimensionamento de hover ou preenchimento de imagem que quebram o layout do div
+    const cleanClasses = className
+      .split(' ')
+      .filter(c => !c.includes('object-') && !c.includes('hover:') && !c.includes('scale-') && !c.includes('transition-') && !c.includes('duration-'))
+      .join(' ');
+
     return (
-      <div className={`flex flex-col items-center justify-center bg-[#070A12] border border-white/[0.04] text-slate-500 rounded-xl p-4 gap-2 ${className}`}>
-        <Package className="w-8 h-8 text-slate-655" />
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sem Imagem</span>
+      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0f1d] to-[#171b30] border border-white/[0.05] text-[#64748B] select-none text-center gap-1.5 p-3 rounded-2xl ${cleanClasses}`}>
+        <Package className="w-7 h-7 text-indigo-400/70 animate-pulse" />
+        <span className="text-[10px] font-black text-indigo-300/80 uppercase tracking-widest">Sem Foto</span>
       </div>
     );
   };
@@ -39,7 +45,7 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className = '' })
     <img
       src={src!.trim()}
       alt={alt}
-      className={className}
+      className={`block w-full h-full object-cover ${className}`}
       onError={() => {
         console.warn(`[ProductImage] Falha ao carregar imagem: ${src}`);
         setError(true);

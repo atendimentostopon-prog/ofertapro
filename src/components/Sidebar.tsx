@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
             <Zap className="w-4 h-4 text-white" fill="white" />
           </div>
           <div>
-            <span className="text-[17px] font-bold text-[#F8FAFC] tracking-tight">OfertaPro</span>
+            <span className="text-[17px] font-bold text-[#F8FAFC] tracking-tight">Link Oferta</span>
           </div>
         </div>
         

@@ -263,7 +263,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
               <p className="text-lg font-bold text-white">Canal Conectado!</p>
-              <p className="text-sm text-slate-400 text-center">O canal foi adicionado com sucesso ao OfertaPro.</p>
+              <p className="text-sm text-slate-400 text-center">O canal foi adicionado com sucesso ao Link Oferta.</p>
             </div>
           ) : step === 'connecting' ? (
             <div className="flex flex-col items-center py-8 gap-4">

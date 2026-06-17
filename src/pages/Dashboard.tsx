@@ -336,7 +336,7 @@ const Dashboard: React.FC = () => {
               <Lightbulb className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0 space-y-2">
-              <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Insights Inteligentes do OfertaPro</h4>
+              <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Insights Inteligentes do Link Oferta</h4>
               <ul className="space-y-1.5">
                 {insights.map((insight: string, idx: number) => (
                   <li key={idx} className="text-xs text-[#94A3B8] font-medium flex items-center gap-2">

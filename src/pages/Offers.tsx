@@ -85,7 +85,8 @@ const Offers: React.FC = () => {
         coupon: offer.coupon,
         affiliateLink: offer.affiliate_link,
         marketplace: offer.marketplace,
-        channelIds: offer.channels
+        channelIds: offer.channels,
+        shortCode: offer.short_code
       });
 
       toast('Oferta enviada com sucesso!', 'success');
@@ -124,7 +125,8 @@ const Offers: React.FC = () => {
     clicks: o.clicks || 0,
     status: o.status,
     createdAt: o.created_at,
-    channels: o.channels || []
+    channels: o.channels || [],
+    shortCode: o.short_code
   });
 
   return (
