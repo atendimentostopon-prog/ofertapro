@@ -128,6 +128,36 @@ export const OfferService = {
   },
 
   async deleteOffer(id: string) {
+    try {
+      // Buscar a oferta para obter a URL da imagem antes de deletar
+      const { data: offerData } = await supabase
+        .from('offers')
+        .select('image')
+        .eq('id', id)
+        .single();
+
+      if (offerData?.image) {
+        const imageUrl = offerData.image;
+        // Verificar se a imagem está hospedada no storage do Supabase
+        if (imageUrl.includes('supabase.co/storage') || imageUrl.includes('/storage/v1/object/public/')) {
+          const bucketIndicator = '/offers/';
+          const indicatorIndex = imageUrl.indexOf(bucketIndicator);
+          if (indicatorIndex !== -1) {
+            const filePath = imageUrl.substring(indicatorIndex + bucketIndicator.length);
+            if (filePath) {
+              console.log('[OFFER_SERVICE] Tentando apagar imagem do storage:', filePath);
+              // Deleta silenciosamente para não quebrar o fluxo principal se falhar ou se não tiver permissão
+              await supabase.storage.from('offers').remove([filePath]);
+              console.log('[OFFER_SERVICE] Imagem deletada do storage com sucesso.');
+            }
+          }
+        }
+      }
+    } catch (storageErr) {
+      console.error('[OFFER_SERVICE] Erro ao deletar imagem do storage:', storageErr);
+      // Não joga erro para não quebrar a exclusão no banco de dados
+    }
+
     const { error } = await supabase
       .from('offers')
       .delete()

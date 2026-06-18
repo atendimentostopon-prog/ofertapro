@@ -39,40 +39,39 @@ export function useDashboardStats() {
 
       const todayStr = new Date().toISOString().split('T')[0];
 
-      // Função auxiliar de timeout para evitar travamento infinito de queries no beta
-      const withTimeout = <T>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
-        return Promise.race([
-          promise,
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
-        ]);
-      };
-
-      // Função helper para lidar com erros individuais de tabelas e garantir fallback
-      const fetchWithFallback = async (queryPromise: Promise<any>, tableName: string) => {
+      // Função helper para lidar com erros individuais de tabelas, timeouts e garantir fallback
+      const fetchWithFallback = async (queryPromise: any, tableName: string, timeoutMs = 4000) => {
         try {
-          const res = await queryPromise;
+          const res = await Promise.race([
+            Promise.resolve(queryPromise),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Timeout ao obter dados da tabela ${tableName}`)), timeoutMs))
+          ]);
           if (res.error) {
             console.error(`[DASHBOARD_STATS_ERROR] Erro ao buscar dados da tabela ${tableName}:`, res.error);
-            return { data: [], error: res.error };
+            return { data: [], error: res.error, isFallback: true };
           }
-          return { data: res.data || [], error: null };
+          return { data: res.data || [], error: null, isFallback: false };
         } catch (e: any) {
-          console.error(`[DASHBOARD_STATS_ERROR] Exceção na busca da tabela ${tableName}:`, e);
-          return { data: [], error: e };
+          console.error(`[DASHBOARD_STATS_ERROR] Exceção ou timeout na busca da tabela ${tableName}:`, e);
+          return { data: [], error: e, isFallback: true };
         }
       };
 
-      // Buscar ofertas, canais, histórico recente e cliques dos últimos 30 dias em paralelo com timeout de 5s
-      const [offersRes, channelsRes, historyRes, clicksRes] = await withTimeout(
-        Promise.all([
-          fetchWithFallback(Promise.resolve(supabase.from('offers').select('*').eq('user_id', user.id)), 'offers'),
-          fetchWithFallback(Promise.resolve(supabase.from('channels').select('*').eq('user_id', user.id)), 'channels'),
-          fetchWithFallback(Promise.resolve(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5)), 'history'),
-          fetchWithFallback(Promise.resolve(supabase.from('clicks').select('*').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString())), 'clicks')
-        ]),
-        5000,
-        'O servidor do Supabase demorou muito para responder.'
-      );
+      // Buscar ofertas, canais, histórico recente e cliques dos últimos 30 dias em paralelo com timeouts individuais
+      const [offersRes, channelsRes, historyRes, clicksRes] = await Promise.all([
+        fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers', 4000),
+        fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels', 4000),
+        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history', 4000),
+        // Otimização crucial: selecionar apenas as colunas necessárias para reduzir tamanho de dados na rede
+        fetchWithFallback(supabase.from('clicks').select('created_at, source').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks', 4000)
+      ]);
+
+      // Se todas as consultas falharem catastróficamente (ex: erro de rede global), exibe o erro geral
+      const allFailed = offersRes.isFallback && channelsRes.isFallback && historyRes.isFallback && clicksRes.isFallback;
+      if (allFailed) {
+        const firstError = offersRes.error || channelsRes.error || historyRes.error || clicksRes.error;
+        throw new Error(firstError?.message || 'Falha catastrófica ao carregar métricas do banco de dados.');
+      }
 
       // Não dar throw em erros individuais para evitar quebras no dashboard
       const offers = offersRes.data || [];

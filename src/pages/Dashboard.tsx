@@ -69,7 +69,8 @@ const Dashboard: React.FC = () => {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <ErrorState
-          message={`Falha ao carregar estatísticas do Dashboard: ${error}`}
+          title="Não conseguimos atualizar as métricas agora"
+          message="Você pode continuar usando o sistema. Tente atualizar as estatísticas novamente."
           onRetry={stats.refresh}
         />
       </div>
