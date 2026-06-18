@@ -703,7 +703,7 @@ const NewOfferPage: React.FC = () => {
             {/* Marketplace selector */}
             <div>
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Marketplace *</label>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {MARKETPLACES.map(mp => (
                   <button
                     key={mp.value}
