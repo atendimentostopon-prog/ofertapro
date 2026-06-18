@@ -170,10 +170,10 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
           href={offer.short_code ? `/o/${offer.short_code}?src=public_page` : `/l/${offer.id}?src=public_page`}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all shadow-md active:scale-[0.98] ${theme.primaryBtn}`}
+          className={`flex items-center gap-1.5 px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl text-[13px] font-bold transition-all shadow-md active:scale-[0.98] ${theme.primaryBtn}`}
         >
           <ExternalLink className="w-3.5 h-3.5" />
-          Pegar Promoção
+          <span className="hidden sm:inline">Pegar Promoção</span>
         </a>
       </div>
     </Card>

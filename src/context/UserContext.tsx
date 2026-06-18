@@ -66,11 +66,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     const runFetch = async (): Promise<User | null> => {
       try {
         console.log(`[BOOT][UserContext] Buscando perfil do Supabase para o usuário ID: ${userId}`);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
+        
+        // Corrida com timeout de 8s para evitar travamento em repouso da query
+        const result = await Promise.race([
+          supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout ao obter perfil")), 8000))
+        ]) as any;
+
+        const { data, error } = result;
 
         if (error) {
           console.error('[USER] loading profile error', error);
@@ -126,6 +129,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
   const refreshProfile = async () => {
     try {
       console.log('[BOOT][UserContext] refreshProfile iniciado');
+      setLoading(true);
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -135,7 +139,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
       }
 
       if (session?.user) {
-        console.log('[BOOT][UserContext] Sessão ativa encontrada, carregando perfil...');
+        console.log('[BOOT][UserContext] Sessão activa encontrada, carregando perfil...');
         console.time("[BOOT] loadProfile");
         const profile = await fetchProfile(session.user.id, session.user.email || '');
         console.timeEnd("[BOOT] loadProfile");
@@ -196,6 +200,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log(`[BOOT][UserContext] onAuthStateChange disparado: ${event}`);
+        // Ativa loading síncronamente antes da promise assíncrona iniciar
+        if (session?.user) {
+          setLoading(true);
+        }
         try {
           if (session?.user) {
             console.log('[BOOT][UserContext] Carregando perfil do usuário após mudança de estado...');

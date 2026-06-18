@@ -20,6 +20,7 @@ import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
 import CookieBanner from './components/CookieBanner';
+import FullPageLoader from './components/FullPageLoader';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
@@ -188,12 +189,9 @@ const App: React.FC = () => {
       </div>
     );
   }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070A12]">
-        <div className="w-8 h-8 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-      </div>
+      <FullPageLoader message="Verificando sessão com o servidor..." />
     );
   }
 
@@ -232,7 +230,7 @@ const App: React.FC = () => {
           {/* Auth */}
           <Route
             path="/login"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login onLogin={() => {}} />}
+            element={<Login onLogin={() => {}} />}
           />
 
           {/* Protected routes */}

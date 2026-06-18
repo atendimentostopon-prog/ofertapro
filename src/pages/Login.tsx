@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Zap, ArrowRight, Shield, Users, TrendingUp, Star, AlertCircle, 
   Eye, EyeOff, Check, X 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 
 interface LoginProps {
   onLogin: () => void;
@@ -12,12 +13,20 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
+  const { user, loading: profileLoading } = useUser();
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && !profileLoading) {
+      console.log("[Login] Perfil carregado e usuário logado, redirecionando para /dashboard");
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, profileLoading, navigate]);
   const [error, setError] = useState<string | null>(null);
 
   // States para LGPD
@@ -221,7 +230,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       {/* Main Card */}
       <div className="relative z-10 w-full max-w-md my-8">
-        <div className="bg-[#101827]/85 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/60 p-6 sm:p-8 border border-white/[0.08] flex flex-col justify-between">
+        <div className="bg-[#101827]/85 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/60 p-5 sm:p-8 border border-white/[0.08] flex flex-col justify-between">
           
           {/* Logo and Switch */}
           <div className="flex items-center justify-between mb-6">
