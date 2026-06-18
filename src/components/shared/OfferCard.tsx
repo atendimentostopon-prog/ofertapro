@@ -176,10 +176,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
                 <div className="my-1 border-t border-white/[0.06]" />
                 <button
                   onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  Excluir
+                  Excluir oferta
                 </button>
               </div>
             )}
@@ -251,27 +251,27 @@ const OfferCard: React.FC<OfferCardProps> = ({
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setShowDeleteModal(false)}>
           <div className="bg-[#101827] rounded-2xl border border-white/5 shadow-2xl p-6 max-w-sm w-full space-y-4 animate-scale-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3 text-red-400">
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
+            <div className="flex items-center gap-3 text-[#EF4444]">
+              <div className="w-10 h-10 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-[#EF4444]" />
               </div>
-              <h4 className="text-sm font-bold text-white">Excluir Oferta</h4>
+              <h4 className="text-sm font-bold text-white">Excluir oferta?</h4>
             </div>
             <p className="text-xs text-[#94A3B8] font-medium leading-relaxed">
-              Tem certeza que deseja excluir esta oferta? Essa ação não poderá ser desfeita.
+              Essa ação não poderá ser desfeita.
             </p>
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-white/5 bg-[#0B1020]/50 hover:bg-[#101827] text-slate-350 text-xs font-bold transition-all disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-white/5 bg-[#0B1020]/50 hover:bg-[#101827] text-slate-350 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-550 disabled:bg-red-900/40 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-550 disabled:bg-red-900/40 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isDeleting ? (
                   <>
