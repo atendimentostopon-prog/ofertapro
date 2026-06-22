@@ -206,17 +206,28 @@ export const dispatchOffer = async (params: DispatchParams) => {
             ? params.affiliateLink
             : `${window.location.origin}/o/${shortCode}?src=telegram`;
 
+          const template = settings?.telegram_template || TemplateService.getDefaultTemplate('telegram');
+          renderedMessage = TemplateService.renderTemplate(
+            template,
+            params,
+            profile,
+            trackingLink,
+            'telegram'
+          );
+
+          const hasImage = offerImage && 
+                           offerImage.trim() !== '' && 
+                           offerImage.trim() !== 'null' && 
+                           offerImage.trim() !== 'undefined' && 
+                           offerImage.trim().startsWith('http');
+
           try {
             await executeWithRetry(async () => {
-              await sendTelegramOffer(botToken, chatId, {
-                name: offerName,
-                originalPrice: params.originalPrice,
-                salePrice: params.salePrice,
-                coupon: params.coupon,
-                image: offerImage,
-                trackingLink: trackingLink,
-                affiliateLink: params.affiliateLink
-              });
+              if (hasImage) {
+                await sendTelegramPhoto(botToken, chatId, offerImage.trim(), renderedMessage, undefined);
+              } else {
+                await sendTelegramMessage(botToken, chatId, renderedMessage, undefined);
+              }
             });
             console.log("[DISPATCH] telegram success");
           } catch (error: any) {

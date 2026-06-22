@@ -10,6 +10,8 @@ import { compressImage, uploadAvatarImage } from '../lib/image-utils';
 import { FEATURES } from '../config/features';
 import { FeedbackService } from '../services/FeedbackService';
 import { TemplateService } from '../services/TemplateService';
+import { sendTelegramPhoto, sendTelegramMessage } from '../lib/telegram';
+import { sender } from '../lib/sender';
 import { getPlanLimits, PLAN_CONFIGS } from '../config/plans';
 import { UserPlan } from '../types';
 import { Avatar } from '../components/ui/Avatar';
@@ -123,14 +125,19 @@ const Settings: React.FC = () => {
 
   // Mock de oferta para renderização do preview de templates
   const mockOffer = {
-    name: 'Teclado Mecânico Gamer Corsair K70 RGB',
-    originalPrice: '899.90',
-    salePrice: '599.90',
-    discount: 33,
-    coupon: 'CORSAIR10',
-    marketplace: 'amazon',
-    category: 'Eletrônicos'
+    name: 'Notebook ASUS Vivobook 15',
+    originalPrice: '3000.00',
+    salePrice: '2499.00',
+    discount: 17,
+    coupon: 'CUPOM10',
+    marketplace: 'Amazon',
+    category: 'Informática',
+    affiliate_link: 'https://amzn.to/exemplo',
+    affiliateLink: 'https://amzn.to/exemplo'
   };
+
+  const [testingTemplate, setTestingTemplate] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadUsageStats = async () => {
     if (!user) return;
@@ -438,12 +445,112 @@ const Settings: React.FC = () => {
 
   // Injetar variável no cursor do textarea
   const injectVariable = (variable: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      if (currentEditingTemplateTab === 'whatsapp') {
+        setWhatsappTemplate(prev => prev + ' ' + variable);
+      } else if (currentEditingTemplateTab === 'telegram') {
+        setTelegramTemplate(prev => prev + ' ' + variable);
+      } else if (currentEditingTemplateTab === 'discord') {
+        setDiscordTemplate(prev => prev + ' ' + variable);
+      }
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end, text.length);
+    const newValue = before + variable + after;
+
     if (currentEditingTemplateTab === 'whatsapp') {
-      setWhatsappTemplate(prev => prev + ' ' + variable);
+      setWhatsappTemplate(newValue);
     } else if (currentEditingTemplateTab === 'telegram') {
-      setTelegramTemplate(prev => prev + ' ' + variable);
+      setTelegramTemplate(newValue);
     } else if (currentEditingTemplateTab === 'discord') {
-      setDiscordTemplate(prev => prev + ' ' + variable);
+      setDiscordTemplate(newValue);
+    }
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }, 0);
+  };
+
+  const handleTestTemplate = async () => {
+    if (!user) return;
+    try {
+      setTestingTemplate(true);
+      // Buscar canais conectados do tipo selecionado
+      const { data: channels, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', currentEditingTemplateTab)
+        .eq('status', 'connected');
+
+      if (error) throw error;
+
+      if (!channels || channels.length === 0) {
+        alert(`Você não possui nenhum canal de ${currentEditingTemplateTab === 'telegram' ? 'Telegram' : currentEditingTemplateTab === 'discord' ? 'Discord' : 'WhatsApp'} conectado e ativo. Conecte um canal para realizar o disparo de teste.`);
+        setTestingTemplate(false);
+        return;
+      }
+
+      const channel = channels[0];
+      const trackingLink = 'https://amzn.to/exemplo';
+      const template = getActiveTemplateContent() || getActiveTemplatePlaceholder();
+
+      const mockProfile = {
+        full_name: user.full_name || 'Contato Givaldo',
+        preferred_name: user.preferred_name || 'Contato Givaldo',
+        public_name: user.publicName || user.public_display_name || 'Best Promos',
+        public_display_name: user.public_display_name || 'Best Promos',
+        username: user.username || 'bestpromos'
+      };
+
+      const rendered = TemplateService.renderTemplate(
+        template,
+        mockOffer,
+        mockProfile,
+        trackingLink,
+        currentEditingTemplateTab
+      );
+
+      if (currentEditingTemplateTab === 'discord') {
+        await sender.sendToDiscord(channel.identifier, {
+          offerName: mockOffer.name,
+          salePrice: parseFloat(mockOffer.salePrice),
+          originalPrice: parseFloat(mockOffer.originalPrice),
+          discount: mockOffer.discount,
+          coupon: mockOffer.coupon,
+          marketplace: mockOffer.marketplace,
+          offerImage: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
+          customDescription: rendered,
+          affiliateLink: trackingLink
+        });
+      } else if (currentEditingTemplateTab === 'telegram') {
+        const botToken = channel.metadata?.bot_token;
+        const chatId = channel.identifier;
+        if (!botToken || !chatId) {
+          throw new Error('Configuração do Telegram incompleta para este canal.');
+        }
+
+        const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
+        await sendTelegramPhoto(botToken, chatId, testImage, rendered, undefined);
+      } else if (currentEditingTemplateTab === 'whatsapp') {
+        alert('WhatsApp está em modo de pré-visualização. O template foi processado corretamente!');
+        setTestingTemplate(false);
+        return;
+      }
+
+      alert(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`);
+    } catch (err: any) {
+      console.error('Erro no envio de teste:', err);
+      alert(`Erro no teste: ${err.message || 'Erro inesperado.'}`);
+    } finally {
+      setTestingTemplate(false);
     }
   };
 
@@ -702,7 +809,7 @@ const Settings: React.FC = () => {
         </div>
       )}
 
-      {/*       {/* ABA 2: TEMPLATES DE MENSAGENS */}
+      {/* ABA 2: TEMPLATES DE MENSAGENS */}
       {/* ========================================================== */}
       {activeTab === 'templates' && (
         <div className="space-y-6">
@@ -726,6 +833,16 @@ const Settings: React.FC = () => {
                 </button>
               </div>
             )}
+
+            {/* Documentação na UI */}
+            <div className="p-4 bg-[#0B1020]/45 rounded-2xl border border-white/5 space-y-2 mb-2">
+              <p className="text-[11.5px] text-slate-350 font-medium leading-relaxed">
+                ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{cupom_linha}`}</code>.
+              </p>
+              <p className="text-[11.5px] text-indigo-400 font-medium">
+                ⚠️ A variável <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
+              </p>
+            </div>
 
             {/* Abas por canal */}
             <div className="flex border-b border-white/5 pb-2 gap-2">
@@ -754,22 +871,62 @@ const Settings: React.FC = () => {
               <div className="md:col-span-8 space-y-3">
                 <Field
                   label={`Estrutura da Mensagem (${currentEditingTemplateTab.toUpperCase()})`}
-                  hint="Escreva o texto e clique nas variáveis ao lado para injetar"
+                  hint="Escreva o texto e clique nas variáveis abaixo para injetá-las no cursor"
                 >
-                  <textarea
-                    value={getActiveTemplateContent()}
-                    placeholder={getActiveTemplatePlaceholder()}
-                    onChange={e => {
-                      if (!limits.customTemplates) return; // Bloquear edição
-                      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(e.target.value);
-                      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(e.target.value);
-                      else setDiscordTemplate(e.target.value);
-                    }}
-                    disabled={!limits.customTemplates || loadingTemplates}
-                    rows={8}
-                    className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-[#070A12]/50 cursor-not-allowed text-slate-500 border-white/5' : ''}`}
-                  />
+                  <div className="relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={getActiveTemplateContent()}
+                      placeholder={getActiveTemplatePlaceholder()}
+                      onChange={e => {
+                        if (!limits.customTemplates) return; // Bloquear edição
+                        if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(e.target.value);
+                        else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(e.target.value);
+                        else setDiscordTemplate(e.target.value);
+                      }}
+                      disabled={!limits.customTemplates || loadingTemplates}
+                      rows={10}
+                      className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-[#070A12]/50 cursor-not-allowed text-slate-500 border-white/5' : ''}`}
+                    />
+                  </div>
                 </Field>
+
+                {/* Contadores e Validação */}
+                {(() => {
+                  const activeContent = getActiveTemplateContent();
+                  const activePlaceholder = getActiveTemplatePlaceholder();
+                  const mockProfile = {
+                    full_name: user?.full_name || 'Contato Givaldo',
+                    preferred_name: user?.preferred_name || 'Contato Givaldo',
+                    public_name: user?.publicName || user?.public_display_name || 'Best Promos',
+                    public_display_name: user?.public_display_name || 'Best Promos',
+                    username: user?.username || 'bestpromos'
+                  };
+                  const renderedPreview = TemplateService.renderTemplate(
+                    activeContent || activePlaceholder,
+                    mockOffer,
+                    mockProfile,
+                    'https://amzn.to/exemplo',
+                    currentEditingTemplateTab
+                  );
+                  const validation = TemplateService.validateTemplate(activeContent || activePlaceholder);
+
+                  return (
+                    <>
+                      <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold px-1">
+                        <span>Caracteres no template: {activeContent.length}</span>
+                        <span>Preview aproximado: {renderedPreview.length} caracteres</span>
+                      </div>
+
+                      {!validation.valid && validation.error && (
+                        <div className="flex items-center gap-2 p-2.5 bg-rose-950/20 border border-rose-900/30 rounded-xl text-rose-400 text-[11px] font-bold">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          <span>{validation.error}</span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Variáveis dinâmicas para clicar */}
                 <div>
@@ -780,7 +937,7 @@ const Settings: React.FC = () => {
                         key={v.name}
                         type="button"
                         onClick={() => limits.customTemplates && injectVariable(v.name)}
-                        className={`px-2.5 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/50 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
+                        className={`px-2.5 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/55 hover:bg-indigo-950/10 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
                           !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         title={v.description}
@@ -792,7 +949,7 @@ const Settings: React.FC = () => {
                 </div>
 
                 {/* Ações */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1.5">
                   <button
                     type="button"
                     disabled={!limits.customTemplates || loadingTemplates}
@@ -802,30 +959,61 @@ const Settings: React.FC = () => {
                       else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(def);
                       else setDiscordTemplate(def);
                     }}
-                    className="px-3 py-2 border border-white/5 hover:border-white/10 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-colors"
+                    className="px-3.5 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-all disabled:opacity-50"
                   >
                     Restaurar Padrão
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!limits.customTemplates || loadingTemplates || testingTemplate || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                    onClick={handleTestTemplate}
+                    className="px-3.5 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 hover:border-indigo-500/30 text-indigo-400 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {testingTemplate ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    Testar no Canal
                   </button>
                 </div>
               </div>
 
               {/* Lado Direito: Preview da Mensagem */}
               <div className="md:col-span-4 space-y-3 bg-[#0B1020]/30 rounded-xl p-4 border border-white/5 flex flex-col justify-between">
-                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Preview no Canal</p>
-                
-                {/* Whatsapp Preview bubble */}
-                <div className="text-xs max-w-full min-h-[140px] flex flex-col justify-end bg-[#070A12]/80 border border-white/5 p-3 shadow-sm rounded-xl text-slate-300">
-                  <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap">
-                    {TemplateService.renderTemplate(
-                      getActiveTemplateContent() || getActiveTemplatePlaceholder(),
-                      mockOffer,
-                      user,
-                      `linkoferta.vercel.app/o/xyz`
+                <div>
+                  <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2.5">Preview no Canal</p>
+                  
+                  {/* Bubble Preview */}
+                  <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-[#070A12]/80 border border-white/5 p-3.5 shadow-sm rounded-xl text-slate-300 ${
+                    currentEditingTemplateTab === 'discord' ? 'border-l-4 border-l-indigo-500' : ''
+                  }`}>
+                    {currentEditingTemplateTab === 'discord' && (
+                      <div className="text-[11px] font-bold text-indigo-400 mb-1.5 truncate">
+                        {mockOffer.name}
+                      </div>
                     )}
-                  </p>
+                    <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all">
+                      {TemplateService.renderTemplate(
+                        getActiveTemplateContent() || getActiveTemplatePlaceholder(),
+                        mockOffer,
+                        {
+                          ...user,
+                          full_name: user?.full_name || 'Contato Givaldo',
+                          preferred_name: user?.preferred_name || 'Contato Givaldo',
+                          public_name: user?.publicName || user?.public_display_name || 'Best Promos',
+                          public_display_name: user?.public_display_name || 'Best Promos',
+                          username: user?.username || 'bestpromos'
+                        },
+                        'https://amzn.to/exemplo',
+                        currentEditingTemplateTab
+                      )}
+                    </p>
+                  </div>
                 </div>
                 
-                <p className="text-[9.5px] text-slate-500 font-medium text-center">As variáveis serão preenchidas com dados da oferta em runtime.</p>
+                <p className="text-[9.5px] text-slate-500 font-medium text-center leading-normal">As variáveis serão preenchidas com dados da oferta em runtime.</p>
               </div>
             </div>
           </SettingsSection>

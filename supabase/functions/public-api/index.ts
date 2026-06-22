@@ -14,6 +14,176 @@ const formatCurrency = (val: number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 };
 
+function getDefaultTemplate(channelType: string): string {
+  switch (channelType) {
+    case 'whatsapp':
+      return `🔥 *OFERTA ENCONTRADA*
+
+*{titulo}*
+
+{preco_original_linha}
+💰 *Por:* {preco_promocional}
+{cupom_linha}
+
+👉 Comprar agora:
+{link}`;
+    case 'telegram':
+      return `🔥 OFERTA ENCONTRADA
+
+{titulo}
+
+{preco_original_linha}
+💰 Por: {preco_promocional}
+{cupom_linha}
+
+Comprar agora:
+{link}`;
+    case 'discord':
+      return `🔥 OFERTA ENCONTRADA
+
+{titulo}
+
+{preco_original_linha}
+💰 Por: {preco_promocional}
+{cupom_linha}
+
+Comprar agora:
+{link}`;
+    default:
+      return `{titulo} - {preco_promocional} {link}`;
+  }
+}
+
+function renderMessageTemplate(
+  template: string,
+  offer: any,
+  profile: any,
+  trackingLink: string,
+  channelType: string
+): string {
+  if (!template) return '';
+
+  const originalPriceCents = offer.original_price !== undefined
+    ? parseFloat(offer.original_price)
+    : (offer.originalPrice ? parseFloat(offer.originalPrice) : 0);
+
+  const salePriceCents = offer.sale_price !== undefined
+    ? parseFloat(offer.sale_price)
+    : (offer.salePrice ? parseFloat(offer.salePrice) : 0);
+
+  const originalPriceFormatted = originalPriceCents > 0
+    ? formatCurrency(originalPriceCents)
+    : '';
+
+  const salePriceFormatted = salePriceCents > 0
+    ? formatCurrency(salePriceCents)
+    : '';
+
+  const couponVal = offer.coupon && String(offer.coupon) !== 'null' && String(offer.coupon) !== 'undefined'
+    ? String(offer.coupon).trim()
+    : '';
+
+  const marketplaceVal = offer.marketplace && String(offer.marketplace) !== 'null' && String(offer.marketplace) !== 'undefined'
+    ? String(offer.marketplace).trim()
+    : '';
+
+  const categoryVal = offer.category && String(offer.category) !== 'null' && String(offer.category) !== 'undefined'
+    ? String(offer.category).trim()
+    : '';
+
+  const discountVal = offer.discount
+    ? parseInt(String(offer.discount))
+    : (originalPriceCents > salePriceCents && originalPriceCents > 0
+        ? Math.round((1 - (salePriceCents / originalPriceCents)) * 100)
+        : 0);
+
+  const titleVal = offer.name || offer.offerName || offer.title || '';
+  const imageVal = offer.image || offer.offerImage || offer.imageUrl || '';
+  const affiliateName = profile?.full_name || profile?.preferred_name || 'Afiliado';
+  const vitrineName = profile?.public_name || profile?.public_display_name || profile?.username || 'Vitrine';
+
+  // Obter data/hora no fuso horário do Brasil (America/Sao_Paulo)
+  const now = new Date();
+  const dateVal = now.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  const timeVal = now.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+
+  let rendered = template;
+
+  // Substituir aliases/versões antigas
+  rendered = rendered
+    .replace(/{{titulo}}/g, '{titulo}')
+    .replace(/{{preco_original}}/g, '{preco_original}')
+    .replace(/{{preco_promocional}}/g, '{preco_promocional}')
+    .replace(/{{cupom}}/g, '{cupom}')
+    .replace(/{{link}}/g, '{link}');
+
+  const type = channelType.toLowerCase();
+  const isDiscord = type === 'discord';
+
+  // 1. Substituir Linhas Inteligentes
+  const originalPriceLine = originalPriceCents > 0
+    ? (isDiscord ? `De: ~~${originalPriceFormatted}~~` : `De: ~${originalPriceFormatted}~`)
+    : '';
+  rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
+
+  const couponLine = couponVal
+    ? (isDiscord ? `🎟️ **Cupom:** \`${couponVal}\`` : `🎟️ Cupom: *${couponVal}*`)
+    : '';
+  rendered = rendered.replace(/{cupom_linha}/g, couponLine);
+
+  const discountLine = discountVal > 0
+    ? (isDiscord ? `🔥 **${discountVal}% OFF**` : `🔥 *${discountVal}% OFF*`)
+    : '';
+  rendered = rendered.replace(/{desconto_linha}/g, discountLine);
+
+  const marketplaceLine = marketplaceVal
+    ? (isDiscord ? `🛒 **Marketplace:** ${marketplaceVal.toUpperCase()}` : `🛒 Marketplace: *${marketplaceVal.toUpperCase()}*`)
+    : '';
+  rendered = rendered.replace(/{marketplace_linha}/g, marketplaceLine);
+
+  const categoryLine = categoryVal
+    ? (isDiscord ? `📁 **Categoria:** ${categoryVal}` : `📁 Categoria: *${categoryVal}*`)
+    : '';
+  rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
+
+  const imageLine = imageVal
+    ? (isDiscord ? `🖼️ **Imagem:** ${imageVal}` : `🖼️ Imagem: ${imageVal}`)
+    : '';
+  rendered = rendered.replace(/{imagem_linha}/g, imageLine);
+
+  // 2. Substituir Variáveis Simples
+  rendered = rendered
+    .replace(/{titulo}/g, titleVal)
+    .replace(/{preco_original}/g, originalPriceFormatted)
+    .replace(/{preco_promocional}/g, salePriceFormatted)
+    .replace(/{desconto}/g, discountVal > 0 ? `${discountVal}%` : '')
+    .replace(/{cupom}/g, couponVal)
+    .replace(/{marketplace}/g, marketplaceVal.toUpperCase())
+    .replace(/{categoria}/g, categoryVal)
+    .replace(/{link}/g, trackingLink)
+    .replace(/{imagem}/g, imageVal)
+    .replace(/{nome_afiliado}/g, affiliateName)
+    .replace(/{nome_vitrine}/g, vitrineName)
+    .replace(/{data}/g, dateVal)
+    .replace(/{hora}/g, timeVal);
+
+  // 3. Limpeza de Linhas Vazias e Espaços Extras
+  rendered = rendered.replace(/\n{3,}/g, '\n\n');
+
+  rendered = rendered
+    .split('\n')
+    .filter((line, i, arr) => {
+      if (line.trim() === '') {
+        return i === 0 || arr[i - 1].trim() !== '';
+      }
+      return true;
+    })
+    .join('\n')
+    .trim();
+
+  return rendered;
+}
+
 serve(async (req) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -366,8 +536,13 @@ serve(async (req) => {
       const successfulChannels = []
       const failedChannels = []
 
-      // Obter perfil do remetente
-      const { data: profile } = await supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle()
+      // Obter perfil do remetente e configurações de templates
+      const [profileRes, settingsRes] = await Promise.all([
+        supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabaseAdmin.from('user_settings').select('*').eq('user_id', userId).maybeSingle()
+      ])
+      const profile = profileRes.data
+      const settings = settingsRes.data
       const profileName = profile?.public_name || profile?.full_name || 'Afiliado'
 
       // Executar envios
@@ -383,6 +558,15 @@ serve(async (req) => {
             if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
+
+            const template = settings?.discord_template || getDefaultTemplate('discord')
+            const renderedMessage = renderMessageTemplate(
+              template,
+              targetOffer,
+              profile,
+              purchaseUrl,
+              'discord'
+            )
             
             const fields = [
               { name: '💰 Preço', value: `**${formatCurrency(targetOffer.sale_price)}**`, inline: true }
@@ -399,6 +583,7 @@ serve(async (req) => {
               title: targetOffer.name,
               url: purchaseUrl,
               color: 0x4f46e5,
+              description: renderedMessage,
               fields,
               footer: { text: 'Link Oferta • Enviado via API' },
               timestamp: new Date().toISOString()
@@ -443,46 +628,79 @@ serve(async (req) => {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
 
-            const couponText = targetOffer.coupon ? `\nCupom: ${targetOffer.coupon}` : ''
-            const originalPriceText = targetOffer.original_price && targetOffer.original_price > 0
-              ? `De: ${formatCurrency(targetOffer.original_price)}\n`
-              : ''
-
-            const messageText = 
-`🔥 OFERTA ENCONTRADA
-
-${targetOffer.name}
-
-${originalPriceText}Por: ${formatCurrency(targetOffer.sale_price)}${couponText}
-
-Comprar agora:
-${purchaseUrl}`
+            const template = settings?.telegram_template || getDefaultTemplate('telegram')
+            const renderedMessage = renderMessageTemplate(
+              template,
+              targetOffer,
+              profile,
+              purchaseUrl,
+              'telegram'
+            )
 
             let telRes: Response
-            if (targetOffer.image && targetOffer.image.startsWith('http')) {
-              telRes = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  chat_id: chatId,
-                  photo: targetOffer.image,
-                  caption: messageText
+            let sendPhotoSuccess = false
+
+            const hasImage = targetOffer.image && 
+                             targetOffer.image.trim() !== '' && 
+                             targetOffer.image.trim() !== 'null' && 
+                             targetOffer.image.trim() !== 'undefined' && 
+                             targetOffer.image.startsWith('http')
+
+            if (hasImage) {
+              try {
+                const isTooLong = renderedMessage.length > 1024
+                const useCaption = isTooLong ? `${renderedMessage.slice(0, 100)}...` : renderedMessage
+
+                telRes = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    chat_id: chatId,
+                    photo: targetOffer.image,
+                    caption: useCaption
+                  })
                 })
-              })
-            } else {
+                const telData = await telRes.json()
+                if (telData.ok) {
+                  sendPhotoSuccess = true
+                  
+                  // Se o texto excedeu 1024 caracteres, manda o texto completo separado
+                  if (isTooLong) {
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        chat_id: chatId,
+                        text: renderedMessage
+                      })
+                    })
+                  }
+                } else {
+                  console.warn('Telegram [sendPhoto] ok=false, tentando fallback sendMessage:', telData.description)
+                }
+              } catch (photoErr) {
+                console.warn('Erro ao tentar sendPhoto no Telegram, usando fallback:', photoErr)
+              }
+            }
+
+            // Fallback de envio como mensagem de texto caso falhe a foto ou não exista imagem
+            if (!sendPhotoSuccess) {
+              const textToSend = hasImage 
+                ? `${renderedMessage}\n\n🖼️ [Ver imagem](${targetOffer.image})` 
+                : renderedMessage
+
               telRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   chat_id: chatId,
-                  text: messageText
+                  text: textToSend
                 })
               })
-            }
-
-            const telData = await telRes.json()
-            if (!telData.ok) {
-              throw new Error(`Telegram respondeu: ${telData.description || 'Erro'}`)
+              const telData = await telRes.json()
+              if (!telData.ok) {
+                throw new Error(`Telegram respondeu: ${telData.description || 'Erro'}`)
+              }
             }
 
             results.push({ channelId: channel.id, name: channel.name, type: 'telegram', success: true })

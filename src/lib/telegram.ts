@@ -134,10 +134,15 @@ export async function sendTelegramPhoto(
     throw new Error('Chat ID inválido ou ausente.');
   }
 
+  // Telegram limita captions de imagens a 1024 caracteres.
+  // Se for maior, enviamos a foto com legenda curta e depois o texto completo como sendMessage.
+  const isTooLong = caption.length > 1024;
+  const useCaption = isTooLong ? `${caption.slice(0, 100)}...` : caption;
+
   const body: Record<string, any> = {
     chat_id: cleanChatId,
     photo: photoUrl,
-    caption,
+    caption: useCaption,
   };
   if (parseMode) {
     body.parse_mode = parseMode;
@@ -188,6 +193,13 @@ export async function sendTelegramPhoto(
       `${caption}\n\n🖼️ [Ver imagem](${photoUrl})`,
       parseMode
     );
+    return;
+  }
+
+  // Se a legenda era muito longa e foi enviada a foto com sucesso,
+  // envia o texto completo logo em seguida
+  if (isTooLong) {
+    await sendTelegramMessage(cleanToken, cleanChatId, caption, parseMode);
   }
 }
 
