@@ -3,7 +3,7 @@
 ## 1. Resumo executivo
 Este documento detalha a implementação de duas melhorias fundamentais no sistema Link Oferta:
 1. **Limpeza e Normalização de Título de Produto:** Correção da extração e da estrutura de ofertas para garantir que a variável `{titulo}` represente puramente o nome do produto real, desvinculada de frases de marketing ou copies de chamada criativas.
-2. **Encurtamento Externo de Links de Afiliados:** Integração de um encurtador externo seguro (TinyURL, com fallbacks para is.gd e suporte a Bitly via variáveis de ambiente seguras no backend), de forma a enviar links curtos e elegantes nos canais automatizados, em vez de expor URLs longas de afiliados ou links de redirecionamento interno do Link Oferta.
+2. **Encurtamento Externo de Links de Afiliados:** Integração de um encurtador externo seguro (priorizando **is.gd**, com fallbacks para **TinyURL** e suporte a Bitly via variáveis de ambiente seguras no backend), de forma a enviar links curtos e elegantes nos canais automatizados, em vez de expor URLs longas de afiliados ou links de redirecionamento interno do Link Oferta.
 
 A arquitetura foi implementada em conformidade com as restrições de CORS do frontend, delegando as requisições aos serviços externos às Edge Functions seguras e implementando um cache robusto no banco de dados Supabase para evitar requisições redundantes.
 
@@ -43,10 +43,12 @@ Para o encurtamento, foi adotado um padrão extensível de *providers* configur�
 ```typescript
 linkShortener: {
   enabled: true,
-  provider: 'tinyurl' // tinyurl | isgd | bitly | none
+  provider: 'isgd' // isgd | tinyurl | bitly | none
 }
 ```
-A primeira versão prioriza **TinyURL** e **is.gd**, pois não exigem autenticação baseada em tokens públicos, contornando a exposição de credenciais. Opcionalmente, se a variável de ambiente segura `BITLY_ACCESS_TOKEN` estiver presente no Deno runtime do Supabase, o provedor **Bitly** é utilizado de forma transparente.
+A primeira versão prioriza **is.gd**, pois não exige autenticação baseada em tokens públicos, contornando a exposição de credenciais. A chamada é feita para o endpoint JSON da API do `is.gd` (`https://is.gd/create.php?format=json&url=...`).
+
+Se o encurtamento com o `is.gd` falhar (devido a indisponibilidade ou rate limit), o sistema tenta automaticamente o **TinyURL** como fallback secundário. Opcionalmente, se a variável de ambiente segura `BITLY_ACCESS_TOKEN` estiver presente no Deno runtime do Supabase e o provider for configurado como `bitly`, o encurtador Bitly é executado, caindo para `isgd` se houver falhas.
 
 ---
 
@@ -72,7 +74,7 @@ Para otimizar a performance e evitar atingir limites de taxa (*rate limits*) nas
 
 ## 8. Aplicação no manual
 Ao clicar em "Salvar e Disparar" no painel administrativo:
-1. O formulário envia o link para encurtamento em background se ainda não estiver cacheado;
+1. O formulário envia o link para encurtamento em background se ainda não estiver cacheado (usando o encurtador padrão `isgd`);
 2. O título do produto é limpo com `normalizeProductTitle`;
 3. A descrição/chamada opcional é salva na coluna `description`;
 4. O `dispatch-service.ts` lê o resultado encurtado do banco e o injeta nos templates.
@@ -80,7 +82,7 @@ Ao clicar em "Salvar e Disparar" no painel administrativo:
 ---
 
 ## 9. Aplicação na API
-A API pública foi atualizada no endpoint `POST /offers` and `POST /dispatch` para:
+A API pública foi atualizada no endpoint `POST /offers` e no `POST /dispatch` para:
 1. Aceitar parâmetros alternativos flexíveis: `product_name`, `title`, `name`, `description`, `headline` e `copy`;
 2. Identificar e normalizar o nome do produto usando `normalizeProductTitle` antes de inserir no banco;
 3. Acionar a função de encurtamento interna da API pública e gravar os campos de cache no banco Supabase na inserção;
@@ -99,7 +101,7 @@ Nos disparos para o Discord, tanto as mensagens em texto Markdown quanto as URLs
 ---
 
 ## 12. Fallback se encurtador falhar
-Se o encurtador de link falhar por qualquer motivo (limite de taxa excedido, timeout ou offline), o disparo **nunca é interrompido**. O sistema silenciosamente faz o fallback para o `affiliate_link` original longo, garantindo que as campanhas continuem sendo entregues sem interrupções.
+Se o encurtador de link principal (`is.gd`) e o secundário (`TinyURL`) falharem por qualquer motivo (limite de taxa excedido, timeout ou offline), o disparo **nunca é interrompido**. O sistema silenciosamente faz o fallback para o `affiliate_link` original longo, garantindo que as campanhas continuem sendo entregues sem interrupções.
 
 ---
 
@@ -131,20 +133,25 @@ ADD COLUMN IF NOT EXISTS short_affiliate_created_at timestamptz;
 ---
 
 ## 15. Deploy da public-api, se houver
-Os deploys locais do Supabase Edge Functions retornaram erro `403 Privileges Required` devido às credenciais locais do CLI estarem expiradas ou sem direitos de gravação no projeto Supabase `zuqaccivowbzdfrpgekz`. 
 > [!WARNING]
+> Os deploys locais do Supabase Edge Functions retornaram erro `403 Privileges Required` devido às credenciais locais do CLI estarem expiradas ou sem direitos de gravação no projeto Supabase `zuqaccivowbzdfrpgekz`. 
+> 
+> **A produção só estará atualizada após o deploy manual das functions**.
+> 
 > É necessário que o proprietário do projeto execute os seguintes comandos no terminal local após autenticar-se com `supabase login`:
 > ```bash
+> supabase login
 > supabase functions deploy enrich-product --project-ref zuqaccivowbzdfrpgekz --no-verify-jwt
 > supabase functions deploy public-api --project-ref zuqaccivowbzdfrpgekz --no-verify-jwt
 > ```
+> A `public-api` precisa obrigatoriamente continuar com o parâmetro `--no-verify-jwt` para manter a compatibilidade com a autenticação baseada em API Key (`lof_live_`).
 
 ---
 
 ## 16. Testes realizados
 - **Testes de UI/Inputs:** Campos separados para o título do produto e a descrição criativa (slogan/copy) integrados com sucesso.
 - **Teste de Normalização:** Executado testes unitários na lógica interna de `normalizeProductTitle` para garantir a limpeza de sufixos de marketplaces e slogans criativos.
-- **Teste de Encurtamento (TinyURL / is.gd):** Implementado o redirecionamento com proxy pelas Edge Functions para evitar CORS no frontend.
+- **Teste de Encurtamento (is.gd / TinyURL):** Implementado o redirecionamento com proxy pelas Edge Functions para evitar CORS no frontend.
 - **Teste de Build:** O frontend React compilou com sucesso em produção sem erros de TypeScript ou Bundler.
 
 ---
@@ -155,8 +162,8 @@ O comando `npm run build` executou com sucesso:
 vite v8.0.11 building client environment for production...
 transforming...✓ 2457 modules transformed.
 rendering chunks...
-dist/assets/index-bSe6BdaB.js           1,277.38 kB │ gzip: 360.04 kB
-✓ built in 1.64s
+dist/assets/index-C-dGlHGa.js           1,277.37 kB │ gzip: 360.03 kB
+✓ built in 2.31s
 ```
 
 ---

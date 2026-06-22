@@ -10,7 +10,7 @@ export const FEATURES = {
   useDirectAffiliateLinkInChannels: true, // Envia o link de afiliado direto nos canais (Telegram/Discord)
   linkShortener: {
     enabled: true,
-    provider: 'tinyurl' as 'tinyurl' | 'isgd' | 'bitly' | 'none'
+    provider: 'isgd' as 'tinyurl' | 'isgd' | 'bitly' | 'none'
   }
 };
 

@@ -395,7 +395,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
       if (FEATURES.linkShortener?.enabled && !finalShortAffiliateUrl && form.link.trim()) {
         setProgressText('Encurtando link de afiliado...');
         try {
-          const provider = FEATURES.linkShortener.provider || 'tinyurl';
+          const provider = FEATURES.linkShortener.provider || 'isgd';
           const shortened = await ProductEnrichmentService.shortenLink(form.link.trim(), provider);
           if (shortened && shortened !== form.link.trim()) {
             finalShortAffiliateUrl = shortened;

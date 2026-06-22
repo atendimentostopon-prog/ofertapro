@@ -65,7 +65,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, action, provider = 'tinyurl' } = await req.json()
+    const { url, action, provider = 'isgd' } = await req.json()
     if (!url || !url.startsWith('http')) {
       return new Response(
         JSON.stringify({ success: false, error: 'URL inválida ou ausente.' }),
@@ -96,17 +96,43 @@ serve(async (req) => {
               shortUrl = data.link;
             }
           } else {
-            console.warn('Erro ao encurtar com Bitly, caindo para tinyurl:', res.statusText);
+            console.warn('Erro ao encurtar com Bitly, caindo para isgd:', res.statusText);
+            usedProvider = 'isgd';
+          }
+        } catch (err) {
+          console.warn('Erro na chamada do Bitly, caindo para isgd:', err);
+          usedProvider = 'isgd';
+        }
+      } else if (provider === 'bitly' && !bitlyToken) {
+        usedProvider = 'isgd';
+      }
+
+      // Se o provedor for isgd ou se o Bitly falhou e caiu para isgd
+      if (usedProvider === 'isgd') {
+        try {
+          const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`, {
+            signal: AbortSignal.timeout(6000)
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.shorturl) {
+              shortUrl = data.shorturl.trim();
+            } else if (data && data.errormessage) {
+              console.warn('Erro retornado pela API do is.gd, tentando fallback tinyurl:', data.errormessage);
+              usedProvider = 'tinyurl';
+            }
+          } else {
+            console.warn('is.gd retornou status de erro, tentando fallback tinyurl:', res.statusText);
             usedProvider = 'tinyurl';
           }
         } catch (err) {
-          console.warn('Erro na chamada do Bitly, caindo para tinyurl:', err);
+          console.warn('Erro ao encurtar com is.gd, tentando fallback tinyurl:', err);
           usedProvider = 'tinyurl';
         }
       }
 
-      // Se o provedor for tinyurl ou se o Bitly falhou e caiu para tinyurl
-      if (usedProvider === 'tinyurl') {
+      // Se o provedor for tinyurl ou se o isgd falhou e caiu para tinyurl
+      if (usedProvider === 'tinyurl' && shortUrl === url) {
         try {
           const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
             signal: AbortSignal.timeout(6000)
@@ -119,25 +145,6 @@ serve(async (req) => {
           }
         } catch (err) {
           console.warn('Erro ao encurtar com TinyURL:', err);
-          usedProvider = 'isgd'; // Fallback para is.gd
-        }
-      }
-
-      // Se o provedor for isgd ou se o TinyURL falhou e caiu para isgd
-      if (usedProvider === 'isgd' || shortUrl === url) {
-        try {
-          const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, {
-            signal: AbortSignal.timeout(6000)
-          });
-          if (res.ok) {
-            const text = await res.text();
-            if (text && text.startsWith('http')) {
-              shortUrl = text.trim();
-              usedProvider = 'isgd';
-            }
-          }
-        } catch (err) {
-          console.warn('Erro ao encurtar com is.gd:', err);
         }
       }
 

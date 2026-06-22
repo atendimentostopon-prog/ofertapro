@@ -155,7 +155,7 @@ function normalizeProductTitle(
   return title;
 }
 
-async function shortenLink(url: string, provider = 'tinyurl'): Promise<string> {
+async function shortenLink(url: string, provider = 'isgd'): Promise<string> {
   if (!url || provider === 'none') return url;
   
   let shortUrl = url;
@@ -178,16 +178,41 @@ async function shortenLink(url: string, provider = 'tinyurl'): Promise<string> {
           shortUrl = data.link;
         }
       } else {
-        console.warn('Erro ao encurtar com Bitly, caindo para tinyurl:', res.statusText);
+        console.warn('Erro ao encurtar com Bitly, caindo para isgd:', res.statusText);
+        usedProvider = 'isgd';
+      }
+    } catch (err) {
+      console.warn('Erro na chamada do Bitly, caindo para isgd:', err);
+      usedProvider = 'isgd';
+    }
+  } else if (provider === 'bitly' && !bitlyToken) {
+    usedProvider = 'isgd';
+  }
+
+  if (usedProvider === 'isgd') {
+    try {
+      const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`, {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.shorturl) {
+          shortUrl = data.shorturl.trim();
+        } else if (data && data.errormessage) {
+          console.warn('Erro retornado pela API do is.gd, tentando fallback tinyurl:', data.errormessage);
+          usedProvider = 'tinyurl';
+        }
+      } else {
+        console.warn('is.gd retornou status de erro, tentando fallback tinyurl:', res.statusText);
         usedProvider = 'tinyurl';
       }
     } catch (err) {
-      console.warn('Erro na chamada do Bitly, caindo para tinyurl:', err);
+      console.warn('Erro ao encurtar com is.gd, tentando fallback tinyurl:', err);
       usedProvider = 'tinyurl';
     }
   }
 
-  if (usedProvider === 'tinyurl') {
+  if (usedProvider === 'tinyurl' && shortUrl === url) {
     try {
       const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
         signal: AbortSignal.timeout(6000)
@@ -200,23 +225,6 @@ async function shortenLink(url: string, provider = 'tinyurl'): Promise<string> {
       }
     } catch (err) {
       console.warn('Erro ao encurtar com TinyURL:', err);
-      usedProvider = 'isgd';
-    }
-  }
-
-  if (usedProvider === 'isgd' || shortUrl === url) {
-    try {
-      const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(6000)
-      });
-      if (res.ok) {
-        const text = await res.text();
-        if (text && text.startsWith('http')) {
-          shortUrl = text.trim();
-        }
-      }
-    } catch (err) {
-      console.warn('Erro ao encurtar com is.gd:', err);
     }
   }
 
@@ -554,10 +562,10 @@ serve(async (req) => {
 
       if (affiliate_link && affiliate_link.trim().startsWith('http')) {
         try {
-          const shortened = await shortenLink(affiliate_link.trim(), 'tinyurl');
+          const shortened = await shortenLink(affiliate_link.trim(), 'isgd');
           if (shortened && shortened !== affiliate_link) {
             shortAffiliateUrl = shortened;
-            shortAffiliateProvider = 'tinyurl';
+            shortAffiliateProvider = 'isgd';
             shortAffiliateCreatedAt = new Date().toISOString();
           }
         } catch (err) {
@@ -718,10 +726,10 @@ serve(async (req) => {
 
         if (affiliate_link && affiliate_link.trim().startsWith('http')) {
           try {
-            const shortened = await shortenLink(affiliate_link.trim(), 'tinyurl');
+            const shortened = await shortenLink(affiliate_link.trim(), 'isgd');
             if (shortened && shortened !== affiliate_link) {
               shortAffiliateUrl = shortened;
-              shortAffiliateProvider = 'tinyurl';
+              shortAffiliateProvider = 'isgd';
               shortAffiliateCreatedAt = new Date().toISOString();
             }
           } catch (err) {
@@ -828,7 +836,7 @@ serve(async (req) => {
       let finalAffiliateUrl = targetOffer.short_affiliate_url
       if (!finalAffiliateUrl && targetOffer.affiliate_link) {
         try {
-          const shortened = await shortenLink(targetOffer.affiliate_link, 'tinyurl')
+          const shortened = await shortenLink(targetOffer.affiliate_link, 'isgd')
           if (shortened && shortened !== targetOffer.affiliate_link) {
             finalAffiliateUrl = shortened
             // Atualizar no banco de dados em background
@@ -836,7 +844,7 @@ serve(async (req) => {
               .from('offers')
               .update({
                 short_affiliate_url: shortened,
-                short_affiliate_provider: 'tinyurl',
+                short_affiliate_provider: 'isgd',
                 short_affiliate_created_at: new Date().toISOString()
               })
               .eq('id', targetOffer.id)
