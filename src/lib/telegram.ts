@@ -172,7 +172,7 @@ export async function sendTelegramPhoto(
     console.warn(
       `Telegram [sendPhoto] falhou (${data.description ?? 'Erro desconhecido'}). Tentando fallback com sendMessage...`
     );
-    
+
     const desc = data.description || '';
     if (desc.includes('Unauthorized') || data.error_code === 401 || desc.includes('chat not found') || data.error_code === 400 || desc.includes('forbidden') || desc.includes('blocked') || data.error_code === 403) {
       if (desc.includes('Unauthorized') || data.error_code === 401) {
@@ -244,8 +244,8 @@ export async function sendTelegramOffer(
     : '';
   const salePriceFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(offer.salePrice);
 
-  const messageText = 
-`🔥 OFERTA ENCONTRADA
+  const messageText =
+    `🔥 OFERTA ENCONTRADA
 
 ${offer.name}
 
@@ -254,11 +254,11 @@ ${originalPriceText}Por: ${salePriceFormatted}${couponText}
 Comprar agora:
 ${finalUrl}`;
 
-  const hasImage = offer.image && 
-                   offer.image.trim() !== '' && 
-                   offer.image.trim() !== 'null' && 
-                   offer.image.trim() !== 'undefined' && 
-                   offer.image.trim().startsWith('http');
+  const hasImage = offer.image &&
+    offer.image.trim() !== '' &&
+    offer.image.trim() !== 'null' &&
+    offer.image.trim() !== 'undefined' &&
+    offer.image.trim().startsWith('http');
 
   const sendPromise = hasImage
     ? sendTelegramPhoto(cleanToken, cleanChatId, offer.image!.trim(), messageText, undefined)

@@ -18,7 +18,7 @@ export const TemplateService = {
 
 👉 Comprar agora:
 {link}`;
-      
+
       case 'telegram':
         return `🔥 OFERTA ENCONTRADA
 
@@ -30,7 +30,7 @@ export const TemplateService = {
 
 Comprar agora:
 {link}`;
-      
+
       case 'discord':
         return `🔥 OFERTA ENCONTRADA
 
@@ -42,7 +42,7 @@ Comprar agora:
 
 Comprar agora:
 {link}`;
-      
+
       default:
         return `{titulo} - {preco_promocional} {link}`;
     }
@@ -55,18 +55,18 @@ Comprar agora:
     if (!template) return '';
 
     // Extrair valores com segurança e resiliência de chaves
-    const originalPriceCents = offer.originalPrice !== undefined 
+    const originalPriceCents = offer.originalPrice !== undefined
       ? parseFloat(offer.originalPrice)
       : (offer.original_price ? parseFloat(offer.original_price) : 0);
 
-    const salePriceCents = offer.salePrice !== undefined 
+    const salePriceCents = offer.salePrice !== undefined
       ? parseFloat(offer.salePrice)
       : (offer.sale_price ? parseFloat(offer.sale_price) : 0);
 
     const originalPriceFormatted = originalPriceCents > 0
       ? formatCurrency(originalPriceCents)
       : '';
-    
+
     const salePriceFormatted = salePriceCents > 0
       ? formatCurrency(salePriceCents)
       : '';
@@ -83,22 +83,22 @@ Comprar agora:
       ? offer.category.trim()
       : '';
 
-    const discountVal = offer.discount 
-      ? parseInt(String(offer.discount)) 
+    const discountVal = offer.discount
+      ? parseInt(String(offer.discount))
       : (originalPriceCents > salePriceCents && originalPriceCents > 0
-          ? Math.round((1 - (salePriceCents / originalPriceCents)) * 100)
-          : 0);
+        ? Math.round((1 - (salePriceCents / originalPriceCents)) * 100)
+        : 0);
 
     const titleVal = offer.name || offer.offerName || offer.title || '';
     const imageVal = offer.image || offer.offerImage || offer.imageUrl || '';
     const affiliateName = userProfile?.full_name || userProfile?.preferred_name || 'Afiliado';
     const vitrineName = userProfile?.public_name || userProfile?.public_display_name || userProfile?.username || 'Vitrine';
-    
+
     const dateVal = new Date().toLocaleDateString('pt-BR');
     const timeVal = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     let rendered = template;
-    
+
     // Substituir aliases/versões antigas
     rendered = rendered
       .replace(/{{titulo}}/g, '{titulo}')
@@ -159,7 +159,7 @@ Comprar agora:
 
     // 3. Limpeza de Linhas Vazias e Espaços Extras
     rendered = rendered.replace(/\n{3,}/g, '\n\n');
-    
+
     rendered = rendered
       .split('\n')
       .filter((line, i, arr) => {

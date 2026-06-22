@@ -54,6 +54,66 @@ Comprar agora:
   }
 }
 
+function escapeHTML(text: string): string {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatTelegramHTML(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // 1. Links markdown: [texto](url) -> <a href="url">texto</a>
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchorText, url) => {
+    const safeUrl = url.replace(/&amp;/g, '&').replace(/&/g, '&amp;');
+    return `<a href="${safeUrl}">${anchorText}</a>`;
+  });
+  
+  // 2. Negrito: **texto** ou *texto* -> <b>texto</b>
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  formatted = formatted.replace(/\*([^*]+)\*/g, '<b>$1</b>');
+  
+  // 3. Itálico: _texto_ -> <i>texto</i>
+  formatted = formatted.replace(/_([^_]+)_/g, '<i>$1</i>');
+  
+  // 4. Riscado: ~texto~ -> <s>texto</s>
+  formatted = formatted.replace(/~([^~]+)~/g, '<s>$1</s>');
+  
+  return formatted;
+}
+
+function formatDiscordMarkdown(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // Riscado: ~texto~ ou ~~texto~~ -> ~~texto~~
+  formatted = formatted.replace(/~~([^~]+)~~/g, '~~$1~~');
+  formatted = formatted.replace(/(?<!~)~([^~]+)~(?!~)/g, '~~$1~~');
+  
+  // Negrito: **texto** ou *texto* -> **texto**
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '**$1**');
+  formatted = formatted.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '**$1**');
+  
+  return formatted;
+}
+
+function formatWhatsAppText(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // Links markdown: [texto](url) -> texto:\nurl
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1:\n$2');
+  
+  // Negrito: **texto** -> *texto*
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+  
+  return formatted;
+}
+
 function renderMessageTemplate(
   template: string,
   offer: any,
@@ -79,15 +139,15 @@ function renderMessageTemplate(
     ? formatCurrency(salePriceCents)
     : '';
 
-  const couponVal = offer.coupon && String(offer.coupon) !== 'null' && String(offer.coupon) !== 'undefined'
+  let couponVal = offer.coupon && String(offer.coupon) !== 'null' && String(offer.coupon) !== 'undefined'
     ? String(offer.coupon).trim()
     : '';
 
-  const marketplaceVal = offer.marketplace && String(offer.marketplace) !== 'null' && String(offer.marketplace) !== 'undefined'
+  let marketplaceVal = offer.marketplace && String(offer.marketplace) !== 'null' && String(offer.marketplace) !== 'undefined'
     ? String(offer.marketplace).trim()
     : '';
 
-  const categoryVal = offer.category && String(offer.category) !== 'null' && String(offer.category) !== 'undefined'
+  let categoryVal = offer.category && String(offer.category) !== 'null' && String(offer.category) !== 'undefined'
     ? String(offer.category).trim()
     : '';
 
@@ -97,15 +157,30 @@ function renderMessageTemplate(
         ? Math.round((1 - (salePriceCents / originalPriceCents)) * 100)
         : 0);
 
-  const titleVal = offer.name || offer.offerName || offer.title || '';
+  let titleVal = offer.name || offer.offerName || offer.title || '';
   const imageVal = offer.image || offer.offerImage || offer.imageUrl || '';
-  const affiliateName = profile?.full_name || profile?.preferred_name || 'Afiliado';
-  const vitrineName = profile?.public_name || profile?.public_display_name || profile?.username || 'Vitrine';
+  let affiliateName = profile?.full_name || profile?.preferred_name || 'Afiliado';
+  let vitrineName = profile?.public_name || profile?.public_display_name || profile?.username || 'Vitrine';
 
   // Obter data/hora no fuso horário do Brasil (America/Sao_Paulo)
   const now = new Date();
   const dateVal = now.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   const timeVal = now.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+
+  const type = channelType.toLowerCase();
+  const isTelegram = type === 'telegram';
+  const isDiscord = type === 'discord';
+  const isWhatsApp = type === 'whatsapp';
+
+  // Se for Telegram, precisamos escapar valores dinâmicos antes de injetar
+  if (isTelegram) {
+    titleVal = escapeHTML(titleVal);
+    couponVal = escapeHTML(couponVal);
+    marketplaceVal = escapeHTML(marketplaceVal);
+    categoryVal = escapeHTML(categoryVal);
+    affiliateName = escapeHTML(affiliateName);
+    vitrineName = escapeHTML(vitrineName);
+  }
 
   let rendered = template;
 
@@ -116,9 +191,6 @@ function renderMessageTemplate(
     .replace(/{{preco_promocional}}/g, '{preco_promocional}')
     .replace(/{{cupom}}/g, '{cupom}')
     .replace(/{{link}}/g, '{link}');
-
-  const type = channelType.toLowerCase();
-  const isDiscord = type === 'discord';
 
   // 1. Substituir Linhas Inteligentes
   const originalPriceLine = originalPriceCents > 0
@@ -180,6 +252,15 @@ function renderMessageTemplate(
     })
     .join('\n')
     .trim();
+
+  // 4. Formatação pós-processamento específica por canal
+  if (isTelegram) {
+    rendered = formatTelegramHTML(rendered);
+  } else if (isDiscord) {
+    rendered = formatDiscordMarkdown(rendered);
+  } else if (isWhatsApp) {
+    rendered = formatWhatsAppText(rendered);
+  }
 
   return rendered;
 }
@@ -657,7 +738,8 @@ serve(async (req) => {
                   body: JSON.stringify({
                     chat_id: chatId,
                     photo: targetOffer.image,
-                    caption: useCaption
+                    caption: useCaption,
+                    parse_mode: 'HTML'
                   })
                 })
                 const telData = await telRes.json()
@@ -671,7 +753,8 @@ serve(async (req) => {
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         chat_id: chatId,
-                        text: renderedMessage
+                        text: renderedMessage,
+                        parse_mode: 'HTML'
                       })
                     })
                   }
@@ -686,7 +769,7 @@ serve(async (req) => {
             // Fallback de envio como mensagem de texto caso falhe a foto ou não exista imagem
             if (!sendPhotoSuccess) {
               const textToSend = hasImage 
-                ? `${renderedMessage}\n\n🖼️ [Ver imagem](${targetOffer.image})` 
+                ? `${renderedMessage}\n\n🖼️ <a href="${targetOffer.image}">Ver imagem</a>` 
                 : renderedMessage
 
               telRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -694,7 +777,8 @@ serve(async (req) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   chat_id: chatId,
-                  text: textToSend
+                  text: textToSend,
+                  parse_mode: 'HTML'
                 })
               })
               const telData = await telRes.json()

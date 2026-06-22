@@ -90,7 +90,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
         .select('short_code')
         .eq('id', offerId)
         .single();
-      
+
       if (!offerErr && offerData && offerData.short_code) {
         shortCode = offerData.short_code;
       }
@@ -215,11 +215,11 @@ export const dispatchOffer = async (params: DispatchParams) => {
             'telegram'
           );
 
-          const hasImage = offerImage && 
-                           offerImage.trim() !== '' && 
-                           offerImage.trim() !== 'null' && 
-                           offerImage.trim() !== 'undefined' && 
-                           offerImage.trim().startsWith('http');
+          const hasImage = offerImage &&
+            offerImage.trim() !== '' &&
+            offerImage.trim() !== 'null' &&
+            offerImage.trim() !== 'undefined' &&
+            offerImage.trim().startsWith('http');
 
           try {
             await executeWithRetry(async () => {
@@ -249,9 +249,9 @@ export const dispatchOffer = async (params: DispatchParams) => {
 
       } catch (err: any) {
         console.error(`Erro ao disparar para canal ${channel.name}:`, err);
-        
+
         let cleanErrorMessage = err?.message || 'Erro de conexão ou envio.';
-        
+
         // Mascarar apenas se contiver segredos sensíveis como o bot token real ou URL confidenciais expostas
         const hasSensitiveToken = /bot[0-9]+:[a-zA-Z0-9_-]+/i.test(cleanErrorMessage);
         const hasApiUrl = cleanErrorMessage.includes('api.telegram.org/bot');
@@ -286,7 +286,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
     // 3. Computar Resumo de Envio
     const successfulChannels = results.filter(r => r.success).map(r => r.channelName);
     const failedChannels = results.filter(r => !r.success);
-    
+
     let finalStatus: 'success' | 'partial' | 'error' = 'success';
     if (failedChannels.length > 0) {
       finalStatus = successfulChannels.length > 0 ? 'partial' : 'error';
@@ -296,9 +296,9 @@ export const dispatchOffer = async (params: DispatchParams) => {
       ? `Falha no envio para: ${failedChannels.map(f => f.channelName).join(', ')}`
       : undefined;
 
-    const dispatchResult = { 
-      status: finalStatus, 
-      results 
+    const dispatchResult = {
+      status: finalStatus,
+      results
     };
     console.log("[DISPATCH] finished", dispatchResult);
 
@@ -333,7 +333,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
           console.log("[HISTORY] create success");
         } catch (dbError: any) {
           console.warn('Falha ao registrar histórico detalhado (provavelmente colunas ausentes no banco). Executando fallback...', dbError);
-          
+
           const fallbackPayload = {
             user_id: userId,
             offer_id: offerId,
@@ -376,8 +376,8 @@ export const dispatchOffer = async (params: DispatchParams) => {
       sentAt: new Date().toISOString()
     }));
     console.log("[DISPATCH] finished", { status: 'error', results });
-    return { 
-      status: 'error' as const, 
+    return {
+      status: 'error' as const,
       results
     };
   }

@@ -554,6 +554,48 @@ const Settings: React.FC = () => {
     }
   };
 
+  const injectFormat = (formatType: 'bold' | 'italic' | 'strike' | 'link') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+    
+    let formatted = '';
+    if (formatType === 'bold') {
+      formatted = `**${selectedText || 'texto'}**`;
+    } else if (formatType === 'italic') {
+      formatted = `_${selectedText || 'texto'}_`;
+    } else if (formatType === 'strike') {
+      formatted = `~${selectedText || 'texto'}~`;
+    } else if (formatType === 'link') {
+      formatted = `[${selectedText || 'Comprar agora'}]({link})`;
+    }
+
+    const newValue = text.substring(0, start) + formatted + text.substring(end);
+
+    if (currentEditingTemplateTab === 'whatsapp') {
+      setWhatsappTemplate(newValue);
+    } else if (currentEditingTemplateTab === 'telegram') {
+      setTelegramTemplate(newValue);
+    } else if (currentEditingTemplateTab === 'discord') {
+      setDiscordTemplate(newValue);
+    }
+
+    setTimeout(() => {
+      textarea.focus();
+      if (selectedText) {
+        textarea.setSelectionRange(start, start + formatted.length);
+      } else {
+        const offset = formatType === 'bold' ? 2 : (formatType === 'italic' || formatType === 'strike' ? 1 : 1);
+        const innerTextLength = formatType === 'link' ? 14 : 5;
+        textarea.setSelectionRange(start + offset, start + offset + innerTextLength);
+      }
+    }, 0);
+  };
+
   const limits = getPlanLimits(user.plan);
 
   // Obter template para renderização de preview
@@ -840,6 +882,9 @@ const Settings: React.FC = () => {
                 ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{cupom_linha}`}</code>.
               </p>
               <p className="text-[11.5px] text-indigo-400 font-medium">
+                ⚠️ <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O Link Oferta converte automaticamente para Telegram, Discord e WhatsApp.
+              </p>
+              <p className="text-[11.5px] text-indigo-400 font-medium">
                 ⚠️ A variável <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
               </p>
             </div>
@@ -928,6 +973,31 @@ const Settings: React.FC = () => {
                   );
                 })()}
 
+                {/* Botões de Formatação Rápida */}
+                <div>
+                  <p className="text-xs font-bold text-slate-350 mb-2">Formatação Rápida:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { id: 'bold', label: 'Negrito 🌟', title: 'Negrito (**texto**)' },
+                      { id: 'italic', label: 'Itálico 💫', title: 'Itálico (_texto_)' },
+                      { id: 'strike', label: 'Riscado ❌', title: 'Riscado (~texto~)' },
+                      { id: 'link', label: 'Link Comprar 🔗', title: 'Link ([Comprar agora]({link}))' }
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => limits.customTemplates && injectFormat(f.id as any)}
+                        className={`px-3 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/55 hover:bg-indigo-950/10 text-[10px] font-bold text-slate-300 transition-all ${
+                          !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        title={f.title}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Variáveis dinâmicas para clicar */}
                 <div>
                   <p className="text-xs font-bold text-slate-350 mb-2">Variáveis Disponíveis:</p>
@@ -994,22 +1064,44 @@ const Settings: React.FC = () => {
                         {mockOffer.name}
                       </div>
                     )}
-                    <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all">
-                      {TemplateService.renderTemplate(
-                        getActiveTemplateContent() || getActiveTemplatePlaceholder(),
-                        mockOffer,
-                        {
-                          ...user,
-                          full_name: user?.full_name || 'Contato Givaldo',
-                          preferred_name: user?.preferred_name || 'Contato Givaldo',
-                          public_name: user?.publicName || user?.public_display_name || 'Best Promos',
-                          public_display_name: user?.public_display_name || 'Best Promos',
-                          username: user?.username || 'bestpromos'
-                        },
-                        'https://amzn.to/exemplo',
-                        currentEditingTemplateTab
-                      )}
-                    </p>
+                    {currentEditingTemplateTab === 'telegram' ? (
+                      <div 
+                        className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all"
+                        dangerouslySetInnerHTML={{
+                          __html: TemplateService.renderTemplate(
+                            getActiveTemplateContent() || getActiveTemplatePlaceholder(),
+                            mockOffer,
+                            {
+                              ...user,
+                              full_name: user?.full_name || 'Contato Givaldo',
+                              preferred_name: user?.preferred_name || 'Contato Givaldo',
+                              public_name: user?.publicName || user?.public_display_name || 'Best Promos',
+                              public_display_name: user?.public_display_name || 'Best Promos',
+                              username: user?.username || 'bestpromos'
+                            },
+                            'https://amzn.to/exemplo',
+                            currentEditingTemplateTab
+                          )
+                        }}
+                      />
+                    ) : (
+                      <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all">
+                        {TemplateService.renderTemplate(
+                          getActiveTemplateContent() || getActiveTemplatePlaceholder(),
+                          mockOffer,
+                          {
+                            ...user,
+                            full_name: user?.full_name || 'Contato Givaldo',
+                            preferred_name: user?.preferred_name || 'Contato Givaldo',
+                            public_name: user?.publicName || user?.public_display_name || 'Best Promos',
+                            public_display_name: user?.public_display_name || 'Best Promos',
+                            username: user?.username || 'bestpromos'
+                          },
+                          'https://amzn.to/exemplo',
+                          currentEditingTemplateTab
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
                 
