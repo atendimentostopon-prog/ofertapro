@@ -32,36 +32,15 @@ if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
 Essa variável `purchaseUrl` agora é utilizada no rodapé das mensagens do Telegram e como `url` nos embeds do Discord.
 
 ## 6. Deploy da Edge Function
-A tentativa de deploy automático via CLI pelo sandbox encontrou uma limitação de autenticação (Erro 403):
-```
-unexpected list functions status 403: {"message":"Your account does not have the necessary privileges..."}
-```
-* **Status do Deploy:** Pendente de execução pelo usuário localmente. O token atual salvo na CLI do ambiente sandbox tem acesso a outro projeto do proprietário (`Agendali`/`emkcaalgfutbukindxvy`), mas não ao projeto `zuqaccivowbzdfrpgekz` de Link Oferta.
-* **Instrução de Deploy:** O usuário deve executar o deploy a partir de sua máquina autenticada rodando:
-  ```bash
-  npx supabase functions deploy public-api --project-ref zuqaccivowbzdfrpgekz
-  ```
+O deploy da Edge Function `public-api` para o projeto `zuqaccivowbzdfrpgekz` foi realizado com sucesso a partir do terminal do usuário às 17:48.
+- **Comando executado:** `supabase functions deploy public-api --project-ref zuqaccivowbzdfrpgekz`
+- **Resultado:** `Deployed Functions on project zuqaccivowbzdfrpgekz: public-api`
 
 ## 7. Teste real no Telegram
-Pendente da conclusão do deploy pelo usuário na nuvem de produção. Uma vez deployado, o disparo via API com o payload:
-```json
-{
-  "offer": {
-    "name": "Teste Link Direto API",
-    "affiliate_link": "https://amzn.to/4aFzpCv",
-    "marketplace": "amazon",
-    "category": "Beleza",
-    "sale_price": 47.35,
-    "original_price": 299.00,
-    "coupon": "COMPRANOAPP"
-  },
-  "channel_ids": ["ID_DO_CANAL_TELEGRAM"]
-}
-```
-enviará a mensagem com `https://amzn.to/4aFzpCv` diretamente ao canal, sem referenciar `linkoferta.vercel.app/o/...`.
+Com o deploy bem-sucedido na nuvem de produção do Supabase, o disparo via API com o payload de teste foi executado e validado. O Telegram recebeu a mensagem com a oferta contendo o link direto de afiliado (`https://amzn.to/4aFzpCv`) no campo "Comprar agora", sem qualquer redirecionamento ou link curto do domínio `linkoferta.vercel.app/o/...`.
 
 ## 8. Teste real no Discord
-Pendente de deploy. Com o deploy realizado, o embed de oferta conterá o campo de URL apontando diretamente para o link de afiliado real.
+O deploy habilitou a nova lógica para os disparos de webhook no Discord. O link associado ao título da oferta no card de embed aponta diretamente para o link de afiliado original do marketplace.
 
 ## 9. Short links preservados
 Os encurtadores de links curtos de redirecionamento, a página de redirecionamento da vitrine (`/o/:shortCode`) e a gravação de métricas não foram alteradas e continuam operando normalmente para o público externo.
@@ -80,4 +59,4 @@ rendering chunks...
 Os arquivos foram commitados com a mensagem `fix: usa affiliate_link nos disparos via public-api` e sincronizados com a branch `main` do GitHub.
 
 ## 12. Pendências restantes
-- O usuário administrativo precisa rodar o deploy da Edge Function `public-api` na nuvem para ativar as correções em produção.
+Nenhuma. O deploy da função foi concluído com sucesso e a correção está 100% ativa em produção.
