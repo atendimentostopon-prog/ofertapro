@@ -16,6 +16,7 @@
  */
 
 import { withTimeout } from './utils';
+import { FEATURES } from '../config/features';
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
 
@@ -204,6 +205,7 @@ export async function sendTelegramOffer(
     coupon?: string;
     image?: string;
     trackingLink: string;
+    affiliateLink?: string;
   }
 ): Promise<void> {
   const cleanToken = String(botToken).trim();
@@ -214,6 +216,14 @@ export async function sendTelegramOffer(
   }
   if (!cleanChatId) {
     throw new Error('Chat ID inválido.');
+  }
+
+  const finalUrl = FEATURES.useDirectAffiliateLinkInChannels
+    ? offer.affiliateLink || offer.trackingLink
+    : offer.trackingLink;
+
+  if (!finalUrl || !finalUrl.trim().startsWith('http')) {
+    throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.');
   }
 
   const couponText = offer.coupon && offer.coupon.trim() ? `\nCupom: ${offer.coupon}` : '';
@@ -230,7 +240,7 @@ ${offer.name}
 ${originalPriceText}Por: ${salePriceFormatted}${couponText}
 
 Comprar agora:
-${offer.trackingLink}`;
+${finalUrl}`;
 
   const hasImage = offer.image && 
                    offer.image.trim() !== '' && 

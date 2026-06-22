@@ -214,7 +214,8 @@ export const dispatchOffer = async (params: DispatchParams) => {
                 salePrice: params.salePrice,
                 coupon: params.coupon,
                 image: offerImage,
-                trackingLink: trackingLink
+                trackingLink: trackingLink,
+                affiliateLink: params.affiliateLink
               });
             });
             console.log("[DISPATCH] telegram success");

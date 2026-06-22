@@ -7,6 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
+const USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS = true;
+
 // Helper para formatar moeda BRL
 const formatCurrency = (val: number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -374,7 +376,13 @@ serve(async (req) => {
         try {
           // --- DISCORD WEBHOOK ---
           if (channel.type === 'discord') {
-            const trackingLink = `${appUrl}/o/${targetOffer.short_code}?src=discord`
+            const purchaseUrl = USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS
+              ? targetOffer.affiliate_link || targetOffer.affiliateLink
+              : `${appUrl}/o/${targetOffer.short_code}?src=discord`
+
+            if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
+              throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
+            }
             
             const fields = [
               { name: '💰 Preço', value: `**${formatCurrency(targetOffer.sale_price)}**`, inline: true }
@@ -389,7 +397,7 @@ serve(async (req) => {
 
             const embed: any = {
               title: targetOffer.name,
-              url: trackingLink,
+              url: purchaseUrl,
               color: 0x4f46e5,
               fields,
               footer: { text: 'Link Oferta • Enviado via API' },
@@ -427,7 +435,14 @@ serve(async (req) => {
               throw new Error('Configuração do Telegram incompleta para o canal.')
             }
 
-            const trackingLink = `${appUrl}/o/${targetOffer.short_code}?src=telegram`
+            const purchaseUrl = USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS
+              ? targetOffer.affiliate_link || targetOffer.affiliateLink
+              : `${appUrl}/o/${targetOffer.short_code}?src=telegram`
+
+            if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
+              throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
+            }
+
             const couponText = targetOffer.coupon ? `\nCupom: ${targetOffer.coupon}` : ''
             const originalPriceText = targetOffer.original_price && targetOffer.original_price > 0
               ? `De: ${formatCurrency(targetOffer.original_price)}\n`
@@ -441,7 +456,7 @@ ${targetOffer.name}
 ${originalPriceText}Por: ${formatCurrency(targetOffer.sale_price)}${couponText}
 
 Comprar agora:
-${trackingLink}`
+${purchaseUrl}`
 
             let telRes: Response
             if (targetOffer.image && targetOffer.image.startsWith('http')) {
