@@ -508,6 +508,20 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               />
             </div>
 
+            {/* Descrição / Chamada da Oferta (Opcional) */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-205 uppercase tracking-wider">
+                Descrição / Chamada da oferta (Opcional)
+              </label>
+              <textarea
+                placeholder="Ex: Prepare-se para cozinhar como um chef e ainda economizar!"
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                className="input-modern text-xs min-h-[60px] resize-none"
+                disabled={loading || uploading}
+              />
+            </div>
+
             {/* Valores */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">

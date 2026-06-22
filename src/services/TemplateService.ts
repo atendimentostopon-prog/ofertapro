@@ -213,8 +213,14 @@ Comprar agora:
     rendered = rendered.replace(/{imagem_linha}/g, imageLine);
 
     // 2. Substituir Variáveis Simples
+    let descriptionVal = offer.description || offer.headline || offer.copy || '';
+    if (isTelegram) {
+      descriptionVal = escapeHTML(descriptionVal);
+    }
+
     rendered = rendered
       .replace(/{titulo}/g, titleVal)
+      .replace(/{chamada}/g, descriptionVal)
       .replace(/{preco_original}/g, originalPriceFormatted)
       .replace(/{preco_promocional}/g, salePriceFormatted)
       .replace(/{desconto}/g, discountVal > 0 ? `${discountVal}%` : '')
@@ -288,6 +294,7 @@ Comprar agora:
   listAvailableVariables(): { name: string; description: string }[] {
     return [
       { name: '{titulo}', description: 'Título/Nome da oferta' },
+      { name: '{chamada}', description: 'Descrição/chamada criativa (slogan/copy)' },
       { name: '{preco_original}', description: 'Preço original (sem formatação de riscado)' },
       { name: '{preco_promocional}', description: 'Preço com desconto' },
       { name: '{desconto}', description: 'Percentual do desconto (Ex: 15% OFF)' },

@@ -6,6 +6,7 @@ import { TemplateService } from '../services/TemplateService';
 import { DispatchResult, HistoryStatus, ChannelType } from '../types';
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
+import { normalizeProductTitle } from '../services/ProductEnrichmentService';
 
 interface DispatchParams {
   userId: string;
@@ -81,19 +82,21 @@ export const dispatchOffer = async (params: DispatchParams) => {
   }
 
   try {
-    // Resolver ou gerar shortCode se necessário
+    // Resolver ou gerar shortCode e link de afiliado se necessário
     let shortCode = params.shortCode;
-    if (!shortCode) {
-      console.log("[DISPATCH] shortCode ausente nos parametros, buscando do banco de dados...");
-      const { data: offerData, error: offerErr } = await supabase
-        .from('offers')
-        .select('short_code')
-        .eq('id', offerId)
-        .single();
+    let finalAffiliateLink = params.affiliateLink;
 
-      if (!offerErr && offerData && offerData.short_code) {
+    const { data: offerData, error: offerErr } = await supabase
+      .from('offers')
+      .select('short_code, affiliate_link, short_affiliate_url')
+      .eq('id', offerId)
+      .maybeSingle();
+
+    if (!offerErr && offerData) {
+      if (offerData.short_code) {
         shortCode = offerData.short_code;
       }
+      finalAffiliateLink = offerData.short_affiliate_url || offerData.affiliate_link || finalAffiliateLink;
     }
 
     if (!shortCode) {
@@ -162,15 +165,16 @@ export const dispatchOffer = async (params: DispatchParams) => {
           }
 
           const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
-            ? params.affiliateLink
+            ? finalAffiliateLink
             : `${window.location.origin}/o/${shortCode}?src=discord`;
 
           const template = settings?.discord_template || TemplateService.getDefaultTemplate('discord');
           renderedMessage = TemplateService.renderTemplate(
             template,
-            params,
+            { ...params, offerName: normalizeProductTitle(offerName) },
             profile,
-            trackingLink
+            trackingLink,
+            'discord'
           );
 
           try {
@@ -178,7 +182,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
               await sender.sendToDiscord(channel.identifier, {
                 ...params,
                 offerId,
-                offerName,
+                offerName: normalizeProductTitle(offerName),
                 offerImage,
                 shortCode,
                 customDescription: renderedMessage,
@@ -203,13 +207,13 @@ export const dispatchOffer = async (params: DispatchParams) => {
           }
 
           const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
-            ? params.affiliateLink
+            ? finalAffiliateLink
             : `${window.location.origin}/o/${shortCode}?src=telegram`;
 
           const template = settings?.telegram_template || TemplateService.getDefaultTemplate('telegram');
           renderedMessage = TemplateService.renderTemplate(
             template,
-            params,
+            { ...params, offerName: normalizeProductTitle(offerName) },
             profile,
             trackingLink,
             'telegram'

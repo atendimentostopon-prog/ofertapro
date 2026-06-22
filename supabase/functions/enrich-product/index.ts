@@ -7,18 +7,143 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+function normalizeProductTitle(
+  rawTitle: string,
+  rawDescription?: string,
+  marketplace?: string
+): string {
+  if (!rawTitle) return '';
+  
+  let title = String(rawTitle).trim();
+  
+  // 1. Remover excesso de emojis no título (especialmente no início e fim)
+  title = title.replace(/^[\s🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇]*\s*/, '');
+  title = title.replace(/\s*[🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇\s]*$/, '');
+
+  // 2. Remover frases de marketing / chamadas criativas comuns
+  const marketingPhrases = [
+    /^(?:prepare-se\s+para|cozinhe\s+como|economize|compre\s+j[áa]|aproveite|garanta\s+o\s+seu|n[ãa]o\s+perca|oferta\s+imperd[íi]vel|promo[çc][ãa]o\s+imperd[íi]vel|compre\s+agora|leia\s+mais|clique\s+e\s+confira|confira\s+esta\s+oferta|imperd[íi]vel|corre\s+para\s+ver|desconto\s+exclusivo|pre[çc]o\s+imbat[íi]vel|olha\s+esse\s+desconto)\s*[:!,-]?\s*/i
+  ];
+
+  for (const pattern of marketingPhrases) {
+    title = title.replace(pattern, '');
+  }
+
+  // 3. Remover sufixos comuns de marketplaces
+  const suffixes = [
+    /\s*[-|•–—]*\s*Amazon\.com\.br\s*$/i,
+    /\s*[-|•–—]*\s*Amazon\s*$/i,
+    /\s*[-|•–—]*\s*Mercado\s*Livre\s*$/i,
+    /\s*[-|•–—]*\s*Shopee\s*$/i,
+    /\s*[-|•–—]*\s*Magalu\s*$/i,
+    /\s*[-|•–—]*\s*Magazine\s*Luiza\s*$/i,
+    /\s*[-|•–—]*\s*AliExpress\s*$/i,
+    /\s*[-|•–—]*\s*Compre\s*agora\s*$/i,
+    /\s*[-|•–—]*\s*Oferta\s*$/i,
+    /\s*[-|•–—]*\s*Promo[çc][ãa]o\s*$/i,
+    /\s*[-|•–—]*\s*Pre[çc]o\s*baixo\s*$/i,
+  ];
+
+  for (const suffixPattern of suffixes) {
+    title = title.replace(suffixPattern, '');
+  }
+
+  // Limpar espaços e pontuação residual no fim do título
+  title = title.replace(/\s*[-|•–—,;:]\s*$/, '').trim();
+
+  // Limitar a 120 caracteres de forma segura
+  if (title.length > 120) {
+    title = title.substring(0, 117) + '...';
+  }
+
+  return title;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { url } = await req.json()
+    const { url, action, provider = 'tinyurl' } = await req.json()
     if (!url || !url.startsWith('http')) {
       return new Response(
         JSON.stringify({ success: false, error: 'URL inválida ou ausente.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Se a ação for apenas encurtar a URL
+    if (action === 'shorten') {
+      let shortUrl = url;
+      let usedProvider = provider;
+
+      const bitlyToken = Deno.env.get('BITLY_ACCESS_TOKEN');
+
+      if (provider === 'bitly' && bitlyToken) {
+        try {
+          const res = await fetch('https://api-ssl.bitly.com/v4/shorten', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${bitlyToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ long_url: url })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.link) {
+              shortUrl = data.link;
+            }
+          } else {
+            console.warn('Erro ao encurtar com Bitly, caindo para tinyurl:', res.statusText);
+            usedProvider = 'tinyurl';
+          }
+        } catch (err) {
+          console.warn('Erro na chamada do Bitly, caindo para tinyurl:', err);
+          usedProvider = 'tinyurl';
+        }
+      }
+
+      // Se o provedor for tinyurl ou se o Bitly falhou e caiu para tinyurl
+      if (usedProvider === 'tinyurl') {
+        try {
+          const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
+            signal: AbortSignal.timeout(6000)
+          });
+          if (res.ok) {
+            const text = await res.text();
+            if (text && text.startsWith('http')) {
+              shortUrl = text.trim();
+            }
+          }
+        } catch (err) {
+          console.warn('Erro ao encurtar com TinyURL:', err);
+          usedProvider = 'isgd'; // Fallback para is.gd
+        }
+      }
+
+      // Se o provedor for isgd ou se o TinyURL falhou e caiu para isgd
+      if (usedProvider === 'isgd' || shortUrl === url) {
+        try {
+          const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, {
+            signal: AbortSignal.timeout(6000)
+          });
+          if (res.ok) {
+            const text = await res.text();
+            if (text && text.startsWith('http')) {
+              shortUrl = text.trim();
+              usedProvider = 'isgd';
+            }
+          }
+        } catch (err) {
+          console.warn('Erro ao encurtar com is.gd:', err);
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, shortUrl, provider: usedProvider }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // 1. Resolver redirects (encurtadores)
@@ -183,7 +308,7 @@ serve(async (req) => {
     const payload = {
       success: true,
       marketplace,
-      title: title?.substring(0, 120),
+      title: normalizeProductTitle(title || '', undefined, marketplace),
       imageUrl,
       currentPrice,
       originalPrice,

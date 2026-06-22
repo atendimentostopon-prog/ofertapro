@@ -608,6 +608,18 @@ const NewOfferPage: React.FC = () => {
               />
             </div>
 
+            {/* Descrição / Chamada da Oferta (Opcional) */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Descrição / Chamada da oferta (Opcional)</label>
+              <textarea
+                placeholder="Ex: Prepare-se para cozinhar como um chef e ainda economizar!"
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                className="input-modern text-xs mt-1 min-h-[60px] resize-none"
+                disabled={loading}
+              />
+            </div>
+
             {/* Preços */}
             <div className="grid grid-cols-2 gap-3">
               <div>

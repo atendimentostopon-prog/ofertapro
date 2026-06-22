@@ -7,6 +7,10 @@ export const FEATURES = {
   discord: true,       // Habilita canal Discord Webhooks
   feedback: true,      // Habilita o sistema de feedbacks e logs do beta
   publicPage: true,     // Habilita a página pública sem restrições de autenticação
-  useDirectAffiliateLinkInChannels: true // Envia o link de afiliado direto nos canais (Telegram/Discord)
+  useDirectAffiliateLinkInChannels: true, // Envia o link de afiliado direto nos canais (Telegram/Discord)
+  linkShortener: {
+    enabled: true,
+    provider: 'tinyurl' as 'tinyurl' | 'isgd' | 'bitly' | 'none'
+  }
 };
 

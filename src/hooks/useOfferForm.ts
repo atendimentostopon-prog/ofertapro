@@ -9,7 +9,7 @@ import { FEATURES } from '../config/features';
 import { Marketplace, DispatchResult } from '../types';
 import { withTimeout } from '../lib/utils';
 import { detectMarketplaceFromUrl } from '../lib/marketplace-detect';
-import { ProductEnrichmentService } from '../services/ProductEnrichmentService';
+import { ProductEnrichmentService, normalizeProductTitle } from '../services/ProductEnrichmentService';
 import { 
   parseCurrencyInputToCents, 
   formatCentsToBRL, 
@@ -50,6 +50,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
   // 1.1. Estado do Formulário (image e imageUrl mantidos para compatibilidade inicial do form)
   const [form, setForm] = useState({
     name: offerToEdit?.name || '',
+    description: offerToEdit?.description || '',
     image: initialImage,
     imageUrl: offerToEdit && !isSupabaseStorage ? initialImage : '',
     originalPrice: offerToEdit ? formatCentsToBRL(databaseValueToCents(offerToEdit.originalPrice ?? offerToEdit.original_price)) : '',
@@ -376,10 +377,42 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
         finalImage = externalImageUrl.trim();
       }
 
-      // Preparar payload higienizado
+      let finalShortAffiliateUrl: string | null = offerToEdit?.short_affiliate_url || offerToEdit?.shortShortAffiliateUrl || null;
+      let finalShortAffiliateProvider: string | null = offerToEdit?.short_affiliate_provider || null;
+      let finalShortAffiliateCreatedAt: string | null = offerToEdit?.short_affiliate_created_at || null;
+
+      // Se o link original mudou, limpa o link encurtado antigo
+      const originalLinkChanged = offerToEdit && 
+        (offerToEdit.affiliate_link || offerToEdit.affiliateLink) !== form.link.trim();
+
+      if (originalLinkChanged) {
+        finalShortAffiliateUrl = null;
+        finalShortAffiliateProvider = null;
+        finalShortAffiliateCreatedAt = null;
+      }
+
+      // Encurtar link se estiver ativo nas features
+      if (FEATURES.linkShortener?.enabled && !finalShortAffiliateUrl && form.link.trim()) {
+        setProgressText('Encurtando link de afiliado...');
+        try {
+          const provider = FEATURES.linkShortener.provider || 'tinyurl';
+          const shortened = await ProductEnrichmentService.shortenLink(form.link.trim(), provider);
+          if (shortened && shortened !== form.link.trim()) {
+            finalShortAffiliateUrl = shortened;
+            finalShortAffiliateProvider = provider;
+            finalShortAffiliateCreatedAt = new Date().toISOString();
+            console.log('[SHORTENER] Link encurtado:', shortened);
+          }
+        } catch (shortErr) {
+          console.warn('[SHORTENER] Falha ao encurtar link, usando original:', shortErr);
+        }
+      }
+
+      // Preparar payload higienizado (normalizando o título do produto)
       const offerData = {
         user_id: user.id,
-        name: form.name,
+        name: normalizeProductTitle(form.name),
+        description: form.description.trim() || null,
         image: finalImage,
         original_price: centsToDatabaseValue(originalPriceCents),
         sale_price: centsToDatabaseValue(salePriceCents),
@@ -390,6 +423,9 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
         category: form.category || 'Outros',
         status: isDraft ? 'draft' : (offerToEdit?.status || 'active'),
         channels: selectedChannels,
+        short_affiliate_url: finalShortAffiliateUrl,
+        short_affiliate_provider: finalShortAffiliateProvider,
+        short_affiliate_created_at: finalShortAffiliateCreatedAt,
       };
 
       console.log("[OFFER_SUBMIT] selected channels", selectedChannels);
@@ -443,13 +479,13 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
         const dispatchReport = await dispatchOffer({
           userId: user.id,
           offerId: savedOfferId,
-          offerName: form.name,
+          offerName: normalizeProductTitle(form.name),
           offerImage: finalImage || '',
           salePrice: centsToDatabaseValue(salePriceCents),
           originalPrice: centsToDatabaseValue(originalPriceCents),
           discount: discount,
           coupon: form.coupon || undefined,
-          affiliateLink: form.link,
+          affiliateLink: finalShortAffiliateUrl || form.link.trim(),
           marketplace: form.marketplace,
           description: form.category,
           channelIds: selectedChannels,

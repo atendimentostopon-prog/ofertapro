@@ -15,6 +15,58 @@ export interface ProductEnrichmentResult {
   error?: string;
 }
 
+export function normalizeProductTitle(
+  rawTitle: string,
+  rawDescription?: string,
+  marketplace?: string
+): string {
+  if (!rawTitle) return '';
+  
+  let title = String(rawTitle).trim();
+  
+  // 1. Remover excesso de emojis no título
+  title = title.replace(/^[\s🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇]*\s*/, '');
+  title = title.replace(/\s*[🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇\s]*$/, '');
+
+  // 2. Remover frases de marketing / chamadas criativas
+  const marketingPhrases = [
+    /^(?:prepare-se\s+para|cozinhe\s+como|economize|compre\s+j[áa]|aproveite|garanta\s+o\s+seu|n[ãa]o\s+perca|oferta\s+imperd[íi]vel|promo[çc][ãa]o\s+imperd[íi]vel|compre\s+agora|leia\s+mais|clique\s+e\s+confira|confira\s+esta\s+oferta|imperd[íi]vel|corre\s+para\s+ver|desconto\s+exclusivo|pre[çc]o\s+imbat[íi]vel|olha\s+esse\s+desconto)\s*[:!,-]?\s*/i
+  ];
+
+  for (const pattern of marketingPhrases) {
+    title = title.replace(pattern, '');
+  }
+
+  // 3. Remover sufixos de marketplaces
+  const suffixes = [
+    /\s*[-|•–—]*\s*Amazon\.com\.br\s*$/i,
+    /\s*[-|•–—]*\s*Amazon\s*$/i,
+    /\s*[-|•–—]*\s*Mercado\s*Livre\s*$/i,
+    /\s*[-|•–—]*\s*Shopee\s*$/i,
+    /\s*[-|•–—]*\s*Magalu\s*$/i,
+    /\s*[-|•–—]*\s*Magazine\s*Luiza\s*$/i,
+    /\s*[-|•–—]*\s*AliExpress\s*$/i,
+    /\s*[-|•–—]*\s*Compre\s*agora\s*$/i,
+    /\s*[-|•–—]*\s*Oferta\s*$/i,
+    /\s*[-|•–—]*\s*Promo[çc][ãa]o\s*$/i,
+    /\s*[-|•–—]*\s*Pre[çc]o\s*baixo\s*$/i,
+  ];
+
+  for (const suffixPattern of suffixes) {
+    title = title.replace(suffixPattern, '');
+  }
+
+  // Limpar pontuação residual no fim do título
+  title = title.replace(/\s*[-|•–—,;:]\s*$/, '').trim();
+
+  // Limitar a 120 caracteres de forma segura
+  if (title.length > 120) {
+    title = title.substring(0, 117) + '...';
+  }
+
+  return title;
+}
+
 export const ProductEnrichmentService = {
   /**
    * Envia a URL de afiliado para a Edge Function para buscar dados detalhados
@@ -49,6 +101,29 @@ export const ProductEnrichmentService = {
         success: false,
         error: 'Serviço de busca temporariamente indisponível. Preencha manualmente ou tente de novo.',
       };
+    }
+  },
+
+  /**
+   * Encurta a URL de afiliado utilizando a mesma Edge Function
+   */
+  async shortenLink(url: string, provider: 'tinyurl' | 'isgd' | 'bitly' | 'none'): Promise<string> {
+    if (!url || provider === 'none') return url;
+    try {
+      const { data, error } = await supabase.functions.invoke('enrich-product', {
+        body: { url, action: 'shorten', provider },
+      });
+      if (error) {
+        console.warn('Erro ao chamar Edge Function para encurtamento:', error);
+        return url;
+      }
+      if (data && data.success && data.shortUrl) {
+        return data.shortUrl;
+      }
+      return url;
+    } catch (err) {
+      console.warn('Erro ao encurtar link no Service:', err);
+      return url;
     }
   }
 };

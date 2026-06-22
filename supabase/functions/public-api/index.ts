@@ -114,6 +114,115 @@ function formatWhatsAppText(text: string): string {
   return formatted;
 }
 
+function normalizeProductTitle(
+  rawTitle: string,
+  rawDescription?: string,
+  marketplace?: string
+): string {
+  if (!rawTitle) return '';
+  let title = String(rawTitle).trim();
+  title = title.replace(/^[\s🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇]*\s*/, '');
+  title = title.replace(/\s*[🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇\s]*$/, '');
+
+  const marketingPhrases = [
+    /^(?:prepare-se\s+para|cozinhe\s+como|economize|compre\s+j[áa]|aproveite|garanta\s+o\s+seu|n[ãa]o\s+perca|oferta\s+imperd[íi]vel|promo[çc][ãa]o\s+imperd[íi]vel|compre\s+agora|leia\s+mais|clique\s+e\s+confira|confira\s+esta\s+oferta|imperd[íi]vel|corre\s+para\s+ver|desconto\s+exclusivo|pre[çc]o\s+imbat[íi]vel|olha\s+esse\s+desconto)\s*[:!,-]?\s*/i
+  ];
+  for (const pattern of marketingPhrases) {
+    title = title.replace(pattern, '');
+  }
+
+  const suffixes = [
+    /\s*[-|•–—]*\s*Amazon\.com\.br\s*$/i,
+    /\s*[-|•–—]*\s*Amazon\s*$/i,
+    /\s*[-|•–—]*\s*Mercado\s*Livre\s*$/i,
+    /\s*[-|•–—]*\s*Shopee\s*$/i,
+    /\s*[-|•–—]*\s*Magalu\s*$/i,
+    /\s*[-|•–—]*\s*Magazine\s*Luiza\s*$/i,
+    /\s*[-|•–—]*\s*AliExpress\s*$/i,
+    /\s*[-|•–—]*\s*Compre\s*agora\s*$/i,
+    /\s*[-|•–—]*\s*Oferta\s*$/i,
+    /\s*[-|•–—]*\s*Promo[çc][ãa]o\s*$/i,
+    /\s*[-|•–—]*\s*Pre[çc]o\s*baixo\s*$/i,
+  ];
+  for (const suffixPattern of suffixes) {
+    title = title.replace(suffixPattern, '');
+  }
+
+  title = title.replace(/\s*[-|•–—,;:]\s*$/, '').trim();
+  if (title.length > 120) {
+    title = title.substring(0, 117) + '...';
+  }
+  return title;
+}
+
+async function shortenLink(url: string, provider = 'tinyurl'): Promise<string> {
+  if (!url || provider === 'none') return url;
+  
+  let shortUrl = url;
+  let usedProvider = provider;
+  const bitlyToken = Deno.env.get('BITLY_ACCESS_TOKEN');
+
+  if (provider === 'bitly' && bitlyToken) {
+    try {
+      const res = await fetch('https://api-ssl.bitly.com/v4/shorten', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${bitlyToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ long_url: url })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.link) {
+          shortUrl = data.link;
+        }
+      } else {
+        console.warn('Erro ao encurtar com Bitly, caindo para tinyurl:', res.statusText);
+        usedProvider = 'tinyurl';
+      }
+    } catch (err) {
+      console.warn('Erro na chamada do Bitly, caindo para tinyurl:', err);
+      usedProvider = 'tinyurl';
+    }
+  }
+
+  if (usedProvider === 'tinyurl') {
+    try {
+      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.startsWith('http')) {
+          shortUrl = text.trim();
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao encurtar com TinyURL:', err);
+      usedProvider = 'isgd';
+    }
+  }
+
+  if (usedProvider === 'isgd' || shortUrl === url) {
+    try {
+      const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.startsWith('http')) {
+          shortUrl = text.trim();
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao encurtar com is.gd:', err);
+    }
+  }
+
+  return shortUrl;
+}
+
 function renderMessageTemplate(
   template: string,
   offer: any,
@@ -224,8 +333,14 @@ function renderMessageTemplate(
   rendered = rendered.replace(/{imagem_linha}/g, imageLine);
 
   // 2. Substituir Variáveis Simples
+  let descriptionVal = offer.description || offer.headline || offer.copy || '';
+  if (isTelegram) {
+    descriptionVal = escapeHTML(descriptionVal);
+  }
+
   rendered = rendered
     .replace(/{titulo}/g, titleVal)
+    .replace(/{chamada}/g, descriptionVal)
     .replace(/{preco_original}/g, originalPriceFormatted)
     .replace(/{preco_promocional}/g, salePriceFormatted)
     .replace(/{desconto}/g, discountVal > 0 ? `${discountVal}%` : '')
@@ -381,12 +496,27 @@ serve(async (req) => {
       }
 
       const body = await req.json()
-      const { name, affiliate_link, marketplace, category, sale_price, original_price, coupon, image, status } = body
+      const {
+        name,
+        product_name,
+        title,
+        description,
+        headline,
+        copy,
+        affiliate_link,
+        marketplace,
+        category,
+        sale_price,
+        original_price,
+        coupon,
+        image,
+        status
+      } = body
 
-      // Validações de campos obrigatórios
-      if (!name || !affiliate_link || !marketplace || sale_price === undefined) {
+      let finalProductName = product_name || title || name;
+      if (!finalProductName || !affiliate_link || !marketplace || sale_price === undefined) {
         return new Response(
-          JSON.stringify({ error: 'Campos obrigatórios ausentes: name, affiliate_link, marketplace, sale_price.' }),
+          JSON.stringify({ error: 'Campos obrigatórios ausentes: name (ou product_name/title), affiliate_link, marketplace, sale_price.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -399,6 +529,9 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+
+      const finalDescription = headline || copy || description || null;
+      finalProductName = normalizeProductTitle(finalProductName, finalDescription || undefined, marketplace);
 
       // Gerar short_code único de 6 caracteres aleatórios
       const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -414,12 +547,31 @@ serve(async (req) => {
         ? Math.round((1 - (salePriceVal / originalPriceVal)) * 100)
         : 0
 
+      // Tentar encurtar o link com tinyurl (ou bitly se configurado e houver token)
+      let shortAffiliateUrl = null;
+      let shortAffiliateProvider = 'none';
+      let shortAffiliateCreatedAt = null;
+
+      if (affiliate_link && affiliate_link.trim().startsWith('http')) {
+        try {
+          const shortened = await shortenLink(affiliate_link.trim(), 'tinyurl');
+          if (shortened && shortened !== affiliate_link) {
+            shortAffiliateUrl = shortened;
+            shortAffiliateProvider = 'tinyurl';
+            shortAffiliateCreatedAt = new Date().toISOString();
+          }
+        } catch (err) {
+          console.warn('[PUBLIC_API] Falha ao encurtar link no POST /offers:', err);
+        }
+      }
+
       // Criar a oferta
       const { data: newOffer, error: offerError } = await supabaseAdmin
         .from('offers')
         .insert({
           user_id: userId,
-          name: name.trim(),
+          name: finalProductName,
+          description: finalDescription,
           image: image || null,
           original_price: originalPriceVal,
           sale_price: salePriceVal,
@@ -430,7 +582,10 @@ serve(async (req) => {
           category: category || 'Outros',
           status: status || 'active',
           short_code: shortCode,
-          clicks: 0
+          clicks: 0,
+          short_affiliate_url: shortAffiliateUrl,
+          short_affiliate_provider: shortAffiliateProvider === 'none' ? null : shortAffiliateProvider,
+          short_affiliate_created_at: shortAffiliateCreatedAt
         })
         .select()
         .single()
@@ -447,12 +602,14 @@ serve(async (req) => {
           data: {
             id: newOffer.id,
             name: newOffer.name,
+            description: newOffer.description,
             short_code: newOffer.short_code,
             sale_price: newOffer.sale_price,
             original_price: newOffer.original_price,
             discount: newOffer.discount,
             coupon: newOffer.coupon,
             affiliate_link: newOffer.affiliate_link,
+            short_affiliate_url: newOffer.short_affiliate_url,
             marketplace: newOffer.marketplace,
             category: newOffer.category,
             status: newOffer.status,
@@ -506,10 +663,26 @@ serve(async (req) => {
       }
       // Opção B: Criar e disparar oferta simultaneamente
       else if (rawOffer) {
-        const { name, affiliate_link, marketplace, category, sale_price, original_price, coupon, image } = rawOffer
-        if (!name || !affiliate_link || !marketplace || sale_price === undefined || !channel_ids || !Array.isArray(channel_ids) || channel_ids.length === 0) {
+        const {
+          name,
+          product_name,
+          title,
+          description,
+          headline,
+          copy,
+          affiliate_link,
+          marketplace,
+          category,
+          sale_price,
+          original_price,
+          coupon,
+          image
+        } = rawOffer
+
+        let finalProductName = product_name || title || name;
+        if (!finalProductName || !affiliate_link || !marketplace || sale_price === undefined || !channel_ids || !Array.isArray(channel_ids) || channel_ids.length === 0) {
           return new Response(
-            JSON.stringify({ error: 'Campos obrigatórios ausentes no objeto offer ou channel_ids vazios.' }),
+            JSON.stringify({ error: 'Campos obrigatórios ausentes no objeto offer (name/product_name/title, affiliate_link, marketplace, sale_price) ou channel_ids vazios.' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
@@ -521,6 +694,9 @@ serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
+
+        const finalDescription = headline || copy || description || null;
+        finalProductName = normalizeProductTitle(finalProductName, finalDescription || undefined, marketplace);
 
         // Gerar short_code
         const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -535,12 +711,31 @@ serve(async (req) => {
           ? Math.round((1 - (salePriceVal / originalPriceVal)) * 100)
           : 0
 
+        // Tentar encurtar o link
+        let shortAffiliateUrl = null;
+        let shortAffiliateProvider = 'none';
+        let shortAffiliateCreatedAt = null;
+
+        if (affiliate_link && affiliate_link.trim().startsWith('http')) {
+          try {
+            const shortened = await shortenLink(affiliate_link.trim(), 'tinyurl');
+            if (shortened && shortened !== affiliate_link) {
+              shortAffiliateUrl = shortened;
+              shortAffiliateProvider = 'tinyurl';
+              shortAffiliateCreatedAt = new Date().toISOString();
+            }
+          } catch (err) {
+            console.warn('[PUBLIC_API] Falha ao encurtar link no POST /dispatch (Opção B):', err);
+          }
+        }
+
         // Inserir oferta
         const { data: createdOffer, error: createError } = await supabaseAdmin
           .from('offers')
           .insert({
             user_id: userId,
-            name: name.trim(),
+            name: finalProductName,
+            description: finalDescription,
             image: image || null,
             original_price: originalPriceVal,
             sale_price: salePriceVal,
@@ -551,7 +746,10 @@ serve(async (req) => {
             category: category || 'Outros',
             status: 'active',
             short_code: shortCode,
-            clicks: 0
+            clicks: 0,
+            short_affiliate_url: shortAffiliateUrl,
+            short_affiliate_provider: shortAffiliateProvider === 'none' ? null : shortAffiliateProvider,
+            short_affiliate_created_at: shortAffiliateCreatedAt
           })
           .select()
           .single()
@@ -626,15 +824,42 @@ serve(async (req) => {
       const settings = settingsRes.data
       const profileName = profile?.public_name || profile?.full_name || 'Afiliado'
 
+      // Tentar obter ou gerar o link encurtado para a oferta em cache
+      let finalAffiliateUrl = targetOffer.short_affiliate_url
+      if (!finalAffiliateUrl && targetOffer.affiliate_link) {
+        try {
+          const shortened = await shortenLink(targetOffer.affiliate_link, 'tinyurl')
+          if (shortened && shortened !== targetOffer.affiliate_link) {
+            finalAffiliateUrl = shortened
+            // Atualizar no banco de dados em background
+            supabaseAdmin
+              .from('offers')
+              .update({
+                short_affiliate_url: shortened,
+                short_affiliate_provider: 'tinyurl',
+                short_affiliate_created_at: new Date().toISOString()
+              })
+              .eq('id', targetOffer.id)
+              .then(({ error }) => {
+                if (error) console.error('[PUBLIC_API] Erro ao atualizar cache de link curto em background:', error.message)
+              })
+          }
+        } catch (err) {
+          console.warn('[PUBLIC_API] Falha ao gerar link encurtado em runtime, usando original:', err)
+          finalAffiliateUrl = targetOffer.affiliate_link
+        }
+      }
+      if (!finalAffiliateUrl) {
+        finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
+      }
+
       // Executar envios
       for (const channel of activeChannels) {
         const sentAt = new Date().toISOString()
         try {
           // --- DISCORD WEBHOOK ---
           if (channel.type === 'discord') {
-            const purchaseUrl = USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS
-              ? targetOffer.affiliate_link || targetOffer.affiliateLink
-              : `${appUrl}/o/${targetOffer.short_code}?src=discord`
+            const purchaseUrl = finalAffiliateUrl
 
             if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
@@ -643,7 +868,7 @@ serve(async (req) => {
             const template = settings?.discord_template || getDefaultTemplate('discord')
             const renderedMessage = renderMessageTemplate(
               template,
-              targetOffer,
+              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
               profile,
               purchaseUrl,
               'discord'
@@ -661,7 +886,7 @@ serve(async (req) => {
             }
 
             const embed: any = {
-              title: targetOffer.name,
+              title: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace),
               url: purchaseUrl,
               color: 0x4f46e5,
               description: renderedMessage,
@@ -669,13 +894,13 @@ serve(async (req) => {
               footer: { text: 'Link Oferta • Enviado via API' },
               timestamp: new Date().toISOString()
             }
-
+ 
             if (targetOffer.image && targetOffer.image.startsWith('http')) {
               embed.image = { url: targetOffer.image }
             }
-
+ 
             const discountText = targetOffer.discount > 0 ? ` 🔥 ${targetOffer.discount}% OFF` : ''
-
+ 
             const discRes = await fetch(channel.identifier, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -684,11 +909,11 @@ serve(async (req) => {
                 embeds: [embed]
               })
             })
-
+ 
             if (!discRes.ok && discRes.status !== 204) {
               throw new Error(`Discord respondeu status: ${discRes.status}`)
             }
-
+ 
             results.push({ channelId: channel.id, name: channel.name, type: 'discord', success: true })
             successfulChannels.push(channel.name)
           } 
@@ -696,23 +921,21 @@ serve(async (req) => {
           else if (channel.type === 'telegram') {
             const botToken = channel.metadata?.bot_token
             const chatId = channel.identifier
-
+ 
             if (!botToken || !chatId) {
               throw new Error('Configuração do Telegram incompleta para o canal.')
             }
-
-            const purchaseUrl = USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS
-              ? targetOffer.affiliate_link || targetOffer.affiliateLink
-              : `${appUrl}/o/${targetOffer.short_code}?src=telegram`
-
+ 
+            const purchaseUrl = finalAffiliateUrl
+ 
             if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
-
+ 
             const template = settings?.telegram_template || getDefaultTemplate('telegram')
             const renderedMessage = renderMessageTemplate(
               template,
-              targetOffer,
+              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
               profile,
               purchaseUrl,
               'telegram'

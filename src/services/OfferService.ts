@@ -21,6 +21,7 @@ export const OfferService = {
       const cleanedData = {
         user_id: offerData.user_id,
         name: offerData.name,
+        description: offerData.description || null,
         image: typeof offerData.image === 'string' ? offerData.image : null,
         original_price: offerData.original_price,
         sale_price: offerData.sale_price,
@@ -31,6 +32,9 @@ export const OfferService = {
         category: offerData.category,
         status: offerData.status,
         channels: offerData.channels || [],
+        short_affiliate_url: offerData.short_affiliate_url || null,
+        short_affiliate_provider: offerData.short_affiliate_provider || null,
+        short_affiliate_created_at: offerData.short_affiliate_created_at || null,
       };
 
       const queryPromise = (async () => {
@@ -79,6 +83,7 @@ export const OfferService = {
       const cleanedData = {
         user_id: offerData.user_id,
         name: offerData.name,
+        description: offerData.description || null,
         image: typeof offerData.image === 'string' ? offerData.image : null,
         original_price: offerData.original_price,
         sale_price: offerData.sale_price,
@@ -89,6 +94,9 @@ export const OfferService = {
         category: offerData.category,
         status: offerData.status,
         channels: offerData.channels || [],
+        short_affiliate_url: offerData.short_affiliate_url || null,
+        short_affiliate_provider: offerData.short_affiliate_provider || null,
+        short_affiliate_created_at: offerData.short_affiliate_created_at || null,
       };
 
       const queryPromise = (async () => {
