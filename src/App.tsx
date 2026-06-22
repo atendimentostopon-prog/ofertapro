@@ -12,6 +12,7 @@ import Feedbacks from './pages/Feedbacks';
 import PublicPage from './pages/PublicPage';
 import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './pages/AdminDashboard';
 import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
 import { supabase } from './lib/supabase';
@@ -234,27 +235,16 @@ const App: React.FC = () => {
           />
 
           {/* Protected routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Dashboard /></ProtectedRoute>
-          } />
-          <Route path="/offers" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Offers /></ProtectedRoute>
-          } />
-          <Route path="/offers/new" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><NewOfferPage /></ProtectedRoute>
-          } />
-          <Route path="/channels" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Channels /></ProtectedRoute>
-          } />
-          <Route path="/history" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><History /></ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Settings /></ProtectedRoute>
-          } />
-          <Route path="/feedbacks" element={
-            <ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout}><Feedbacks /></ProtectedRoute>
-          } />
+          <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/offers" element={<Offers />} />
+            <Route path="/offers/new" element={<NewOfferPage />} />
+            <Route path="/channels" element={<Channels />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/feedbacks" element={<Feedbacks />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />

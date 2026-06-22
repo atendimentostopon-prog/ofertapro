@@ -5,6 +5,7 @@ import { sendTelegramMessage, sendTelegramPhoto, sendTelegramOffer } from './tel
 import { TemplateService } from '../services/TemplateService';
 import { DispatchResult, HistoryStatus, ChannelType } from '../types';
 import { withTimeout } from './utils';
+import { FEATURES } from '../config/features';
 
 interface DispatchParams {
   userId: string;
@@ -71,6 +72,12 @@ export const dispatchOffer = async (params: DispatchParams) => {
   if (channelIds.length === 0) {
     console.log("[DISPATCH] finished", { status: 'success', results: [] });
     return { status: 'success' as const, results: [] as DispatchResult[] };
+  }
+
+  if (FEATURES.useDirectAffiliateLinkInChannels) {
+    if (!params.affiliateLink || !params.affiliateLink.trim().startsWith('http')) {
+      throw new Error('Link de Afiliado inválido ou ausente. O disparo direto requer um link de afiliado válido.');
+    }
   }
 
   try {
@@ -154,12 +161,16 @@ export const dispatchOffer = async (params: DispatchParams) => {
             throw new Error('Webhook do Discord inválido (URL ausente ou incorreta).');
           }
 
+          const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
+            ? params.affiliateLink
+            : `${window.location.origin}/o/${shortCode}?src=discord`;
+
           const template = settings?.discord_template || TemplateService.getDefaultTemplate('discord');
           renderedMessage = TemplateService.renderTemplate(
             template,
             params,
             profile,
-            `${window.location.origin}/o/${shortCode}?src=discord`
+            trackingLink
           );
 
           try {
@@ -170,7 +181,8 @@ export const dispatchOffer = async (params: DispatchParams) => {
                 offerName,
                 offerImage,
                 shortCode,
-                customDescription: renderedMessage
+                customDescription: renderedMessage,
+                affiliateLink: trackingLink
               });
             });
             console.log("[DISPATCH] discord success");
@@ -190,7 +202,9 @@ export const dispatchOffer = async (params: DispatchParams) => {
             throw new Error('Configuração do Telegram incompleta: token ou chat_id ausente.');
           }
 
-          const trackingLink = `${window.location.origin}/o/${shortCode}?src=telegram`;
+          const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
+            ? params.affiliateLink
+            : `${window.location.origin}/o/${shortCode}?src=telegram`;
 
           try {
             await executeWithRetry(async () => {

@@ -5,6 +5,7 @@ import type { User } from '../types';
 interface UserContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   refreshProfile: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
@@ -18,7 +19,18 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootError }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const checkAdminStatus = async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('is_current_user_admin');
+      if (error) return false;
+      return !!data;
+    } catch {
+      return false;
+    }
+  };
 
   const getFallbackProfile = (userId: string, email: string): User => {
     const defaultUsername = email.split('@')[0] || 'usuario';
@@ -52,6 +64,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
 
   const activeFetchPromiseRef = React.useRef<Promise<User | null> | null>(null);
   const fetchedUserIdRef = React.useRef<string | null>(null);
+  const hasLoadedRef = React.useRef(false);
 
   const fetchProfile = async (userId: string, email: string): Promise<User | null> => {
     // Se já houver um fetch idêntico em andamento para o mesmo usuário, compartilha a Promise
@@ -129,7 +142,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
   const refreshProfile = async () => {
     try {
       console.log('[BOOT][UserContext] refreshProfile iniciado');
-      setLoading(true);
+      if (!hasLoadedRef.current) {
+        setLoading(true);
+      }
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -141,8 +156,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
       if (session?.user) {
         console.log('[BOOT][UserContext] Sessão activa encontrada, carregando perfil...');
         console.time("[BOOT] loadProfile");
-        const profile = await fetchProfile(session.user.id, session.user.email || '');
+        const [profile, adminStatus] = await Promise.all([
+          fetchProfile(session.user.id, session.user.email || ''),
+          checkAdminStatus()
+        ]);
         console.timeEnd("[BOOT] loadProfile");
+        setIsAdmin(adminStatus);
         if (profile) {
           setUser(profile);
         } else {
@@ -157,11 +176,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
       } else {
         console.log('[BOOT][UserContext] Nenhuma sessão ativa em refreshProfile');
         setUser(null);
+        setIsAdmin(false);
       }
     } catch (err) {
       console.error('[BOOT][UserContext] Erro inesperado em refreshProfile:', err);
       setUser(null);
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
       try {
         console.timeEnd("[BOOT] total");
@@ -200,16 +221,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log(`[BOOT][UserContext] onAuthStateChange disparado: ${event}`);
-        // Ativa loading síncronamente antes da promise assíncrona iniciar
-        if (session?.user) {
+        // Ativa loading síncronamente antes da promise assíncrona iniciar se não houver perfil em memória
+        if (session?.user && !hasLoadedRef.current) {
           setLoading(true);
         }
         try {
           if (session?.user) {
             console.log('[BOOT][UserContext] Carregando perfil do usuário após mudança de estado...');
             console.time("[BOOT] loadProfile");
-            const profile = await fetchProfile(session.user.id, session.user.email || '');
+            const [profile, adminStatus] = await Promise.all([
+              fetchProfile(session.user.id, session.user.email || ''),
+              checkAdminStatus()
+            ]);
             console.timeEnd("[BOOT] loadProfile");
+            setIsAdmin(adminStatus);
             if (profile) {
               setUser(profile);
             } else {
@@ -221,10 +246,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
           } else {
             console.log('[BOOT][UserContext] Limpando perfil (usuário deslogado/sem sessão)');
             setUser(null);
+            setIsAdmin(false);
+            hasLoadedRef.current = false;
           }
         } catch (err) {
           console.error('[BOOT][UserContext] Erro interno no onAuthStateChange callback:', err);
         } finally {
+          hasLoadedRef.current = true;
           setLoading(false);
           try {
             console.timeEnd("[BOOT] total");
@@ -249,7 +277,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading, refreshProfile, setUser }}>
+    <UserContext.Provider value={{ user, loading, isAdmin, refreshProfile, setUser }}>
       {children}
     </UserContext.Provider>
   );

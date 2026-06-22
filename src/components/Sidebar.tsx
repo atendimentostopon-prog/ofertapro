@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, Zap, LogOut, ExternalLink, Star, MessageSquare, X
+  ChevronRight, Zap, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { FEATURES } from '../config/features';
@@ -24,9 +24,14 @@ const navItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, isAdmin } = useUser();
 
   if (!user) return null;
+
+  const activeNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ to: '/admin', icon: ShieldCheck, label: 'Painel Admin' }] : []),
+  ];
 
   const planColors: Record<string, string> = {
     free: 'bg-slate-800 text-slate-400 border border-slate-700/50',
@@ -68,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {activeNavItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}

@@ -107,7 +107,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
   };
 
   return (
-    <div className="glass-card card-hover overflow-hidden group border-white/[0.06] flex flex-col justify-between h-full bg-[#101827]">
+    <div className="glass-card card-hover overflow-hidden group border-white/[0.06] flex flex-col justify-between h-full bg-[#101827] relative">
       {/* Image */}
       <div className="relative h-44 overflow-hidden bg-slate-950 flex-shrink-0">
         <ProductImage
@@ -134,56 +134,57 @@ const OfferCard: React.FC<OfferCardProps> = ({
             </span>
           </div>
         )}
-        {/* Menu */}
-        <div className="absolute top-3 right-3 z-20" ref={menuRef}>
-          <div className="relative">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="w-7 h-7 rounded-lg bg-[#0B1020]/90 border border-white/5 flex items-center justify-center shadow-md hover:bg-[#101827] text-[#F8FAFC] transition-colors"
-            >
-              <MoreVertical className="w-3.5 h-3.5" />
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/[0.08] shadow-2xl py-1.5 w-44 z-30 animate-slide-up">
-                <button
-                  onClick={handleResend}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  {resent ? 'Enviado! ✓' : 'Reenviar'}
-                </button>
-                <button
-                  onClick={() => { onEdit(offer); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors"
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => { onToggleStatus(offer.id, offer.status); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors"
-                >
-                  {offer.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  {offer.status === 'active' ? 'Pausar' : 'Ativar'}
-                </button>
-                <button
-                  onClick={copyCoupon}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copiar cupom
-                </button>
-                <div className="my-1 border-t border-white/[0.06]" />
-                <button
-                  onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Excluir oferta
-                </button>
-              </div>
-            )}
-          </div>
+      </div>
+
+      {/* Menu */}
+      <div className="absolute top-3 right-3 z-20" ref={menuRef}>
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-7 h-7 rounded-lg bg-[#0B1020]/90 border border-white/5 flex items-center justify-center shadow-md hover:bg-[#101827] text-[#F8FAFC] transition-colors cursor-pointer"
+          >
+            <MoreVertical className="w-3.5 h-3.5" />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/[0.08] shadow-2xl py-1.5 w-44 z-30 animate-slide-up">
+              <button
+                onClick={handleResend}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                {resent ? 'Enviado! ✓' : 'Reenviar'}
+              </button>
+              <button
+                onClick={() => { onEdit(offer); setMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                Editar
+              </button>
+              <button
+                onClick={() => { onToggleStatus(offer.id, offer.status); setMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                {offer.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                {offer.status === 'active' ? 'Pausar' : 'Ativar'}
+              </button>
+              <button
+                onClick={copyCoupon}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Copiar cupom
+              </button>
+              <div className="my-1 border-t border-white/[0.06]" />
+              <button
+                onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Excluir oferta
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

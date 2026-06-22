@@ -12,6 +12,7 @@ import { detectMarketplaceFromUrl } from '../../lib/marketplace-detect';
 import { useToast } from '../../context/ToastContext';
 import ChannelLogo from '../ui/ChannelLogo';
 import { getMarketplaceLogoSrc } from '../../lib/logos';
+import { FEATURES } from '../../config/features';
 
 interface NewOfferModalProps {
   onClose: () => void;
@@ -849,14 +850,18 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   )}
   
                   <p className="text-indigo-450 text-[9.5px] mt-2 underline truncate">
-                    🔗 linkoferta.vercel.app/o/...
+                    {FEATURES.useDirectAffiliateLinkInChannels 
+                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
+                      : '🔗 linkoferta.vercel.app/o/...'}
                   </p>
                 </div>
               </div>
             </div>
             
             <p className="text-[10px] text-slate-500 text-center font-medium leading-relaxed">
-              O link acima é gerado automaticamente para rastrear cliques e creditar suas comissões.
+              {FEATURES.useDirectAffiliateLinkInChannels
+                ? 'O link de afiliado direto configurado será enviado nas mensagens dos canais.'
+                : 'O link acima é gerado automaticamente para rastrear cliques e creditar suas comissões.'}
             </p>
           </div>
         </div>

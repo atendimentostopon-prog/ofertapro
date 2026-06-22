@@ -14,6 +14,7 @@ import ChannelLogo from '../components/ui/ChannelLogo';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
+import { FEATURES } from '../config/features';
 import {
   formatCurrencyInput,
   parseCurrencyInputToCents,
@@ -858,14 +859,18 @@ const NewOfferPage: React.FC = () => {
                     </div>
                   )}
                   <p className="text-indigo-400 text-[9.5px] mt-2 underline truncate">
-                    🔗 linkoferta.vercel.app/o/...
+                    {FEATURES.useDirectAffiliateLinkInChannels 
+                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
+                      : '🔗 linkoferta.vercel.app/o/...'}
                   </p>
                 </div>
               </div>
             </div>
 
             <p className="text-[10px] text-slate-600 text-center font-medium leading-relaxed">
-              O link gerado automaticamente rastreia cliques e credita suas comissões.
+              {FEATURES.useDirectAffiliateLinkInChannels
+                ? 'O link de afiliado direto configurado será enviado nas mensagens dos canais.'
+                : 'O link gerado automaticamente rastreia cliques e credita suas comissões.'}
             </p>
 
             {/* Marketplace preview */}

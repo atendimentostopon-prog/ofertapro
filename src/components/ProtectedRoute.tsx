@@ -1,12 +1,12 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import Layout from './Layout';
 import { useUser } from '../context/UserContext';
 import FullPageLoader from './FullPageLoader';
 
 interface ProtectedRouteProps {
   isLoggedIn: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onLogout: () => void;
 }
 
@@ -60,7 +60,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   // 4. Fluxo normal: renderiza o layout com o dashboard ou outra página privada
   return (
     <Layout onLogout={onLogout}>
-      {children}
+      <Outlet />
     </Layout>
   );
 };

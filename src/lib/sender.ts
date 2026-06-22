@@ -1,4 +1,5 @@
 import { formatCurrency, withTimeout } from './utils';
+import { FEATURES } from '../config/features';
 
 interface DiscordEmbed {
   title: string;
@@ -49,11 +50,15 @@ export const sender = {
       });
     }
 
+    const trackingLink = FEATURES.useDirectAffiliateLinkInChannels && offer.affiliateLink
+      ? offer.affiliateLink
+      : (offer.shortCode 
+        ? `${window.location.origin}/o/${offer.shortCode}?src=discord`
+        : `${window.location.origin}/r/${offer.offerId}?src=discord`);
+
     const embed: DiscordEmbed = {
       title: offer.offerName,
-      url: offer.shortCode 
-        ? `${window.location.origin}/o/${offer.shortCode}?src=discord`
-        : `${window.location.origin}/r/${offer.offerId}?src=discord`, // Link de rastreio
+      url: trackingLink,
       color: 0x4f46e5, // Indigo 600
       fields,
       footer: {
