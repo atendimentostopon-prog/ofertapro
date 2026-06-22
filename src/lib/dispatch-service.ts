@@ -224,9 +224,9 @@ export const dispatchOffer = async (params: DispatchParams) => {
           try {
             await executeWithRetry(async () => {
               if (hasImage) {
-                await sendTelegramPhoto(botToken, chatId, offerImage.trim(), renderedMessage, undefined);
+                await sendTelegramPhoto(botToken, chatId, offerImage.trim(), renderedMessage, 'HTML');
               } else {
-                await sendTelegramMessage(botToken, chatId, renderedMessage, undefined);
+                await sendTelegramMessage(botToken, chatId, renderedMessage, 'HTML');
               }
             });
             console.log("[DISPATCH] telegram success");

@@ -1,6 +1,66 @@
 import { ChannelType } from '../types';
 import { formatCurrency } from '../lib/utils';
 
+function escapeHTML(text: string): string {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatTelegramHTML(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // 1. Links markdown: [texto](url) -> <a href="url">texto</a>
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchorText, url) => {
+    const safeUrl = url.replace(/&amp;/g, '&').replace(/&/g, '&amp;');
+    return `<a href="${safeUrl}">${anchorText}</a>`;
+  });
+  
+  // 2. Negrito: **texto** ou *texto* -> <b>texto</b>
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  formatted = formatted.replace(/\*([^*]+)\*/g, '<b>$1</b>');
+  
+  // 3. Itálico: _texto_ -> <i>texto</i>
+  formatted = formatted.replace(/_([^_]+)_/g, '<i>$1</i>');
+  
+  // 4. Riscado: ~texto~ -> <s>texto</s>
+  formatted = formatted.replace(/~([^~]+)~/g, '<s>$1</s>');
+  
+  return formatted;
+}
+
+function formatDiscordMarkdown(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // Riscado: ~texto~ ou ~~texto~~ -> ~~texto~~
+  formatted = formatted.replace(/~~([^~]+)~~/g, '~~$1~~');
+  formatted = formatted.replace(/(?<!~)~([^~]+)~(?!~)/g, '~~$1~~');
+  
+  // Negrito: **texto** ou *texto* -> **texto**
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '**$1**');
+  formatted = formatted.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '**$1**');
+  
+  return formatted;
+}
+
+function formatWhatsAppText(text: string): string {
+  if (!text) return '';
+  let formatted = text;
+  
+  // Links markdown: [texto](url) -> texto:\nurl
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1:\n$2');
+  
+  // Negrito: **texto** -> *texto*
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+  
+  return formatted;
+}
+
 export const TemplateService = {
   /**
    * Retorna o template padrão para um tipo de canal
@@ -9,40 +69,40 @@ export const TemplateService = {
     switch (channelType) {
       case 'whatsapp':
         return `🔥 *OFERTA ENCONTRADA*
-
+ 
 *{titulo}*
-
+ 
 {preco_original_linha}
 💰 *Por:* {preco_promocional}
 {cupom_linha}
-
+ 
 👉 Comprar agora:
 {link}`;
-
+ 
       case 'telegram':
         return `🔥 OFERTA ENCONTRADA
-
+ 
 {titulo}
-
+ 
 {preco_original_linha}
 💰 Por: {preco_promocional}
 {cupom_linha}
-
+ 
 Comprar agora:
 {link}`;
-
+ 
       case 'discord':
         return `🔥 OFERTA ENCONTRADA
-
+ 
 {titulo}
-
+ 
 {preco_original_linha}
 💰 Por: {preco_promocional}
 {cupom_linha}
-
+ 
 Comprar agora:
 {link}`;
-
+ 
       default:
         return `{titulo} - {preco_promocional} {link}`;
     }
@@ -71,15 +131,20 @@ Comprar agora:
       ? formatCurrency(salePriceCents)
       : '';
 
-    const couponVal = offer.coupon && offer.coupon !== 'null' && offer.coupon !== 'undefined'
+    const type = (channelType || '').toLowerCase();
+    const isTelegram = type === 'telegram';
+    const isDiscord = type === 'discord';
+    const isWhatsApp = type === 'whatsapp';
+
+    let couponVal = offer.coupon && offer.coupon !== 'null' && offer.coupon !== 'undefined'
       ? offer.coupon.trim()
       : '';
 
-    const marketplaceVal = offer.marketplace && offer.marketplace !== 'null' && offer.marketplace !== 'undefined'
+    let marketplaceVal = offer.marketplace && offer.marketplace !== 'null' && offer.marketplace !== 'undefined'
       ? offer.marketplace.trim()
       : '';
 
-    const categoryVal = offer.category && offer.category !== 'null' && offer.category !== 'undefined'
+    let categoryVal = offer.category && offer.category !== 'null' && offer.category !== 'undefined'
       ? offer.category.trim()
       : '';
 
@@ -89,10 +154,19 @@ Comprar agora:
         ? Math.round((1 - (salePriceCents / originalPriceCents)) * 100)
         : 0);
 
-    const titleVal = offer.name || offer.offerName || offer.title || '';
+    let titleVal = offer.name || offer.offerName || offer.title || '';
     const imageVal = offer.image || offer.offerImage || offer.imageUrl || '';
-    const affiliateName = userProfile?.full_name || userProfile?.preferred_name || 'Afiliado';
-    const vitrineName = userProfile?.public_name || userProfile?.public_display_name || userProfile?.username || 'Vitrine';
+    let affiliateName = userProfile?.full_name || userProfile?.preferred_name || 'Afiliado';
+    let vitrineName = userProfile?.public_name || userProfile?.public_display_name || userProfile?.username || 'Vitrine';
+
+    if (isTelegram) {
+      titleVal = escapeHTML(titleVal);
+      couponVal = escapeHTML(couponVal);
+      marketplaceVal = escapeHTML(marketplaceVal);
+      categoryVal = escapeHTML(categoryVal);
+      affiliateName = escapeHTML(affiliateName);
+      vitrineName = escapeHTML(vitrineName);
+    }
 
     const dateVal = new Date().toLocaleDateString('pt-BR');
     const timeVal = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -106,9 +180,6 @@ Comprar agora:
       .replace(/{{preco_promocional}}/g, '{preco_promocional}')
       .replace(/{{cupom}}/g, '{cupom}')
       .replace(/{{link}}/g, '{link}');
-
-    const type = (channelType || '').toLowerCase();
-    const isDiscord = type === 'discord';
 
     // 1. Substituir Linhas Inteligentes
     const originalPriceLine = originalPriceCents > 0
@@ -170,6 +241,15 @@ Comprar agora:
       })
       .join('\n')
       .trim();
+
+    // 4. Formatação pós-processamento específica por canal
+    if (isTelegram) {
+      rendered = formatTelegramHTML(rendered);
+    } else if (isDiscord) {
+      rendered = formatDiscordMarkdown(rendered);
+    } else if (isWhatsApp) {
+      rendered = formatWhatsAppText(rendered);
+    }
 
     return rendered;
   },

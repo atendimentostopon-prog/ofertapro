@@ -538,7 +538,7 @@ const Settings: React.FC = () => {
         }
 
         const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
-        await sendTelegramPhoto(botToken, chatId, testImage, rendered, undefined);
+        await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
       } else if (currentEditingTemplateTab === 'whatsapp') {
         alert('WhatsApp está em modo de pré-visualização. O template foi processado corretamente!');
         setTestingTemplate(false);

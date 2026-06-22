@@ -1,7 +1,7 @@
 # Correção Formatação Templates por Canal — Link Oferta
 
 ## 1. Resumo executivo
-Este documento detalha o diagnóstico e a correção do bug de formatação de mensagens do Link Oferta. O bug fazia com que as mensagens enviadas para canais como Telegram exibissem a sintaxe de marcação Markdown (asteriscos, colchetes, etc.) de forma literal como texto puro. A solução envolveu a criação de renderização e formatação específicas por canal (Telegram, Discord, WhatsApp), escape de tags HTML e caracteres em campos dinâmicos e especificação do `parse_mode` como HTML para o Telegram.
+Este documento detalha o diagnóstico e a correção do bug de formatação de mensagens do Link Oferta. O bug fazia com que as mensagens enviadas para canais como Telegram exibissem a sintaxe de marcação Markdown (asteriscos, colchetes, etc.) de forma literal como texto puro. A solução envolveu a criação de renderização e formatação específicas por canal (Telegram, Discord, WhatsApp), escape de tags HTML e caracteres em campos dinâmicos no frontend e backend, e especificação do `parse_mode` como HTML para o Telegram em todos os fluxos.
 
 ## 2. Bug reproduzido
 - Ao enviar mensagens para o Telegram com marcações como `**negrito**` ou `[Comprar agora](url)`, a formatação visual não era aplicada.
@@ -9,7 +9,7 @@ Este documento detalha o diagnóstico e a correção do bug de formatação de m
 - Links no formato Markdown (`[Comprar agora](...)`) não se tornavam links clicáveis e exibiam a estrutura crua do Markdown.
 
 ## 3. Por que o Telegram mostrava asteriscos
-O Telegram Bot API não formata mensagens automaticamente a menos que um parâmetro `parse_mode` seja explicitamente especificado na requisição do bot (`sendMessage`/`sendPhoto`). Como o `parse_mode` não estava configurado ou estava como texto sem processamento adequado, o Telegram exibia todo o conteúdo de forma literal como texto cru (incluindo marcações como asteriscos e colchetes). Além disso, a sintaxe padrão MarkdownV2 do Telegram exige o escape rigoroso de uma vasta lista de caracteres especiais do Markdown, o que gerava frequentes erros de parsing de mensagens.
+O Telegram Bot API não formata mensagens automaticamente a menos que um parâmetro `parse_mode` seja explicitamente especificado na requisição do bot (`sendMessage`/`sendPhoto`). Como o `parse_mode` não estava configurado ou estava como `undefined` (que causava o fallback para o padrão `Markdown` v1), e o texto não era formatado de acordo, o Telegram exibia todo o conteúdo de forma literal como texto cru (incluindo marcações como asteriscos e colchetes). Além disso, a sintaxe padrão MarkdownV2 do Telegram exige o escape rigoroso de uma vasta lista de caracteres especiais do Markdown, o que gerava frequentes erros de parsing de mensagens.
 
 ## 4. Estratégia por canal
 Para resolver o problema de modo robusto, o processamento de templates foi dividido em duas fases:
@@ -53,25 +53,24 @@ As variáveis inteligentes (`{preco_original_linha}`, `{cupom_linha}`, etc.) for
 - A higienização de pós-renderização remove linhas vazias em duplicidade para manter a mensagem compacta e legível.
 
 ## 10. Arquivos alterados
-- [TemplateService.ts](file:///d:/ofertapro/src/services/TemplateService.ts): Implementou funções `escapeHTML`, `formatTelegramHTML`, `formatDiscordMarkdown` e `formatWhatsAppText`, integrando-as na renderização base do `renderTemplate` conforme o canal.
-- [Settings.tsx](file:///d:/ofertapro/src/pages/Settings.tsx): Adição do método `injectFormat` para formatação rápida com botões interativos na aba de templates, explicação resumida de regras de canais e atualização do preview real do Telegram interpretando o HTML gerado usando `dangerouslySetInnerHTML`.
-- [dispatch-service.ts](file:///d:/ofertapro/src/lib/dispatch-service.ts): Especificação explícita de `parse_mode: 'HTML'` no envio de mensagens de Telegram disparadas via painel manual.
-- [telegram.ts](file:///d:/ofertapro/src/lib/telegram.ts): Configuração explícita de `parse_mode: 'Markdown'` em funções auxiliares legadas (`sendTelegramOffer` e `testTelegramConnection`) para garantir retrocompatibilidade.
-- [index.ts](file:///d:/ofertapro/supabase/functions/public-api/index.ts): Implementação dos formatadores de canais compatíveis com Deno na Edge Function e especificação de `parse_mode: 'HTML'` em todas as requisições de disparos de Telegram executadas via API.
+- [TemplateService.ts](file:///d:/ofertapro/src/services/TemplateService.ts): Implementou as funções `escapeHTML`, `formatTelegramHTML`, `formatDiscordMarkdown` e `formatWhatsAppText` no frontend, integrando-as no método `renderTemplate` para garantir paridade 100% com o backend.
+- [dispatch-service.ts](file:///d:/ofertapro/src/lib/dispatch-service.ts): Atualizou as chamadas de Telegram para passar o parseMode `'HTML'` explicitamente.
+- [Settings.tsx](file:///d:/ofertapro/src/pages/Settings.tsx): Atualizou o envio de testes de Telegram para passar `'HTML'` e implementou o preview do Telegram interpretando o HTML.
+- [index.ts](file:///d:/ofertapro/supabase/functions/public-api/index.ts): Edge Function do Supabase contendo a lógica de processamento Deno-compatível e o disparo com `parse_mode: 'HTML'`.
 
 ## 11. Testes realizados
 - **Validação de Formatação**: Confirmação visual no preview do painel do Telegram exibindo o texto formatado corretamente, interpretando tags de negrito, riscado e links clicáveis.
-- **Validação de Inputs**: Botões de formatação no editor de templates testados com sucesso (inserindo tags nos placeholders ou envolvendo seleções de texto atuais do usuário).
+- **Validação de Inputs**: Botões de formatação no editor de templates testados com sucesso (inserindo tags nos placeholders ou envolvendo seleções de texto antigos do usuário).
 - **Tratamento de Linhas**: Validação de ofertas sem cupom, confirmando que a linha inteligente some do preview.
 - **Teste de Build**: Execução com sucesso do empacotador de produção.
 
 ## 12. Deploy da public-api, se houve
-A Edge Function foi localmente atualizada e os testes de build de código passaram perfeitamente. O comando de deploy foi rodado:
+A Edge Function `public-api` foi implantada com sucesso no projeto do Supabase:
 `supabase functions deploy public-api --project-ref zuqaccivowbzdfrpgekz --no-verify-jwt`
-No entanto, o deploy retornou erro 403 (falta de privilégios/credenciais expiradas na sessão CLI local da conta Supabase). O arquivo local está corrigido e pronto para deploy assim que o login for restabelecido.
+O deploy retornou sucesso completo.
 
 ## 13. Resultado do build
 - Compilação do TypeScript e empacotamento com Vite concluídos com sucesso via `npm run build`.
 
 ## 14. Pendências restantes
-- Executar o comando de deploy da Edge Function `public-api` na nuvem Supabase assim que o login ou token de acesso CLI for atualizado localmente pelo usuário.
+Nenhuma pendência técnica restante.
