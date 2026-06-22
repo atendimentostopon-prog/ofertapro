@@ -318,17 +318,33 @@ serve(async (req) => {
         )
       }
 
+      if (!channel_ids || !Array.isArray(channel_ids) || channel_ids.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'O campo channel_ids deve ser um array com IDs dos canais.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const uniqueChannelIds = [...new Set(channel_ids)]
+
       // Validar os canais
       const { data: channels, error: fetchChannelsError } = await supabaseAdmin
         .from('channels')
         .select('*')
-        .in('id', channel_ids)
+        .in('id', uniqueChannelIds)
         .eq('user_id', userId)
 
       if (fetchChannelsError) {
         return new Response(
           JSON.stringify({ error: `Erro ao carregar canais de disparo: ${fetchChannelsError.message}` }),
-          { status: 550, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (!channels || channels.length < uniqueChannelIds.length) {
+        return new Response(
+          JSON.stringify({ error: 'Um ou mais canais informados não pertencem à sua conta.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 

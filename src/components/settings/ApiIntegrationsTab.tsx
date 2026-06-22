@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Key, ShieldAlert, Copy, Check, RefreshCw, Trash2, 
-  Terminal, ShieldCheck, Code, Globe, HelpCircle, Loader2 
+  Terminal, ShieldCheck, Code, Globe, HelpCircle, Loader2, Radio
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { ApiKeyService, ApiKeyMetadata } from '../../services/ApiKeyService';
+import { ChannelService } from '../../services/ChannelService';
+import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
+import { Channel } from '../../types';
+import { getChannelLogo, getChannelLogoSrc } from '../../lib/logos';
 
 const ApiIntegrationsTab: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useUser();
   const [keys, setKeys] = useState<ApiKeyMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [channelsLoading, setChannelsLoading] = useState(false);
   
   // Modal de Exibição de Chave Nova
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -33,9 +41,32 @@ const ApiIntegrationsTab: React.FC = () => {
     }
   };
 
+  const loadIntegrationChannels = async () => {
+    if (!user) return;
+    try {
+      setChannelsLoading(true);
+      const data = await ChannelService.getIntegrationChannels(user.id);
+      const mappedData = (data || []).map((ch: any) => ({
+        id: ch.id,
+        name: ch.name,
+        type: ch.type,
+        status: ch.status,
+        lastSync: ch.last_sync,
+        created_at: ch.created_at
+      }));
+      setChannels(mappedData);
+    } catch (err) {
+      console.error('Erro ao carregar canais para integração:', err);
+      toast('Não foi possível carregar os canais para integração.', 'error');
+    } finally {
+      setChannelsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadKeys();
-  }, []);
+    loadIntegrationChannels();
+  }, [user]);
 
   const handleGenerateKey = async () => {
     setActionLoading(true);
@@ -221,6 +252,104 @@ const ApiIntegrationsTab: React.FC = () => {
         </div>
       )}
 
+      {/* 2.5 Canais Conectados para Integração */}
+      <div className="glass-card overflow-hidden border-white/5 shadow-sm">
+        <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <Radio className="w-4.5 h-4.5 text-indigo-400" />
+            </div>
+            <div>
+              <h4 className="text-[13px] font-bold text-slate-100 uppercase tracking-wider">Canais conectados para integração</h4>
+              <p className="text-[11px] text-[#94A3B8] mt-0.5">Use estes IDs para disparar ofertas via API usando o campo channel_ids.</p>
+            </div>
+          </div>
+          <button
+            onClick={loadIntegrationChannels}
+            disabled={channelsLoading}
+            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 flex items-center gap-1.5 transition-all text-xs font-bold disabled:opacity-50 self-start sm:self-auto shrink-0"
+          >
+            {channelsLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            Atualizar canais
+          </button>
+        </div>
+
+        <div className="p-6">
+          {channelsLoading && channels.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+            </div>
+          ) : channels.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {channels.map((channel) => {
+                const logoInfo = getChannelLogo(channel.type);
+                return (
+                  <div 
+                    key={channel.id} 
+                    className="p-4 rounded-2xl bg-[#101827]/40 border border-white/5 flex flex-col justify-between gap-3 relative overflow-hidden group hover:border-white/10 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center overflow-hidden p-2 shrink-0">
+                          <img
+                            src={getChannelLogoSrc(channel.type)}
+                            alt={channel.type}
+                            className="w-full h-full object-contain"
+                            onError={(e: any) => {
+                              e.target.outerHTML = `<span class="text-lg">${logoInfo.emoji}</span>`;
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-xs text-white tracking-tight truncate">{channel.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] text-slate-400 capitalize">{logoInfo.label}</span>
+                            <span className="text-slate-650 font-black text-[9px]">•</span>
+                            <span className="text-[10px] text-emerald-400 font-bold">Conectado</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">ID do canal</span>
+                      <div className="flex items-center bg-[#070A12] border border-white/5 rounded-xl px-3.5 py-2 justify-between gap-2">
+                        <code className="text-[10px] font-mono text-slate-300 truncate select-all">{channel.id}</code>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(channel.id);
+                            toast('ID do canal copiado!', 'success');
+                          }}
+                          className="text-slate-400 hover:text-white transition-colors shrink-0 p-1 hover:bg-white/5 rounded-lg border border-transparent hover:border-white/5"
+                          title="Copiar ID"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-[#101827]/15 rounded-2xl border border-dashed border-white/5">
+              <Radio className="w-8 h-8 text-slate-550 mx-auto mb-2 opacity-50" />
+              <p className="text-xs text-slate-400">Nenhum canal conectado ainda.</p>
+              <Link
+                to="/channels"
+                className="mt-3.5 btn-gradient inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2"
+              >
+                Conectar canal
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 3. Modal de Chave Criada (Exibe uma única vez) */}
       {newKey && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[999] animate-fade-in">
@@ -320,7 +449,6 @@ const ApiIntegrationsTab: React.FC = () => {
               &nbsp;&nbsp;&#125;'
             </div>
           </div>
-
           {/* Exemplo 3: Disparar Oferta */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
@@ -330,19 +458,41 @@ const ApiIntegrationsTab: React.FC = () => {
             <p className="text-[11px] text-[#94A3B8] leading-relaxed">
               Envia uma oferta diretamente para canais ativos. Pode referenciar um ID de oferta existente ou criar uma oferta nova e disparar no mesmo payload.
             </p>
-            <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8]">
-              <span className="text-slate-500"># Opção A: Disparar oferta cadastrada existente</span><br />
-              curl -X POST "<span className="text-white">{apiEndpointBase}/dispatch</span>" \<br />
-              &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
-              &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
-              &nbsp;&nbsp;-d '&#123;<br />
-              &nbsp;&nbsp;&nbsp;&nbsp;"offer_id": "ID_DA_OFERTA_AQUI",<br />
-              &nbsp;&nbsp;&nbsp;&nbsp;"channel_ids": ["ID_DO_CANAL_1", "ID_DO_CANAL_2"]<br />
-              &nbsp;&nbsp;&#125;'
+            <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8] space-y-4">
+              <div>
+                <span className="text-slate-500"># Opção A: Disparar oferta cadastrada existente</span><br />
+                curl -X POST "<span className="text-white">{apiEndpointBase}/dispatch</span>" \<br />
+                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
+                &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
+                &nbsp;&nbsp;-d '&#123;<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;"offer_id": "UUID_DA_OFERTA",<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;"channel_ids": [<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ID_DO_CANAL_COPIADO_AQUI"<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;]<br />
+                &nbsp;&nbsp;&#125;'
+              </div>
+              <div className="border-t border-white/5 pt-3">
+                <span className="text-slate-550"># Opção B: Cadastrar e disparar nova oferta</span><br />
+                curl -X POST "<span className="text-white">{apiEndpointBase}/dispatch</span>" \<br />
+                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
+                &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
+                &nbsp;&nbsp;-d '&#123;<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;"offer": &#123;<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Produto Teste",<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"affiliate_link": "https://amzn.to/exemplo",<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"marketplace": "amazon",<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"category": "Informática",<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sale_price": 99.90,<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"original_price": 149.90,<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"coupon": "BOANOITE"<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&#125;,<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;"channel_ids": [<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ID_DO_CANAL_COPIADO_AQUI"<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;]<br />
+                &nbsp;&nbsp;&#125;'
+              </div>
             </div>
-          </div>
-
-        </div>
+          </div>        </div>
       </div>
 
       {/* 5. Alerta de Segurança de Boas Práticas */}
