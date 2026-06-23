@@ -122,16 +122,15 @@ export const dispatchOffer = async (params: DispatchParams) => {
       onStepChange('Carregando informações do perfil e canais...');
     }
 
-    const [profileRes, settingsRes, channelsRes] = await Promise.all([
+    const [profileRes, templates, channelsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('user_settings').select('*').eq('user_id', userId).maybeSingle(),
+      TemplateService.getTemplates(userId),
       supabase.from('channels').select('*').in('id', channelIds)
     ]);
 
     if (channelsRes.error) throw channelsRes.error;
     const channels = channelsRes.data || [];
     const profile = profileRes.data || { full_name: 'Afiliado' };
-    const settings = settingsRes.data || null;
 
     console.log("[DISPATCH] channels count", channels.length);
     const results: DispatchResult[] = [];
@@ -168,7 +167,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             ? finalAffiliateLink
             : `${window.location.origin}/o/${shortCode}?src=discord`;
 
-          const template = settings?.discord_template || TemplateService.getDefaultTemplate('discord');
+          const template = templates?.discord || TemplateService.getDefaultTemplate('discord');
           renderedMessage = TemplateService.renderTemplate(
             template,
             { ...params, offerName: normalizeProductTitle(offerName) },
@@ -210,7 +209,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             ? finalAffiliateLink
             : `${window.location.origin}/o/${shortCode}?src=telegram`;
 
-          const template = settings?.telegram_template || TemplateService.getDefaultTemplate('telegram');
+          const template = templates?.telegram || TemplateService.getDefaultTemplate('telegram');
           renderedMessage = TemplateService.renderTemplate(
             template,
             { ...params, offerName: normalizeProductTitle(offerName) },

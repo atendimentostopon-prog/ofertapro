@@ -117,6 +117,9 @@ const Settings: React.FC = () => {
   const [discordTemplate, setDiscordTemplate] = useState('');
   const [currentEditingTemplateTab, setCurrentEditingTemplateTab] = useState<'whatsapp' | 'telegram' | 'discord'>('whatsapp');
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [savingTemplates, setSavingTemplates] = useState(false);
+  const [templatesSaved, setTemplatesSaved] = useState(false);
+  const [restoringTemplate, setRestoringTemplate] = useState(false);
 
   // Pilar D: Limites de Uso
   const [activeOffersCount, setActiveOffersCount] = useState(0);
@@ -157,28 +160,65 @@ const Settings: React.FC = () => {
     if (!user) return;
     try {
       setLoadingTemplates(true);
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setWhatsappTemplate(data.whatsapp_template || '');
-        setTelegramTemplate(data.telegram_template || '');
-        setDiscordTemplate(data.discord_template || '');
-      } else {
-        // Inicializar com padrões
-        setWhatsappTemplate(TemplateService.getDefaultTemplate('whatsapp'));
-        setTelegramTemplate(TemplateService.getDefaultTemplate('telegram'));
-        setDiscordTemplate(TemplateService.getDefaultTemplate('discord'));
-      }
+      // Busca templates da tabela dedicada message_templates
+      const templates = await TemplateService.getTemplates(user.id);
+      setWhatsappTemplate(templates.whatsapp || TemplateService.getDefaultTemplate('whatsapp'));
+      setTelegramTemplate(templates.telegram || TemplateService.getDefaultTemplate('telegram'));
+      setDiscordTemplate(templates.discord || TemplateService.getDefaultTemplate('discord'));
     } catch (err) {
       console.error('Erro ao carregar templates:', err);
+      // Fallback para padrões se houver erro
+      setWhatsappTemplate(TemplateService.getDefaultTemplate('whatsapp'));
+      setTelegramTemplate(TemplateService.getDefaultTemplate('telegram'));
+      setDiscordTemplate(TemplateService.getDefaultTemplate('discord'));
     } finally {
       setLoadingTemplates(false);
+    }
+  };
+
+  const handleSaveTemplates = async () => {
+    if (!user) return;
+    // Calcular o template ativo inline (getActiveTemplateContent é declarada depois)
+    const currentTemplate = (
+      currentEditingTemplateTab === 'whatsapp' ? whatsappTemplate
+      : currentEditingTemplateTab === 'telegram' ? telegramTemplate
+      : discordTemplate
+    ) || TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+    const validation = TemplateService.validateTemplate(currentTemplate);
+    if (!validation.valid) {
+      alert(`Erro no template de ${currentEditingTemplateTab}: ${validation.error}`);
+      return;
+    }
+    setSavingTemplates(true);
+    try {
+      await TemplateService.saveTemplate(user.id, currentEditingTemplateTab, currentTemplate);
+      setTemplatesSaved(true);
+      setTimeout(() => setTemplatesSaved(false), 2500);
+    } catch (err: any) {
+      console.error('Erro ao salvar template:', err);
+      alert(`Erro ao salvar template: ${err.message || 'Tente novamente.'}`);
+    } finally {
+      setSavingTemplates(false);
+    }
+  };
+
+  const handleRestoreDefaultTemplate = async () => {
+    if (!user) return;
+    if (!window.confirm(`Restaurar o template de ${currentEditingTemplateTab} para o padrão? Isso apagará as suas customizações.`)) return;
+    setRestoringTemplate(true);
+    try {
+      const defaultText = await TemplateService.restoreDefaultTemplate(user.id, currentEditingTemplateTab);
+      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(defaultText);
+      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(defaultText);
+      else setDiscordTemplate(defaultText);
+    } catch (err: any) {
+      console.error('Erro ao restaurar template:', err);
+      const defaultText = TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(defaultText);
+      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(defaultText);
+      else setDiscordTemplate(defaultText);
+    } finally {
+      setRestoringTemplate(false);
     }
   };
 
@@ -359,46 +399,7 @@ const Settings: React.FC = () => {
 
       if (profileError) throw profileError;
 
-      // 2. Salvar Templates de Mensagem em user_settings
-      const currentWhatsapp = whatsappTemplate || TemplateService.getDefaultTemplate('whatsapp');
-      const currentTelegram = telegramTemplate || TemplateService.getDefaultTemplate('telegram');
-      const currentDiscord = discordTemplate || TemplateService.getDefaultTemplate('discord');
-
-      // Validar templates antes de salvar
-      const valWpp = TemplateService.validateTemplate(currentWhatsapp);
-      const valTel = TemplateService.validateTemplate(currentTelegram);
-      const valDisc = TemplateService.validateTemplate(currentDiscord);
-
-      if (!valWpp.valid) {
-        alert(`Erro no template de WhatsApp: ${valWpp.error}`);
-        setSaving(false);
-        return;
-      }
-      if (!valTel.valid) {
-        alert(`Erro no template de Telegram: ${valTel.error}`);
-        setSaving(false);
-        return;
-      }
-      if (!valDisc.valid) {
-        alert(`Erro no template de Discord: ${valDisc.error}`);
-        setSaving(false);
-        return;
-      }
-
-      // Gravar no Supabase (user_settings)
-      const { error: settingsError } = await supabase
-        .from('user_settings')
-        .upsert({
-          user_id: user.id,
-          whatsapp_template: currentWhatsapp,
-          telegram_template: currentTelegram,
-          discord_template: currentDiscord,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (settingsError) throw settingsError;
-
-      // Salva preferências locais legadas
+      // Salva preferências locais
       localStorage.setItem('link_shortener', shortener);
 
       await refreshProfile();
@@ -1019,18 +1020,14 @@ const Settings: React.FC = () => {
                 </div>
 
                 {/* Ações */}
-                <div className="flex gap-2 pt-1.5">
+                <div className="flex flex-wrap gap-2 pt-1.5">
                   <button
                     type="button"
-                    disabled={!limits.customTemplates || loadingTemplates}
-                    onClick={() => {
-                      const def = TemplateService.getDefaultTemplate(currentEditingTemplateTab);
-                      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(def);
-                      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(def);
-                      else setDiscordTemplate(def);
-                    }}
-                    className="px-3.5 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-all disabled:opacity-50"
+                    disabled={!limits.customTemplates || loadingTemplates || restoringTemplate || savingTemplates}
+                    onClick={handleRestoreDefaultTemplate}
+                    className="px-3.5 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-all disabled:opacity-50 flex items-center gap-1.5"
                   >
+                    {restoringTemplate ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                     Restaurar Padrão
                   </button>
 
@@ -1046,6 +1043,22 @@ const Settings: React.FC = () => {
                       <Sparkles className="w-3.5 h-3.5" />
                     )}
                     Testar no Canal
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!limits.customTemplates || loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                    onClick={handleSaveTemplates}
+                    className="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-900/40"
+                  >
+                    {savingTemplates ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : templatesSaved ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-300" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    {templatesSaved ? 'Template Salvo!' : savingTemplates ? 'Salvando...' : 'Salvar Template'}
                   </button>
                 </div>
               </div>

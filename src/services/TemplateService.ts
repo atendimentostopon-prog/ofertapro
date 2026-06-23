@@ -1,5 +1,6 @@
 import { ChannelType } from '../types';
 import { formatCurrency } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 
 function escapeHTML(text: string): string {
   if (!text) return '';
@@ -69,43 +70,143 @@ export const TemplateService = {
     switch (channelType) {
       case 'whatsapp':
         return `🔥 *OFERTA ENCONTRADA*
- 
-*{titulo}*
- 
+
+💎 *{titulo}*
+
 {preco_original_linha}
-💰 *Por:* {preco_promocional}
+✅ *Por apenas:* {preco_promocional}
+
 {cupom_linha}
- 
-👉 Comprar agora:
-{link}`;
+
+🛒 *Marketplace:* {marketplace}
+
+🔗 Comprar agora:
+{link}
+
+📣 *Divulgado por:* {nome_afiliado}`;
  
       case 'telegram':
-        return `🔥 OFERTA ENCONTRADA
- 
-{titulo}
- 
+        return `🔥 **OFERTA ENCONTRADA**
+
+💎 **{titulo}**
+
 {preco_original_linha}
-💰 Por: {preco_promocional}
+✅ **Por apenas:** {preco_promocional}
+
 {cupom_linha}
- 
-Comprar agora:
-{link}`;
+
+🛒 **Marketplace:** {marketplace}
+🔗 [Comprar agora]({link})
+
+📣 **Divulgado por:** {nome_afiliado}`;
  
       case 'discord':
-        return `🔥 OFERTA ENCONTRADA
- 
-{titulo}
- 
+        return `🔥 **OFERTA ENCONTRADA**
+
+💎 **{titulo}**
+
 {preco_original_linha}
-💰 Por: {preco_promocional}
+✅ **Por apenas:** {preco_promocional}
+
 {cupom_linha}
- 
-Comprar agora:
-{link}`;
+
+🛒 **Marketplace:** {marketplace}
+🔗 [Comprar agora]({link})
+
+📣 **Divulgado por:** {nome_afiliado}`;
  
       default:
         return `{titulo} - {preco_promocional} {link}`;
     }
+  },
+
+  /**
+   * Recupera todos os templates salvos no banco de dados para o usuário.
+   * Se não houver registro, retorna o template padrão de cada canal.
+   */
+  async getTemplates(userId: string): Promise<Record<string, string>> {
+    const templates: Record<string, string> = {
+      telegram: this.getDefaultTemplate('telegram'),
+      discord: this.getDefaultTemplate('discord'),
+      whatsapp: this.getDefaultTemplate('whatsapp')
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      if (data) {
+        data.forEach((row: any) => {
+          if (row.channel_type && row.template_text) {
+            templates[row.channel_type] = row.template_text;
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao buscar templates no TemplateService:', err);
+    }
+
+    return templates;
+  },
+
+  /**
+   * Recupera o template de um canal específico para o usuário.
+   */
+  async getTemplateByChannel(userId: string, channelType: string): Promise<string> {
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('template_text')
+        .eq('user_id', userId)
+        .eq('channel_type', channelType)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data?.template_text) {
+        return data.template_text;
+      }
+    } catch (err) {
+      console.error(`Erro ao buscar template de ${channelType} no TemplateService:`, err);
+    }
+    return this.getDefaultTemplate(channelType as any);
+  },
+
+  /**
+   * Salva o template de um canal específico no banco utilizando upsert.
+   */
+  async saveTemplate(userId: string, channelType: string, templateText: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('message_templates')
+      .upsert({
+        user_id: userId,
+        channel_type: channelType,
+        template_text: templateText,
+        status: 'active',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,channel_type' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Remove o template customizado do banco de dados e retorna o padrão.
+   */
+  async restoreDefaultTemplate(userId: string, channelType: string): Promise<string> {
+    const { error } = await supabase
+      .from('message_templates')
+      .delete()
+      .eq('user_id', userId)
+      .eq('channel_type', channelType);
+
+    if (error) throw error;
+    return this.getDefaultTemplate(channelType as any);
   },
 
   /**
