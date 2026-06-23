@@ -362,7 +362,7 @@ function renderMessageTemplate(
     .replace(/{categoria}/g, categoryVal)
     .replace(/{link}/g, trackingLink)
     .replace(/{imagem}/g, imageVal)
-    .replace(/{nome_afiliado}/g, affiliateName)
+    .replace(/{nome_afiliado}/g, '')   // Removido: não exibir nome do afiliado
     .replace(/{nome_vitrine}/g, vitrineName)
     .replace(/{data}/g, dateVal)
     .replace(/{hora}/g, timeVal);
