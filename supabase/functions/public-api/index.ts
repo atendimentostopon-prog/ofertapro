@@ -17,43 +17,36 @@ const formatCurrency = (val: number): string => {
 function getDefaultTemplate(channelType: string): string {
   switch (channelType) {
     case 'whatsapp':
-      return `🔥 *OFERTA ENCONTRADA*
+      return `🔥 *{titulo}*
 
-💎 *{titulo}*
-
+🔥 *Por apenas:* {preco_promocional}
 {preco_original_linha}
-✅ *Por apenas:* {preco_promocional}
-
 {cupom_linha}
 
-🛒 *Marketplace:* {marketplace}
+{marketplace_linha}
 
 🔗 Comprar agora:
 {link}`;
     case 'telegram':
-      return `🔥 **OFERTA ENCONTRADA**
+      return `🔥 **{titulo}**
 
-💎 **{titulo}**
-
+🔥 **Por apenas:** {preco_promocional}
 {preco_original_linha}
-✅ **Por apenas:** {preco_promocional}
-
 {cupom_linha}
 
-🛒 **Marketplace:** {marketplace}
+{marketplace_linha}
 🔗 [Comprar agora]({link})`;
     case 'discord':
-      return `🔥 **OFERTA ENCONTRADA**
+      return `⚡ **NOVA OFERTA DISPONÍVEL!**
 
-💎 **{titulo}**
+**{titulo}**
 
+🔥 Por apenas: **{preco_promocional}**
 {preco_original_linha}
-✅ **Por apenas:** {preco_promocional}
-
 {cupom_linha}
 
-🛒 **Marketplace:** {marketplace}
-🔗 [Comprar agora]({link})`;
+{marketplace_linha}
+🔗 [Garanta aqui]({link})`;
     default:
       return `{titulo} - {preco_promocional} {link}`;
   }
@@ -136,24 +129,41 @@ function normalizeProductTitle(
     title = title.replace(pattern, '');
   }
 
+  // Remover padrões de marketplace com categorias no final
+  const marketplaceCategoryPatterns = [
+    /\s*[:\-|•–—]\s*Amazon\.com\.br\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+    /\s*[:\-|•–—]\s*Mercado\s*Livre\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+    /\s*[:\-|•–—]\s*Shopee\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+    /\s*[:\-|•–—]\s*Magalu\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+    /\s*[:\-|•–—]\s*Magazine\s*Luiza\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+    /\s*[:\-|•–—]\s*AliExpress\s*[:\-|•–—]\s*[^:\-|•–—]+$/i,
+  ];
+  for (const pattern of marketplaceCategoryPatterns) {
+    title = title.replace(pattern, '');
+  }
+
   const suffixes = [
-    /\s*[-|•–—]*\s*Amazon\.com\.br\s*$/i,
-    /\s*[-|•–—]*\s*Amazon\s*$/i,
-    /\s*[-|•–—]*\s*Mercado\s*Livre\s*$/i,
-    /\s*[-|•–—]*\s*Shopee\s*$/i,
-    /\s*[-|•–—]*\s*Magalu\s*$/i,
-    /\s*[-|•–—]*\s*Magazine\s*Luiza\s*$/i,
-    /\s*[-|•–—]*\s*AliExpress\s*$/i,
-    /\s*[-|•–—]*\s*Compre\s*agora\s*$/i,
-    /\s*[-|•–—]*\s*Oferta\s*$/i,
-    /\s*[-|•–—]*\s*Promo[çc][ãa]o\s*$/i,
-    /\s*[-|•–—]*\s*Pre[çc]o\s*baixo\s*$/i,
+    /\s*[-|•–—:]*\s*Amazon\.com\.br\s*$/i,
+    /\s*[-|•–—:]*\s*Amazon\s*$/i,
+    /\s*[-|•–—:]*\s*Mercado\s*Livre\s*$/i,
+    /\s*[-|•–—:]*\s*Shopee\s*$/i,
+    /\s*[-|•–—:]*\s*Magalu\s*$/i,
+    /\s*[-|•–—:]*\s*Magazine\s*Luiza\s*$/i,
+    /\s*[-|•–—:]*\s*AliExpress\s*$/i,
+    /\s*[-|•–—:]*\s*Compre\s*agora\s*$/i,
+    /\s*[-|•–—:]*\s*Oferta\s*$/i,
+    /\s*[-|•–—:]*\s*Promo[çc][ãa]o\s*$/i,
+    /\s*[-|•–—:]*\s*Pre[çc]o\s*baixo\s*$/i,
   ];
   for (const suffixPattern of suffixes) {
     title = title.replace(suffixPattern, '');
   }
 
+  // Remover categorias soltas no final (ex: ": Cozinha")
+  title = title.replace(/\s*:\s+[\w\sçãõáéíóúâêôàüÇÃÕÁÉÍÓÚÂÊÔÀÜ&]{1,30}$/, '');
+
   title = title.replace(/\s*[-|•–—,;:]\s*$/, '').trim();
+  title = title.replace(/\s{2,}/g, ' ').trim();
   if (title.length > 120) {
     title = title.substring(0, 117) + '...';
   }
@@ -314,30 +324,75 @@ function renderMessageTemplate(
     .replace(/{{cupom}}/g, '{cupom}')
     .replace(/{{link}}/g, '{link}');
 
-  // 1. Substituir Linhas Inteligentes
-  const originalPriceLine = originalPriceCents > 0
-    ? (isDiscord ? `De: ~~${originalPriceFormatted}~~` : `De: ~${originalPriceFormatted}~`)
-    : '';
+  // 1. Substituir Linhas Inteligentes (formatação nativa por canal)
+  let originalPriceLine = '';
+  if (originalPriceCents > 0) {
+    if (isTelegram) {
+      originalPriceLine = `De: <s>${originalPriceFormatted}</s>`;
+    } else if (isDiscord) {
+      originalPriceLine = `De: ~~${originalPriceFormatted}~~`;
+    } else if (isWhatsApp) {
+      originalPriceLine = `De: ~${originalPriceFormatted}~`;
+    } else {
+      originalPriceLine = `De: ${originalPriceFormatted}`;
+    }
+  }
   rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
 
-  const couponLine = couponVal
-    ? (isDiscord ? `🎟️ **Cupom:** \`${couponVal}\`` : `🎟️ Cupom: *${couponVal}*`)
-    : '';
+  let couponLine = '';
+  if (couponVal) {
+    if (isTelegram) {
+      couponLine = `🎟️ <b>Cupom:</b> ${couponVal}`;
+    } else if (isDiscord) {
+      couponLine = `🎟️ **Cupom:** \`${couponVal}\``;
+    } else if (isWhatsApp) {
+      couponLine = `🎟️ *Cupom:* ${couponVal}`;
+    } else {
+      couponLine = `🎟️ Cupom: ${couponVal}`;
+    }
+  }
   rendered = rendered.replace(/{cupom_linha}/g, couponLine);
 
-  const discountLine = discountVal > 0
-    ? (isDiscord ? `🔥 **${discountVal}% OFF**` : `🔥 *${discountVal}% OFF*`)
-    : '';
+  let discountLine = '';
+  if (discountVal > 0) {
+    if (isTelegram) {
+      discountLine = `🔥 <b>${discountVal}% OFF</b>`;
+    } else if (isDiscord) {
+      discountLine = `🔥 **${discountVal}% OFF**`;
+    } else if (isWhatsApp) {
+      discountLine = `🔥 *${discountVal}% OFF*`;
+    } else {
+      discountLine = `🔥 ${discountVal}% OFF`;
+    }
+  }
   rendered = rendered.replace(/{desconto_linha}/g, discountLine);
 
-  const marketplaceLine = marketplaceVal
-    ? (isDiscord ? `🛒 **Marketplace:** ${marketplaceVal.toUpperCase()}` : `🛒 Marketplace: *${marketplaceVal.toUpperCase()}*`)
-    : '';
+  let marketplaceLine = '';
+  if (marketplaceVal) {
+    if (isTelegram) {
+      marketplaceLine = `🛒 <b>Marketplace:</b> ${marketplaceVal.toUpperCase()}`;
+    } else if (isDiscord) {
+      marketplaceLine = `🛒 **Marketplace:** ${marketplaceVal.toUpperCase()}`;
+    } else if (isWhatsApp) {
+      marketplaceLine = `🛒 *Marketplace:* ${marketplaceVal.toUpperCase()}`;
+    } else {
+      marketplaceLine = `🛒 Marketplace: ${marketplaceVal.toUpperCase()}`;
+    }
+  }
   rendered = rendered.replace(/{marketplace_linha}/g, marketplaceLine);
 
-  const categoryLine = categoryVal
-    ? (isDiscord ? `📁 **Categoria:** ${categoryVal}` : `📁 Categoria: *${categoryVal}*`)
-    : '';
+  let categoryLine = '';
+  if (categoryVal) {
+    if (isTelegram) {
+      categoryLine = `📁 <b>Categoria:</b> ${categoryVal}`;
+    } else if (isDiscord) {
+      categoryLine = `📁 **Categoria:** ${categoryVal}`;
+    } else if (isWhatsApp) {
+      categoryLine = `📁 *Categoria:* ${categoryVal}`;
+    } else {
+      categoryLine = `📁 Categoria: ${categoryVal}`;
+    }
+  }
   rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
 
   const imageLine = imageVal
@@ -901,24 +956,13 @@ serve(async (req) => {
               purchaseUrl,
               'discord'
             )
-            
-            const fields = [
-              { name: '💰 Preço', value: `**${formatCurrency(targetOffer.sale_price)}**`, inline: true }
-            ]
-            if (targetOffer.original_price && targetOffer.original_price > 0) {
-              fields.push({ name: '🏷️ De', value: `~~${formatCurrency(targetOffer.original_price)}~~`, inline: true })
-            }
-            fields.push({ name: '🛒 Marketplace', value: targetOffer.marketplace.toUpperCase(), inline: true })
-            if (targetOffer.coupon) {
-              fields.push({ name: '🎟️ Cupom', value: `\`${targetOffer.coupon}\``, inline: true })
-            }
 
+            // Embed limpo: usa APENAS template renderizado como description, sem fields duplicados
             const embed: any = {
               title: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace),
               url: purchaseUrl,
               color: 0x4f46e5,
               description: renderedMessage,
-              fields,
               footer: { text: 'Link Oferta • Enviado via API' },
               timestamp: new Date().toISOString()
             }
@@ -927,13 +971,10 @@ serve(async (req) => {
               embed.image = { url: targetOffer.image }
             }
  
-            const discountText = targetOffer.discount > 0 ? ` 🔥 ${targetOffer.discount}% OFF` : ''
- 
             const discRes = await fetch(channel.identifier, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                content: `⚡ **NOVA OFERTA DISPONÍVEL!** ${discountText}`,
                 embeds: [embed]
               })
             })

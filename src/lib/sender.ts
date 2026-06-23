@@ -1,4 +1,4 @@
-import { formatCurrency, withTimeout } from './utils';
+import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
 
 interface DiscordEmbed {
@@ -15,41 +15,11 @@ interface DiscordEmbed {
 
 export const sender = {
   /**
-   * Envia uma oferta para um Webhook do Discord
+   * Envia uma oferta para um Webhook do Discord.
+   * Usa APENAS o template renderizado como description do embed,
+   * sem duplicar dados em fields automáticos.
    */
   async sendToDiscord(webhookUrl: string, offer: any) {
-    const discountText = offer.discount > 0 ? ` 🔥 ${offer.discount}% OFF` : '';
-    
-    const fields = [
-      {
-        name: '💰 Preço',
-        value: `**${formatCurrency(offer.salePrice)}**`,
-        inline: true
-      }
-    ];
-
-    if (offer.originalPrice && offer.originalPrice > 0) {
-      fields.push({
-        name: '🏷️ De',
-        value: `~~${formatCurrency(offer.originalPrice)}~~`,
-        inline: true
-      });
-    }
-
-    fields.push({
-      name: '🛒 Marketplace',
-      value: offer.marketplace.toUpperCase(),
-      inline: true
-    });
-
-    if (offer.coupon && offer.coupon.trim() && offer.coupon !== 'null') {
-      fields.push({
-        name: '🎟️ Cupom',
-        value: `\`${offer.coupon.trim()}\``,
-        inline: true
-      });
-    }
-
     const trackingLink = FEATURES.useDirectAffiliateLinkInChannels && offer.affiliateLink
       ? offer.affiliateLink
       : (offer.shortCode 
@@ -60,13 +30,13 @@ export const sender = {
       title: offer.offerName,
       url: trackingLink,
       color: 0x4f46e5, // Indigo 600
-      fields,
       footer: {
         text: 'Link Oferta • Enviado via Painel',
       },
       timestamp: new Date().toISOString()
     };
 
+    // Usar template renderizado como description (sem fields duplicados)
     const customDesc = offer.customDescription || offer.description;
     if (customDesc && customDesc.trim()) {
       embed.description = customDesc.trim();
@@ -91,7 +61,6 @@ export const sender = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: `⚡ **NOVA OFERTA DISPONÍVEL!** ${discountText}`,
             embeds: [embed]
           })
         });
@@ -132,3 +101,4 @@ export const sender = {
     return withTimeout(sendPromise, 15000, 'Envio Discord');
   }
 };
+

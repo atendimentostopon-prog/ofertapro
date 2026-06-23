@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { evolution } from './evolution';
 import { sender } from './sender';
-import { sendTelegramMessage, sendTelegramPhoto, sendTelegramOffer } from './telegram';
+import { sendTelegramMessage, sendTelegramPhoto } from './telegram';
 import { TemplateService } from '../services/TemplateService';
 import { DispatchResult, HistoryStatus, ChannelType } from '../types';
 import { withTimeout } from './utils';
