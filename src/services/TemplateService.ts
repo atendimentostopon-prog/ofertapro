@@ -81,9 +81,7 @@ export const TemplateService = {
 🛒 *Marketplace:* {marketplace}
 
 🔗 Comprar agora:
-{link}
-
-📣 *Divulgado por:* {nome_afiliado}`;
+{link}`;
  
       case 'telegram':
         return `🔥 **OFERTA ENCONTRADA**
@@ -96,9 +94,7 @@ export const TemplateService = {
 {cupom_linha}
 
 🛒 **Marketplace:** {marketplace}
-🔗 [Comprar agora]({link})
-
-📣 **Divulgado por:** {nome_afiliado}`;
+🔗 [Comprar agora]({link})`;
  
       case 'discord':
         return `🔥 **OFERTA ENCONTRADA**
@@ -111,9 +107,7 @@ export const TemplateService = {
 {cupom_linha}
 
 🛒 **Marketplace:** {marketplace}
-🔗 [Comprar agora]({link})
-
-📣 **Divulgado por:** {nome_afiliado}`;
+🔗 [Comprar agora]({link})`;
  
       default:
         return `{titulo} - {preco_promocional} {link}`;
