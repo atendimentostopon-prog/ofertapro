@@ -190,6 +190,13 @@ const Settings: React.FC = () => {
       return;
     }
     setSavingTemplates(true);
+
+    // Timeout de segurança: o botão nunca fica preso mais de 10s
+    const safetyTimer = setTimeout(() => {
+      setSavingTemplates(false);
+      console.warn('[Templates] Timeout de segurança atingido ao salvar template.');
+    }, 10000);
+
     try {
       await TemplateService.saveTemplate(user.id, currentEditingTemplateTab, currentTemplate);
       setTemplatesSaved(true);
@@ -198,6 +205,7 @@ const Settings: React.FC = () => {
       console.error('Erro ao salvar template:', err);
       alert(`Erro ao salvar template: ${err.message || 'Tente novamente.'}`);
     } finally {
+      clearTimeout(safetyTimer);
       setSavingTemplates(false);
     }
   };

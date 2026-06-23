@@ -126,22 +126,39 @@ export const TemplateService = {
     };
 
     try {
-      const { data, error } = await supabase
-        .from('message_templates')
-        .select('*')
-        .eq('user_id', userId);
+      // Tenta buscar da tabela dedicada message_templates com timeout
+      const result = await Promise.race([
+        supabase.from('message_templates').select('*').eq('user_id', userId),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 6000))
+      ]) as any;
 
-      if (error) throw error;
-
-      if (data) {
-        data.forEach((row: any) => {
+      if (!result.error && result.data) {
+        result.data.forEach((row: any) => {
           if (row.channel_type && row.template_text) {
             templates[row.channel_type] = row.template_text;
           }
         });
+        return templates;
       }
     } catch (err) {
-      console.error('Erro ao buscar templates no TemplateService:', err);
+      console.warn('message_templates indisponível, tentando user_settings...', err);
+    }
+
+    // Fallback: buscar de user_settings (tabela legada)
+    try {
+      const { data } = await supabase
+        .from('user_settings')
+        .select('whatsapp_template, telegram_template, discord_template')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (data) {
+        if (data.whatsapp_template) templates.whatsapp = data.whatsapp_template;
+        if (data.telegram_template) templates.telegram = data.telegram_template;
+        if (data.discord_template) templates.discord = data.discord_template;
+      }
+    } catch (err) {
+      console.error('Erro ao buscar templates no fallback user_settings:', err);
     }
 
     return templates;
@@ -171,35 +188,83 @@ export const TemplateService = {
 
   /**
    * Salva o template de um canal específico no banco utilizando upsert.
+   * Tenta primeiro em message_templates; se falhar, usa user_settings como fallback.
    */
-  async saveTemplate(userId: string, channelType: string, templateText: string): Promise<any> {
-    const { data, error } = await supabase
-      .from('message_templates')
-      .upsert({
-        user_id: userId,
-        channel_type: channelType,
-        template_text: templateText,
-        status: 'active',
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,channel_type' })
-      .select()
-      .single();
+  async saveTemplate(userId: string, channelType: string, templateText: string): Promise<void> {
+    // Tenta salvar na tabela dedicada com timeout
+    try {
+      const { error } = await Promise.race([
+        supabase
+          .from('message_templates')
+          .upsert(
+            {
+              user_id: userId,
+              channel_type: channelType,
+              template_text: templateText,
+              status: 'active',
+              updated_at: new Date().toISOString()
+            },
+            { onConflict: 'user_id,channel_type' }
+          ),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+      ]) as any;
 
-    if (error) throw error;
-    return data;
+      if (!error) {
+        console.log(`[TemplateService] Template de ${channelType} salvo em message_templates.`);
+        return;
+      }
+      console.warn(`[TemplateService] Erro em message_templates (${error.message}), usando fallback...`);
+    } catch (err) {
+      console.warn('[TemplateService] message_templates indisponível, usando fallback user_settings...', err);
+    }
+
+    // Fallback: salvar em user_settings (tabela que sempre existe)
+    const col = channelType === 'telegram' ? 'telegram_template'
+      : channelType === 'discord' ? 'discord_template'
+      : 'whatsapp_template';
+
+    const { error: fallbackError } = await supabase
+      .from('user_settings')
+      .upsert(
+        { user_id: userId, [col]: templateText, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
+
+    if (fallbackError) {
+      throw new Error(`Erro ao salvar template: ${fallbackError.message}`);
+    }
+    console.log(`[TemplateService] Template de ${channelType} salvo no fallback user_settings.`);
   },
 
   /**
    * Remove o template customizado do banco de dados e retorna o padrão.
    */
   async restoreDefaultTemplate(userId: string, channelType: string): Promise<string> {
-    const { error } = await supabase
-      .from('message_templates')
-      .delete()
-      .eq('user_id', userId)
-      .eq('channel_type', channelType);
+    // Tenta deletar de message_templates com timeout (sem lançar erro se falhar)
+    try {
+      await Promise.race([
+        supabase
+          .from('message_templates')
+          .delete()
+          .eq('user_id', userId)
+          .eq('channel_type', channelType),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 6000))
+      ]);
+    } catch (err) {
+      console.warn('[TemplateService] Falha ao deletar de message_templates (ignorado):', err);
+    }
 
-    if (error) throw error;
+    // Limpa também no user_settings fallback
+    try {
+      const col = channelType === 'telegram' ? 'telegram_template'
+        : channelType === 'discord' ? 'discord_template'
+        : 'whatsapp_template';
+      await supabase
+        .from('user_settings')
+        .update({ [col]: null })
+        .eq('user_id', userId);
+    } catch {}
+
     return this.getDefaultTemplate(channelType as any);
   },
 
