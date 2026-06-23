@@ -19,36 +19,41 @@ function getDefaultTemplate(channelType: string): string {
     case 'whatsapp':
       return `🔥 *OFERTA ENCONTRADA*
 
-*{titulo}*
+💎 *{titulo}*
 
 {preco_original_linha}
-💰 *Por:* {preco_promocional}
+✅ *Por apenas:* {preco_promocional}
+
 {cupom_linha}
 
-👉 Comprar agora:
+🛒 *Marketplace:* {marketplace}
+
+🔗 Comprar agora:
 {link}`;
     case 'telegram':
-      return `🔥 OFERTA ENCONTRADA
+      return `🔥 **OFERTA ENCONTRADA**
 
-{titulo}
+💎 **{titulo}**
 
 {preco_original_linha}
-💰 Por: {preco_promocional}
+✅ **Por apenas:** {preco_promocional}
+
 {cupom_linha}
 
-Comprar agora:
-{link}`;
+🛒 **Marketplace:** {marketplace}
+🔗 [Comprar agora]({link})`;
     case 'discord':
-      return `🔥 OFERTA ENCONTRADA
+      return `🔥 **OFERTA ENCONTRADA**
 
-{titulo}
+💎 **{titulo}**
 
 {preco_original_linha}
-💰 Por: {preco_promocional}
+✅ **Por apenas:** {preco_promocional}
+
 {cupom_linha}
 
-Comprar agora:
-{link}`;
+🛒 **Marketplace:** {marketplace}
+🔗 [Comprar agora]({link})`;
     default:
       return `{titulo} - {preco_promocional} {link}`;
   }
@@ -823,14 +828,29 @@ serve(async (req) => {
       const successfulChannels = []
       const failedChannels = []
 
-      // Obter perfil do remetente e configurações de templates
-      const [profileRes, settingsRes] = await Promise.all([
+      // Obter perfil do remetente e templates (prioriza message_templates, fallback para user_settings)
+      const [profileRes, msgTemplatesRes, settingsRes] = await Promise.all([
         supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle(),
-        supabaseAdmin.from('user_settings').select('*').eq('user_id', userId).maybeSingle()
+        supabaseAdmin.from('message_templates').select('channel_type, template_text').eq('user_id', userId),
+        supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template').eq('user_id', userId).maybeSingle()
       ])
       const profile = profileRes.data
       const settings = settingsRes.data
       const profileName = profile?.public_name || profile?.full_name || 'Afiliado'
+
+      // Montar mapa de templates: message_templates tem prioridade
+      const templateMap: Record<string, string> = {}
+      if (msgTemplatesRes.data) {
+        for (const row of msgTemplatesRes.data) {
+          if (row.channel_type && row.template_text) {
+            templateMap[row.channel_type] = row.template_text
+          }
+        }
+      }
+      // Fallback para user_settings se message_templates não tiver o canal
+      if (!templateMap.telegram && settings?.telegram_template) templateMap.telegram = settings.telegram_template
+      if (!templateMap.discord && settings?.discord_template) templateMap.discord = settings.discord_template
+      if (!templateMap.whatsapp && settings?.whatsapp_template) templateMap.whatsapp = settings.whatsapp_template
 
       // Tentar obter ou gerar o link encurtado para a oferta em cache
       let finalAffiliateUrl = targetOffer.short_affiliate_url
@@ -873,7 +893,7 @@ serve(async (req) => {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
 
-            const template = settings?.discord_template || getDefaultTemplate('discord')
+            const template = templateMap.discord || getDefaultTemplate('discord')
             const renderedMessage = renderMessageTemplate(
               template,
               { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
@@ -940,7 +960,7 @@ serve(async (req) => {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
  
-            const template = settings?.telegram_template || getDefaultTemplate('telegram')
+            const template = templateMap.telegram || getDefaultTemplate('telegram')
             const renderedMessage = renderMessageTemplate(
               template,
               { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
