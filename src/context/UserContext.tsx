@@ -146,9 +146,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         setLoading(true);
       }
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError) {
         console.error('[BOOT][UserContext] Erro ao obter sessão em refreshProfile:', sessionError);
+        // Detectar erro de JWT inválido e limpar sessão corrompida
+        const isJwtError =
+          sessionError.message?.includes('JWT') ||
+          sessionError.message?.includes('token') ||
+          sessionError.status === 401;
+        if (isJwtError) {
+          console.warn('[BOOT][UserContext] JWT inválido detectado — fazendo logout automático.');
+          try { await supabase.auth.signOut(); } catch {}
+        }
         setUser(null);
         return;
       }
@@ -184,11 +193,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     } finally {
       hasLoadedRef.current = true;
       setLoading(false);
-      try {
-        console.timeEnd("[BOOT] total");
-      } catch (e) {
-        // ignore timer end error
-      }
+      try { console.timeEnd("[BOOT] total"); } catch {}
       console.log('[BOOT][UserContext] refreshProfile finalizado. loading = false');
     }
   };
@@ -202,7 +207,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
       return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
     };
 
-    // Timeout de segurança de 4 segundos para o carregamento do perfil
+    // Timeout de segurança de 6 segundos para o carregamento do perfil
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.warn("[USER] Security timeout reached! Forcing loading do profile para false.");
@@ -211,7 +216,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         }
         setLoading(false);
       }
-    }, 4000);
+    }, 6000);
 
     refreshProfile().then(() => {
       clearTimeout(timeoutId);
@@ -221,6 +226,22 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log(`[BOOT][UserContext] onAuthStateChange disparado: ${event}`);
+
+        // SIGNED_OUT: limpar estado imediatamente
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setIsAdmin(false);
+          hasLoadedRef.current = false;
+          setLoading(false);
+          return;
+        }
+
+        // TOKEN_REFRESHED: apenas atualizar se já temos sessão
+        if (event === 'TOKEN_REFRESHED' && hasLoadedRef.current) {
+          console.log('[BOOT][UserContext] Token atualizado — sem necessidade de recarregar perfil.');
+          return;
+        }
+
         // Ativa loading síncronamente antes da promise assíncrona iniciar se não houver perfil em memória
         if (session?.user && !hasLoadedRef.current) {
           setLoading(true);
@@ -254,11 +275,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         } finally {
           hasLoadedRef.current = true;
           setLoading(false);
-          try {
-            console.timeEnd("[BOOT] total");
-          } catch (e) {
-            // ignore timer end error
-          }
+          try { console.timeEnd("[BOOT] total"); } catch {}
           console.log('[BOOT][UserContext] onAuthStateChange processado. loading = false');
         }
       });

@@ -29,6 +29,31 @@ const isPublicRoute = () => {
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
 };
 
+/**
+ * Limpa todas as chaves de sessão do Supabase do localStorage.
+ * Chamado automaticamente quando detectamos sessão corrompida/inválida.
+ */
+const clearSupabaseStorage = () => {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('sb-') ||
+        key.startsWith('supabase') ||
+        key.includes('linkoferta') ||
+        key.includes('ofertapro')
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    console.warn('[BOOT] Storage Supabase limpo automaticamente.');
+  } catch (e) {
+    console.error('[BOOT] Erro ao limpar storage:', e);
+  }
+};
+
 const App: React.FC = () => {
   console.log("[BOOT] main render");
   const [session, setSession] = useState<any>(null);
@@ -42,70 +67,68 @@ const App: React.FC = () => {
 
     let active = true;
 
-    // Timeout individual de 3 segundos para a verificação de sessão (getSession)
+    // Timeout de 5 segundos para a verificação de sessão inicial
     const timeoutId = setTimeout(() => {
       if (active && loading) {
         console.warn("[BOOT] getSession timeout reached! Forcing loading to false.");
-        console.timeEnd("[BOOT] getSession");
-        console.timeEnd("[BOOT] total");
+        try { console.timeEnd("[BOOT] getSession"); } catch {}
+        try { console.timeEnd("[BOOT] total"); } catch {}
         if (!isPublicRoute()) {
           setBootError(new Error("Falha ao verificar sessão."));
         }
-        console.log("[BOOT] bootLoading false");
         setLoading(false);
       }
-    }, 3000);
+    }, 5000);
 
     const initAuth = async () => {
       try {
         console.time("[BOOT] getSession");
         console.log("[BOOT] before getSession");
-        
-        // Corrida com timeout para garantir resiliência
+
         const sessionResult = await Promise.race([
           AuthService.getSession(),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout em getSession")), 3000))
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout em getSession")), 5000)
+          )
         ]);
 
-        console.timeEnd("[BOOT] getSession");
+        try { console.timeEnd("[BOOT] getSession"); } catch {}
         console.log("[BOOT] after getSession", { hasSession: !!sessionResult });
-        
+
         if (active) {
           clearTimeout(timeoutId);
           setSession(sessionResult);
-          
-          if (!sessionResult) {
-            // Se não houver sessão ativa, o carregamento do App termina imediatamente
-            console.log("[BOOT] No session, closing boot loaders");
-            console.timeEnd("[BOOT] total");
-            console.log("[BOOT] bootLoading false");
-            setLoading(false);
-          } else {
-            // Se houver sessão, o UserContext assume a continuação (loadProfile)
-            console.log("[BOOT] Session active. UserContext will load profile.");
-            console.log("[BOOT] bootLoading false");
-            setLoading(false);
-          }
+          setLoading(false);
         }
       } catch (err: any) {
         console.error("[BOOT] Error fetching session:", err);
-        try {
-          console.timeEnd("[BOOT] getSession");
-        } catch (e) {
-          // ignore timer end error
-        }
-        try {
-          console.timeEnd("[BOOT] total");
-        } catch (e) {
-          // ignore timer end error
-        }
-        
+        try { console.timeEnd("[BOOT] getSession"); } catch {}
+        try { console.timeEnd("[BOOT] total"); } catch {}
+
         if (active) {
           clearTimeout(timeoutId);
+
+          // Detectar sessão corrompida e limpar automático
+          const isCorruptSession =
+            err?.message?.includes('Timeout') ||
+            err?.message?.includes('token') ||
+            err?.message?.includes('JWT') ||
+            err?.name === 'AuthRetryableFetchError' ||
+            err?.status === 401;
+
+          if (isCorruptSession) {
+            console.warn('[BOOT] Sessão corrompida detectada — limpando storage...');
+            try { await supabase.auth.signOut(); } catch {}
+            clearSupabaseStorage();
+            setSession(null);
+            setLoading(false);
+            // Não redireciona automaticamente — deixa o UserContext/Router lidar
+            return;
+          }
+
           if (!isPublicRoute()) {
             setBootError(new Error("Falha ao verificar sessão."));
           }
-          console.log("[BOOT] bootLoading false");
           setLoading(false);
         }
       }
@@ -119,6 +142,10 @@ const App: React.FC = () => {
         console.log("[BOOT] Auth state changed, new session:", !!sessionResult);
         if (active) {
           setSession(sessionResult);
+          // Se o Supabase emitir SIGNED_OUT, garante que loading termina
+          if (!sessionResult) {
+            setLoading(false);
+          }
         }
       });
     } catch (err) {
@@ -133,6 +160,7 @@ const App: React.FC = () => {
       }
     };
   }, []);
+
 
   const handleLogout = async () => {
     await AuthService.signOut();
