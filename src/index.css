@@ -13,18 +13,16 @@
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #070A12;
-    color: #F8FAFC;
+    background-color: #080B14;
+    color: #F1F5F9;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Ultra-subtle noise texture suitable for dark mode */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
     letter-spacing: -0.01em;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
@@ -32,46 +30,60 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
     border-radius: 99px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.02em;
-    color: #F8FAFC;
+    letter-spacing: -0.025em;
+    color: #F1F5F9;
+  }
+
+  /* Focus visible global para acessibilidade */
+  :focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 2px;
+    border-radius: 8px;
   }
 }
 
 @layer components {
+  /* ================================================
+     DESIGN TOKENS — Link Oferta Premium Dark
+     ================================================ */
+
   /* Premium Text Gradient */
   .gradient-text {
-    background: linear-gradient(135deg, #F8FAFC 0%, #94A3B8 100%);
+    background: linear-gradient(135deg, #F1F5F9 0%, #94A3B8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .gradient-text-brand {
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #818CF8 0%, #6366F1 50%, #A78BFA 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Linear-style Button */
+  /* ================================================
+     BUTTONS — Elegant & Accessible
+     ================================================ */
+
   .btn-gradient {
-    background: linear-gradient(180deg, #7C3AED 0%, #6366F1 100%);
+    background: linear-gradient(180deg, #6366F1 0%, #4F46E5 100%);
     color: white;
     font-weight: 600;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 10px 18px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: inline-flex;
     align-items: center;
@@ -80,142 +92,207 @@
   }
 
   .btn-gradient:hover {
-    background: linear-gradient(180deg, #8b5cf6 0%, #4f46e5 100%);
+    background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
   }
 
   .btn-gradient:active {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.15);
+  }
+
+  .btn-gradient:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    transform: none;
   }
 
   .btn-secondary {
-    background: #101827;
-    color: #F8FAFC;
-    font-weight: 650;
-    border-radius: 12px;
+    background: #0F1629;
+    color: #E2E8F0;
+    font-weight: 600;
+    border-radius: 10px;
     padding: 10px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
   }
 
   .btn-secondary:hover {
-    background: #162033;
+    background: #151E35;
     border-color: rgba(255, 255, 255, 0.1);
     color: #ffffff;
   }
 
-  /* Premium Glass/Bento Card */
-  .glass-card {
-    background: rgba(16, 24, 39, 0.65);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.08);
+    color: #F87171;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 10px 18px;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
-  /* Enhanced Card Hover Effect */
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  /* ================================================
+     CARDS — Refined Glass with layered surfaces
+     ================================================ */
+
+  .glass-card {
+    background: rgba(15, 22, 41, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .card-hover {
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
-  /* Mesh gradient background - smoother */
+  /* Mesh gradient background — ultra subtle */
   .mesh-gradient {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 50%, rgba(168, 85, 247, 0.03) 100%);
     background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    animation: gradientShift 20s ease infinite;
   }
 
   /* Sidebar active item */
   .sidebar-active {
-    background: #162033;
-    color: #F8FAFC;
+    background: #141D33;
+    color: #F1F5F9;
     font-weight: 600;
-    border-color: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.06) !important;
   }
 
-  /* Badge styles - minimalist */
+  /* ================================================
+     BADGES — Marketplace & Status
+     ================================================ */
+
   .badge-ml {
-    background: rgba(250, 215, 90, 0.1);
-    color: #eab308;
-    border: 1px solid rgba(250, 215, 90, 0.15);
+    background: rgba(250, 215, 90, 0.08);
+    color: #FACC15;
+    border: 1px solid rgba(250, 215, 90, 0.12);
   }
 
   .badge-shopee {
-    background: rgba(255, 87, 34, 0.1);
-    color: #f97316;
-    border: 1px solid rgba(255, 87, 34, 0.15);
+    background: rgba(255, 87, 34, 0.08);
+    color: #FB923C;
+    border: 1px solid rgba(255, 87, 34, 0.12);
   }
 
   .badge-amazon {
-    background: rgba(255, 153, 0, 0.1);
-    color: #fb923c;
-    border: 1px solid rgba(255, 153, 0, 0.15);
+    background: rgba(255, 153, 0, 0.08);
+    color: #FB923C;
+    border: 1px solid rgba(255, 153, 0, 0.12);
   }
 
   .badge-magalu {
-    background: rgba(59, 130, 246, 0.1);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.08);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.12);
   }
 
   .badge-aliexpress {
-    background: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.08);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.12);
   }
 
   /* WhatsApp bubble in preview */
   .whatsapp-bubble {
-    background: #111C2E;
+    background: #0F1629;
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px 16px 4px 16px;
+    border-radius: 14px 14px 4px 14px;
     padding: 12px 16px;
     position: relative;
     max-width: 280px;
-    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
-    line-height: 1.5;
+    box-shadow: 0 4px 12px -2px rgba(0,0,0,0.3);
+    line-height: 1.55;
     color: #E2E8F0;
   }
 
-  /* Input styles - Ultra clean */
+  /* ================================================
+     INPUTS — Clean & Accessible
+     ================================================ */
+
   .input-modern {
     width: 100%;
     padding: 10px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
     font-size: 14px;
-    background: #101827;
+    background: #0C1221;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     outline: none;
-    color: #F8FAFC;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    color: #F1F5F9;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   }
 
   .input-modern:focus {
-    border-color: #7C3AED;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
   }
 
   .input-modern::placeholder {
-    color: #64748B;
+    color: #475569;
   }
 
-  /* Shimmer loading animation for dark theme */
+  /* ================================================
+     SECTION DIVIDER — Visual hierarchy
+     ================================================ */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  }
+
+  /* ================================================
+     METRIC CARD — Dashboard stats
+     ================================================ */
+  .metric-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.15) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .metric-card:hover::before {
+    opacity: 1;
+  }
+
+  /* ================================================
+     LOADING — Shimmer & Skeleton
+     ================================================ */
+
   .shimmer {
-    background: linear-gradient(90deg, #101827 25%, #1b283f 50%, #101827 75%);
+    background: linear-gradient(90deg, #0F1629 25%, #1A2540 50%, #0F1629 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite linear;
+    animation: shimmer 1.8s infinite linear;
   }
 
   @keyframes shimmer {
@@ -223,29 +300,74 @@
     100% { background-position: -200% 0; }
   }
 
-  /* Modal overlay */
+  /* ================================================
+     MODALS — Premium Overlay
+     ================================================ */
+
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(8px);
     z-index: 50;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 16px;
     animation: fadeIn 0.2s ease-out;
   }
 
   .modal-content {
-    background: #101827;
-    border-radius: 24px;
+    background: #0F1629;
+    border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     max-height: 90vh;
     overflow-y: auto;
-    color: #F8FAFC;
-    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #F1F5F9;
+    animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes scaleUp {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* ================================================
+     TAB SYSTEM — Clean tabbed navigation
+     ================================================ */
+  .tab-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #0C1221;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 3px;
+  }
+
+  .tab-item {
+    padding: 8px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .tab-item:hover {
+    color: #CBD5E1;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .tab-item.active {
+    background: #151E35;
+    color: #F1F5F9;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -255,6 +377,10 @@
   }
 }
 
+/* ================================================
+   GLOBAL ANIMATIONS
+   ================================================ */
+
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -263,20 +389,20 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes float-delay {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-float {
-  animation: float 5s ease-in-out infinite;
+  animation: float 6s ease-in-out infinite;
 }
 
 .animate-float-delay {
-  animation: float-delay 5s ease-in-out infinite 2s;
+  animation: float-delay 6s ease-in-out infinite 2s;
 }
 
 .animate-pulse-indigo {
@@ -289,7 +415,7 @@
 }
 
 .animate-slide-up {
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
@@ -297,13 +423,33 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Utilitário para esconder a barra de rolagem */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scroll hide utility */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
+/* Line clamp for multi-line truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -15,6 +15,7 @@ import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
+import { Card } from '../components/ui/Card';
 import {
   formatCurrencyInput,
   parseCurrencyInputToCents,
@@ -489,7 +490,7 @@ const NewOfferPage: React.FC = () => {
           )}
 
           {/* Seção: Imagem */}
-          <div className="bg-[#0D1525] rounded-2xl border border-white/5 p-5 space-y-4">
+          <Card variant="default" className="p-5 space-y-4">
             <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <ImageIcon className="w-3.5 h-3.5 text-indigo-400" /> Imagem do Produto
             </h3>
@@ -509,13 +510,13 @@ const NewOfferPage: React.FC = () => {
               onDragEnter={handleDrag} onDragLeave={handleDrag}
               onDragOver={handleDrag} onDrop={handleDrop}
               className={`relative group cursor-pointer border border-dashed rounded-xl transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center overflow-hidden ${
-                dragActive ? 'border-indigo-500 bg-indigo-950/20'
-                : previewImage ? 'border-white/5 bg-[#0B1020]/50'
-                : 'border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/50 hover:bg-[#101827]/30'
+                dragActive ? 'border-brand-500 bg-brand-500/10'
+                : previewImage ? 'border-white/[0.04] bg-surface-1'
+                : 'border-white/[0.04] bg-surface-1 hover:border-brand-500/30 hover:bg-surface-3/20'
               }`}
             >
               {imageUploading && (
-                <div className="absolute inset-0 z-10 bg-[#101827]/85 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
+                <div className="absolute inset-0 z-10 bg-surface-2/85 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
                   <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
                   <p className="text-[10px] font-bold text-indigo-400 animate-pulse">Comprimindo e carregando...</p>
                 </div>
@@ -526,33 +527,33 @@ const NewOfferPage: React.FC = () => {
                     src={previewImage} alt="Preview"
                     onError={() => setImageLoadError(true)}
                     onLoad={() => setImageLoadError(false)}
-                    className="w-full h-36 object-contain bg-[#070A12] p-2"
+                    className="w-full h-36 object-contain bg-surface-0 p-2"
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2 z-20">
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                      className="bg-[#101827]/90 hover:bg-[#101827] text-white border border-white/10 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                      className="bg-surface-2/95 hover:bg-surface-3 text-white border border-white/10 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
                     >
                       <RefreshCw className="w-3 h-3" /> Trocar
                     </button>
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); handleRemoveImage(); setImageLoadError(false); }}
-                      className="bg-red-900/90 hover:bg-red-800 text-white border border-red-500/20 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                      className="bg-rose-950/90 hover:bg-rose-900 text-rose-350 border border-rose-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
                     >
                       <X className="w-3 h-3" /> Remover
                     </button>
                   </div>
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <span className="bg-[#101827] px-3 py-1.5 rounded-full text-white border border-white/5 text-[10px] font-bold flex items-center gap-1.5">
+                    <span className="bg-surface-2 px-3 py-1.5 rounded-full text-white border border-white/5 text-[10px] font-bold flex items-center gap-1.5">
                       <Upload className="w-3.5 h-3.5" /> Trocar por arquivo local
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="p-4 text-center space-y-2">
-                  <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center mx-auto text-slate-500 group-hover:text-indigo-400 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-surface-2 border border-white/5 flex items-center justify-center mx-auto text-slate-500 group-hover:text-indigo-400 transition-colors">
                     <ImageIcon className="w-5 h-5" />
                   </div>
                   <div>
@@ -587,10 +588,10 @@ const NewOfferPage: React.FC = () => {
                 </button>
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Seção: Informações */}
-          <div className="bg-[#0D1525] rounded-2xl border border-white/5 p-5 space-y-4">
+          <Card variant="default" className="p-5 space-y-4">
             <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Tag className="w-3.5 h-3.5 text-indigo-400" /> Informações do Produto
             </h3>
@@ -686,14 +687,14 @@ const NewOfferPage: React.FC = () => {
                   disabled={loading}
                 >
                   <option value="">Selecione...</option>
-                  {CATEGORIES.filter(cat => cat !== 'Todos').map(cat => <option key={cat} value={cat} className="bg-[#101827]">{cat}</option>)}
+                  {CATEGORIES.filter(cat => cat !== 'Todos').map(cat => <option key={cat} value={cat} className="bg-surface-2">{cat}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Seção: Link e Marketplace */}
-          <div className="bg-[#0D1525] rounded-2xl border border-white/5 p-5 space-y-4">
+          <Card variant="default" className="p-5 space-y-4">
             <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Link2 className="w-3.5 h-3.5 text-indigo-400" /> Link e Marketplace
             </h3>
@@ -724,8 +725,8 @@ const NewOfferPage: React.FC = () => {
                     onClick={() => setForm({ ...form, marketplace: mp.value })}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
-                        ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 text-slate-400 hover:bg-[#101827]/50'
+                        ? 'border-brand-500 bg-brand-500/10 text-brand-400 shadow-sm'
+                        : 'border-white/[0.04] bg-surface-1 text-slate-450 hover:bg-surface-3/50 hover:text-slate-250'
                     }`}
                     disabled={loading}
                   >
@@ -744,10 +745,10 @@ const NewOfferPage: React.FC = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Seção: Canais */}
-          <div className="bg-[#0D1525] rounded-2xl border border-white/5 p-5 space-y-4">
+          <Card variant="default" className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Send className="w-3.5 h-3.5 text-indigo-400" /> Canais de Disparo
@@ -780,7 +781,7 @@ const NewOfferPage: React.FC = () => {
                 <Loader2 className="w-4 h-4 animate-spin text-indigo-500" /> Carregando canais...
               </div>
             ) : connectedChannels.length === 0 ? (
-              <div className="bg-[#0B1020]/50 border border-white/5 rounded-xl p-4 text-center">
+              <div className="bg-surface-1 border border-white/[0.04] rounded-xl p-4 text-center">
                 <p className="text-xs text-slate-400 font-medium">
                   Você pode salvar rascunho sem canal ou{' '}
                   <button onClick={() => navigate('/channels')} className="text-indigo-400 hover:underline font-bold">
@@ -797,17 +798,17 @@ const NewOfferPage: React.FC = () => {
                     onClick={() => toggleChannel(ch.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
                       selectedChannels.includes(ch.id)
-                        ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 hover:bg-[#101827]/50'
+                        ? 'border-brand-500 bg-brand-500/10 text-brand-400 shadow-sm'
+                        : 'border-white/[0.04] bg-surface-1 hover:bg-surface-3/50'
                     }`}
                     disabled={loading}
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                      selectedChannels.includes(ch.id) ? 'bg-indigo-600 border-indigo-600' : 'border-white/10'
+                      selectedChannels.includes(ch.id) ? 'bg-brand-500 border-brand-500' : 'border-white/10'
                     }`}>
                       {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-white" />}
                     </div>
-                    <div className="w-5 h-5 rounded bg-[#070A12]/40 border border-white/5 flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
+                    <div className="w-5 h-5 rounded bg-surface-0 border border-white/5 flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
                       <ChannelLogo type={ch.type} size="w-full h-full" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -817,7 +818,7 @@ const NewOfferPage: React.FC = () => {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* ── Coluna Direita: Preview ── */}

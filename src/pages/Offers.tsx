@@ -17,12 +17,12 @@ import { ErrorState } from '../components/ui/ErrorState';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const marketplaces: { value: Marketplace | 'all'; label: string }[] = [
-  { value: 'all', label: 'Todos Marketplaces' },
-  { value: 'mercadolivre', label: '🟡 Mercado Livre' },
-  { value: 'shopee', label: '🟠 Shopee' },
-  { value: 'amazon', label: '📦 Amazon' },
-  { value: 'magalu', label: '🔵 Magalu' },
-  { value: 'aliexpress', label: '🔴 AliExpress' },
+  { value: 'all', label: 'Todos' },
+  { value: 'mercadolivre', label: 'Mercado Livre' },
+  { value: 'shopee', label: 'Shopee' },
+  { value: 'amazon', label: 'Amazon' },
+  { value: 'magalu', label: 'Magalu' },
+  { value: 'aliexpress', label: 'AliExpress' },
 ];
 
 const Offers: React.FC = () => {
@@ -130,7 +130,7 @@ const Offers: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
+    <div className="max-w-7xl mx-auto space-y-5 animate-slide-up">
       <PageHeader
         title="Minhas Ofertas"
         description={`${filtered.length} oferta(s) encontrada(s)`}
@@ -146,34 +146,31 @@ const Offers: React.FC = () => {
       </PageHeader>
 
       {/* Filters */}
-      <Card className="p-5 space-y-5">
+      <Card className="p-4 space-y-4">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
             placeholder="Buscar ofertas por nome..."
             value={search}
             onChange={e => handleSearchChange(e.target.value)}
             className="input-modern pl-10"
+            aria-label="Buscar ofertas"
           />
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Status Selector */}
-            <div className="flex items-center gap-1 bg-[#070A12] border border-white/5 rounded-xl p-1 max-w-full overflow-x-auto scrollbar-none">
+            <div className="tab-container overflow-x-auto scrollbar-none">
               {(['all', 'active', 'paused', 'draft'] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    statusFilter === s
-                      ? 'bg-[#162033] text-[#F8FAFC] shadow-sm'
-                      : 'text-[#94A3B8] hover:text-[#F8FAFC]'
-                  }`}
+                  className={`tab-item flex items-center gap-1.5 ${statusFilter === s ? 'active' : ''}`}
                 >
                   {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${
-                    statusFilter === s ? 'bg-[#7C3AED]/20 text-[#a5b4fc]' : 'bg-[#101827] text-[#64748B]'
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+                    statusFilter === s ? 'bg-brand-500/15 text-brand-300' : 'bg-surface-3/50 text-slate-500'
                   }`}>{statusCounts[s]}</span>
                 </button>
               ))}
@@ -183,17 +180,18 @@ const Offers: React.FC = () => {
             <select
               value={marketplaceFilter}
               onChange={e => setMarketplaceFilter(e.target.value as Marketplace | 'all')}
-              className="text-xs font-bold border border-white/5 rounded-xl px-3 py-2 bg-[#101827] text-[#F8FAFC] outline-none focus:border-[#7C3AED] cursor-pointer"
+              className="text-xs font-medium border border-white/[0.04] rounded-lg px-2.5 py-2 bg-surface-1 text-slate-100 outline-none focus:border-brand-500 cursor-pointer appearance-none"
               style={{
-                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
                 backgroundPosition: 'right 0.5rem center',
                 backgroundSize: '1rem',
                 backgroundRepeat: 'no-repeat',
                 paddingRight: '2rem'
               }}
+              aria-label="Filtrar por marketplace"
             >
               {marketplaces.map(m => (
-                <option key={m.value} value={m.value} className="bg-[#101827]">
+                <option key={m.value} value={m.value} className="bg-surface-2">
                   {m.label}
                 </option>
               ))}
@@ -201,15 +199,15 @@ const Offers: React.FC = () => {
           </div>
 
           {/* Category Filter */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border cursor-pointer ${
                   categoryFilter === cat
-                    ? 'bg-[#7C3AED] text-white border-transparent shadow-md'
-                    : 'bg-[#101827] text-[#94A3B8] border-white/5 hover:text-[#F8FAFC]'
+                    ? 'bg-brand-500 text-white border-transparent shadow-sm'
+                    : 'bg-surface-1 text-slate-400 border-white/[0.04] hover:text-slate-200'
                 }`}
               >
                 {cat}
@@ -223,9 +221,9 @@ const Offers: React.FC = () => {
       {loading ? (
         <LoadingState type="skeleton-grid" count={4} />
       ) : error ? (
-        <ErrorState message="Falha ao carregar ofertas. Certifique-se de que a conexão com o Supabase está ativa." onRetry={refresh} />
+        <ErrorState message="Não foi possível carregar suas ofertas. Tente novamente." onRetry={refresh} />
       ) : filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {filtered.map(offer => (
             <OfferCard
               key={offer.id}

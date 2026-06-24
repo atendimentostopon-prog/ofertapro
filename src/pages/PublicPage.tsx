@@ -41,7 +41,7 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   const discountVal = offer.discount || 0;
 
   return (
-    <Card className="overflow-hidden group flex flex-col h-full border-white/[0.06] bg-[#101827] hover:border-white/10 transition-all duration-300">
+    <Card variant="default" hoverable className="overflow-hidden group flex flex-col h-full hover:-translate-y-1">
       {/* Image container */}
       <div className="relative h-48 overflow-hidden bg-slate-950 flex-shrink-0">
         <ProductImage
@@ -123,7 +123,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   const discountVal = offer.discount || 0;
 
   return (
-    <Card className="p-4 flex items-center gap-5 border-white/[0.06] bg-[#101827] hover:border-white/10 transition-all duration-300">
+    <Card variant="default" hoverable className="p-4 flex items-center gap-5 hover:-translate-y-0.5">
       <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950 flex-shrink-0 border border-white/[0.06]">
         <ProductImage
           src={offer.image || offer.image_url}
@@ -514,9 +514,9 @@ const PublicPage: React.FC = () => {
       </div>
 
       {/* Marketplace Tabs */}
-      <div className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-30">
+      <div className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-30 py-3">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2 overflow-x-auto py-2.5 scrollbar-hide">
+          <div className="tab-container max-w-max">
             {marketplaceList.map(mp => {
               const count = mp.value === 'all' 
                 ? activeOffers.length 
@@ -528,20 +528,18 @@ const PublicPage: React.FC = () => {
                 <button
                   key={mp.value}
                   onClick={() => setSelectedMarketplace(mp.value)}
-                  className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all whitespace-nowrap border ${
-                    selectedMarketplace === mp.value
-                      ? 'bg-[#162033] border-white/10 text-white shadow-sm'
-                      : 'border-transparent text-[#94A3B8] hover:text-white hover:bg-white/5'
+                  className={`tab-item flex items-center gap-2 font-bold text-xs ${
+                    selectedMarketplace === mp.value ? 'active' : ''
                   }`}
                 >
                   {mp.logoValue ? (
-                    <MarketplaceLogo value={mp.logoValue} size="w-4 h-4" />
+                    <MarketplaceLogo value={mp.logoValue} size="w-3.5 h-3.5" />
                   ) : (
                     <span>🛍</span>
                   )}
                   {mp.label}
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ml-1.5 ${
-                    selectedMarketplace === mp.value ? 'bg-[#7C3AED]/20 text-[#a5b4fc]' : 'bg-[#101827] text-[#64748B]'
+                    selectedMarketplace === mp.value ? 'bg-indigo-500/20 text-[#a5b4fc]' : 'bg-surface-3 text-[#64748B]'
                   }`}>
                     {count}
                   </span>
@@ -564,7 +562,7 @@ const PublicPage: React.FC = () => {
               placeholder="Buscar oferta..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input-modern pl-10 bg-[#101827]"
+              className="input-modern pl-10"
             />
           </div>
 
@@ -578,7 +576,7 @@ const PublicPage: React.FC = () => {
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
                     selectedCategory === cat
                       ? `${currentTheme.tagActive}`
-                      : `bg-[#101827] border-white/5 text-[#94A3B8] hover:${currentTheme.accentBorder} hover:${currentTheme.accentText}`
+                      : `bg-surface-2 border-white/[0.04] text-[#94A3B8] hover:${currentTheme.accentBorder} hover:${currentTheme.accentText}`
                   }`}
                 >
                   {cat}
@@ -587,16 +585,16 @@ const PublicPage: React.FC = () => {
             </div>
 
             {/* View mode */}
-            <div className="flex items-center gap-1 bg-[#101827] border border-white/5 rounded-xl p-1">
+            <div className="tab-container">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? `${currentTheme.accentBg} ${currentTheme.accentText}` : 'text-[#64748B] hover:text-[#94A3B8]'}`}
+                className={`tab-item p-1.5 ${viewMode === 'grid' ? 'active' : ''}`}
               >
                 <Grid3x3 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? `${currentTheme.accentBg} ${currentTheme.accentText}` : 'text-[#64748B] hover:text-[#94A3B8]'}`}
+                className={`tab-item p-1.5 ${viewMode === 'list' ? 'active' : ''}`}
               >
                 <List className="w-4 h-4" />
               </button>

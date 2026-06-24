@@ -39,7 +39,7 @@ const PoliticaPrivacidade: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">1. Introdução e Escopo</h2>
               <p>
-                O <strong>Link Oferta</strong> (anteriormente conhecido como OfertaPro) tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
+                O <strong>Link Oferta</strong> tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
               </p>
             </section>
 

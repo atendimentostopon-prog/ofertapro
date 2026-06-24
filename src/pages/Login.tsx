@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Zap, ArrowRight, Shield, Users, TrendingUp, Star, AlertCircle, 
-  Eye, EyeOff, Check, X 
+  Eye, EyeOff, Check, X, Package 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
@@ -40,10 +40,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const hasNumber = /[0-9]/.test(password);
 
   const criteriaList = [
-    { label: 'Mínimo de 8 caracteres', met: hasMinLength },
-    { label: 'Pelo menos 1 letra maiúscula', met: hasUppercase },
-    { label: 'Pelo menos 1 letra minúscula', met: hasLowercase },
-    { label: 'Pelo menos 1 número', met: hasNumber }
+    { label: 'Mínimo 8 caracteres', met: hasMinLength },
+    { label: 'Letra maiúscula', met: hasUppercase },
+    { label: 'Letra minúscula', met: hasLowercase },
+    { label: 'Um número', met: hasNumber }
   ];
 
   const metCount = criteriaList.filter(c => c.met).length;
@@ -51,10 +51,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   // Força da senha para a barra visual
   const getPasswordStrength = () => {
-    if (password.length === 0) return { label: 'Sem senha', width: '0%', colorClass: 'bg-slate-700', textClass: 'text-slate-550' };
-    if (metCount <= 1) return { label: 'Senha Fraca', width: '33%', colorClass: 'bg-red-500', textClass: 'text-red-400' };
-    if (metCount <= 3) return { label: 'Senha Média', width: '66%', colorClass: 'bg-amber-500', textClass: 'text-amber-400' };
-    return { label: 'Senha Forte', width: '100%', colorClass: 'bg-emerald-500', textClass: 'text-emerald-400' };
+    if (password.length === 0) return { label: '', width: '0%', colorClass: 'bg-slate-700', textClass: 'text-slate-500' };
+    if (metCount <= 1) return { label: 'Fraca', width: '25%', colorClass: 'bg-red-500', textClass: 'text-red-400' };
+    if (metCount <= 2) return { label: 'Razoável', width: '50%', colorClass: 'bg-amber-500', textClass: 'text-amber-400' };
+    if (metCount <= 3) return { label: 'Boa', width: '75%', colorClass: 'bg-blue-500', textClass: 'text-blue-400' };
+    return { label: 'Forte', width: '100%', colorClass: 'bg-emerald-500', textClass: 'text-emerald-400' };
   };
 
   const strength = getPasswordStrength();
@@ -139,108 +140,81 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         message?.toLowerCase().includes('already in use') ||
         message?.toLowerCase().includes('email address already')
       ) message = 'Este e-mail já está cadastrado. Faça login ou recupere sua senha.';
+      if (message?.toLowerCase().includes('database error')) message = 'Não foi possível concluir o cadastro. Tente novamente em alguns instantes.';
+      if (message?.toLowerCase().includes('load failed') || message?.toLowerCase().includes('fetch')) message = 'Erro de conexão. Verifique sua internet e tente novamente.';
       
-      setError(message || 'Ocorreu um erro na autenticação.');
+      setError(message || 'Ocorreu um erro na autenticação. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#070A12] flex items-center justify-center relative overflow-hidden text-[#F8FAFC] p-4 sm:p-6">
-      {/* Glow Effects */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#7C3AED]/10 rounded-full blur-3xl opacity-50 transform -translate-x-1/4 -translate-y-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#6366F1]/10 rounded-full blur-3xl opacity-40 transform translate-x-1/4 translate-y-1/4 pointer-events-none" />
+    <div className="min-h-screen bg-surface-0 flex items-center justify-center relative overflow-hidden text-slate-100 p-4 sm:p-6">
+      {/* Ambient glow — very subtle */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-brand-500/[0.03] rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-brand-600/[0.02] rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Floating decorative elements (hidden on smaller screens for cleaner layout) */}
-      <div className="absolute top-12 left-8 animate-float hidden xl:block z-0">
-        <div className="bg-[#101827]/95 border border-white/[0.08] p-4 w-64 shadow-2xl rounded-2xl backdrop-blur-md">
+      {/* Floating decorative elements (xl+ screens only) */}
+      <div className="absolute top-16 left-10 animate-float hidden xl:block z-0 opacity-60">
+        <div className="bg-surface-2/90 border border-white/[0.06] p-4 w-60 shadow-xl rounded-2xl backdrop-blur-md">
           <div className="flex items-center gap-3 mb-3">
-            <img
-              src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=60&q=80"
-              className="w-12 h-12 rounded-xl object-cover bg-slate-950"
-              alt="oferta"
-            />
+            <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center">
+              <Package className="w-5 h-5 text-brand-400" />
+            </div>
             <div>
-              <p className="text-xs font-bold text-[#F8FAFC]">iPhone 15 Pro Max</p>
-              <p className="text-[10px] text-[#94A3B8]">Mercado Livre</p>
+              <p className="text-xs font-semibold text-slate-100">iPhone 15 Pro Max</p>
+              <p className="text-[10px] text-slate-500">Mercado Livre</p>
             </div>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-[#64748B] line-through">R$ 9.999</p>
-              <p className="text-sm font-black text-emerald-450">R$ 7.499</p>
+              <p className="text-[10px] text-slate-500 line-through">R$ 9.999</p>
+              <p className="text-sm font-bold text-emerald-400">R$ 7.499</p>
             </div>
-            <span className="text-[10px] font-black text-white bg-red-500 px-2 py-0.5 rounded-full">-25%</span>
-          </div>
-          <div className="mt-2.5 flex items-center gap-1.5 pt-2.5 border-t border-white/[0.04]">
-            <div className="flex -space-x-1.5">
-              {['🧑', '👩', '👨'].map((e, i) => (
-                <div key={i} className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[8px] border border-[#101827]">{e}</div>
-              ))}
-            </div>
-            <p className="text-[10px] text-[#64748B] font-bold">+247 cliques hoje</p>
+            <span className="text-[10px] font-bold text-white bg-red-500/80 px-2 py-0.5 rounded-full">-25%</span>
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-16 left-16 animate-float-delay hidden xl:block z-0">
-        <div className="bg-[#101827]/95 border border-white/[0.08] p-4 shadow-xl rounded-2xl backdrop-blur-md text-xs max-w-[210px]">
-          <p className="font-bold text-[10px] text-indigo-400 mb-1">🔥 Grupo Ofertas Tech</p>
-          <p className="text-[#94A3B8] text-[11px] leading-snug">AirPods Pro com <span className="font-bold text-emerald-400">32% OFF</span> 🎧</p>
-          <p className="text-[#64748B] text-[10px] mt-1">Cupom: <span className="font-mono font-bold text-orange-400">AIRPODS32</span></p>
-          <p className="text-[#64748B] text-[9px] mt-1.5 text-right">14:32 ✓✓</p>
-        </div>
-      </div>
-
-      <div className="absolute top-24 right-12 animate-float hidden xl:block z-0" style={{ animationDelay: '1s' }}>
-        <div className="bg-[#101827]/95 border border-white/[0.08] p-4 w-56 shadow-2xl rounded-2xl backdrop-blur-md">
+      <div className="absolute top-28 right-14 animate-float hidden xl:block z-0 opacity-60" style={{ animationDelay: '1s' }}>
+        <div className="bg-surface-2/90 border border-white/[0.06] p-4 w-52 shadow-xl rounded-2xl backdrop-blur-md">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/15">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-[#F8FAFC]">Performance</p>
-              <p className="text-[10px] text-emerald-400">↑ +34% esta semana</p>
+              <p className="text-xs font-semibold text-slate-100">Performance</p>
+              <p className="text-[10px] text-emerald-400">+34% esta semana</p>
             </div>
           </div>
           <div className="space-y-1.5 pt-2 border-t border-white/[0.04]">
             {[
-              { label: 'Cliques Totais', value: '12,847' },
-              { label: 'Canais Ativos', value: '4' },
-              { label: 'Alcance Est.', value: '6.4K' },
+              { label: 'Cliques', value: '12.847' },
+              { label: 'Canais', value: '4' },
             ].map(m => (
               <div key={m.label} className="flex justify-between text-[11px]">
-                <span className="text-[#64748B] font-medium">{m.label}</span>
-                <span className="font-bold text-[#94A3B8]">{m.value}</span>
+                <span className="text-slate-500">{m.label}</span>
+                <span className="font-semibold text-slate-300">{m.value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-20 right-16 animate-float-delay hidden xl:block z-0" style={{ animationDelay: '3s' }}>
-        <div className="bg-[#101827]/95 border border-white/[0.08] p-4 shadow-xl rounded-2xl backdrop-blur-md text-xs max-w-[210px]">
-          <p className="font-bold text-[10px] text-purple-400 mb-1">✈️ Canal Telegram</p>
-          <p className="text-[#94A3B8] text-[11px] leading-snug">Smart TV Samsung 55" QLED</p>
-          <p className="text-emerald-450 font-bold text-[11px] mt-0.5">R$ 3.199 <span className="text-[#64748B] font-normal line-through text-[10px]">R$ 4.999</span></p>
-          <p className="text-[#64748B] text-[9px] mt-1.5 text-right">Enviado agora ✓✓</p>
-        </div>
-      </div>
-
       {/* Main Card */}
-      <div className="relative z-10 w-full max-w-md my-8">
-        <div className="bg-[#101827]/85 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/60 p-5 sm:p-8 border border-white/[0.08] flex flex-col justify-between">
+      <div className="relative z-10 w-full max-w-[420px] my-8">
+        <div className="bg-surface-2/90 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/40 p-6 sm:p-8 border border-white/[0.06] flex flex-col justify-between">
           
           {/* Logo and Switch */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-950/20">
-                <Zap className="w-5 h-5 text-white" fill="white" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm">
+                <Zap className="w-4.5 h-4.5 text-white" fill="white" />
               </div>
               <div>
-                <span className="text-base font-bold text-white tracking-tight leading-none block">Link Oferta</span>
-                <p className="text-[9px] text-[#64748B] font-extrabold uppercase tracking-widest mt-1">Multi-canal</p>
+                <span className="text-sm font-bold text-white tracking-tight leading-none block">Link Oferta</span>
+                <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-widest mt-0.5">Plataforma de Afiliados</p>
               </div>
             </div>
             <button 
@@ -248,7 +222,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 setIsRegistering(!isRegistering);
                 setError(null);
               }}
-              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 px-3 py-1.5 rounded-xl transition-all border border-indigo-500/20"
+              className="text-xs font-semibold text-brand-400 hover:text-brand-300 bg-brand-500/8 hover:bg-brand-500/12 px-3 py-1.5 rounded-lg transition-all border border-brand-500/15 cursor-pointer"
             >
               {isRegistering ? 'Já tenho conta' : 'Criar conta'}
             </button>
@@ -256,19 +230,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           {/* Title */}
           <div className="mb-6">
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              {isRegistering ? 'Crie sua conta' : 'Bem-vindo de volta!'}
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              {isRegistering ? 'Crie sua conta' : 'Bem-vindo de volta'}
             </h1>
-            <p className="text-xs font-semibold text-[#94A3B8] mt-1.5">
-              {isRegistering ? 'Comece a disparar suas ofertas agora mesmo' : 'Acesse sua vitrine e painel analítico'}
+            <p className="text-sm text-slate-400 mt-1">
+              {isRegistering ? 'Comece a disparar suas ofertas agora' : 'Acesse sua vitrine e painel analítico'}
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-5 p-3.5 bg-red-500/5 border border-red-500/10 rounded-xl flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-red-400 font-bold">{error}</p>
+            <div className="mb-5 p-3 bg-red-500/6 border border-red-500/12 rounded-lg flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+              <p className="text-xs text-red-300/90 font-medium leading-relaxed">{error}</p>
             </div>
           )}
 
@@ -276,7 +250,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <form onSubmit={handleAuth} className="space-y-4">
             {isRegistering && (
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#94A3B8]" htmlFor="name">Nome completo</label>
+                <label className="text-xs font-medium text-slate-400" htmlFor="name">Nome completo</label>
                 <input
                   id="name"
                   type="text"
@@ -284,13 +258,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Seu nome completo"
-                  className="input-modern bg-[#070A12] border-white/5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+                  className="input-modern"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#94A3B8]" htmlFor="email">E-mail</label>
+              <label className="text-xs font-medium text-slate-400" htmlFor="email">E-mail</label>
               <input
                 id="email"
                 type="email"
@@ -298,15 +272,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="seuemail@exemplo.com"
-                className="input-modern bg-[#070A12] border-white/5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+                className="input-modern"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-[#94A3B8]" htmlFor="password">Senha</label>
+                <label className="text-xs font-medium text-slate-400" htmlFor="password">Senha</label>
                 {!isRegistering && (
-                  <a href="#" className="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors">Esqueceu a senha?</a>
+                  <a href="#" className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">Esqueceu?</a>
                 )}
               </div>
               
@@ -318,58 +292,55 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
-                  className="input-modern bg-[#070A12] pr-10 border-white/5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+                  className="input-modern pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#94A3B8] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
                   aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                 >
-                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* PASSWORD VALIDATOR (Real-time Signup only) */}
             {isRegistering && password.length > 0 && (
-              <div className="bg-[#070A12] border border-white/[0.04] p-4 rounded-2xl space-y-3.5 animate-slide-up">
+              <div className="bg-surface-1 border border-white/[0.04] p-3.5 rounded-xl space-y-3 animate-slide-up">
                 
                 {/* Strength Meter Bar */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-[#64748B]">Força da senha</span>
-                    <span className={strength.textClass}>{strength.label}</span>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500 font-medium">Força da senha</span>
+                    <span className={`font-semibold ${strength.textClass}`}>{strength.label}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                  <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full transition-all duration-300 ${strength.colorClass}`} 
+                      className={`h-full transition-all duration-300 rounded-full ${strength.colorClass}`} 
                       style={{ width: strength.width }} 
                     />
                   </div>
                 </div>
 
                 {/* Criteria Checklist */}
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black text-[#64748B] uppercase tracking-wider block">Critérios obrigatórios</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {criteriaList.map((c, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
-                          c.met 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                            : 'bg-red-500/5 border-red-500/10 text-red-500'
-                        }`}>
-                          {c.met ? <Check className="w-2.5 h-2.5" /> : <X className="w-2.5 h-2.5" />}
-                        </div>
-                        <span className={`text-[11px] font-medium leading-none ${
-                          c.met ? 'text-[#94A3B8]' : 'text-[#64748B]'
-                        }`}>
-                          {c.label}
-                        </span>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                  {criteriaList.map((c, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 ${
+                        c.met 
+                          ? 'bg-emerald-500/15 text-emerald-400' 
+                          : 'bg-surface-3 text-slate-500'
+                      }`}>
+                        {c.met ? <Check className="w-2.5 h-2.5" /> : <X className="w-2.5 h-2.5" />}
                       </div>
-                    ))}
-                  </div>
+                      <span className={`text-[11px] leading-none ${
+                        c.met ? 'text-slate-300' : 'text-slate-500'
+                      }`}>
+                        {c.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
               </div>
@@ -377,22 +348,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             {/* LGPD Consent boxes (Signup only) */}
             {isRegistering && (
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2.5 pt-1">
                 <div className="flex items-start gap-2.5">
                   <input
                     id="accept-terms"
                     type="checkbox"
                     checked={acceptTerms}
                     onChange={e => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 rounded border-white/10 bg-[#070A12] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#101827] focus:ring-1 cursor-pointer w-4 h-4"
+                    className="mt-0.5 rounded border-white/10 bg-surface-1 text-brand-600 focus:ring-brand-500 focus:ring-offset-surface-2 focus:ring-1 cursor-pointer w-4 h-4"
                   />
-                  <label htmlFor="accept-terms" className="text-xs text-[#94A3B8] leading-tight select-none cursor-pointer">
+                  <label htmlFor="accept-terms" className="text-xs text-slate-400 leading-tight select-none cursor-pointer">
                     Li e aceito os{' '}
-                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline">
+                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-brand-300 font-medium hover:underline">
                       Termos de Uso
                     </a>{' '}
                     e a{' '}
-                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline">
+                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-brand-300 font-medium hover:underline">
                       Política de Privacidade
                     </a>. *
                   </label>
@@ -404,11 +375,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="checkbox"
                     checked={acceptCookies}
                     onChange={e => setAcceptCookies(e.target.checked)}
-                    className="mt-0.5 rounded border-white/10 bg-[#070A12] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#101827] focus:ring-1 cursor-pointer w-4 h-4"
+                    className="mt-0.5 rounded border-white/10 bg-surface-1 text-brand-600 focus:ring-brand-500 focus:ring-offset-surface-2 focus:ring-1 cursor-pointer w-4 h-4"
                   />
-                  <label htmlFor="accept-cookies" className="text-xs text-[#64748B] leading-tight select-none cursor-pointer">
+                  <label htmlFor="accept-cookies" className="text-xs text-slate-500 leading-tight select-none cursor-pointer">
                     Concordo com o uso de cookies conforme a{' '}
-                    <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="text-indigo-400/80 hover:text-indigo-300 font-bold hover:underline">
+                    <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="text-brand-400/80 hover:text-brand-300 font-medium hover:underline">
                       Política de Cookies
                     </a>.
                   </label>
@@ -420,13 +391,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading || (isRegistering && (!isPasswordValid || !acceptTerms))}
-              className="w-full btn-gradient flex items-center justify-center gap-2 py-3 text-sm mt-3 shadow-lg disabled:opacity-45 disabled:pointer-events-none transition-all duration-300"
+              className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-35 disabled:pointer-events-none transition-all duration-200 cursor-pointer"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span className="font-bold tracking-tight">
+                  <span className="font-semibold tracking-tight">
                     {isRegistering ? 'Criar minha conta' : 'Entrar na plataforma'}
                   </span>
                   <ArrowRight className="w-4 h-4" />
@@ -437,14 +408,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[10px] text-[#64748B] font-bold uppercase tracking-wider select-none">ou continue com</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
+            <div className="flex-1 h-px bg-white/[0.04]" />
+            <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider select-none">ou continue com</span>
+            <div className="flex-1 h-px bg-white/[0.04]" />
           </div>
 
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 bg-[#070A12] text-xs font-bold text-[#94A3B8] hover:bg-white/5 hover:text-white transition-all">
+            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white transition-all cursor-pointer">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -453,7 +424,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </svg>
               Google
             </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 bg-[#070A12] text-xs font-bold text-[#94A3B8] hover:bg-white/5 hover:text-white transition-all">
+            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white transition-all cursor-pointer">
               <svg className="w-4 h-4 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
@@ -468,10 +439,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 {['1', '2', '3', '4', '5'].map(i => (
                   <div
                     key={i}
-                    className="w-7 h-7 rounded-full border border-[#101827] overflow-hidden"
-                    style={{ background: `hsl(${parseInt(i) * 60}, 50%, 40%)` }}
+                    className="w-7 h-7 rounded-full border-2 border-surface-2 overflow-hidden"
+                    style={{ background: `hsl(${parseInt(i) * 55 + 200}, 45%, 45%)` }}
                   >
-                    <div className="w-full h-full flex items-center justify-center text-white text-[9px] font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-white text-[9px] font-semibold">
                       {['L', 'A', 'M', 'R', 'P'][parseInt(i)-1]}
                     </div>
                   </div>
@@ -481,8 +452,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className="flex items-center gap-0.5 select-none">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />)}
                 </div>
-                <p className="text-[10px] text-[#64748B]">
-                  <span className="font-bold text-[#94A3B8]">+2.400 afiliados</span> confiam no Link Oferta
+                <p className="text-[10px] text-slate-500">
+                  <span className="font-semibold text-slate-400">+2.400 afiliados</span> confiam no Link Oferta
                 </p>
               </div>
             </div>
@@ -490,15 +461,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
 
         {/* Feature highlights */}
-        <div className="mt-4 grid grid-cols-3 gap-3 z-10 relative">
+        <div className="mt-4 grid grid-cols-3 gap-2.5 z-10 relative">
           {[
             { icon: <Shield className="w-4 h-4" />, text: 'Seguro' },
             { icon: <Users className="w-4 h-4" />, text: 'Multi-canal' },
             { icon: <TrendingUp className="w-4 h-4" />, text: 'Analytics' },
           ].map(f => (
-            <div key={f.text} className="flex items-center justify-center gap-2 bg-white/5 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/5 select-none">
-              <span className="text-indigo-400">{f.icon}</span>
-              <span className="text-white text-xs font-semibold">{f.text}</span>
+            <div key={f.text} className="flex items-center justify-center gap-1.5 bg-white/[0.03] backdrop-blur-sm rounded-lg px-3 py-2 border border-white/[0.04] select-none">
+              <span className="text-brand-400">{f.icon}</span>
+              <span className="text-white text-xs font-medium">{f.text}</span>
             </div>
           ))}
         </div>

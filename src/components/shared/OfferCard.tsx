@@ -107,70 +107,73 @@ const OfferCard: React.FC<OfferCardProps> = ({
   };
 
   return (
-    <div className="glass-card card-hover overflow-hidden group border-white/[0.06] flex flex-col justify-between h-full bg-[#101827] relative">
+    <div className="bg-surface-2 rounded-2xl border border-white/[0.06] overflow-hidden group flex flex-col justify-between h-full hover:-translate-y-1 hover:border-white/[0.1] hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-300 relative">
       {/* Image */}
-      <div className="relative h-44 overflow-hidden bg-slate-950 flex-shrink-0">
+      <div className="relative h-44 overflow-hidden bg-surface-0 flex-shrink-0">
         <ProductImage
           src={offer.image}
           alt={offer.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
         />
+        {/* Subtle bottom gradient for text readability */}
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-surface-0/50 to-transparent pointer-events-none" />
         <div className="absolute top-3 left-3 z-10">
-          <span className="bg-[#EF4444] text-white text-xs font-black px-2.5 py-1 rounded-full shadow-md">
+          <span className="bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-md">
             -{offer.discount}%
           </span>
         </div>
         {offer.status === 'paused' && (
-          <div className="absolute inset-0 bg-[#070A12]/60 backdrop-blur-xs flex items-center justify-center">
-            <span className="bg-[#162033] border border-white/5 text-[#94A3B8] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-              ⏸ Pausada
+          <div className="absolute inset-0 bg-surface-0/70 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-surface-3 border border-white/[0.06] text-slate-400 text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5">
+              <Pause className="w-3 h-3" /> Pausada
             </span>
           </div>
         )}
         {offer.status === 'draft' && (
-          <div className="absolute inset-0 bg-[#070A12]/60 backdrop-blur-xs flex items-center justify-center">
-            <span className="bg-[#162033] border border-white/5 text-[#94A3B8] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-              📝 Rascunho
+          <div className="absolute inset-0 bg-surface-0/70 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-surface-3 border border-white/[0.06] text-slate-400 text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow-lg">
+              Rascunho
             </span>
           </div>
         )}
       </div>
 
       {/* Menu */}
-      <div className="absolute top-3 right-3 z-20" ref={menuRef}>
+      <div className="absolute top-2.5 right-2.5 z-20" ref={menuRef}>
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-7 h-7 rounded-lg bg-[#0B1020]/90 border border-white/5 flex items-center justify-center shadow-md hover:bg-[#101827] text-[#F8FAFC] transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-lg bg-surface-0/80 backdrop-blur-sm border border-white/[0.06] flex items-center justify-center shadow-sm hover:bg-surface-2 text-slate-300 transition-colors cursor-pointer"
+            aria-label="Menu de ações"
           >
             <MoreVertical className="w-3.5 h-3.5" />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/[0.08] shadow-2xl py-1.5 w-44 z-30 animate-slide-up">
+            <div className="absolute right-0 top-9 bg-surface-2 rounded-xl border border-white/[0.08] shadow-2xl py-1 w-40 z-30 animate-slide-up">
               <button
                 onClick={handleResend}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
-                {resent ? 'Enviado! ✓' : 'Reenviar'}
+                {resent ? 'Enviado!' : 'Reenviar'}
               </button>
               <button
                 onClick={() => { onEdit(offer); setMenuOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
               >
                 <Tag className="w-3.5 h-3.5" />
                 Editar
               </button>
               <button
                 onClick={() => { onToggleStatus(offer.id, offer.status); setMenuOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
               >
                 {offer.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 {offer.status === 'active' ? 'Pausar' : 'Ativar'}
               </button>
               <button
                 onClick={copyCoupon}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#94A3B8] hover:bg-white/5 hover:text-[#F8FAFC] transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
                 Copiar cupom
@@ -178,7 +181,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
               <div className="my-1 border-t border-white/[0.06]" />
               <button
                 onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/8 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Excluir oferta
@@ -189,42 +192,42 @@ const OfferCard: React.FC<OfferCardProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-start gap-2 mb-2.5">
+          <div className="flex items-start gap-1.5 mb-2.5 flex-wrap">
             <Badge type="marketplace" value={offer.marketplace} />
             <Badge type="category" value={offer.category} />
           </div>
-          <h3 className="text-[15px] font-bold text-[#F8FAFC] leading-snug mb-2.5 line-clamp-2 tracking-tight">
+          <h3 className="text-[13px] font-semibold text-slate-100 leading-snug mb-2.5 line-clamp-2 tracking-tight">
             {offer.name}
           </h3>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl font-extrabold text-[#F8FAFC] tracking-tight">{formatCurrency(offer.salePrice)}</span>
+          <div className="flex items-baseline gap-2.5 mb-3">
+            <span className="text-lg font-bold text-slate-100 tracking-tight tabular-nums">{formatCurrency(offer.salePrice)}</span>
             {offer.originalPrice && offer.originalPrice > 0 ? (
-              <span className="text-xs font-semibold text-[#64748B] line-through decoration-[#64748B]">{formatCurrency(offer.originalPrice)}</span>
+              <span className="text-[11px] font-medium text-slate-500 line-through tabular-nums">{formatCurrency(offer.originalPrice)}</span>
             ) : null}
           </div>
           {offer.coupon && (
             <button
               onClick={copyCoupon}
-              className="flex items-center gap-2 w-full mb-4 px-3 py-2 rounded-xl bg-orange-500/5 border border-orange-500/15 hover:bg-orange-500/10 transition-colors group/coupon text-[#F59E0B]"
+              className="flex items-center gap-2 w-full mb-3 px-3 py-2.5 rounded-xl bg-amber-500/6 border border-amber-500/12 hover:bg-amber-500/10 transition-colors text-amber-400 cursor-pointer group/coupon"
             >
-              <Tag className="w-3.5 h-3.5 text-current" />
-              <span className="text-xs font-mono font-bold text-current">{offer.coupon}</span>
-              <Copy className="w-3.5 h-3.5 text-orange-400/60 ml-auto group-hover/coupon:text-orange-400 transition-colors" />
+              <Tag className="w-3.5 h-3.5" />
+              <span className="text-xs font-mono font-semibold">{offer.coupon}</span>
+              <Copy className="w-3 h-3 opacity-40 ml-auto group-hover/coupon:opacity-100 transition-opacity" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3.5 border-t border-white/[0.06] mt-auto">
-          <div className="flex items-center gap-2">
-            <MousePointerClick className="w-4 h-4 text-[#7C3AED]" />
+        <div className="flex items-center justify-between pt-3 border-t border-white/[0.04] mt-auto">
+          <div className="flex items-center gap-1.5">
+            <MousePointerClick className="w-3.5 h-3.5 text-brand-400" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-[#F8FAFC] leading-none">{(offer.clicks || 0).toLocaleString('pt-BR')}</span>
-              <span className="text-[10px] font-semibold text-[#64748B]">cliques</span>
+              <span className="text-xs font-bold text-slate-100 leading-none tabular-nums">{(offer.clicks || 0).toLocaleString('pt-BR')}</span>
+              <span className="text-[9px] text-slate-500">cliques</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => {
                 const shortLink = offer.shortCode
@@ -238,7 +241,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
                     toast('Erro ao copiar link.', 'error');
                   });
               }}
-              className="p-2 rounded-lg bg-white/5 text-[#94A3B8] hover:bg-white/10 hover:text-[#F8FAFC] transition-colors"
+              className="p-1.5 rounded-lg bg-white/[0.03] text-slate-400 hover:bg-white/[0.06] hover:text-slate-100 transition-colors cursor-pointer"
               title="Copiar link encurtado"
             >
               <Copy className="w-3.5 h-3.5" />
@@ -250,29 +253,29 @@ const OfferCard: React.FC<OfferCardProps> = ({
 
       {/* Modal de confirmação de exclusão */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setShowDeleteModal(false)}>
-          <div className="bg-[#101827] rounded-2xl border border-white/5 shadow-2xl p-6 max-w-sm w-full space-y-4 animate-scale-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3 text-[#EF4444]">
-              <div className="w-10 h-10 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-[#EF4444]" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setShowDeleteModal(false)}>
+          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
-              <h4 className="text-sm font-bold text-white">Excluir oferta?</h4>
+              <h4 className="text-sm font-semibold text-white">Excluir oferta?</h4>
             </div>
-            <p className="text-xs text-[#94A3B8] font-medium leading-relaxed">
-              Essa ação não poderá ser desfeita.
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Essa ação não poderá ser desfeita. A oferta será removida permanentemente.
             </p>
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-white/5 bg-[#0B1020]/50 hover:bg-[#101827] text-slate-350 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-550 disabled:bg-red-900/40 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isDeleting ? (
                   <>

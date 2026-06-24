@@ -23,8 +23,8 @@ const SettingsSection: React.FC<{
   icon: React.ElementType;
   children: React.ReactNode;
 }> = ({ title, description, icon: Icon, children }) => (
-  <div className="glass-card overflow-hidden border-white/5 shadow-sm">
-    <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex items-center gap-3">
+  <div className="glass-card overflow-hidden border-white/[0.04]">
+    <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
         <Icon className="w-4.5 h-4.5 text-indigo-400" size={18} />
       </div>
@@ -643,7 +643,7 @@ const Settings: React.FC = () => {
 
       {/* Tabs Menu Principal */}
       <div className="w-full overflow-x-auto scrollbar-none py-1">
-        <div className="flex border border-white/5 bg-[#0B1020]/45 p-1.5 rounded-2xl gap-2 shadow-sm flex-nowrap min-w-max">
+        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
           {[
             { id: 'account', label: 'Minha Conta', icon: UserIcon },
             { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
@@ -656,14 +656,12 @@ const Settings: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'account' | 'profile' | 'links' | 'templates' | 'integrations' | 'billing')}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-[#101827] text-white shadow-md border border-white/5'
-                    : 'text-slate-450 hover:text-slate-200 hover:bg-[#101827]/40'
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`tab-item flex items-center gap-2 font-bold text-xs ${
+                  activeTab === tab.id ? 'active' : ''
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5" />
                 {tab.label}
               </button>
             );
@@ -899,25 +897,25 @@ const Settings: React.FC = () => {
             </div>
 
             {/* Abas por canal */}
-            <div className="flex border-b border-white/5 pb-2 gap-2">
-              {[
-                { id: 'whatsapp', label: 'WhatsApp 💬' },
-                { id: 'telegram', label: 'Telegram ✈️' },
-                { id: 'discord', label: 'Discord 🎮' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setCurrentEditingTemplateTab(tab.id as any)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    currentEditingTemplateTab === tab.id
-                      ? 'bg-[#101827] text-slate-200 border border-white/5'
-                      : 'text-slate-450 hover:text-slate-200'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="w-full overflow-x-auto scrollbar-none mb-4">
+              <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 max-w-max">
+                {[
+                  { id: 'whatsapp', label: 'WhatsApp 💬' },
+                  { id: 'telegram', label: 'Telegram ✈️' },
+                  { id: 'discord', label: 'Discord 🎮' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setCurrentEditingTemplateTab(tab.id as any)}
+                    className={`tab-item font-bold text-xs ${
+                      currentEditingTemplateTab === tab.id ? 'active' : ''
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-2">
@@ -996,7 +994,7 @@ const Settings: React.FC = () => {
                         key={f.id}
                         type="button"
                         onClick={() => limits.customTemplates && injectFormat(f.id as any)}
-                        className={`px-3 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/55 hover:bg-indigo-950/10 text-[10px] font-bold text-slate-300 transition-all ${
+                        className={`px-3 py-1.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:border-indigo-500/50 hover:bg-surface-3 text-[10px] font-bold text-slate-300 transition-all ${
                           !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         title={f.title}
@@ -1016,7 +1014,7 @@ const Settings: React.FC = () => {
                         key={v.name}
                         type="button"
                         onClick={() => limits.customTemplates && injectVariable(v.name)}
-                        className={`px-2.5 py-1.5 rounded-lg border border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/55 hover:bg-indigo-950/10 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
+                        className={`px-2.5 py-1.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:border-indigo-500/50 hover:bg-surface-3 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
                           !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         title={v.description}

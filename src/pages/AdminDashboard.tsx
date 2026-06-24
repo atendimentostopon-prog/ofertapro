@@ -8,6 +8,7 @@ import {
   Search, ExternalLink, Copy, Check, Eye, EyeOff, BarChart2, ShieldAlert
 } from 'lucide-react';
 import { formatCentsToBRL, databaseValueToCents } from '../lib/currency';
+import { Card } from '../components/ui/Card';
 
 interface Stats {
   total_users: number;
@@ -173,31 +174,31 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-1 border-b border-white/[0.06] scrollbar-thin">
-        {[
-          { id: 'overview', label: 'Visão Geral', icon: BarChart2 },
-          { id: 'users', label: 'Usuários', icon: Users },
-          { id: 'offers', label: 'Ofertas', icon: Package },
-          { id: 'channels', label: 'Canais', icon: Radio },
-          { id: 'dispatches', label: 'Disparos', icon: Send },
-          { id: 'apikeys', label: 'API Keys', icon: Key },
-        ].map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveTab(tab.id as any); setSearchTerm(''); }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-[#162033] text-white border-white/[0.08] shadow-sm shadow-indigo-950/20'
-                  : 'text-[#94A3B8] border-transparent hover:text-white hover:bg-white/[0.02]'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
+      <div className="w-full overflow-x-auto scrollbar-none py-1">
+        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
+          {[
+            { id: 'overview', label: 'Visão Geral', icon: BarChart2 },
+            { id: 'users', label: 'Usuários', icon: Users },
+            { id: 'offers', label: 'Ofertas', icon: Package },
+            { id: 'channels', label: 'Canais', icon: Radio },
+            { id: 'dispatches', label: 'Disparos', icon: Send },
+            { id: 'apikeys', label: 'API Keys', icon: Key },
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id as any); setSearchTerm(''); }}
+                className={`tab-item flex items-center gap-2 font-bold text-xs ${
+                  activeTab === tab.id ? 'active' : ''
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ───────────────────────────────────────────────────────── */}
@@ -219,7 +220,7 @@ const AdminDashboard: React.FC = () => {
             ].map((metric, i) => {
               const Icon = metric.icon;
               return (
-                <div key={i} className="bg-[#0B1020] rounded-2xl border border-white/[0.04] p-5 flex items-center justify-between shadow-sm">
+                <Card key={i} variant="metric" className="p-5 flex items-center justify-between">
                   <div className="space-y-1.5 min-w-0">
                     <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider truncate">{metric.label}</p>
                     <p className="text-2xl font-extrabold text-white leading-none">{loadingData ? '...' : metric.value}</p>
@@ -227,7 +228,7 @@ const AdminDashboard: React.FC = () => {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0 ${metric.color}`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -235,7 +236,7 @@ const AdminDashboard: React.FC = () => {
           {/* Listas Rápidas */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Usuários Recentes */}
-            <div className="bg-[#0B1020] rounded-2xl border border-white/[0.04] p-5 space-y-4">
+            <Card variant="default" className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-indigo-400" /> Usuários Recentes
@@ -267,10 +268,10 @@ const AdminDashboard: React.FC = () => {
                   ))
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* Disparos Recentes */}
-            <div className="bg-[#0B1020] rounded-2xl border border-white/[0.04] p-5 space-y-4">
+            <Card variant="default" className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                   <Send className="w-4 h-4 text-indigo-400" /> Disparos Recentes
@@ -308,7 +309,7 @@ const AdminDashboard: React.FC = () => {
                   ))
                 )}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       )}
@@ -317,7 +318,7 @@ const AdminDashboard: React.FC = () => {
       {/* ABAS COM TABELAS */}
       {/* ───────────────────────────────────────────────────────── */}
       {activeTab !== 'overview' && (
-        <div className="bg-[#0B1020] rounded-2xl border border-white/[0.04] overflow-hidden shadow-sm flex flex-col">
+        <Card variant="default" className="overflow-hidden flex flex-col p-0">
           {/* Barra de Filtro/Pesquisa */}
           <div className="p-4 border-b border-white/[0.06] flex items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
@@ -640,7 +641,7 @@ const AdminDashboard: React.FC = () => {
               </table>
             )}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

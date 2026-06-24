@@ -65,8 +65,10 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
 
       {/* Content */}
       <div className="flex-1 pb-6">
-        <div
-          className="glass-card card-hover p-5 cursor-pointer border border-white/[0.06] bg-[#101827] rounded-2xl hover:border-white/10 transition-all duration-300"
+        <Card
+          variant="default"
+          hoverable
+          className="p-5"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-start gap-3">
@@ -224,7 +226,7 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
@@ -346,7 +348,7 @@ const History: React.FC = () => {
         ].map(stat => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="p-5 flex items-center gap-4 hover:border-white/10 transition-all bg-[#101827]">
+            <Card key={stat.label} variant="metric" hoverable className="p-5 flex items-center gap-4">
               <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center shadow-lg`}>
                 <Icon className={`w-5.5 h-5.5 ${stat.color}`} />
               </div>
@@ -360,7 +362,7 @@ const History: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <Card className="p-5 flex flex-col md:flex-row items-center gap-4 bg-[#101827]">
+      <Card variant="default" className="p-5 flex flex-col md:flex-row items-center gap-4">
         {/* Search */}
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
@@ -375,29 +377,25 @@ const History: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {/* Status filter */}
-          <div className="flex items-center gap-1 bg-[#070A12] border border-white/5 rounded-xl p-1">
+          <div className="tab-container">
             {(['all', 'success', 'partial', 'error'] as const).map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  statusFilter === s ? 'bg-[#162033] text-[#F8FAFC] shadow-sm' : 'text-[#94A3B8] hover:text-[#F8FAFC]'
-                }`}
+                className={`tab-item ${statusFilter === s ? 'active' : ''}`}
               >
-                {{ all: 'Todos', success: '✓ Sucesso', partial: '⚠ Parcial', error: '✗ Erro' }[s]}
+                {{ all: 'Todos', success: 'Sucesso', partial: 'Parcial', error: 'Erro' }[s]}
               </button>
             ))}
           </div>
 
           {/* Date filter */}
-          <div className="flex items-center gap-1 bg-[#070A12] border border-white/5 rounded-xl p-1">
+          <div className="tab-container">
             {(['all', 'today', 'week'] as const).map(d => (
               <button
                 key={d}
                 onClick={() => setDateFilter(d)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  dateFilter === d ? 'bg-[#162033] text-[#F8FAFC] shadow-sm' : 'text-[#94A3B8] hover:text-[#F8FAFC]'
-                }`}
+                className={`tab-item ${dateFilter === d ? 'active' : ''}`}
               >
                 {{ all: 'Todos', today: 'Hoje', week: '7 dias' }[d]}
               </button>

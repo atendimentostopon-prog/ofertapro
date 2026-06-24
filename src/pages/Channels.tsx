@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Wifi, WifiOff, Users, RefreshCw, Settings,
   MessageSquare, Send, Webhook, Trash2, MoreVertical, Shield, Zap, CheckCircle2, XCircle, Radio
@@ -13,6 +13,8 @@ import { FeedbackService } from '../services/FeedbackService';
 import { useUser } from '../context/UserContext';
 import { getPlanLimits } from '../config/plans';
 import { LoadingState } from '../components/ui/LoadingState';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Card } from '../components/ui/Card';
 import { getChannelLogoSrc } from '../lib/logos';
 
 const channelTypeConfig: Record<ChannelType, any> = {
@@ -58,6 +60,37 @@ const ChannelCard: React.FC<{
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
   const cfg = channelTypeConfig[channel.type];
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Escuta clique fora e touchstart para fechar o menu suspenso (mobile & desktop)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [menuOpen]);
+
+  // Escuta ESC para fechar menu
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const lastSyncText = channel.lastSync
     ? new Date(channel.lastSync).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
@@ -96,12 +129,12 @@ const ChannelCard: React.FC<{
   };
 
   return (
-    <div className={`glass-card card-hover p-5 relative ${
-      (channel.status === 'connected' || channel.status === 'active') ? 'border-white/5 bg-[#101827]' : 'border-white/5 bg-[#101827]/40 opacity-70'
+    <div className={`bg-surface-2 rounded-2xl border overflow-hidden relative p-5 transition-all duration-300 ${
+      (channel.status === 'connected' || channel.status === 'active') ? 'border-white/[0.06] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-white/[0.12]' : 'border-white/[0.04] opacity-65'
     }`}>
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         {/* Icon */}
-        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden p-2`}>
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden p-2.5`}>
           <img
             src={getChannelLogoSrc(channel.type)}
             alt={channel.type}
@@ -114,32 +147,33 @@ const ChannelCard: React.FC<{
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-2.5">
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-[15px] text-slate-100 tracking-tight truncate">{channel.name}</h3>
-              <p className="text-[13px] font-medium text-slate-400 capitalize">{cfg.label}</p>
+              <h3 className="font-bold text-[15px] text-slate-100 tracking-tight truncate leading-tight">{channel.name}</h3>
+              <p className="text-xs font-semibold text-slate-400 capitalize mt-0.5">{cfg.label}</p>
             </div>
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="w-7 h-7 rounded-lg hover:bg-[#0B1020] flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.06] flex items-center justify-center transition-all cursor-pointer text-slate-400 hover:text-slate-200"
+                aria-label="Menu de ações"
               >
-                <MoreVertical className="w-3.5 h-3.5 text-slate-500" />
+                <MoreVertical className="w-3.5 h-3.5" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/5 shadow-xl py-1 w-44 z-20 animate-slide-up">
+                <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/[0.08] shadow-2xl py-1 w-44 z-20 animate-slide-up">
                   <button 
                     onClick={() => { onToggleStatus(channel.id, channel.status); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-[#0B1020] transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-350 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
                   >
                     {(channel.status === 'connected' || channel.status === 'active') ? (
                       <>
-                        <WifiOff className="w-3.5 h-3.5" />
+                        <WifiOff className="w-3.5 h-3.5 text-slate-500" />
                         Desconectar
                       </>
                     ) : (
                       <>
-                        <Wifi className="w-3.5 h-3.5" />
+                        <Wifi className="w-3.5 h-3.5 text-emerald-450" />
                         Conectar
                       </>
                     )}
@@ -147,20 +181,20 @@ const ChannelCard: React.FC<{
                   {channel.type === 'telegram' && (channel.status === 'connected' || channel.status === 'active') && (
                     <button
                       onClick={() => { handleTestTelegram(); setMenuOpen(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-sky-400 hover:bg-[#0B1020] transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-sky-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
                     >
                       <Send className="w-3.5 h-3.5" />
                       Testar Canal
                     </button>
                   )}
-                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-[#0B1020] transition-colors">
-                    <RefreshCw className="w-3.5 h-3.5" />
+                  <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-350 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer">
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
                     Sincronizar
                   </button>
-                  <div className="my-1 border-t border-white/5" />
+                  <div className="my-1 border-t border-white/[0.06]" />
                   <button
                     onClick={() => { onRemove(channel.id); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-950/20 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/8 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Remover
@@ -170,7 +204,7 @@ const ChannelCard: React.FC<{
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-2.5 flex flex-wrap items-center gap-3">
             <Badge type="status" value={channel.status} />
           </div>
 
@@ -182,13 +216,13 @@ const ChannelCard: React.FC<{
 
           {/* Bot token mascarado — apenas visual, nunca expõe completo */}
           {channel.type === 'telegram' && channel.metadata?.bot_token && (
-            <div className="mt-1 text-[10px] text-slate-550 font-mono">
+            <div className="mt-1 text-[10px] text-slate-600 font-mono">
               Token: {maskBotToken(channel.metadata.bot_token)}
             </div>
           )}
 
-          <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-500">
-            <RefreshCw className="w-3 h-3" />
+          <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+            <RefreshCw className="w-3 h-3 text-slate-650" />
             <span>Último sync: {lastSyncText}</span>
           </div>
 
@@ -408,10 +442,10 @@ const Channels: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-slide-up">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Canais de Disparo</h1>
-        <p className="text-[15px] font-medium text-[#94A3B8] mt-1">Gerencie seus grupos e canais conectados</p>
-      </div>
+      <PageHeader
+        title="Canais de Disparo"
+        description="Gerencie seus grupos e canais conectados"
+      />
 
       {/* WhatsApp Highlight Banner */}
       {FEATURES.whatsapp && (
@@ -447,22 +481,22 @@ const Channels: React.FC = () => {
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
           { label: 'Canais Conectados', value: connectedChannels.length, icon: Wifi, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-          { label: 'Desconectados', value: disconnectedChannels.length, icon: WifiOff, color: 'text-slate-450', bg: 'bg-[#101827]' },
+          { label: 'Desconectados', value: disconnectedChannels.length, icon: WifiOff, color: 'text-slate-400', bg: 'bg-surface-3' },
         ].map(stat => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="glass-card card-hover p-5 flex items-center gap-4 border-white/5">
-              <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center border border-white/5 shadow-sm`}>
+            <Card key={stat.label} variant="metric" className="p-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center border border-white/[0.04]`}>
                 <Icon className={`w-6 h-6 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white tracking-tight">{stat.value}</p>
-                <p className="text-[13px] font-medium text-[#94A3B8]">{stat.label}</p>
+                <p className="text-2xl font-bold text-slate-100 tracking-tight tabular-nums">{stat.value}</p>
+                <p className="text-[13px] text-slate-400">{stat.label}</p>
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

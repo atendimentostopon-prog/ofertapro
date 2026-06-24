@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'deeper' | 'glass';
+  variant?: 'default' | 'deeper' | 'glass' | 'metric';
   hoverable?: boolean;
 }
 
@@ -12,16 +12,17 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyle = 'rounded-2xl border transition-all duration-300';
+  const baseStyle = 'rounded-2xl border transition-all duration-200';
   
   const variants = {
-    default: 'bg-[#101827] border-white/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.25)]',
-    deeper: 'bg-[#0B1020] border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.35)]',
-    glass: 'bg-[#111C2E]/60 backdrop-blur-xl border-white/[0.08] shadow-lg'
+    default: 'bg-surface-2 border-white/[0.06] shadow-[0_2px_12px_rgba(0,0,0,0.2)]',
+    deeper: 'bg-surface-1 border-white/[0.04] shadow-[0_2px_16px_rgba(0,0,0,0.25)]',
+    glass: 'bg-surface-2/60 backdrop-blur-xl border-white/[0.06] shadow-md',
+    metric: 'bg-surface-2 border-white/[0.06] shadow-[0_2px_12px_rgba(0,0,0,0.2)] metric-card',
   };
 
   const hoverStyle = hoverable 
-    ? 'hover:-translate-y-0.5 hover:border-white/[0.12] hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]'
+    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-white/[0.1] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)]'
     : '';
 
   return (

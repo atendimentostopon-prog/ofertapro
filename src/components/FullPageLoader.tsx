@@ -38,7 +38,6 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
       console.error("[FullPageLoader] Erro ao deslogar:", e);
     }
     try {
-      // Limpar localStorage para evitar travamento de estados
       localStorage.clear();
       sessionStorage.clear();
     } catch (e) {
@@ -48,52 +47,50 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] text-[#F8FAFC] p-6 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#7C3AED]/5 rounded-full blur-3xl opacity-50 transform -translate-x-1/4 -translate-y-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#6366F1]/5 rounded-full blur-3xl opacity-40 transform translate-x-1/4 translate-y-1/4 pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-surface-0 text-slate-100 p-6 relative overflow-hidden">
+      {/* Background Glows — ultra subtle */}
+      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-brand-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-brand-600/[0.02] rounded-full blur-[120px] pointer-events-none" />
 
       <div className="z-10 flex flex-col items-center max-w-sm w-full text-center space-y-6">
         
-        {/* Brand Logo Animation */}
+        {/* Brand Logo */}
         <div className="flex flex-col items-center space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7C3AED] via-purple-650 to-pink-500 flex items-center justify-center shadow-xl shadow-indigo-950/20 animate-pulse">
-            <Zap className="w-7 h-7 text-white fill-white" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-md">
+            <Zap className="w-6 h-6 text-white fill-white" />
           </div>
           <div>
-            <span className="text-lg font-bold text-white tracking-tight">Link Oferta</span>
-            <p className="text-[9px] text-[#64748B] font-black uppercase tracking-widest mt-0.5">SaaS de Afiliados</p>
+            <span className="text-base font-bold text-white tracking-tight">Link Oferta</span>
           </div>
         </div>
 
         {/* Status Loading */}
         {!showTimeoutWarning ? (
           <div className="space-y-4">
-            {/* Smooth spinner */}
             <div className="flex justify-center py-2">
-              <div className="w-9 h-9 border-3 border-indigo-500/10 border-t-[#7C3AED] rounded-full animate-spin" />
+              <div className="w-7 h-7 border-[3px] border-brand-500/15 border-t-brand-500 rounded-full animate-spin" />
             </div>
-            <p className="text-xs font-semibold text-[#94A3B8] leading-relaxed animate-pulse">
+            <p className="text-xs text-slate-400 leading-relaxed">
               {message}
             </p>
           </div>
         ) : (
-          <div className="space-y-5 p-5 bg-[#101827]/60 border border-white/[0.06] rounded-3xl animate-scale-up">
-            <div className="flex justify-center text-amber-500">
-              <AlertCircle className="w-8 h-8" />
+          <div className="space-y-4 p-5 bg-surface-2 border border-white/[0.06] rounded-2xl animate-fade-in">
+            <div className="flex justify-center text-amber-400">
+              <AlertCircle className="w-7 h-7" />
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-white tracking-tight">Está demorando mais que o esperado</h3>
-              <p className="text-[11px] text-[#94A3B8] leading-relaxed">
-                A resposta do servidor do Supabase ou a sua conexão está instável. Deseja tentar novamente ou voltar ao login?
+              <h3 className="text-sm font-semibold text-white tracking-tight">Está demorando mais que o esperado</h3>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                A conexão com o servidor está instável. Você pode tentar novamente ou voltar ao login.
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-col gap-2 pt-1">
               <button
                 onClick={handleDefaultRetry}
-                className="w-full btn-gradient flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+                className="w-full btn-gradient flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Tentar novamente
@@ -101,7 +98,7 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
               
               <button
                 onClick={handleSignOut}
-                className="w-full px-4 py-2.5 rounded-xl border border-white/5 bg-[#070A12] text-xs font-bold text-[#94A3B8] hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-1.5"
+                className="w-full px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 text-xs font-medium text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sair e voltar ao Login

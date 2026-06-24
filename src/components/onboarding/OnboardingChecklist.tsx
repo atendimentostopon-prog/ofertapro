@@ -5,6 +5,7 @@ import {
   CheckCircle2, Circle, ArrowRight, Sparkles, Trophy, X, 
   User, Radio, Package, Send, MousePointerClick 
 } from 'lucide-react';
+import { Card } from '../ui/Card';
 
 const OnboardingChecklist: React.FC = () => {
   const navigate = useNavigate();
@@ -96,27 +97,27 @@ const OnboardingChecklist: React.FC = () => {
   ];
 
   return (
-    <div className="glass-card border-slate-200/60 p-6 space-y-5 animate-fade-in relative overflow-hidden">
+    <Card variant="default" className="p-6 space-y-5 animate-fade-in relative overflow-hidden">
       <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl -translate-y-12 translate-x-12" />
       
       {/* Header do Onboarding */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-indigo-500" />
+          <h2 className="text-base font-bold text-slate-100 tracking-tight flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-indigo-400" />
             Primeiros Passos no Link Oferta
           </h2>
-          <p className="text-xs text-slate-500 font-medium">Complete as etapas abaixo para configurar sua estrutura de vendas.</p>
+          <p className="text-xs text-slate-400 font-medium">Complete as etapas abaixo para configurar sua estrutura de vendas.</p>
         </div>
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+          <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg">
             {percentCompleted}% Concluído
           </span>
         </div>
       </div>
 
       {/* Barra de Progresso */}
-      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+      <div className="w-full bg-surface-3 h-2 rounded-full overflow-hidden">
         <div 
           className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out"
           style={{ width: `${percentCompleted}%` }}
@@ -132,34 +133,34 @@ const OnboardingChecklist: React.FC = () => {
               key={item.id}
               className={`flex flex-col justify-between p-4 rounded-xl border transition-all ${
                 item.completed 
-                  ? 'bg-slate-50/50 border-slate-200/60 opacity-75' 
-                  : 'bg-white border-slate-200 hover:border-indigo-200 shadow-sm'
+                  ? 'bg-surface-2/40 border-white/[0.04] opacity-75' 
+                  : 'bg-surface-2 border-white/[0.06] hover:border-white/[0.1] hover:shadow-lg'
               }`}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm ${
-                    item.completed ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-slate-50 border-slate-100 text-slate-500'
+                    item.completed ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-surface-3 border-white/[0.04] text-slate-400'
                   }`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   {item.completed ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/10" />
                   ) : (
-                    <Circle className="w-5 h-5 text-slate-300" />
+                    <Circle className="w-5 h-5 text-slate-600" />
                   )}
                 </div>
                 
                 <div className="space-y-0.5">
-                  <p className="text-[12px] font-bold text-slate-900 tracking-tight leading-tight">{item.label}</p>
-                  <p className="text-[10px] text-slate-400 font-medium leading-snug">{item.description}</p>
+                  <p className="text-[12px] font-bold text-slate-200 tracking-tight leading-tight">{item.label}</p>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">{item.description}</p>
                 </div>
               </div>
 
               {!item.completed && (
                 <button
                   onClick={() => navigate(item.route)}
-                  className="mt-3 w-full py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors flex items-center justify-center gap-1 group"
+                  className="mt-3 w-full py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] transition-colors flex items-center justify-center gap-1 group"
                 >
                   {item.actionLabel}
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
@@ -169,7 +170,7 @@ const OnboardingChecklist: React.FC = () => {
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 };
 
