@@ -132,16 +132,31 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     } catch (err: any) {
       console.error('Erro na autenticação:', err);
       let message = err.message;
-      if (message === 'Invalid login credentials') message = 'E-mail ou senha incorretos.';
-      if (message === 'Email not confirmed') message = 'Por favor, confirme seu e-mail antes de entrar.';
-      if (
-        message === 'User already registered' ||
-        message?.toLowerCase().includes('already registered') ||
-        message?.toLowerCase().includes('already in use') ||
-        message?.toLowerCase().includes('email address already')
-      ) message = 'Este e-mail já está cadastrado. Faça login ou recupere sua senha.';
-      if (message?.toLowerCase().includes('database error')) message = 'Não foi possível concluir o cadastro. Tente novamente em alguns instantes.';
-      if (message?.toLowerCase().includes('load failed') || message?.toLowerCase().includes('fetch')) message = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      
+      if (isRegistering) {
+        if (message === 'Invalid login credentials') message = 'E-mail ou senha incorretos.';
+        if (message === 'Email not confirmed') message = 'Por favor, confirme seu e-mail antes de entrar.';
+        if (
+          message === 'User already registered' ||
+          message?.toLowerCase().includes('already registered') ||
+          message?.toLowerCase().includes('already in use') ||
+          message?.toLowerCase().includes('email address already')
+        ) message = 'Este e-mail já está cadastrado. Faça login ou recupere sua senha.';
+        if (message?.toLowerCase().includes('database error')) {
+          message = 'Não foi possível concluir o cadastro. Tente novamente em alguns instantes.';
+        }
+      } else {
+        // Erro no Login (isSignIn)
+        if (message === 'Invalid login credentials' || message?.toLowerCase().includes('invalid grant') || message?.toLowerCase().includes('credentials')) {
+          message = 'E-mail ou senha inválidos.';
+        } else if (message?.toLowerCase().includes('database error')) {
+          message = 'Entramos na sua conta, mas não conseguimos carregar seu perfil. Tente novamente.';
+        }
+      }
+      
+      if (message?.toLowerCase().includes('load failed') || message?.toLowerCase().includes('fetch')) {
+        message = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      }
       
       setError(message || 'Ocorreu um erro na autenticação. Tente novamente.');
     } finally {

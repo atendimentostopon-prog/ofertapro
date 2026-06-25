@@ -4,8 +4,11 @@ import type { User } from '../types';
 
 interface UserContextType {
   user: User | null;
+  authUser: any | null;
   loading: boolean;
   isAdmin: boolean;
+  profileError: Error | null;
+  profileLoadFailed: boolean;
   refreshProfile: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
@@ -19,8 +22,11 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootError }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<Error | null>(null);
+  const [profileLoadFailed, setProfileLoadFailed] = useState(false);
 
   const checkAdminStatus = async (): Promise<boolean> => {
     try {
@@ -32,34 +38,65 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
     }
   };
 
-  const getFallbackProfile = (userId: string, email: string): User => {
+  const createMinimalProfile = async (userId: string, email: string): Promise<User | null> => {
     const defaultUsername = email.split('@')[0] || 'usuario';
-    console.warn(`[BOOT][UserContext] Usando perfil de fallback para o usuário ${userId}`);
-    return {
+    const uniqueUsername = `${defaultUsername}_${userId.substring(0, 4)}`;
+    const minimalPayload = {
       id: userId,
-      full_name: 'Usuário',
       email: email,
-      username: `${defaultUsername}_temp`,
-      plan: 'free',
-      publicUrl: `${defaultUsername}_temp`,
-      bio: '',
-      joinedAt: new Date().toISOString(),
-      onboarded: false,
-      isPublicActive: false,
-      publicName: 'Usuário',
-      publicAvatarUrl: undefined,
-      avatar_url: undefined,
-      public_page_active: true,
+      full_name: 'Usuário',
+      preferred_name: 'Usuário',
+      username: uniqueUsername.toLowerCase().replace(/[^a-z0-9._-]/g, ''),
+      public_url: uniqueUsername.toLowerCase().replace(/[^a-z0-9._-]/g, ''),
+      is_public_active: false,
       public_page_created: false,
-      public_display_name: '',
-      public_avatar_url: '',
       public_theme: 'default',
-      preferred_name: '',
-      phone: '',
-      whatsapp_group_url: '',
-      telegram_group_url: '',
-      discord_group_url: '',
+      onboarded: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
+
+    console.log(`[BOOT][UserContext] Criando perfil mínimo para o usuário ID: ${userId}`);
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert(minimalPayload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[BOOT][UserContext] Erro ao criar perfil mínimo:', error);
+      throw error;
+    }
+
+    if (data) {
+      console.log('[BOOT][UserContext] Perfil mínimo criado com sucesso.');
+      return {
+        id: data.id,
+        full_name: data.full_name || 'Usuário',
+        email: email,
+        avatar_url: data.avatar_url,
+        username: data.username || '',
+        plan: (data.plan || 'free') as any,
+        publicUrl: data.public_url || data.username || '',
+        bio: data.bio || '',
+        joinedAt: data.created_at || data.joined_at || new Date().toISOString(),
+        onboarded: data.onboarded ?? false,
+        isPublicActive: data.is_public_active ?? false,
+        publicName: data.public_name || data.full_name || 'Usuário',
+        publicAvatarUrl: data.public_avatar_url || data.avatar_url,
+        public_page_active: data.public_page_active ?? true,
+        public_page_created: data.public_page_created ?? false,
+        public_display_name: data.public_display_name || '',
+        public_avatar_url: data.public_avatar_url || '',
+        public_theme: data.public_theme || 'default',
+        preferred_name: data.preferred_name || '',
+        phone: data.phone || '',
+        whatsapp_group_url: data.whatsapp_group_url || '',
+        telegram_group_url: data.telegram_group_url || '',
+        discord_group_url: data.discord_group_url || '',
+      } as User;
+    }
+    return null;
   };
 
   const activeFetchPromiseRef = React.useRef<Promise<User | null> | null>(null);
@@ -90,7 +127,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
 
         if (error) {
           console.error('[USER] loading profile error', error);
-          return null;
+          throw error;
         }
 
         if (data) {
@@ -122,11 +159,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
           } as User;
         }
 
-        console.warn('[BOOT][UserContext] Perfil não encontrado na tabela public.profiles');
-        return getFallbackProfile(userId, email);
+        console.warn('[BOOT][UserContext] Perfil não encontrado na tabela public.profiles. Tentando criar perfil mínimo...');
+        const minimalProfile = await createMinimalProfile(userId, email);
+        if (minimalProfile) {
+          return minimalProfile;
+        }
+        throw new Error('Perfil não encontrado e falha ao criar perfil mínimo.');
       } catch (err) {
-        console.error('[USER] loading profile error', err);
-        return null;
+        console.error('[USER] loading profile error in fetchProfile:', err);
+        throw err;
       } finally {
         activeFetchPromiseRef.current = null;
         console.log("[USER] loading profile finally");
@@ -159,37 +200,53 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
           try { await supabase.auth.signOut(); } catch {}
         }
         setUser(null);
+        setAuthUser(null);
+        setProfileError(sessionError);
+        setProfileLoadFailed(true);
         return;
       }
 
       if (session?.user) {
+        setAuthUser(session.user);
         console.log('[BOOT][UserContext] Sessão activa encontrada, carregando perfil...');
         console.time("[BOOT] loadProfile");
-        const [profile, adminStatus] = await Promise.all([
-          fetchProfile(session.user.id, session.user.email || ''),
-          checkAdminStatus()
-        ]);
-        console.timeEnd("[BOOT] loadProfile");
-        setIsAdmin(adminStatus);
-        if (profile) {
+        try {
+          const [profile, adminStatus] = await Promise.all([
+            fetchProfile(session.user.id, session.user.email || ''),
+            checkAdminStatus()
+          ]);
+          console.timeEnd("[BOOT] loadProfile");
+          setIsAdmin(adminStatus);
           setUser(profile);
-        } else {
+          setProfileError(null);
+          setProfileLoadFailed(false);
+        } catch (err: any) {
+          console.timeEnd("[BOOT] loadProfile");
+          console.error('[BOOT][UserContext] Falha ao carregar perfil do Supabase em refreshProfile:', err);
+          setProfileError(err);
+          setProfileLoadFailed(true);
           setUser(prev => {
             if (prev) {
-              console.warn('[BOOT][UserContext] Falha ao atualizar perfil do banco. Mantendo o perfil local em cache para evitar resets.');
+              console.warn('[BOOT][UserContext] Mantendo perfil anterior em cache apesar da falha temporária de rede/banco.');
               return prev;
             }
-            return getFallbackProfile(session.user.id, session.user.email || '');
+            return null;
           });
         }
       } else {
         console.log('[BOOT][UserContext] Nenhuma sessão ativa em refreshProfile');
         setUser(null);
+        setAuthUser(null);
         setIsAdmin(false);
+        setProfileError(null);
+        setProfileLoadFailed(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[BOOT][UserContext] Erro inesperado em refreshProfile:', err);
+      setProfileError(err);
+      setProfileLoadFailed(true);
       setUser(null);
+      setAuthUser(null);
     } finally {
       hasLoadedRef.current = true;
       setLoading(false);
@@ -230,7 +287,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         // SIGNED_OUT: limpar estado imediatamente
         if (event === 'SIGNED_OUT') {
           setUser(null);
+          setAuthUser(null);
           setIsAdmin(false);
+          setProfileError(null);
+          setProfileLoadFailed(false);
           hasLoadedRef.current = false;
           setLoading(false);
           return;
@@ -239,6 +299,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         // TOKEN_REFRESHED: apenas atualizar se já temos sessão
         if (event === 'TOKEN_REFRESHED' && hasLoadedRef.current) {
           console.log('[BOOT][UserContext] Token atualizado — sem necessidade de recarregar perfil.');
+          if (session?.user) {
+            setAuthUser(session.user);
+          }
           return;
         }
 
@@ -248,26 +311,36 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
         }
         try {
           if (session?.user) {
+            setAuthUser(session.user);
             console.log('[BOOT][UserContext] Carregando perfil do usuário após mudança de estado...');
             console.time("[BOOT] loadProfile");
-            const [profile, adminStatus] = await Promise.all([
-              fetchProfile(session.user.id, session.user.email || ''),
-              checkAdminStatus()
-            ]);
-            console.timeEnd("[BOOT] loadProfile");
-            setIsAdmin(adminStatus);
-            if (profile) {
+            try {
+              const [profile, adminStatus] = await Promise.all([
+                fetchProfile(session.user.id, session.user.email || ''),
+                checkAdminStatus()
+              ]);
+              console.timeEnd("[BOOT] loadProfile");
+              setIsAdmin(adminStatus);
               setUser(profile);
-            } else {
+              setProfileError(null);
+              setProfileLoadFailed(false);
+            } catch (err: any) {
+              console.timeEnd("[BOOT] loadProfile");
+              console.error('[BOOT][UserContext] Erro ao buscar perfil no onAuthStateChange:', err);
+              setProfileError(err);
+              setProfileLoadFailed(true);
               setUser(prev => {
                 if (prev) return prev;
-                return getFallbackProfile(session.user.id, session.user.email || '');
+                return null;
               });
             }
           } else {
             console.log('[BOOT][UserContext] Limpando perfil (usuário deslogado/sem sessão)');
             setUser(null);
+            setAuthUser(null);
             setIsAdmin(false);
+            setProfileError(null);
+            setProfileLoadFailed(false);
             hasLoadedRef.current = false;
           }
         } catch (err) {
@@ -294,7 +367,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading, isAdmin, refreshProfile, setUser }}>
+    <UserContext.Provider value={{ user, authUser, loading, isAdmin, profileError, profileLoadFailed, refreshProfile, setUser }}>
       {children}
     </UserContext.Provider>
   );
