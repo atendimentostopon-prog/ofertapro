@@ -54,6 +54,20 @@ export function useOffers() {
     }
   };
 
+  const deleteAllOffers = async (ids: string[]) => {
+    try {
+      const batchSize = 10;
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        await Promise.all(batch.map(id => OfferService.deleteOffer(id)));
+        setOffers(prev => prev.filter(o => !batch.includes(o.id)));
+      }
+    } catch (err) {
+      console.error('[useOffers] Erro ao deletar todas as ofertas:', err);
+      throw err;
+    }
+  };
+
   const toggleStatus = async (id: string, currentStatus: string) => {
     try {
       const newStatus = await OfferService.toggleStatus(id, currentStatus);
@@ -70,6 +84,7 @@ export function useOffers() {
     error, 
     refresh: () => loadOffers(true), 
     deleteOffer, 
+    deleteAllOffers,
     toggleStatus 
   };
 }

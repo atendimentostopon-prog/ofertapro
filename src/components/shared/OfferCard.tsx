@@ -32,8 +32,6 @@ const OfferCard: React.FC<OfferCardProps> = ({
   const setMenuOpen = (open: boolean) => setActiveMenuId(open ? offer.id : null);
 
   const [resent, setResent] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +57,6 @@ const OfferCard: React.FC<OfferCardProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false);
-        setShowDeleteModal(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -93,18 +90,6 @@ const OfferCard: React.FC<OfferCardProps> = ({
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    setIsDeleting(true);
-    try {
-      await onDelete(offer.id);
-      toast('Oferta excluída com sucesso!', 'success');
-      setShowDeleteModal(false);
-    } catch (err: any) {
-      toast('Não foi possível excluir a oferta.', 'error');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <div className="bg-surface-2 rounded-2xl border border-white/[0.06] overflow-hidden group flex flex-col justify-between h-full hover:-translate-y-1 hover:border-white/[0.1] hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-300 relative">
@@ -180,7 +165,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
               </button>
               <div className="my-1 border-t border-white/[0.06]" />
               <button
-                onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}
+                onClick={() => { onDelete(offer.id); setMenuOpen(false); }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/8 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -251,45 +236,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
         </div>
       </div>
 
-      {/* Modal de confirmação de exclusão */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setShowDeleteModal(false)}>
-          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              </div>
-              <h4 className="text-sm font-semibold text-white">Excluir oferta?</h4>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Essa ação não poderá ser desfeita. A oferta será removida permanentemente.
-            </p>
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Excluindo...
-                  </>
-                ) : (
-                  'Excluir oferta'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

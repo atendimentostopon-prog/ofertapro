@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Package, AlertCircle } from 'lucide-react';
+import { Search, Plus, Package, AlertCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { CATEGORIES } from '../lib/utils';
 import type { Marketplace, OfferStatus } from '../types';
 import NewOfferModal from '../components/modals/NewOfferModal';
@@ -26,7 +26,7 @@ const marketplaces: { value: Marketplace | 'all'; label: string }[] = [
 ];
 
 const Offers: React.FC = () => {
-  const { offers, loading, error, deleteOffer, toggleStatus, refresh } = useOffers();
+  const { offers, loading, error, deleteOffer, deleteAllOffers, toggleStatus, refresh } = useOffers();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -39,6 +39,46 @@ const Offers: React.FC = () => {
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [editingOffer, setEditingOffer] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Estados para exclusão individual e lote
+  const [deletingOffer, setDeletingOffer] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingOffer) return;
+    setIsDeleting(true);
+    try {
+      await deleteOffer(deletingOffer.id);
+      toast('Oferta excluída com sucesso!', 'success');
+      setDeletingOffer(null);
+    } catch (err) {
+      toast('Não foi possível excluir a oferta.', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteAllConfirm = async () => {
+    if (confirmText.toLowerCase() !== 'excluir') {
+      toast('Digite "excluir" para confirmar.', 'error');
+      return;
+    }
+    setIsDeletingAll(true);
+    try {
+      const ids = filtered.map(o => o.id);
+      await deleteAllOffers(ids);
+      toast('Todas as ofertas foram excluídas!', 'success');
+      setShowDeleteAllModal(false);
+      setConfirmText('');
+    } catch (err) {
+      toast('Erro ao excluir todas as ofertas.', 'error');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
 
   // Sincronizar busca se a URL mudar (por busca do cabeçalho)
   React.useEffect(() => {
@@ -135,14 +175,26 @@ const Offers: React.FC = () => {
         title="Minhas Ofertas"
         description={`${filtered.length} oferta(s) encontrada(s)`}
       >
-        <Button
-          variant="primary"
-          icon={Plus}
-          onClick={() => navigate('/offers/new')}
-          size="sm"
-        >
-          Nova Oferta
-        </Button>
+        <div className="flex gap-2">
+          {filtered.length > 0 && (
+            <Button
+              variant="danger"
+              icon={Trash2}
+              onClick={() => setShowDeleteAllModal(true)}
+              size="sm"
+            >
+              Excluir Todas
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            icon={Plus}
+            onClick={() => navigate('/offers/new')}
+            size="sm"
+          >
+            Nova Oferta
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Filters */}
@@ -229,7 +281,10 @@ const Offers: React.FC = () => {
               key={offer.id}
               offer={mapOfferToType(offer)}
               onToggleStatus={handleToggleStatus}
-              onDelete={deleteOffer}
+              onDelete={(id) => {
+                const target = offers.find(o => o.id === id);
+                if (target) setDeletingOffer(target);
+              }}
               onEdit={(o) => { setEditingOffer(o); setShowNewOffer(true); }}
               onResend={handleResend}
               activeMenuId={activeMenuId}
@@ -260,6 +315,100 @@ const Offers: React.FC = () => {
             refresh();
           }}
         />
+      )}
+
+      {/* Modal de confirmação de exclusão individual */}
+      {deletingOffer && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setDeletingOffer(null)}>
+          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <h4 className="text-sm font-semibold text-white">Excluir oferta?</h4>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Essa ação não poderá ser desfeita. A oferta "{deletingOffer.name}" será removida permanentemente.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setDeletingOffer(null)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  'Excluir oferta'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão em lote */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => { if (!isDeletingAll) setShowDeleteAllModal(false); }}>
+          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <h4 className="text-sm font-semibold text-white">Excluir TODAS as ofertas?</h4>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Você está prestes a excluir permanentemente <strong>{filtered.length} ofertas</strong> e suas respectivas mídias do storage. Essa ação é irreversível.
+            </p>
+            <div className="space-y-2">
+              <p className="text-[11px] text-slate-500">
+                Digite <strong>excluir</strong> abaixo para confirmar:
+              </p>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                disabled={isDeletingAll}
+                placeholder='Digite "excluir"'
+                className="input-modern"
+                aria-label="Confirmar exclusão em lote"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => { setShowDeleteAllModal(false); setConfirmText(''); }}
+                disabled={isDeletingAll}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteAllConfirm}
+                disabled={isDeletingAll || confirmText.toLowerCase() !== 'excluir'}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingAll ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Excluindo tudo...
+                  </>
+                ) : (
+                  'Excluir tudo'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
