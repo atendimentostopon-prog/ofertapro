@@ -226,7 +226,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
     const status = (c.status || '').toLowerCase();
     const type = (c.type || '').toLowerCase();
     return (status === 'connected' || status === 'active' || status === 'conectado') && 
-           (type === 'telegram' || type === 'discord');
+           (type === 'telegram' || type === 'discord' || type === 'whatsapp');
   });
 
   // Alternar seleção do canal

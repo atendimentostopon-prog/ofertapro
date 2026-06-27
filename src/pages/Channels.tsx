@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Wifi, WifiOff, Users, RefreshCw, Settings,
-  MessageSquare, Send, Webhook, Trash2, MoreVertical, Shield, Zap, CheckCircle2, XCircle, Radio
+  MessageSquare, Send, Webhook, Trash2, MoreVertical, Shield, Zap, CheckCircle2, XCircle, Radio,
+  Loader2, AlertTriangle, QrCode, LogOut
 } from 'lucide-react';
 import type { Channel, ChannelType } from '../types';
 import Badge from '../components/Badge';
@@ -16,6 +17,7 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { getChannelLogoSrc } from '../lib/logos';
+import { useToast } from '../context/ToastContext';
 
 const channelTypeConfig: Record<ChannelType, any> = {
   whatsapp: {
@@ -26,7 +28,7 @@ const channelTypeConfig: Record<ChannelType, any> = {
     bg: 'bg-green-950/10',
     border: 'border-green-900/35',
     text: 'text-green-400',
-    desc: 'Conecte grupos e listas de transmissão do WhatsApp',
+    desc: 'Conecte grupos do WhatsApp para disparo automático',
   },
   telegram: {
     label: 'Telegram',
@@ -59,10 +61,9 @@ const ChannelCard: React.FC<{
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
-  const cfg = channelTypeConfig[channel.type];
+  const cfg = channelTypeConfig[channel.type as ChannelType] || channelTypeConfig.telegram;
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Escuta clique fora e touchstart para fechar o menu suspenso (mobile & desktop)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -79,7 +80,6 @@ const ChannelCard: React.FC<{
     };
   }, [menuOpen]);
 
-  // Escuta ESC para fechar menu
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -96,8 +96,6 @@ const ChannelCard: React.FC<{
     ? new Date(channel.lastSync).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
     : 'Nunca';
 
-  // Exibe identifier mascarado para canais Telegram (contém chat_id, não é sensível)
-  // O bot_token fica em metadata e nunca é exibido
   const displayIdentifier = channel.identifier
     ? (channel.type === 'telegram'
         ? `Chat: ${channel.identifier}`
@@ -164,7 +162,7 @@ const ChannelCard: React.FC<{
                 <div className="absolute right-0 top-9 bg-[#101827] rounded-xl border border-white/[0.08] shadow-2xl py-1 w-44 z-20 animate-slide-up">
                   <button 
                     onClick={() => { onToggleStatus(channel.id, channel.status); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-350 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-355 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer"
                   >
                     {(channel.status === 'connected' || channel.status === 'active') ? (
                       <>
@@ -187,10 +185,6 @@ const ChannelCard: React.FC<{
                       Testar Canal
                     </button>
                   )}
-                  <button className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-350 hover:bg-white/[0.04] hover:text-slate-100 transition-colors cursor-pointer">
-                    <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                    Sincronizar
-                  </button>
                   <div className="my-1 border-t border-white/[0.06]" />
                   <button
                     onClick={() => { onRemove(channel.id); setMenuOpen(false); }}
@@ -209,12 +203,11 @@ const ChannelCard: React.FC<{
           </div>
 
           {displayIdentifier && (
-            <div className="mt-2 text-[10px] text-slate-500 font-mono truncate max-w-[220px]">
+            <div className="mt-2 text-[10px] text-slate-500 font-mono truncate max-w-[220px]" title={displayIdentifier}>
               {displayIdentifier}
             </div>
           )}
 
-          {/* Bot token mascarado — apenas visual, nunca expõe completo */}
           {channel.type === 'telegram' && channel.metadata?.bot_token && (
             <div className="mt-1 text-[10px] text-slate-600 font-mono">
               Token: {maskBotToken(channel.metadata.bot_token)}
@@ -226,7 +219,6 @@ const ChannelCard: React.FC<{
             <span>Último sync: {lastSyncText}</span>
           </div>
 
-          {/* Feedback de teste */}
           {testing && (
             <div className="mt-2 flex items-center gap-1.5 text-xs text-sky-400 animate-pulse">
               <RefreshCw className="w-3 h-3 animate-spin" />
@@ -248,7 +240,6 @@ const ChannelCard: React.FC<{
         </div>
       </div>
 
-      {/* Status line at bottom */}
       <div className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-b-2xl ${
         (channel.status === 'connected' || channel.status === 'active') ? 'bg-gradient-to-r from-emerald-400 to-teal-400' :
         channel.status === 'error' ? 'bg-red-400' : 'bg-zinc-800'
@@ -262,7 +253,7 @@ const AddChannelCard: React.FC<{
   onConnect: () => void;
   disabled?: boolean;
 }> = ({ type, onConnect, disabled = false }) => {
-  const cfg = channelTypeConfig[type];
+  const cfg = channelTypeConfig[type] || channelTypeConfig.telegram;
 
   if (disabled) {
     return (
@@ -320,24 +311,38 @@ const AddChannelCard: React.FC<{
 
 const Channels: React.FC = () => {
   const { user } = useUser();
+  const { toast } = useToast();
   const [channels, setChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectModal, setConnectModal] = useState<ChannelType | null>(null);
 
+  // Estados para WhatsApp (Evolution API)
+  const [instances, setInstances] = useState<any[]>([]);
+  const [instancesLoading, setInstancesLoading] = useState(true);
+  const [showConnectWhatsappModal, setShowConnectWhatsappModal] = useState(false);
+  const [newWhatsappName, setNewWhatsappName] = useState('');
+  const [creatingInstance, setCreatingInstance] = useState(false);
+  const [currentInstanceQr, setCurrentInstanceQr] = useState<any>(null);
+  
+  const [syncingInstanceId, setSyncingInstanceId] = useState<string | null>(null);
+  const [selectedInstanceGroups, setSelectedInstanceGroups] = useState<any[]>([]);
+  const [activeInstanceGroupsId, setActiveInstanceGroupsId] = useState<string | null>(null);
+  const [savingGroups, setSavingGroups] = useState(false);
+  const [groupSelections, setGroupSelections] = useState<Record<string, boolean>>({});
+
   const loadChannels = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
       
       const { data, error } = await supabase
         .from('channels')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', authUser.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       if (data) {
-        // Map snake_case from DB to camelCase for the UI
         const mappedData = data.map(ch => ({
           ...ch,
           lastSync: ch.last_sync
@@ -351,8 +356,30 @@ const Channels: React.FC = () => {
     }
   };
 
+  const loadInstances = async () => {
+    try {
+      setInstancesLoading(true);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data, error } = await supabase
+        .from('whatsapp_instances')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInstances(data || []);
+    } catch (err) {
+      console.error('Erro ao carregar instâncias WhatsApp:', err);
+    } finally {
+      setInstancesLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadChannels();
+    loadInstances();
   }, []);
 
   const connectedChannels = channels.filter(c => c.status === 'connected' || c.status === 'active');
@@ -365,6 +392,7 @@ const Channels: React.FC = () => {
       const { error } = await supabase.from('channels').delete().eq('id', id);
       if (error) throw error;
       setChannels(prev => prev.filter(c => c.id !== id));
+      toast('Canal removido!', 'success');
     } catch (err) {
       console.error('Erro ao remover canal:', err);
       alert('Erro ao remover canal. Tente novamente.');
@@ -381,6 +409,7 @@ const Channels: React.FC = () => {
 
       if (error) throw error;
       setChannels(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      toast('Status do canal alterado!', 'success');
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
       alert('Erro ao atualizar status.');
@@ -391,11 +420,11 @@ const Channels: React.FC = () => {
     if (!connectModal) return;
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Usuário não autenticado');
 
       const { data: newChannel, error } = await supabase.from('channels').insert({
-        user_id: user.id,
+        user_id: authUser.id,
         name: data.name,
         type: connectModal,
         status: 'connected',
@@ -406,7 +435,6 @@ const Channels: React.FC = () => {
 
       if (error) throw error;
       
-      // Registrar log de evento de canal conectado
       await FeedbackService.logEvent({
         event_type: 'canal_conectado',
         message: `Canal ${data.name} conectado com sucesso (${connectModal})`,
@@ -418,10 +446,10 @@ const Channels: React.FC = () => {
           ...newChannel,
           lastSync: newChannel.last_sync
         }, ...prev]);
+        toast('Canal adicionado com sucesso!', 'success');
       }
     } catch (err: any) {
       console.error('Erro ao conectar canal:', err);
-      // Registrar log de erro de conexão do canal
       try {
         await FeedbackService.logEvent({
           event_type: 'erro_conexao_canal',
@@ -435,6 +463,204 @@ const Channels: React.FC = () => {
     }
   };
 
+  // WhatsApp Evolution API Handlers
+  const handleCreateInstance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWhatsappName.trim()) return;
+
+    try {
+      setCreatingInstance(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada. Faça login novamente.');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/evolution-instance-create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ name: newWhatsappName.trim() })
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || 'Erro ao criar instância.');
+
+      toast('Instância iniciada com sucesso!', 'success');
+      setNewWhatsappName('');
+      setShowConnectWhatsappModal(false);
+      
+      if (responseData.data) {
+        setCurrentInstanceQr(responseData.data);
+      }
+      
+      await loadInstances();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Erro ao criar instância.');
+    } finally {
+      setCreatingInstance(false);
+    }
+  };
+
+  const handleCheckStatus = async (instanceId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada.');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/evolution-instance-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ whatsapp_instance_id: instanceId })
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || 'Erro ao checar status.');
+
+      if (responseData.data?.status === 'connected') {
+        toast('WhatsApp conectado com sucesso!', 'success');
+        setCurrentInstanceQr(null);
+      } else {
+        toast('Aguardando pareamento...', 'info');
+      }
+
+      await loadInstances();
+    } catch (err: any) {
+      console.error(err);
+      toast(err.message || 'Erro ao checar status.', 'error');
+    }
+  };
+
+  const handleSyncGroups = async (instanceId: string) => {
+    try {
+      setSyncingInstanceId(instanceId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada.');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/evolution-groups-sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ whatsapp_instance_id: instanceId })
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || 'Erro ao sincronizar grupos.');
+
+      toast('Grupos sincronizados com sucesso!', 'success');
+      
+      setSelectedInstanceGroups(responseData.data || []);
+      setActiveInstanceGroupsId(instanceId);
+      
+      const initialSelections: Record<string, boolean> = {};
+      responseData.data.forEach((g: any) => {
+        initialSelections[g.evolution_group_id] = g.is_selected;
+      });
+      setGroupSelections(initialSelections);
+
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Erro ao sincronizar grupos.');
+    } finally {
+      setSyncingInstanceId(null);
+    }
+  };
+
+  const handleOpenLocalGroups = async (instanceId: string) => {
+    try {
+      const { data: groups, error } = await supabase
+        .from('whatsapp_groups')
+        .select('*')
+        .eq('whatsapp_instance_id', instanceId)
+        .eq('status', 'available')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+
+      setSelectedInstanceGroups(groups || []);
+      setActiveInstanceGroupsId(instanceId);
+
+      const initialSelections: Record<string, boolean> = {};
+      (groups || []).forEach((g: any) => {
+        initialSelections[g.evolution_group_id] = g.is_selected;
+      });
+      setGroupSelections(initialSelections);
+    } catch (err) {
+      console.error('Erro ao abrir grupos:', err);
+    }
+  };
+
+  const handleSaveSelectedGroups = async () => {
+    if (!activeInstanceGroupsId) return;
+
+    try {
+      setSavingGroups(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada.');
+
+      const selectedIds = Object.keys(groupSelections).filter(key => groupSelections[key]);
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/evolution-groups-select`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          whatsapp_instance_id: activeInstanceGroupsId,
+          group_ids: selectedIds
+        })
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || 'Erro ao salvar canais.');
+
+      toast('Canais WhatsApp salvos com sucesso!', 'success');
+      setActiveInstanceGroupsId(null);
+      await loadChannels();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Erro ao salvar canais.');
+    } finally {
+      setSavingGroups(false);
+    }
+  };
+
+  const handleDeleteInstance = async (instanceId: string) => {
+    if (!window.confirm('Tem certeza que deseja desconectar e remover esta instância do WhatsApp? Todos os canais vinculados a ela serão desativados permanentemente.')) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão expirada.');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/evolution-instance-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ whatsapp_instance_id: instanceId })
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || 'Erro ao desconectar instância.');
+
+      toast('WhatsApp desconectado com sucesso!', 'success');
+      if (activeInstanceGroupsId === instanceId) {
+        setActiveInstanceGroupsId(null);
+      }
+      await loadInstances();
+      await loadChannels();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Erro ao desconectar.');
+    }
+  };
+
   if (loading) {
     return <LoadingState type="spinner" />;
   }
@@ -444,47 +670,227 @@ const Channels: React.FC = () => {
       {/* Header */}
       <PageHeader
         title="Canais de Disparo"
-        description="Gerencie seus grupos e canais conectados"
+        description="Gerencie seus grupos e canais de disparo do WhatsApp, Telegram e Discord"
       />
 
-      {/* WhatsApp Highlight Banner */}
-      {FEATURES.whatsapp && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600/30 to-emerald-700/30 border border-green-500/20 p-6 text-white">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-10 translate-x-10" />
-          <div className="absolute bottom-0 left-48 w-24 h-24 bg-white/5 rounded-full translate-y-8" />
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden p-2.5">
-              <img
-                src={getChannelLogoSrc('whatsapp')}
-                alt="WhatsApp"
-                className="w-full h-full object-contain"
-                onError={(e: any) => {
-                  e.target.outerHTML = `<span class="text-3xl">💬</span>`;
-                }}
-              />
+      {/* WhatsApp Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-green-500" />
+            WhatsApp (Evolution API)
+            <span className="text-xs font-semibold text-slate-450 bg-[#101827] border border-white/5 px-2 py-0.5 rounded-full">
+              {instances.length}/3 Conectados
+            </span>
+          </h2>
+          {instances.length < 3 && (
+            <button
+              onClick={() => setShowConnectWhatsappModal(true)}
+              className="px-3.5 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Conectar WhatsApp
+            </button>
+          )}
+        </div>
+
+        {instancesLoading ? (
+          <div className="py-6 flex items-center justify-center text-xs text-slate-500 bg-surface-2 rounded-2xl border border-white/[0.04]">
+            <Loader2 className="w-4 h-4 animate-spin text-green-500 mr-2" /> Carregando conexões WhatsApp...
+          </div>
+        ) : instances.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 bg-[#101827] rounded-2xl border border-white/5 p-6 text-center space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400">
+              <MessageSquare className="w-6 h-6" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h2 className="text-lg font-bold">WhatsApp incluído em todos os planos</h2>
-                <span className="bg-white/5 border border-white/15 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">GRATUITO</span>
+            <p className="text-sm font-bold text-slate-205">Nenhuma conta WhatsApp conectada</p>
+            <p className="text-xs text-[#94A3B8] max-w-xs mx-auto">
+              Você pode conectar até 3 números de WhatsApp para disparar suas ofertas para grupos.
+            </p>
+            <button
+              onClick={() => setShowConnectWhatsappModal(true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer"
+            >
+              Conectar Primeiro WhatsApp
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {instances.map(inst => (
+              <div
+                key={inst.id}
+                className="bg-surface-2 rounded-2xl border border-white/[0.06] p-5 space-y-4 relative flex flex-col justify-between transition-all duration-300 hover:shadow-lg"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-sm text-slate-100 truncate">{inst.name}</h3>
+                      <p className="text-[10px] text-slate-500 font-mono mt-0.5">{inst.instance_name}</p>
+                    </div>
+                    <Badge type="status" value={inst.status} />
+                  </div>
+
+                  <div className="mt-3 space-y-2 text-xs">
+                    {inst.phone_number && (
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span className="text-slate-500 font-semibold">Número:</span>
+                        <span className="font-mono font-semibold">+{inst.phone_number}</span>
+                      </div>
+                    )}
+                    {inst.profile_name && (
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span className="text-slate-500 font-semibold">Perfil:</span>
+                        <span className="truncate max-w-[120px] font-semibold">{inst.profile_name}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-slate-500 text-[10px]">
+                      <span>Último sync:</span>
+                      <span>{inst.last_sync_at ? new Date(inst.last_sync_at).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : 'Nunca'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-3 border-t border-white/[0.04] mt-auto">
+                  {inst.status === 'qrcode' && inst.qr_code && (
+                    <button
+                      onClick={() => setCurrentInstanceQr(inst)}
+                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <QrCode className="w-3.5 h-3.5" /> Escanear QR Code
+                    </button>
+                  )}
+
+                  {inst.status === 'connected' ? (
+                    <>
+                      <button
+                        onClick={() => handleSyncGroups(inst.id)}
+                        disabled={syncingInstanceId === inst.id}
+                        className="w-full py-2 bg-green-600/10 hover:bg-green-600/20 text-green-400 border border-green-500/20 hover:border-green-500/40 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        {syncingInstanceId === inst.id ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Sincronizando...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Sincronizar Grupos
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenLocalGroups(inst.id)}
+                        className="w-full py-2 bg-white/[0.02] hover:bg-white/[0.04] text-slate-300 border border-white/[0.06] hover:border-white/[0.1] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5 text-slate-450" />
+                        Ver Grupos Vinculados
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleCheckStatus(inst.id)}
+                      className="w-full py-2 bg-white/[0.02] hover:bg-white/[0.04] text-slate-300 border border-white/[0.06] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Atualizar Conexão
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handleDeleteInstance(inst.id)}
+                    className="w-full py-2 hover:bg-red-500/10 text-red-400 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" /> Desconectar Número
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-white/80">Conecte grupos e listas de transmissão ilimitados no plano Pro</p>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* WhatsApp Groups Selection Section (Aparece ao clicar em Ver/Sincronizar Grupos) */}
+      {activeInstanceGroupsId && (
+        <Card className="p-5 space-y-4 animate-slide-up">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div>
+              <h3 className="font-bold text-base text-slate-100">Grupos Disponíveis para Disparo</h3>
+              <p className="text-xs text-slate-455">Selecione quais grupos atuarão como canais do WhatsApp para envio</p>
             </div>
-            <div className="flex items-center gap-4 text-center flex-shrink-0 mt-3 sm:mt-0">
-              <div>
-                <p className="text-xl sm:text-2xl font-bold">{connectedChannels.filter(c => c.type === 'whatsapp').length}</p>
-                <p className="text-[10px] sm:text-xs text-white/70">Grupos ativos</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveInstanceGroupsId(null)}
+                className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold rounded-xl border border-white/10 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveSelectedGroups}
+                disabled={savingGroups}
+                className="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                {savingGroups ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Salvar Canais'
+                )}
+              </button>
             </div>
           </div>
-        </div>
+
+          {selectedInstanceGroups.length === 0 ? (
+            <p className="text-xs text-slate-500 text-center py-6">
+              Nenhum grupo encontrado nesta conta do WhatsApp ou sincronize primeiro.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-96 overflow-y-auto pr-1">
+              {selectedInstanceGroups.map(g => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setGroupSelections(prev => ({ ...prev, [g.evolution_group_id]: !prev[g.evolution_group_id] }))}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                    groupSelections[g.evolution_group_id]
+                      ? 'border-green-500/50 bg-green-950/10 text-green-400 shadow-sm'
+                      : 'border-white/5 bg-[#101827]/40 hover:bg-surface-3/50'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
+                    groupSelections[g.evolution_group_id] ? 'bg-green-600 border-green-600' : 'border-white/10'
+                  }`}>
+                    {groupSelections[g.evolution_group_id] && <CheckCircle2 className="w-3 h-3 text-white" />}
+                  </div>
+
+                  {g.picture_url ? (
+                    <img src={g.picture_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-surface-3 border border-white/10" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-green-500/10 text-green-400 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      GP
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-200 truncate">{g.name}</p>
+                    <p className="text-[9px] text-slate-500 mt-0.5">
+                      {g.participants_count ? `${g.participants_count} participantes` : 'Membros não sincronizados'}
+                      {g.announce && <span className="ml-1.5 text-amber-500 font-semibold">[Apenas Admins]</span>}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
-          { label: 'Canais Conectados', value: connectedChannels.length, icon: Wifi, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-          { label: 'Desconectados', value: disconnectedChannels.length, icon: WifiOff, color: 'text-slate-400', bg: 'bg-surface-3' },
+          { label: 'Canais Telegram/Discord Conectados', value: connectedChannels.filter(c => c.type !== 'whatsapp').length, icon: Wifi, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+          { label: 'Canais Desconectados', value: disconnectedChannels.length, icon: WifiOff, color: 'text-slate-400', bg: 'bg-surface-3' },
         ].map(stat => {
           const Icon = stat.icon;
           return (
@@ -501,12 +907,12 @@ const Channels: React.FC = () => {
         })}
       </div>
 
-      {/* Connected Channels */}
+      {/* Connected Channels List */}
       {connectedChannels.length > 0 && (
         <div>
-          <h2 className="text-base font-bold text-white mb-3">
-            Canais Conectados
-            <span className="ml-2 text-xs font-medium text-slate-405 bg-[#101827] border border-white/5 px-2 py-0.5 rounded-full">
+          <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+            Todos os Canais Ativos de Disparo
+            <span className="text-xs font-medium text-slate-405 bg-[#101827] border border-white/5 px-2 py-0.5 rounded-full">
               {connectedChannels.length}
             </span>
           </h2>
@@ -528,18 +934,18 @@ const Channels: React.FC = () => {
           <div className="w-12 h-12 rounded-xl bg-[#0B1020]/50 border border-white/5 flex items-center justify-center text-slate-500">
             <Radio className="w-6 h-6 text-indigo-400" />
           </div>
-          <p className="text-sm font-bold text-slate-205">Nenhum canal cadastrado</p>
+          <p className="text-sm font-bold text-slate-205">Nenhum canal ativo cadastrado</p>
           <p className="text-xs text-[#94A3B8] max-w-xs mx-auto">
-            Conecte Discord, WhatsApp ou Telegram para disparar ofertas com um clique.
+            Ative canais ou grupos selecionados para que apareçam na tela de disparo.
           </p>
         </div>
       )}
 
-      {/* Disconnected Channels */}
+      {/* Disconnected Channels List */}
       {disconnectedChannels.length > 0 && (
         <div>
           <h2 className="text-base font-bold text-white mb-3">
-            Canais Desconectados
+            Canais Desconectados/Inativos
             <span className="ml-2 text-xs font-medium text-slate-405 bg-[#101827] border border-white/5 px-2 py-0.5 rounded-full">
               {disconnectedChannels.length}
             </span>
@@ -557,7 +963,7 @@ const Channels: React.FC = () => {
         </div>
       )}
 
-      {/* Add New Channels */}
+      {/* Add New Channels Selections */}
       <div>
         <h2 className="text-base font-bold text-white mb-3">Adicionar Novo Canal</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -565,8 +971,16 @@ const Channels: React.FC = () => {
             <AddChannelCard
               key={type}
               type={type}
-              disabled={type === 'whatsapp'}
+              disabled={false}
               onConnect={() => {
+                if (type === 'whatsapp') {
+                  if (instances.length >= 3) {
+                    alert('Você atingiu o limite de 3 instâncias WhatsApp.');
+                    return;
+                  }
+                  setShowConnectWhatsappModal(true);
+                  return;
+                }
                 const limits = getPlanLimits(user?.plan);
                 if (FEATURES.billing && connectedChannels.length >= limits.maxChannels) {
                   alert(`Você atingiu o limite de canais conectados do seu plano (${limits.maxChannels} canal). Faça upgrade nas configurações.`);
@@ -579,24 +993,140 @@ const Channels: React.FC = () => {
         </div>
       </div>
 
-      {/* Security Note */}
+      {/* Security Info */}
       <div className="flex items-start gap-3 p-4 bg-[#0B1020]/30 rounded-xl border border-white/5">
         <Shield className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-xs font-semibold text-slate-300">Suas credenciais são seguras</p>
+          <p className="text-xs font-semibold text-slate-300">Conexão segura de credenciais</p>
           <p className="text-xs text-[#94A3B8] mt-0.5">
-            Tokens e webhooks são armazenados criptografados em nossos servidores. Nunca compartilhamos suas informações com terceiros.
+            Os dados de pareamento do WhatsApp e tokens são protegidos de forma criptografada. Nós garantimos que o envio seja efetuado de forma otimizada para seus canais.
           </p>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Connect Channel Modal (Telegram/Discord) */}
       {connectModal && (
         <ConnectChannelModal
           type={connectModal}
           onClose={() => setConnectModal(null)}
           onConnect={handleConnect}
         />
+      )}
+
+      {/* Modal para Criar Instância de WhatsApp */}
+      {showConnectWhatsappModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#101827] rounded-2xl border border-white/5 shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-green-500" />
+                <h3 className="font-bold text-base text-white">Criar WhatsApp</h3>
+              </div>
+              <button onClick={() => setShowConnectWhatsappModal(false)} className="text-slate-400 hover:text-white text-sm">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateInstance} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nome do WhatsApp *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: WhatsApp Suporte"
+                  value={newWhatsappName}
+                  onChange={e => setNewWhatsappName(e.target.value)}
+                  className="input-modern"
+                  disabled={creatingInstance}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConnectWhatsappModal(false)}
+                  disabled={creatingInstance}
+                  className="flex-1 py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingInstance}
+                  className="flex-1 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-900/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                >
+                  {creatingInstance ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Iniciando...
+                    </>
+                  ) : (
+                    'Criar Instância'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Visualizar QR Code e Pareamento */}
+      {currentInstanceQr && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#101827] rounded-2xl border border-white/5 shadow-2xl p-6 max-w-sm w-full space-y-4 text-center animate-slide-up">
+            <div className="flex justify-between items-center border-b border-white/5 pb-3">
+              <span className="text-xs font-bold text-slate-205">{currentInstanceQr.name}</span>
+              <button 
+                onClick={() => {
+                  setCurrentInstanceQr(null);
+                  loadInstances();
+                }} 
+                className="text-slate-400 hover:text-white"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-extrabold text-sm text-white">Escaneie o QR Code</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Abra o WhatsApp no seu celular, vá em <strong>Aparelhos Conectados</strong> &rarr; <strong>Conectar um Aparelho</strong> e aponte para a imagem abaixo.
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto my-3 relative">
+              {currentInstanceQr.qr_code ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentInstanceQr.qr_code)}`}
+                  alt="QR Code do WhatsApp"
+                  className="w-48 h-48 mx-auto"
+                />
+              ) : (
+                <div className="w-48 h-48 flex items-center justify-center bg-slate-100 text-slate-500 text-xs rounded-xl font-bold animate-pulse">
+                  Gerando QR Code...
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={() => handleCheckStatus(currentInstanceQr.id)}
+                className="w-full py-2.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Já escaneei, verificar status
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentInstanceQr(null);
+                  loadInstances();
+                }}
+                className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+              >
+                Fechar e Parear Depois
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

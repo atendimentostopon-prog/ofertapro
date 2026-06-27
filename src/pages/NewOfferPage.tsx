@@ -67,7 +67,7 @@ const NewOfferPage: React.FC = () => {
   const { toast } = useToast();
 
   const allSelected = connectedChannels.length > 0 &&
-    connectedChannels.filter(ch => ch.type === 'telegram' || ch.type === 'discord')
+    connectedChannels.filter(ch => ch.type === 'telegram' || ch.type === 'discord' || ch.type === 'whatsapp')
       .every(ch => selectedChannels.includes(ch.id));
 
   const handleSelectAllChannels = () => {
@@ -76,7 +76,7 @@ const NewOfferPage: React.FC = () => {
       toast('Canais desmarcados!', 'info');
     } else {
       const allActiveIds = connectedChannels
-        .filter(ch => ch.type === 'telegram' || ch.type === 'discord')
+        .filter(ch => ch.type === 'telegram' || ch.type === 'discord' || ch.type === 'whatsapp')
         .map(ch => ch.id);
       setSelectedChannels(allActiveIds);
       toast('Todos os canais marcados!', 'success');

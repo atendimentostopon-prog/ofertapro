@@ -135,6 +135,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
     console.log("[DISPATCH] channels count", channels.length);
     const results: DispatchResult[] = [];
 
+    let lastWhatsAppTime = 0;
     // 2. Loop sequencial controlado para disparar canal por canal de forma isolada
     for (const channel of channels) {
       console.log("[DISPATCH] channel start", channel.type, channel.name);
@@ -142,18 +143,42 @@ export const dispatchOffer = async (params: DispatchParams) => {
       try {
         let renderedMessage = '';
 
-        // --- WHATSAPP (Evolution API - Desativado Temporariamente) ---
+        // --- WHATSAPP (Evolution API via Edge Function) ---
         if (channel.type === 'whatsapp') {
-          results.push({
-            channelId: channel.id,
-            channelName: channel.name,
-            channelType: channel.type as ChannelType,
-            success: true,
-            status: 'sent',
-            message: 'WhatsApp desativado temporariamente. O suporte completo virá em breve via Evolution API.',
-            sentAt
+          console.log("[DISPATCH] whatsapp start via public-api Edge Function");
+
+          const now = Date.now();
+          if (lastWhatsAppTime > 0 && now - lastWhatsAppTime < 5000) {
+            const waitTime = 5000 - (now - lastWhatsAppTime);
+            console.log(`[DISPATCH] Aguardando ${waitTime}ms para o próximo envio de WhatsApp no frontend...`);
+            if (onStepChange) onStepChange(`Aguardando delay de segurança do WhatsApp (${Math.round(waitTime/1000)}s)...`);
+            await delay(waitTime);
+          }
+          lastWhatsAppTime = Date.now();
+          
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            throw new Error('Sessão do usuário não encontrada. Por favor, faça login novamente.');
+          }
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/public-api/dispatch`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              offer_id: offerId,
+              channel_ids: [channel.id]
+            })
           });
-          continue;
+
+          const responseData = await response.json();
+          if (!response.ok || !responseData.success) {
+            throw new Error(responseData?.error || responseData?.message || `Erro ao disparar WhatsApp: ${response.statusText}`);
+          }
+
+          console.log("[DISPATCH] whatsapp success");
         }
 
         // --- DISCORD (Webhook) ---
@@ -163,9 +188,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             throw new Error('Webhook do Discord inválido (URL ausente ou incorreta).');
           }
 
-          const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
-            ? finalAffiliateLink
-            : `${window.location.origin}/o/${shortCode}?src=discord`;
+          const trackingLink = finalAffiliateLink;
 
           const template = templates?.discord || TemplateService.getDefaultTemplate('discord');
           renderedMessage = TemplateService.renderTemplate(
@@ -205,9 +228,7 @@ export const dispatchOffer = async (params: DispatchParams) => {
             throw new Error('Configuração do Telegram incompleta: token ou chat_id ausente.');
           }
 
-          const trackingLink = FEATURES.useDirectAffiliateLinkInChannels
-            ? finalAffiliateLink
-            : `${window.location.origin}/o/${shortCode}?src=telegram`;
+          const trackingLink = finalAffiliateLink;
 
           const template = templates?.telegram || TemplateService.getDefaultTemplate('telegram');
           renderedMessage = TemplateService.renderTemplate(

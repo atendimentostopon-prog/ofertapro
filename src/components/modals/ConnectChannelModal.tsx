@@ -107,7 +107,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
 
     // --- WHATSAPP ---
     if (type === 'whatsapp') {
-      setValidationError('A conexão com o WhatsApp está desativada temporariamente. Será implementada em breve via Evolution API.');
+      await startWhatsAppFlow();
       return;
     }
 

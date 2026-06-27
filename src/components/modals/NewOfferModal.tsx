@@ -81,7 +81,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
   const { toast } = useToast();
 
   const allSelected = connectedChannels.length > 0 &&
-    connectedChannels.filter(ch => ch.type === 'telegram' || ch.type === 'discord')
+    connectedChannels.filter(ch => ch.type === 'telegram' || ch.type === 'discord' || ch.type === 'whatsapp')
       .every(ch => selectedChannels.includes(ch.id));
 
   const handleSelectAllChannels = () => {
@@ -90,7 +90,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
       toast('Canais desmarcados!', 'info');
     } else {
       const allActiveIds = connectedChannels
-        .filter(ch => ch.type === 'telegram' || ch.type === 'discord')
+        .filter(ch => ch.type === 'telegram' || ch.type === 'discord' || ch.type === 'whatsapp')
         .map(ch => ch.id);
       setSelectedChannels(allActiveIds);
       toast('Todos os canais marcados!', 'success');
@@ -768,7 +768,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 ) : connectedChannels.length === 0 ? (
                   <div className="col-span-full bg-[#0B1020]/50 border border-white/5 rounded-xl p-4 text-center">
                     <p className="text-xs text-slate-350 font-medium">
-                      Conecte um canal Telegram ou Discord antes de disparar.
+                      Conecte um canal Telegram, Discord ou WhatsApp antes de disparar.
                     </p>
                     <a
                       href="/channels"

@@ -459,53 +459,73 @@ serve(async (req) => {
 
   // 1. Extração e validação do header Authorization
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer lof_live_')) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return new Response(
-      JSON.stringify({ error: 'Não autorizado. Use a API Key em: Authorization: Bearer lof_live_...' }),
+      JSON.stringify({ error: 'Não autorizado. Cabeçalho Authorization ausente ou inválido.' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
-  const apiKey = authHeader.replace('Bearer ', '').trim()
+  const token = authHeader.replace('Bearer ', '').trim()
+  const isApiKey = token.startsWith('lof_live_')
 
   try {
-    // 2. Calcular o hash da chave recebida para autenticação segura
-    const encoder = new TextEncoder()
-    const keyData = encoder.encode(apiKey)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', keyData)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const keyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-    // 3. Inicializar o cliente Supabase Admin para verificar a API Key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { data: keyRow, error: keyError } = await supabaseAdmin
-      .from('api_keys')
-      .select('*')
-      .eq('key_hash', keyHash)
-      .maybeSingle()
+    let userId = ''
+    let scopes = ['offers:write', 'offers:read', 'channels:read', 'dispatch:write', 'history:read']
 
-    if (keyError || !keyRow || keyRow.status !== 'active') {
-      return new Response(
-        JSON.stringify({ error: 'API key inválida, expirada ou revogada.' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    if (isApiKey) {
+      // 2. Calcular o hash da chave recebida para autenticação segura
+      const encoder = new TextEncoder()
+      const keyData = encoder.encode(token)
+      const hashBuffer = await crypto.subtle.digest('SHA-256', keyData)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const keyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+      const { data: keyRow, error: keyError } = await supabaseAdmin
+        .from('api_keys')
+        .select('*')
+        .eq('key_hash', keyHash)
+        .maybeSingle()
+
+      if (keyError || !keyRow || keyRow.status !== 'active') {
+        return new Response(
+          JSON.stringify({ error: 'API key inválida, expirada ou revogada.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      userId = keyRow.user_id
+      scopes = keyRow.scopes || []
+
+      // Atualizar last_used_at em background
+      supabaseAdmin
+        .from('api_keys')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', keyRow.id)
+        .then(({ error }) => {
+          if (error) console.error('[PUBLIC_API] Erro ao atualizar last_used_at:', error.message)
+        })
+    } else {
+      // Autenticação com o JWT do Supabase
+      const supabaseUserClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       )
+      
+      const { data: { user }, error: userError } = await supabaseUserClient.auth.getUser(token)
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Sessão inválida ou expirada.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      userId = user.id
     }
-
-    const userId = keyRow.user_id
-    const scopes = keyRow.scopes || []
-
-    // Atualizar last_used_at em background
-    supabaseAdmin
-      .from('api_keys')
-      .update({ last_used_at: new Date().toISOString() })
-      .eq('id', keyRow.id)
-      .then(({ error }) => {
-        if (error) console.error('[PUBLIC_API] Erro ao atualizar last_used_at:', error.message)
-      })
 
     // ==========================================
     // ROUTING ENDPOINTS
@@ -869,12 +889,12 @@ serve(async (req) => {
 
       const activeChannels = (channels || []).filter(c => 
         ['connected', 'active', 'conectado'].includes((c.status || '').toLowerCase()) &&
-        ['telegram', 'discord'].includes((c.type || '').toLowerCase())
+        ['telegram', 'discord', 'whatsapp'].includes((c.type || '').toLowerCase())
       )
 
       if (activeChannels.length === 0) {
         return new Response(
-          JSON.stringify({ error: 'Nenhum canal ativo ou compatível (Telegram/Discord) foi encontrado para os IDs informados.' }),
+          JSON.stringify({ error: 'Nenhum canal ativo ou compatível (WhatsApp/Telegram/Discord) foi encontrado para os IDs informados.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -936,6 +956,7 @@ serve(async (req) => {
         finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
       }
 
+      let lastWhatsAppTime = 0
       // Executar envios
       for (const channel of activeChannels) {
         const sentAt = new Date().toISOString()
@@ -1082,6 +1103,124 @@ serve(async (req) => {
             results.push({ channelId: channel.id, name: channel.name, type: 'telegram', success: true })
             successfulChannels.push(channel.name)
           }
+          // --- WHATSAPP (Evolution API) ---
+          else if (channel.type === 'whatsapp') {
+            const instanceName = channel.external_instance_name || channel.metadata?.external_instance_name
+            const groupId = channel.external_group_id || channel.identifier
+
+            if (!instanceName || !groupId) {
+              throw new Error('Configuração do WhatsApp incompleta para o canal.')
+            }
+
+            const purchaseUrl = finalAffiliateUrl
+
+            if (!purchaseUrl || !purchaseUrl.trim().startsWith('http')) {
+              throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
+            }
+
+            // Buscar template de WhatsApp ou padrão
+            const template = templateMap.whatsapp || getDefaultTemplate('whatsapp')
+            const renderedMessage = renderMessageTemplate(
+              template,
+              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
+              profile,
+              purchaseUrl,
+              'whatsapp'
+            )
+
+            const evolutionUrl = Deno.env.get('EVOLUTION_API_URL')
+            const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY')
+
+            if (!evolutionUrl || !evolutionApiKey) {
+              throw new Error('A integração com WhatsApp não está configurada pelo administrador (secrets ausentes).')
+            }
+
+            const hasImage = targetOffer.image && 
+                             targetOffer.image.trim() !== '' && 
+                             targetOffer.image.trim() !== 'null' && 
+                             targetOffer.image.trim() !== 'undefined' && 
+                             targetOffer.image.startsWith('http')
+
+            let sentSuccess = false
+            let lastEvoError = ''
+
+            if (lastWhatsAppTime > 0) {
+              const nowTime = Date.now()
+              const elapsed = nowTime - lastWhatsAppTime
+              if (elapsed < 5000) {
+                const waitTime = 5000 - elapsed
+                console.log(`[DISPATCH] Aplicando delay de segurança de ${waitTime}ms para o WhatsApp no backend...`)
+                await new Promise(resolve => setTimeout(resolve, waitTime))
+              }
+            }
+            lastWhatsAppTime = Date.now()
+
+            // 1. Tentar enviar Mídia (imagem com caption) se houver imagem
+            if (hasImage) {
+              try {
+                const sendMediaUrl = `${evolutionUrl.replace(/\/$/, '')}/message/sendMedia/${instanceName}`
+                console.log(`[EVOLUTION_SEND] Enviando imagem com legenda para o grupo ${groupId}...`)
+                
+                const mediaRes = await fetch(sendMediaUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': evolutionApiKey
+                  },
+                  body: JSON.stringify({
+                    number: groupId,
+                    mediatype: "image",
+                    media: targetOffer.image,
+                    caption: renderedMessage
+                  })
+                })
+
+                if (mediaRes.ok) {
+                  sentSuccess = true
+                  console.log(`[EVOLUTION_SEND] Imagem enviada com sucesso.`)
+                } else {
+                  const mediaErrText = await mediaRes.text()
+                  lastEvoError = `sendMedia retornou ${mediaRes.status}: ${mediaErrText}`
+                  console.warn(`[EVOLUTION_SEND] Falha no sendMedia, tentando fallback sendText:`, lastEvoError)
+                }
+              } catch (mediaErr: any) {
+                lastEvoError = mediaErr.message
+                console.warn(`[EVOLUTION_SEND] Erro ao enviar sendMedia, tentando fallback:`, mediaErr.message)
+              }
+            }
+
+            // 2. Fallback para Texto Simples (caso falhe o envio de mídia ou não haja imagem)
+            if (!sentSuccess) {
+              const sendTextUrl = `${evolutionUrl.replace(/\/$/, '')}/message/sendText/${instanceName}`
+              console.log(`[EVOLUTION_SEND] Enviando mensagem de texto simples para o grupo ${groupId}...`)
+
+              const textToSend = hasImage 
+                ? `${renderedMessage}\n\nLink da imagem: ${targetOffer.image}`
+                : renderedMessage
+
+              const textRes = await fetch(sendTextUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': evolutionApiKey
+                },
+                body: JSON.stringify({
+                  number: groupId,
+                  text: textToSend
+                })
+              })
+
+              if (!textRes.ok) {
+                const textErrText = await textRes.text()
+                throw new Error(`Evolution API sendText retornou ${textRes.status}: ${textErrText}`)
+              }
+
+              console.log(`[EVOLUTION_SEND] Mensagem de texto enviada com sucesso.`)
+            }
+
+            results.push({ channelId: channel.id, name: channel.name, type: 'whatsapp', success: true })
+            successfulChannels.push(channel.name)
+          }
         } catch (err: any) {
           console.error(`Erro de envio no canal ${channel.name}:`, err.message)
           results.push({ channelId: channel.id, name: channel.name, type: channel.type, success: false, error: err.message })
@@ -1098,19 +1237,27 @@ serve(async (req) => {
         ? `Falha no envio da API para: ${failedChannels.join(', ')}`
         : undefined
 
-      const historyPayload = {
-        user_id: userId,
-        offer_id: targetOffer.id,
-        offer_name: targetOffer.name,
-        offer_image: targetOffer.image,
-        marketplace: targetOffer.marketplace,
-        channels: successfulChannels,
-        channel_count: successfulChannels.length,
-        status: finalStatus,
-        error: errorMessage
-      }
+      // Gravar histórico apenas se a chamada for via API Key externa para evitar duplicidade
+      if (isApiKey) {
+        const historyPayload = {
+          user_id: userId,
+          offer_id: targetOffer.id,
+          offer_name: targetOffer.name,
+          offer_image: targetOffer.image,
+          marketplace: targetOffer.marketplace,
+          channels: activeChannels.map(c => c.name),
+          channel_count: activeChannels.length,
+          status: finalStatus,
+          error: errorMessage,
+          successful_channels: successfulChannels,
+          failed_channels: failedChannels,
+          success_count: successfulChannels.length,
+          failure_count: failedChannels.length,
+          dispatch_results: results
+        }
 
-      await supabaseAdmin.from('history').insert(historyPayload)
+        await supabaseAdmin.from('history').insert(historyPayload)
+      }
 
       return new Response(
         JSON.stringify({
