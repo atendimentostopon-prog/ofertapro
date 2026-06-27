@@ -549,9 +549,58 @@ const Settings: React.FC = () => {
         const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
         await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
       } else if (currentEditingTemplateTab === 'whatsapp') {
-        alert('WhatsApp está em modo de pré-visualização. O template foi processado corretamente!');
-        setTestingTemplate(false);
-        return;
+        // Criar uma oferta mock real no banco em background para que a public-api consiga renderizar e disparar
+        const mockOfferData = {
+          name: mockOffer.name,
+          description: 'Disparo de teste do WhatsApp',
+          image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
+          original_price: parseFloat(mockOffer.originalPrice) * 100, // em centavos
+          sale_price: parseFloat(mockOffer.salePrice) * 100,
+          discount: mockOffer.discount,
+          coupon: mockOffer.coupon || null,
+          affiliate_link: trackingLink,
+          marketplace: mockOffer.marketplace,
+          category: 'Outros',
+          status: 'draft',
+          user_id: user.id
+        };
+
+        const { data: tempOffer, error: tempOfferErr } = await supabase
+          .from('offers')
+          .insert(mockOfferData)
+          .select()
+          .single();
+
+        if (tempOfferErr) throw tempOfferErr;
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('Sessão expirada.');
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/public-api/dispatch`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              offer_id: tempOffer.id,
+              channel_ids: [channel.id]
+            })
+          });
+
+          const responseData = await response.json();
+          // Excluir a oferta temporária em background
+          supabase.from('offers').delete().eq('id', tempOffer.id).then(() => {});
+
+          if (!response.ok || !responseData.success) {
+            throw new Error(responseData?.error || responseData?.message || `Erro ao testar envio do WhatsApp: ${response.statusText}`);
+          }
+        } catch (dispatchErr) {
+          // Garante a exclusão mesmo se falhar
+          supabase.from('offers').delete().eq('id', tempOffer.id).then(() => {});
+          throw dispatchErr;
+        }
       }
 
       alert(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`);
@@ -1048,7 +1097,7 @@ const Settings: React.FC = () => {
                     ) : (
                       <Sparkles className="w-3.5 h-3.5" />
                     )}
-                    Testar no Canal
+                    {currentEditingTemplateTab === 'whatsapp' ? 'Enviar teste real' : 'Testar no Canal'}
                   </button>
 
                   <button

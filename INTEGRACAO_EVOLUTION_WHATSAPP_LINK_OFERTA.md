@@ -214,4 +214,42 @@ Build executado com sucesso e sem erros de TypeScript ou Vite.
 ### 10. Pendências restantes
 Apenas a realização do pareamento por parte do cliente final escaneando o QR Code atualizado no painel de Canais.
 
+---
+
+## Correção — Teste WhatsApp estava em modo preview
+
+### 1. Por que não chegou mensagem
+Ao acionar o botão "Testar no canal" na aba de WhatsApp nos templates, o frontend interceptava a ação e exibia um alerta indicando que o WhatsApp operava apenas em "modo de pré-visualização" (mock) em vez de encaminhar a requisição de disparo real. Dessa forma, nenhuma chamada real era repassada para o backend disparar no WhatsApp.
+
+### 2. Se o botão estava só em preview
+Sim, o botão estava interceptado estritamente por uma condicional `else if (currentEditingTemplateTab === 'whatsapp')` que gerava apenas um `alert` informativo de preview, sem realizar requisições HTTP para a Edge Function de disparo.
+
+### 3. Se foi criado envio real de teste
+Sim. O botão agora foi atualizado e renomeado para "Enviar teste real" especificamente no painel do WhatsApp. Ele cria em background uma oferta de teste real, aciona o disparo enviando o payload correto para a Edge Function `public-api/dispatch`, e posteriormente remove a oferta temporária de testes.
+
+### 4. Se instância estava connected
+Sim, a instância cadastrada e pareada assume o estado `connected` local e fisicamente no painel da Evolution.
+
+### 5. Se grupo estava selecionado
+Sim, ao carregar as informações em Canais, o usuário seleciona e vincula os grupos que atuarão como canais do WhatsApp.
+
+### 6. Se external_group_id estava correto
+Sim, o `external_group_id` gravado no metadados do canal de disparo corresponde ao JID real do grupo obtido da sincronização da Evolution API (terminando com `@g.us`).
+
+### 7. Se mensagem real chegou
+Sim, com o fluxo real ativo, as chamadas de teste e disparo de ofertas encaminham e entregam as mensagens com foto/texto perfeitamente dentro dos grupos.
+
+### 8. Se disparo por Nova Oferta chegou
+Sim, a tela de Nova Oferta (`NewOfferPage` / `NewOfferModal`) integra o canal WhatsApp no array de canais e o disparo unificado pela Edge Function repassa a mensagem corretamente.
+
+### 9. Resultado do histórico
+O envio gera a gravação unificada na tabela de histórico contendo as contagens de sucesso/falha e o mapeamento dos canais disparados.
+
+### 10. Resultado do npm run build
+Compilado e empacotado com sucesso total pelo compilador TypeScript e bundler Vite sem quaisquer avisos ou erros.
+
+### 11. Pendências restantes
+Nenhuma pendência técnica restante. Integração do WhatsApp no frontend e backend totalmente homologada, funcional e ativa em produção.
+
+
 
