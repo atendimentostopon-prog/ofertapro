@@ -9,11 +9,13 @@ serve(async (req) => {
 
   try {
     // 1. Validar o Webhook Secret
-    const receivedSecret = req.headers.get('x-webhook-secret')
+    const urlObj = new URL(req.url)
+    const querySecret = urlObj.searchParams.get('secret')
+    const receivedSecret = req.headers.get('x-webhook-secret') || querySecret
     const configSecret = Deno.env.get('EVOLUTION_WEBHOOK_SECRET')
 
     if (!configSecret || !receivedSecret || receivedSecret !== configSecret) {
-      console.warn(`[WEBHOOK] Validação de secret falhou. Recebida: ${receivedSecret || 'Nenhuma'}`)
+      console.warn(`[WEBHOOK] Validação de secret falhou. Recebida no header: ${req.headers.get('x-webhook-secret') || 'Nenhuma'} / Recebida na query: ${querySecret || 'Nenhuma'}`)
       return new Response(JSON.stringify({ error: 'Não autorizado.' }), { status: 401 })
     }
 

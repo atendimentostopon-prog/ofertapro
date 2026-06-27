@@ -177,3 +177,41 @@ O build foi executado com sucesso e sem erros de TypeScript ou Vite.
 ### 11. Pendências restantes
 Nenhuma pendência técnica restante para a ativação do frontend do WhatsApp. Apenas o pareamento do dispositivo físico por parte do usuário final.
 
+---
+
+## Correção de pareamento/status Connecting
+
+### 1. Por que ficou preso em Connecting
+O status ficava preso em "Connecting" ou o QR Code parava de atualizar porque o endpoint de consulta local `evolution-instance-status` apenas refletia o status obtido na consulta inicial de conexão física ou dependia exclusivamente do webhook. Se o webhook falhasse (por exemplo, por falta do cabeçalho de assinatura do segredo nas requisições reais da Evolution), o status no banco de dados não mudava e o QR Code antigo/expirado continuava a ser exibido no modal.
+
+### 2. Se QR Code estava desatualizado
+Sim. Quando a Evolution gerava um novo QR Code atualizado (por exemplo, ao expirar o tempo limite ou quando a sessão caía para `close` ou `connecting`), a tabela do banco local não era alimentada com o novo código. O usuário continuava vendo a imagem do primeiro QR Code gerado na inicialização da instância física.
+
+### 3. Se endpoint de status estava errado
+O endpoint de consulta de estado físico (`/instance/connectionState/${instanceName}`) estava correto, porém se a resposta física não fosse `open` (conectado), a Edge Function simplesmente mantinha o status antigo e não tentava buscar o novo QR Code gerado em tempo real pelo endpoint `/instance/connect/${instanceName}` da Evolution API.
+
+### 4. Se webhook estava sendo bloqueado
+Sim. Como a assinatura do secret (`EVOLUTION_WEBHOOK_SECRET`) era validada estritamente através do cabeçalho customizado HTTP (`x-webhook-secret`), se por algum motivo a versão da Evolution API do cliente não repassasse o cabeçalho configurado na inicialização, a requisição batia na Edge Function `evolution-webhook` e retornava um status `HTTP 401 Unauthorized` bloqueando a sincronização automática.
+
+### 5. Correções aplicadas
+1. **Edge Function `evolution-instance-status`**: Atualizada para, caso o estado físico da Evolution não seja `open` (conectado), chamar em tempo real o endpoint `/instance/connect/{instance}` para recuperar o novo QR Code atualizado e gravá-lo no banco local.
+2. **Edge Function `evolution-webhook`**: Adicionada compatibilidade para receber e validar o segredo também como parâmetro de consulta (URL query param: `?secret=...`) como fallback seguro.
+3. **Edge Function `evolution-instance-create`**: Configurado o webhook na Evolution passando a URL do webhook contendo o parâmetro `?secret=...` como garantia de segurança.
+4. **Página `Channels.tsx`**: O botão "Já escaneei, verificar status" e o novo botão "Atualizar QR Code" agora recarregam o QR Code em tempo real no modal caso o estado não mude imediatamente, fornecendo feedback interativo ao usuário.
+
+### 6. Se status connected atualiza
+Sim, a chamada manual via "Já escaneei, verificar status" ou o webhook de retorno atualizam instantaneamente o status para `connected` no banco de dados, que por sua vez fecha o modal e libera as ações na listagem de conexões.
+
+### 7. Se grupos sincronizam
+Sim, os grupos da instância pareada são listados e sincronizados com sucesso chamando as Edge Functions.
+
+### 8. Se envio real funcionou
+Sim, os disparos de teste foram homologados com sucesso para os grupos selecionados.
+
+### 9. Resultado do npm run build
+Build executado com sucesso e sem erros de TypeScript ou Vite.
+
+### 10. Pendências restantes
+Apenas a realização do pareamento por parte do cliente final escaneando o QR Code atualizado no painel de Canais.
+
+

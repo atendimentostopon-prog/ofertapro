@@ -524,6 +524,9 @@ const Channels: React.FC = () => {
         setCurrentInstanceQr(null);
       } else {
         toast('Aguardando pareamento...', 'info');
+        if (currentInstanceQr && currentInstanceQr.id === instanceId) {
+          setCurrentInstanceQr(responseData.data);
+        }
       }
 
       await loadInstances();
@@ -1114,6 +1117,12 @@ const Channels: React.FC = () => {
                 className="w-full py-2.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Já escaneei, verificar status
+              </button>
+              <button
+                onClick={() => handleCheckStatus(currentInstanceQr.id)}
+                className="w-full py-2 bg-indigo-600/10 hover:bg-indigo-650/20 text-indigo-400 border border-indigo-500/20 hover:border-indigo-500/35 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Atualizar QR Code
               </button>
               <button
                 onClick={() => {

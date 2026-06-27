@@ -94,10 +94,37 @@ serve(async (req) => {
         if (state === 'open') {
           updatedState = 'connected'
           qrCode = null
-        } else if (state === 'connecting') {
-          updatedState = 'connecting'
-        } else if (state === 'close') {
-          updatedState = 'disconnected'
+        } else {
+          // Se não estiver conectado, tentar obter o QR code atualizado chamando o endpoint de conexão
+          try {
+            const connectUrl = `${evolutionUrl.replace(/\/$/, '')}/instance/connect/${instance.instance_name}`
+            const connectRes = await fetch(connectUrl, {
+              method: 'GET',
+              headers: {
+                'apikey': evolutionApiKey
+              }
+            })
+            if (connectRes.ok) {
+              const connectData = await connectRes.json()
+              console.log(`[EVOLUTION] Retorno de connect/QR Code atualizado:`, connectData)
+              
+              if (connectData?.base64 || connectData?.code) {
+                // A Evolution pode retornar a string bruta do QR no campo 'code'
+                qrCode = connectData.code || qrCode
+                updatedState = 'qrcode'
+              } else if (connectData?.instance?.state === 'open') {
+                updatedState = 'connected'
+                qrCode = null
+              } else {
+                updatedState = 'qrcode'
+              }
+            } else {
+              updatedState = 'qrcode'
+            }
+          } catch (qrErr) {
+            console.warn(`[EVOLUTION] Erro ao buscar QR Code atualizado:`, qrErr.message)
+            updatedState = 'qrcode'
+          }
         }
 
         // Se retornar conectado, tentar buscar os dados do perfil do whatsapp (número/nome) para enriquecer o banco

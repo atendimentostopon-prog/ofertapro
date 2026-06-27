@@ -99,7 +99,7 @@ serve(async (req) => {
 
     // Gerar webhook URL baseado no projeto Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`
+    const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook?secret=${encodeURIComponent(webhookSecret)}`
 
     // 4. Criar a instância no banco primeiro com status 'creating'
     const { data: dbInstance, error: dbError } = await supabaseAdmin
