@@ -133,7 +133,7 @@ const Settings: React.FC = () => {
     salePrice: '2499.00',
     discount: 17,
     coupon: 'CUPOM10',
-    marketplace: 'Amazon',
+    marketplace: 'amazon',
     category: 'Informática',
     affiliate_link: 'https://amzn.to/exemplo',
     affiliateLink: 'https://amzn.to/exemplo'
@@ -549,6 +549,23 @@ const Settings: React.FC = () => {
         const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
         await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
       } else if (currentEditingTemplateTab === 'whatsapp') {
+        const normalizeMarketplace = (value?: string | null): any => {
+          const raw = String(value || '').trim().toLowerCase();
+          const clean = raw
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[\s_-]+/g, '');
+          const map: Record<string, string> = {
+            amazon: 'amazon',
+            shopee: 'shopee',
+            magalu: 'magalu',
+            aliexpress: 'aliexpress',
+            mercadolivre: 'mercadolivre',
+            ml: 'mercadolivre',
+          };
+          return map[clean] || 'amazon';
+        };
+
         // Criar uma oferta mock real no banco em background para que a public-api consiga renderizar e disparar
         const mockOfferData = {
           name: mockOffer.name,
@@ -559,7 +576,7 @@ const Settings: React.FC = () => {
           discount: mockOffer.discount,
           coupon: mockOffer.coupon || null,
           affiliate_link: trackingLink,
-          marketplace: mockOffer.marketplace,
+          marketplace: normalizeMarketplace(mockOffer.marketplace),
           category: 'Outros',
           status: 'draft',
           user_id: user.id
