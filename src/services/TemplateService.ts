@@ -71,20 +71,24 @@ export const TemplateService = {
       case 'whatsapp':
         return `🔥 *{titulo}*
 
+{{#if preco_original}}
+❌ De: ~{preco_original}~
+{{/if}}
 🔥 *Por apenas:* {preco_promocional}
-{preco_original_linha}
-{cupom_linha}
+{{#if cupom}}
+🎟️ *Cupom:* {cupom}
+{{/if}}
 
-{marketplace_linha}
+🛒 *Marketplace:* {marketplace}
+Link: {link}
 
-🔗 Comprar agora:
-{link}`;
+⚠️ Preço e estoque sujeitos a alteração.`;
  
       case 'telegram':
         return `🔥 **{titulo}**
 
-🔥 **Por apenas:** {preco_promocional}
 {preco_original_linha}
+🔥 **Por apenas:** {preco_promocional}
 {cupom_linha}
 
 {marketplace_linha}
@@ -95,8 +99,8 @@ export const TemplateService = {
 
 **{titulo}**
 
-🔥 Por apenas: **{preco_promocional}**
 {preco_original_linha}
+🔥 Por apenas: **{preco_promocional}**
 {cupom_linha}
 
 {marketplace_linha}
@@ -334,17 +338,56 @@ export const TemplateService = {
       .replace(/{{cupom}}/g, '{cupom}')
       .replace(/{{link}}/g, '{link}');
 
+    // Processamento de Blocos Condicionais {{#if campo}}conteudo{{/if}}
+    const context: Record<string, any> = {
+      titulo: titleVal,
+      chamada: offer.description || offer.headline || offer.copy || '',
+      preco_original: originalPriceFormatted,
+      preco_promocional: salePriceFormatted,
+      cupom: couponVal,
+      desconto: discountVal > 0 ? `${discountVal}%` : '',
+      marketplace: marketplaceVal,
+      categoria: categoryVal,
+      imagem: imageVal,
+      link: trackingLink,
+      nome_afiliado: affiliateName,
+      nome_vitrine: vitrineName,
+      data: dateVal,
+      hora: timeVal
+    };
+
+    // Função de validação de valor de campo para bloco condicional
+    const isValidValue = (field: string): boolean => {
+      const val = context[field];
+      if (val === undefined || val === null || val === '') return false;
+      const sVal = String(val).trim().toLowerCase();
+      if (sVal === 'null' || sVal === 'undefined' || sVal === '0' || sVal === '0%' || sVal === 'r$ 0,00' || sVal === '0.00') return false;
+      
+      // Validação específica para preço original (só faz sentido se for maior que promocional e maior que 0)
+      if (field === 'preco_original') {
+        return originalPriceCents > 0 && originalPriceCents > salePriceCents;
+      }
+      return true;
+    };
+
+    rendered = rendered.replace(/\{\{#if\s+([a-zA-Z0-9_]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, field, content) => {
+      if (isValidValue(field)) {
+        return content;
+      }
+      return '';
+    });
+
     // 1. Substituir Linhas Inteligentes (formatação nativa por canal)
     let originalPriceLine = '';
-    if (originalPriceCents > 0) {
+    if (originalPriceCents > 0 && originalPriceCents > salePriceCents) {
       if (isTelegram) {
-        originalPriceLine = `De: <s>${originalPriceFormatted}</s>`;
+        originalPriceLine = `❌ De: <s>${originalPriceFormatted}</s>`;
       } else if (isDiscord) {
-        originalPriceLine = `De: ~~${originalPriceFormatted}~~`;
+        originalPriceLine = `❌ De: ~~${originalPriceFormatted}~~`;
       } else if (isWhatsApp) {
-        originalPriceLine = `De: ~${originalPriceFormatted}~`;
+        originalPriceLine = `❌ De: ~${originalPriceFormatted}~`;
       } else {
-        originalPriceLine = `De: ${originalPriceFormatted}`;
+        originalPriceLine = `❌ De: ${originalPriceFormatted}`;
       }
     }
     rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
@@ -366,13 +409,13 @@ export const TemplateService = {
     let discountLine = '';
     if (discountVal > 0) {
       if (isTelegram) {
-        discountLine = `🔥 <b>${discountVal}% OFF</b>`;
+        discountLine = `🏷️ <b>Desconto:</b> -${discountVal}%`;
       } else if (isDiscord) {
-        discountLine = `🔥 **${discountVal}% OFF**`;
+        discountLine = `🏷️ **Desconto:** -${discountVal}%`;
       } else if (isWhatsApp) {
-        discountLine = `🔥 *${discountVal}% OFF*`;
+        discountLine = `🏷️ *Desconto:* -${discountVal}%`;
       } else {
-        discountLine = `🔥 ${discountVal}% OFF`;
+        discountLine = `🏷️ Desconto: -${discountVal}%`;
       }
     }
     rendered = rendered.replace(/{desconto_linha}/g, discountLine);
@@ -394,13 +437,13 @@ export const TemplateService = {
     let categoryLine = '';
     if (categoryVal) {
       if (isTelegram) {
-        categoryLine = `📁 <b>Categoria:</b> ${categoryVal}`;
+        categoryLine = `📂 <b>Categoria:</b> ${categoryVal}`;
       } else if (isDiscord) {
-        categoryLine = `📁 **Categoria:** ${categoryVal}`;
+        categoryLine = `📂 **Categoria:** ${categoryVal}`;
       } else if (isWhatsApp) {
-        categoryLine = `📁 *Categoria:* ${categoryVal}`;
+        categoryLine = `📂 *Categoria:* ${categoryVal}`;
       } else {
-        categoryLine = `📁 Categoria: ${categoryVal}`;
+        categoryLine = `📂 Categoria: ${categoryVal}`;
       }
     }
     rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
@@ -433,13 +476,13 @@ export const TemplateService = {
       .replace(/{hora}/g, timeVal);
 
     // 3. Limpeza de Linhas Vazias e Espaços Extras
-    rendered = rendered.replace(/\n{3,}/g, '\n\n');
-
     rendered = rendered
       .split('\n')
+      .map(line => line.trim() === '' ? '' : line) // normaliza linhas que contêm apenas espaços
       .filter((line, i, arr) => {
-        if (line.trim() === '') {
-          return i === 0 || arr[i - 1].trim() !== '';
+        // remove linhas vazias consecutivas permitindo no máximo 2 consecutivas (ou seja, uma linha vazia entre parágrafos)
+        if (line === '') {
+          return i > 0 && arr[i - 1] !== '';
         }
         return true;
       })
