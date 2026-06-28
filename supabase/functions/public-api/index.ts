@@ -376,7 +376,6 @@ function renderMessageTemplate(
       originalPriceLine = `❌ De: ${originalPriceFormatted}`;
     }
   }
-  rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
 
   let couponLine = '';
   if (couponVal) {
@@ -390,7 +389,6 @@ function renderMessageTemplate(
       couponLine = `🎟️ Cupom: ${couponVal}`;
     }
   }
-  rendered = rendered.replace(/{cupom_linha}/g, couponLine);
 
   let discountLine = '';
   if (discountVal > 0) {
@@ -404,7 +402,6 @@ function renderMessageTemplate(
       discountLine = `🏷️ Desconto: -${discountVal}%`;
     }
   }
-  rendered = rendered.replace(/{desconto_linha}/g, discountLine);
 
   let marketplaceLine = '';
   if (marketplaceVal) {
@@ -418,7 +415,6 @@ function renderMessageTemplate(
       marketplaceLine = `🛒 Marketplace: ${marketplaceVal.toUpperCase()}`;
     }
   }
-  rendered = rendered.replace(/{marketplace_linha}/g, marketplaceLine);
 
   let categoryLine = '';
   if (categoryVal) {
@@ -432,11 +428,38 @@ function renderMessageTemplate(
       categoryLine = `📂 Categoria: ${categoryVal}`;
     }
   }
-  rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
 
   const imageLine = imageVal
     ? (isDiscord ? `🖼️ **Imagem:** ${imageVal}` : `🖼️ Imagem: ${imageVal}`)
     : '';
+
+  // Filtrar linhas que contêm variáveis condicionais que estão vazias
+  const conditionalVarsMap: Record<string, string> = {
+    preco_original_linha: originalPriceLine,
+    cupom_linha: couponLine,
+    desconto_linha: discountLine,
+    marketplace_linha: marketplaceLine,
+    categoria_linha: categoryLine,
+    imagem_linha: imageLine
+  };
+
+  let templateLines = rendered.split('\n');
+  templateLines = templateLines.filter(line => {
+    for (const [key, value] of Object.entries(conditionalVarsMap)) {
+      if (line.includes(`{${key}}`) && (!value || value.trim() === '')) {
+        return false; // descarta a linha inteira
+      }
+    }
+    return true;
+  });
+  rendered = templateLines.join('\n');
+
+  // Agora sim, realizar a substituição
+  rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
+  rendered = rendered.replace(/{cupom_linha}/g, couponLine);
+  rendered = rendered.replace(/{desconto_linha}/g, discountLine);
+  rendered = rendered.replace(/{marketplace_linha}/g, marketplaceLine);
+  rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
   rendered = rendered.replace(/{imagem_linha}/g, imageLine);
 
   // 2. Substituir Variáveis Simples
