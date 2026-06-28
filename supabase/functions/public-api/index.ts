@@ -454,13 +454,44 @@ function renderMessageTemplate(
   });
   rendered = templateLines.join('\n');
 
-  // Agora sim, realizar a substituição
-  rendered = rendered.replace(/{preco_original_linha}/g, originalPriceLine);
-  rendered = rendered.replace(/{cupom_linha}/g, couponLine);
-  rendered = rendered.replace(/{desconto_linha}/g, discountLine);
-  rendered = rendered.replace(/{marketplace_linha}/g, marketplaceLine);
-  rendered = rendered.replace(/{categoria_linha}/g, categoryLine);
-  rendered = rendered.replace(/{imagem_linha}/g, imageLine);
+  // Para evitar duplicação de emojis se o usuário já inseriu o emoji manualmente na linha antes da variável:
+  const cleanOriginalPriceLine = originalPriceLine.replace(/^❌\s*/, '');
+  const cleanCouponLine = couponLine.replace(/^🎟️\s*/, '');
+  const cleanDiscountLine = discountLine.replace(/^🏷️\s*/, '');
+  const cleanMarketplaceLine = marketplaceLine.replace(/^🛒\s*/, '');
+  const cleanCategoryLine = categoryLine.replace(/^📂\s*/, '');
+  const cleanImageLine = imageLine.replace(/^🖼️\s*/, '');
+
+  templateLines = rendered.split('\n');
+  templateLines = templateLines.map(line => {
+    let newLine = line;
+    if (newLine.includes('{preco_original_linha}')) {
+      const hasEmojiPrefix = /❌/.test(newLine.substring(0, newLine.indexOf('{preco_original_linha}')));
+      newLine = newLine.replace(/{preco_original_linha}/g, hasEmojiPrefix ? cleanOriginalPriceLine : originalPriceLine);
+    }
+    if (newLine.includes('{cupom_linha}')) {
+      const hasEmojiPrefix = /🎟️/.test(newLine.substring(0, newLine.indexOf('{cupom_linha}')));
+      newLine = newLine.replace(/{cupom_linha}/g, hasEmojiPrefix ? cleanCouponLine : couponLine);
+    }
+    if (newLine.includes('{desconto_linha}')) {
+      const hasEmojiPrefix = /🏷️/.test(newLine.substring(0, newLine.indexOf('{desconto_linha}')));
+      newLine = newLine.replace(/{desconto_linha}/g, hasEmojiPrefix ? cleanDiscountLine : discountLine);
+    }
+    if (newLine.includes('{marketplace_linha}')) {
+      const hasEmojiPrefix = /🛒/.test(newLine.substring(0, newLine.indexOf('{marketplace_linha}')));
+      newLine = newLine.replace(/{marketplace_linha}/g, hasEmojiPrefix ? cleanMarketplaceLine : marketplaceLine);
+    }
+    if (newLine.includes('{categoria_linha}')) {
+      const hasEmojiPrefix = /📂/.test(newLine.substring(0, newLine.indexOf('{categoria_linha}')));
+      newLine = newLine.replace(/{categoria_linha}/g, hasEmojiPrefix ? cleanCategoryLine : categoryLine);
+    }
+    if (newLine.includes('{imagem_linha}')) {
+      const hasEmojiPrefix = /🖼️/.test(newLine.substring(0, newLine.indexOf('{imagem_linha}')));
+      newLine = newLine.replace(/{imagem_linha}/g, hasEmojiPrefix ? cleanImageLine : imageLine);
+    }
+    return newLine;
+  });
+  rendered = templateLines.join('\n');
 
   // 2. Substituir Variáveis Simples
   let descriptionVal = offer.description || offer.headline || offer.copy || '';
