@@ -208,8 +208,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
 
       if (session?.user) {
         setAuthUser(session.user);
-        console.log('[BOOT][UserContext] Sessão activa encontrada, carregando perfil...');
-        console.time("[BOOT] loadProfile");
         try {
           const [profile, adminStatus] = await Promise.all([
             fetchProfile(session.user.id, session.user.email || ''),
@@ -217,21 +215,56 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
           ]);
           console.timeEnd("[BOOT] loadProfile");
           setIsAdmin(adminStatus);
-          setUser(profile);
-          setProfileError(null);
-          setProfileLoadFailed(false);
+          
+          if (profile) {
+            setUser(profile);
+            setProfileError(null);
+            setProfileLoadFailed(false);
+          } else {
+            throw new Error("Perfil retornado vazio");
+          }
         } catch (err: any) {
           console.timeEnd("[BOOT] loadProfile");
           console.error('[BOOT][UserContext] Falha ao carregar perfil do Supabase em refreshProfile:', err);
-          setProfileError(err);
-          setProfileLoadFailed(true);
-          setUser(prev => {
-            if (prev) {
-              console.warn('[BOOT][UserContext] Mantendo perfil anterior em cache apesar da falha temporária de rede/banco.');
-              return prev;
-            }
-            return null;
-          });
+          
+          // Se já temos um perfil carregado anteriormente, mantemos e ignoramos a falha temporária
+          if (user) {
+            console.warn('[BOOT][UserContext] Mantendo perfil anterior em cache apesar da falha temporária.');
+            setProfileError(null);
+            setProfileLoadFailed(false);
+            return;
+          }
+
+          // Se a busca real do banco falhou mas temos a sessão válida com metadados, criamos um perfil em memória para não quebrar o login
+          const defaultUsername = session.user.email?.split('@')[0] || 'usuario';
+          const memoryProfile: User = {
+            id: session.user.id,
+            full_name: session.user.user_metadata?.full_name || 'Usuário',
+            email: session.user.email || '',
+            avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${defaultUsername}`,
+            username: defaultUsername,
+            plan: 'free',
+            publicUrl: defaultUsername,
+            bio: '',
+            joinedAt: session.user.created_at || new Date().toISOString(),
+            onboarded: true,
+            isPublicActive: true,
+            publicName: session.user.user_metadata?.full_name || 'Usuário',
+            publicAvatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${defaultUsername}`,
+            public_page_active: true,
+            public_page_created: true,
+            public_theme: 'default',
+            preferred_name: '',
+            phone: '',
+            whatsapp_group_url: '',
+            telegram_group_url: '',
+            discord_group_url: '',
+          };
+
+          console.warn('[BOOT][UserContext] Iniciando com perfil temporário em memória para tolerância a falhas do banco.');
+          setUser(memoryProfile);
+          setProfileError(null);
+          setProfileLoadFailed(false);
         }
       } else {
         console.log('[BOOT][UserContext] Nenhuma sessão ativa em refreshProfile');
@@ -321,18 +354,52 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
               ]);
               console.timeEnd("[BOOT] loadProfile");
               setIsAdmin(adminStatus);
-              setUser(profile);
-              setProfileError(null);
-              setProfileLoadFailed(false);
+              if (profile) {
+                setUser(profile);
+                setProfileError(null);
+                setProfileLoadFailed(false);
+              } else {
+                throw new Error("Perfil retornado vazio");
+              }
             } catch (err: any) {
               console.timeEnd("[BOOT] loadProfile");
               console.error('[BOOT][UserContext] Erro ao buscar perfil no onAuthStateChange:', err);
-              setProfileError(err);
-              setProfileLoadFailed(true);
-              setUser(prev => {
-                if (prev) return prev;
-                return null;
-              });
+              
+              if (user) {
+                console.warn('[BOOT][UserContext] Mantendo perfil anterior em cache.');
+                setProfileError(null);
+                setProfileLoadFailed(false);
+                return;
+              }
+
+              const defaultUsername = session.user.email?.split('@')[0] || 'usuario';
+              const memoryProfile: User = {
+                id: session.user.id,
+                full_name: session.user.user_metadata?.full_name || 'Usuário',
+                email: session.user.email || '',
+                avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${defaultUsername}`,
+                username: defaultUsername,
+                plan: 'free',
+                publicUrl: defaultUsername,
+                bio: '',
+                joinedAt: session.user.created_at || new Date().toISOString(),
+                onboarded: true,
+                isPublicActive: true,
+                publicName: session.user.user_metadata?.full_name || 'Usuário',
+                publicAvatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${defaultUsername}`,
+                public_page_active: true,
+                public_page_created: true,
+                public_theme: 'default',
+                preferred_name: '',
+                phone: '',
+                whatsapp_group_url: '',
+                telegram_group_url: '',
+                discord_group_url: '',
+              };
+              console.warn('[BOOT][UserContext] Iniciando com perfil temporário em memória após AuthStateChange.');
+              setUser(memoryProfile);
+              setProfileError(null);
+              setProfileLoadFailed(false);
             }
           } else {
             console.log('[BOOT][UserContext] Limpando perfil (usuário deslogado/sem sessão)');

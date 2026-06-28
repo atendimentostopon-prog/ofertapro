@@ -699,8 +699,8 @@ const Settings: React.FC = () => {
       </div>
 
       {/* Tabs Menu Principal */}
-      <div className="w-full overflow-x-auto scrollbar-none py-1">
-        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
+      <div className="w-full overflow-x-auto scrollbar-none py-1.5 flex">
+        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 flex-1">
           {[
             { id: 'account', label: 'Minha Conta', icon: UserIcon },
             { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
