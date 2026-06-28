@@ -16,6 +16,7 @@ import { getPlanLimits, PLAN_CONFIGS } from '../config/plans';
 import { UserPlan } from '../types';
 import { Avatar } from '../components/ui/Avatar';
 import ApiIntegrationsTab from '../components/settings/ApiIntegrationsTab';
+import { normalizeMarketplace } from '../lib/marketplace';
 
 const SettingsSection: React.FC<{
   title: string;
@@ -549,23 +550,6 @@ const Settings: React.FC = () => {
         const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
         await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
       } else if (currentEditingTemplateTab === 'whatsapp') {
-        const normalizeMarketplace = (value?: string | null): any => {
-          const raw = String(value || '').trim().toLowerCase();
-          const clean = raw
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[\s_-]+/g, '');
-          const map: Record<string, string> = {
-            amazon: 'amazon',
-            shopee: 'shopee',
-            magalu: 'magalu',
-            aliexpress: 'aliexpress',
-            mercadolivre: 'mercadolivre',
-            ml: 'mercadolivre',
-          };
-          return map[clean] || 'amazon';
-        };
-
         // Criar uma oferta mock real no banco em background para que a public-api consiga renderizar e disparar
         const mockOfferData = {
           name: mockOffer.name,
@@ -581,6 +565,13 @@ const Settings: React.FC = () => {
           status: 'draft',
           user_id: user.id
         };
+
+        // Log de debug temporário solicitado na Etapa 4
+        console.log('[TEST_TEMPLATE_PAYLOAD]', {
+          marketplaceOriginal: mockOffer.marketplace,
+          marketplaceNormalized: normalizeMarketplace(mockOffer.marketplace),
+          channel: channel.name
+        });
 
         const { data: tempOffer, error: tempOfferErr } = await supabase
           .from('offers')
@@ -622,8 +613,8 @@ const Settings: React.FC = () => {
 
       alert(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`);
     } catch (err: any) {
-      console.error('Erro no envio de teste:', err);
-      alert(`Erro no teste: ${err.message || 'Erro inesperado.'}`);
+      console.error('[TEST_TEMPLATE_ERROR_DEBUG]:', err);
+      alert("Não foi possível enviar o teste. Verifique os dados do template e tente novamente.");
     } finally {
       setTestingTemplate(false);
     }

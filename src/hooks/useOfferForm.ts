@@ -9,6 +9,7 @@ import { FEATURES } from '../config/features';
 import { Marketplace, DispatchResult } from '../types';
 import { withTimeout } from '../lib/utils';
 import { detectMarketplaceFromUrl } from '../lib/marketplace-detect';
+import { normalizeMarketplace } from '../lib/marketplace';
 import { ProductEnrichmentService, normalizeProductTitle } from '../services/ProductEnrichmentService';
 import { 
   parseCurrencyInputToCents, 
@@ -419,7 +420,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
         discount: discount,
         coupon: form.coupon.trim() || null,
         affiliate_link: form.link.trim(),
-        marketplace: form.marketplace,
+        marketplace: normalizeMarketplace(form.marketplace),
         category: form.category || 'Outros',
         status: isDraft ? 'draft' : (offerToEdit?.status || 'active'),
         channels: selectedChannels,

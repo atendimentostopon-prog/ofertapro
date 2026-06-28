@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Marketplace } from '../types';
 import { withTimeout } from '../lib/utils';
+import { normalizeMarketplace } from '../lib/marketplace';
 
 export const OfferService = {
   async getOffers(userId: string) {
@@ -28,7 +29,7 @@ export const OfferService = {
         discount: offerData.discount,
         coupon: offerData.coupon || null,
         affiliate_link: offerData.affiliate_link,
-        marketplace: offerData.marketplace,
+        marketplace: normalizeMarketplace(offerData.marketplace),
         category: offerData.category,
         status: offerData.status,
         channels: offerData.channels || [],
@@ -58,14 +59,14 @@ export const OfferService = {
           if (error.code === '42703') {
             throw new Error(`Coluna inexistente na tabela do banco de dados: ${error.message}`);
           }
-          throw new Error(`Erro do Supabase (${error.code}): ${error.message}`);
+          throw error;
         }
         return data;
       })();
 
-      const result = await withTimeout(queryPromise, 15000, "Criar oferta no Supabase");
+      const data = await withTimeout(queryPromise, 8000, 'Tempo limite esgotado ao salvar oferta.');
       console.timeEnd("[OFFER_SERVICE] createOffer");
-      return result;
+      return data;
     } catch (error: any) {
       console.timeEnd("[OFFER_SERVICE] createOffer");
       console.error("[OFFER_SERVICE] create error", {
@@ -90,7 +91,7 @@ export const OfferService = {
         discount: offerData.discount,
         coupon: offerData.coupon || null,
         affiliate_link: offerData.affiliate_link,
-        marketplace: offerData.marketplace,
+        marketplace: normalizeMarketplace(offerData.marketplace),
         category: offerData.category,
         status: offerData.status,
         channels: offerData.channels || [],
