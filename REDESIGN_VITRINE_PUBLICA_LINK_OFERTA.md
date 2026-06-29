@@ -10,7 +10,7 @@ Este documento resume a implementação do novo design premium para a vitrine p�
 ---
 
 ## 2. Como o Hero/Topo foi Redesenhado
-O topo foi transformado em uma **Creator Page** profissional. O avatar agora sobrepõe o banner, o nome tem peso extra-bold e é acompanhado de um selo verificado com ícone e borda, e o nome de usuário `@username` é exibido em um badge mono translúcido. A descrição de bio tem largura otimizada para leitura confortável e o botão de compartilhamento utiliza estilo glassmorphism.
+O topo foi transformado em uma **Creator Page** profissional. O avatar agora sobrepõe o banner, o nome tem peso extra-bold e é acompanhado de um selo verificado com ícone e borda, e o nome de usuário `@username` é exibido em um badge mono translúcido. A descrição de bio tem largura otimizada para leitura confortável. Conforme solicitado pelo usuário, o botão de compartilhamento foi removido da página pública.
 
 ---
 
