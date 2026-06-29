@@ -477,56 +477,47 @@ const PublicPage: React.FC = () => {
           </div>
 
           {/* Action Buttons Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 w-full max-w-md">
-            
-            {/* Share and Social Channels Buttons */}
-            <div className="flex flex-wrap justify-center items-center gap-2.5 w-full">
-              <button 
-                onClick={handleShare}
-                className={`flex-1 min-w-[160px] flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-extrabold text-xs transition-all shadow-md cursor-pointer ${currentTheme.shareBtn}`}
-              >
-                <Share2 className="w-4 h-4 text-indigo-400" />
-                Compartilhar
-              </button>
-              
-              {profile.whatsapp_group_url && (
-                <a
-                  href={profile.whatsapp_group_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/20 hover:border-[#25D366]/35 text-[#25D366] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Grupo WhatsApp
-                </a>
-              )}
+          {(profile.whatsapp_group_url || profile.telegram_group_url || profile.discord_group_url) && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 w-full max-w-md">
+              <div className="flex flex-wrap justify-center items-center gap-2.5 w-full">
+                {profile.whatsapp_group_url && (
+                  <a
+                    href={profile.whatsapp_group_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/20 hover:border-[#25D366]/35 text-[#25D366] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Grupo WhatsApp
+                  </a>
+                )}
 
-              {profile.telegram_group_url && (
-                <a
-                  href={profile.telegram_group_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 border border-[#0088cc]/20 hover:border-[#0088cc]/35 text-[#29b6f6] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
-                >
-                  <Send className="w-4 h-4" />
-                  Canal Telegram
-                </a>
-              )}
+                {profile.telegram_group_url && (
+                  <a
+                    href={profile.telegram_group_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 border border-[#0088cc]/20 hover:border-[#0088cc]/35 text-[#29b6f6] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    Canal Telegram
+                  </a>
+                )}
 
-              {profile.discord_group_url && (
-                <a
-                  href={profile.discord_group_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/20 hover:border-[#5865F2]/35 text-[#7986cb] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
-                >
-                  <span>🎮</span>
-                  Servidor Discord
-                </a>
-              )}
+                {profile.discord_group_url && (
+                  <a
+                    href={profile.discord_group_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/20 hover:border-[#5865F2]/35 text-[#7986cb] rounded-xl text-xs font-extrabold transition-all active:scale-[0.98] cursor-pointer"
+                  >
+                    <span>🎮</span>
+                    Servidor Discord
+                  </a>
+                )}
+              </div>
             </div>
-
-          </div>
+          )}
         </div>
       </div>
 
