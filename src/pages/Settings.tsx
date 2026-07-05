@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   User as UserIcon, Link2, MessageSquare, Link, BarChart3, Save,
   Check, Copy, ExternalLink, Globe, Bell, Shield,
-  CreditCard, Palette, Camera, Loader2, LogOut, AlertCircle, Sparkles, CheckCircle2, Trophy, HelpCircle
+  CreditCard, Palette, Camera, Loader2, LogOut, AlertCircle, Sparkles, CheckCircle2, Trophy, HelpCircle,
+  Bot
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
@@ -16,6 +17,7 @@ import { getPlanLimits, PLAN_CONFIGS } from '../config/plans';
 import { UserPlan } from '../types';
 import { Avatar } from '../components/ui/Avatar';
 import ApiIntegrationsTab from '../components/settings/ApiIntegrationsTab';
+import { BotTab } from '../components/settings/BotTab';
 import { normalizeMarketplace } from '../lib/marketplace';
 
 const SettingsSection: React.FC<{
@@ -110,7 +112,7 @@ const Settings: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   // Aba ativa geral
-  const [activeTab, setActiveTab] = useState<'profile' | 'templates' | 'billing' | 'account' | 'links' | 'integrations'>('account');
+  const [activeTab, setActiveTab] = useState<'profile' | 'templates' | 'billing' | 'account' | 'links' | 'integrations' | 'bot'>('account');
 
   // Pilar E: Templates de Mensagens
   const [whatsappTemplate, setWhatsappTemplate] = useState('');
@@ -683,30 +685,33 @@ const Settings: React.FC = () => {
           <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
           <p className="text-[15px] font-medium text-[#94A3B8] mt-1">Gerencie seu perfil, planos e templates de disparo</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg shadow-indigo-950/40 disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : saved ? (
-            <><Check className="w-4 h-4" /> Salvo!</>
-          ) : (
-            <><Save className="w-4 h-4" /> Salvar Alterações</>
-          )}
-        </button>
+        {['account', 'profile', 'links'].includes(activeTab) && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg shadow-indigo-950/40 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : saved ? (
+              <><Check className="w-4 h-4" /> Salvo!</>
+            ) : (
+              <><Save className="w-4 h-4" /> Salvar Alterações</>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Tabs Menu Principal */}
-      <div className="w-full overflow-x-auto scrollbar-none py-1.5 flex">
-        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 flex-1">
+      <div className="w-full overflow-x-auto scrollbar-none py-1.5">
+        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
           {[
             { id: 'account', label: 'Minha Conta', icon: UserIcon },
             { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
             { id: 'links', label: 'Links da Vitrine', icon: Link2 },
             { id: 'templates', label: 'Templates de Mensagem', icon: MessageSquare },
             { id: 'integrations', label: 'API & Integrações', icon: Shield },
+            { id: 'bot', label: 'Bot', icon: Bot },
             { id: 'billing', label: 'Planos & Cobrança', icon: CreditCard }
           ].map(tab => {
             const Icon = tab.icon;
@@ -714,7 +719,7 @@ const Settings: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`tab-item flex items-center gap-2 font-bold text-xs ${
+                className={`tab-item flex items-center gap-2 font-bold text-xs flex-shrink-0 ${
                   activeTab === tab.id ? 'active' : ''
                 }`}
               >
@@ -1191,6 +1196,11 @@ const Settings: React.FC = () => {
       {/* ABA: API E INTEGRAÇÕES */}
       {activeTab === 'integrations' && (
         <ApiIntegrationsTab />
+      )}
+
+      {/* ABA: BOT DE MONITORAMENTO */}
+      {activeTab === 'bot' && (
+        <BotTab />
       )}
 
       {/* ABA 3: PLANOS E COBRANÇA */}
