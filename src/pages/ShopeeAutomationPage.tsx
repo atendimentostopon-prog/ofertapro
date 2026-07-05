@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   ArrowLeft, BookOpen, AlertTriangle, ArrowRight, ExternalLink, 
   Check, Lock, Shield, Clock, ChevronDown, ChevronUp, Info, 
-  HelpCircle, FileText, CheckCircle2 
+  HelpCircle, FileText, CheckCircle2, Settings 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -12,7 +12,7 @@ export const ShopeeAutomationPage: React.FC = () => {
     
     // Configuração de meta description para SEO
     const metaDescription = document.querySelector('meta[name="description"]');
-    const descriptionText = 'Veja o passo a passo para solicitar a API da Shopee, acessar suas credenciais e preparar sua conta para automações de afiliados no Link Oferta.';
+    const descriptionText = 'Veja o tutorial completo e passo a passo de como solicitar e cadastrar suas credenciais da API Shopee Affiliate no Link Oferta.';
     if (metaDescription) {
       metaDescription.setAttribute('content', descriptionText);
     } else {
@@ -35,59 +35,95 @@ export const ShopeeAutomationPage: React.FC = () => {
 
   const steps = [
     {
-      title: 'Passo 1 — Solicite suas chaves API',
-      text: 'Acesse o formulário oficial da Shopee e preencha as informações solicitadas, como ID de afiliado e telefone de contato. Revise os dados antes de enviar.',
+      num: '01',
+      title: 'Solicitar o acesso no formulário da Shopee',
+      desc: 'Acesse o formulário oficial de atendimento de afiliados da Shopee e responda às perguntas da seguinte maneira:',
+      bullets: [
+        'Responda "Sim" para a pergunta se você já é afiliado.',
+        'Selecione "Não, estou com outras dificuldades / dúvidas" na pergunta de login.',
+        'Preencha com o seu ID de Afiliado real e o número de telefone correspondente à sua conta.',
+        'No tema da dificuldade, escolha "Tenhos dúvidas/ dificuldades com meu cadastro / conta".',
+        'No cenário final, selecione "Quero ativar a API".'
+      ],
+      note: 'Atenção: O ID de afiliado e o telefone informados devem ser exatamente os mesmos cadastrados na sua conta Shopee Affiliate.',
+      image: '/shopee-guide/step1.png',
+      caption: 'Preenchimento recomendado para o formulário de ativação de API da Shopee.',
       buttonLabel: 'Abrir formulário da Shopee',
       url: shopeeFormUrl
     },
     {
-      title: 'Passo 2 — Aguarde a resposta da Shopee',
-      text: 'Após o envio, acompanhe seu e-mail. A Shopee poderá enviar uma confirmação ou atualização sobre a disponibilidade da sua API. O prazo pode variar conforme a análise da plataforma.',
+      num: '02',
+      title: 'Aguardar o retorno por e-mail',
+      desc: 'Após o envio do formulário, a Shopee fará a análise do seu caso e enviará um e-mail de resposta. Fique atento às seguintes informações:',
+      bullets: [
+        'A análise e liberação costumam levar até 7 dias úteis.',
+        'Aguarde o e-mail oficial com a confirmação de que o acesso foi estabelecido.',
+        'Após receber o retorno positivo, você poderá prosseguir para o próximo passo no console.'
+      ],
+      note: 'Importante: A resposta por e-mail confirma a liberação do recurso, mas a disponibilização real das credenciais no painel pode levar algumas horas após o recebimento da mensagem.',
+      image: '/shopee-guide/step2.png',
+      caption: 'Exemplo de e-mail de confirmação enviado pelo suporte de afiliados da Shopee.',
       buttonLabel: null,
       url: null
     },
     {
-      title: 'Passo 3 — Acesse a área Open API',
-      text: 'Quando sua API estiver disponível, acesse a página de Open API da Shopee pelo computador. Caso a liberação esteja ativa, o botão de aplicação/ativação deverá estar disponível para exibir suas credenciais.',
-      buttonLabel: 'Abrir Open API Shopee',
+      num: '03',
+      title: 'Acessar a área da API da Shopee',
+      desc: 'Com o acesso liberado, conecte-se ao console de afiliados pelo computador e siga o passo a passo:',
+      bullets: [
+        'Acesse a área "Open API" ou o menu "Meu API" na Shopee.',
+        'Quando a liberação estiver ativa, o botão "Aplicar" ficará habilitado na tela.',
+        'Clique em "Aplicar" para expor e gerar o seu App ID e a Secret Key (token de senha).'
+      ],
+      note: 'Dica: Caso o botão "Aplicar" não apareça imediatamente após receber o e-mail, aguarde um pouco mais ou atualize a página.',
+      image: '/shopee-guide/step3.png',
+      caption: 'Localização do botão "Aplicar" na seção Meu API da Shopee.',
+      buttonLabel: 'Abrir painel Open API',
       url: shopeeOpenApiUrl
     },
     {
-      title: 'Passo 4 — Salve suas credenciais com segurança',
-      text: 'Depois que a Shopee liberar suas credenciais, copie o ID e o token/senha com cuidado. Guarde essas informações em local seguro e nunca compartilhe publicamente.',
+      num: '04',
+      title: 'Cadastrar as credenciais no Link Oferta',
+      desc: 'Depois de copiar suas credenciais do console da Shopee, conclua a configuração dentro da sua conta do Link Oferta:',
+      bullets: [
+        'Acesse o painel administrativo do Link Oferta.',
+        'Vá em Configurações > Configurações Adicionais (aba Bot).',
+        'Localize a seção "Credenciais Shopee Affiliate (opcional)".',
+        'Insira o seu App ID e a Secret Key nos respectivos campos.',
+        'Clique no botão "Salvar configurações".'
+      ],
+      note: 'Pronto! Suas credenciais estarão salvas com segurança no Link Oferta e prontas para rodar integrações automatizadas.',
+      image: '/shopee-guide/step4.png',
+      caption: 'Seção de preenchimento das credenciais Shopee Affiliate dentro do painel do Link Oferta.',
       buttonLabel: null,
       url: null
     }
   ];
 
-  const precautions = [
-    'Não publique seu token em grupos, sites ou prints.',
-    'Não envie suas credenciais para terceiros.',
-    'Use apenas páginas oficiais da Shopee.',
-    'Revise se o link acessado pertence ao domínio oficial da Shopee.',
-    'Em caso de dúvida, consulte o suporte oficial da Shopee.'
-  ];
-
   const faqs = [
     {
-      q: 'Preciso obrigatoriamente da API para divulgar produtos da Shopee?',
-      a: 'Não necessariamente. Para muitos afiliados, o link de afiliado tradicional já é suficiente. A API é mais útil quando você deseja automação, integração com ferramentas ou operação em equipe.'
+      q: 'Preciso ser afiliado da Shopee antes de solicitar a API?',
+      a: 'Sim. A solicitação da API é um recurso direcionado para quem já possui uma conta de afiliado aprovada e ativa no programa de afiliados da Shopee.'
     },
     {
-      q: 'Quanto tempo a Shopee demora para liberar a API?',
-      a: 'O prazo pode variar. Após enviar o formulário, acompanhe o e-mail informado na solicitação.'
+      q: 'Onde encontro meu ID de afiliado?',
+      a: 'O ID de afiliado pode ser encontrado acessando o painel da Shopee Affiliate (geralmente visível nas configurações da conta ou no canto superior da tela do console).'
     },
     {
-      q: 'Onde encontro minhas credenciais depois da aprovação?',
-      a: 'Na área de Open API da Shopee, acessando pelo computador com sua conta de afiliado.'
+      q: 'Quanto tempo a Shopee leva para liberar a API?',
+      a: 'O tempo médio de análise e resposta informado pela Shopee é de até 7 dias úteis após o envio correto do formulário oficial.'
     },
     {
-      q: 'Posso compartilhar meu token com outras pessoas?',
-      a: 'Não. O token é uma credencial sensível. Compartilhar esse dado pode colocar sua conta e suas integrações em risco.'
+      q: 'O que fazer se o botão “Aplicar” não aparecer?',
+      a: 'Se você já recebeu o e-mail confirmando a liberação e o botão ainda não aparece, tente limpar o cache do navegador, acessar por uma janela anônima ou aguardar mais 24 horas até que a liberação seja propagada no banco de dados da Shopee.'
     },
     {
-      q: 'Links da Shopee Vídeo funcionam da mesma forma?',
-      a: 'Podem existir limitações específicas para links da Shopee Vídeo. Quando necessário, utilize o link gerado diretamente pela sua conta Shopee.'
+      q: 'Onde cadastro o App ID e a Secret Key no Link Oferta?',
+      a: 'No menu principal, acesse Configurações > vá na aba "Bot" > desça até a seção "Configurações Adicionais" > preencha os campos sob "Credenciais Shopee Affiliate (opcional)" e salve.'
+    },
+    {
+      q: 'Posso usar essa integração sem aprovação da Shopee?',
+      a: 'Não. Para que a automação e integração de links da Shopee funcionem de forma direta no Link Oferta, você precisa obrigatoriamente preencher credenciais válidas e aprovadas pela plataforma.'
     }
   ];
 
@@ -102,30 +138,30 @@ export const ShopeeAutomationPage: React.FC = () => {
         {/* Navigation Bar / Header */}
         <div className="flex items-center justify-between pb-6 border-b border-white/[0.06] select-none">
           <Link
-            to="/login"
+            to="/settings"
             className="flex items-center gap-2 text-xs font-bold text-[#94A3B8] hover:text-white transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-            Voltar ao Login
+            Voltar para Configurações
           </Link>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-indigo-400" />
             </div>
-            <span className="text-sm font-extrabold text-white tracking-tight">Ajuda · Link Oferta</span>
+            <span className="text-sm font-extrabold text-white tracking-tight">Central de Ajuda · Link Oferta</span>
           </div>
         </div>
 
         {/* 1. Hero Principal */}
         <section className="text-center space-y-6 py-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 text-[11px] font-bold text-orange-400 rounded-full select-none animate-pulse">
-            🧡 Integração Shopee Affiliate
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 text-[11px] font-bold text-orange-400 rounded-full select-none">
+            🍊 Integração Shopee Affiliate
           </div>
           <h1 className="text-3xl sm:text-4.5xl font-black text-white tracking-tight leading-tight max-w-2xl mx-auto">
-            Como solicitar a API da Shopee
+            Como pegar suas credenciais da Shopee
           </h1>
           <p className="text-sm sm:text-base text-[#94A3B8] leading-relaxed max-w-xl mx-auto font-medium">
-            Aprenda o passo a passo para pedir suas credenciais de API da Shopee e preparar sua conta para automações de afiliados no Link Oferta.
+            Siga este passo a passo para solicitar acesso à API da Shopee Affiliate e depois cadastrar seu App ID e Secret Key no Link Oferta.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
             <a
@@ -134,7 +170,7 @@ export const ShopeeAutomationPage: React.FC = () => {
               rel="noopener noreferrer"
               className="w-full sm:w-auto btn-gradient text-[13px] font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/50 hover:opacity-95 transition-opacity"
             >
-              Solicitar API da Shopee
+              Abrir formulário da Shopee
               <ExternalLink className="w-4 h-4" />
             </a>
             <a
@@ -143,116 +179,119 @@ export const ShopeeAutomationPage: React.FC = () => {
               rel="noopener noreferrer"
               className="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/5 bg-[#101827]/40 hover:bg-[#101827]/70 text-[13px] font-bold text-[#F8FAFC] flex items-center justify-center gap-2 transition-all"
             >
-              Acessar Open API Shopee
+              Abrir painel Open API
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         </section>
 
-        {/* 2. Aviso importante */}
-        <section className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-5 sm:p-6 space-y-4">
+        {/* 2. Card de aviso importante */}
+        <section className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-6 sm:p-7 space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="space-y-2">
+            <AlertTriangle className="w-5.5 h-5.5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="space-y-3">
               <h4 className="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-wider">Aviso Importante</h4>
-              <p className="text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium">
-                Antes de começar, tenha em mãos seu ID de afiliado da Shopee e um número de telefone válido. A liberação da API depende da análise e resposta da própria Shopee.
-              </p>
-              <p className="text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium pt-1">
-                Links da Shopee Vídeo podem ter regras diferentes e podem não ser convertidos automaticamente. Para esses casos, use o link gerado diretamente na sua conta Shopee.
-              </p>
+              <ul className="space-y-2 text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium list-disc list-inside">
+                <li>Este processo é necessário para quem deseja usar a automação da Shopee no Link Oferta.</li>
+                <li>O acesso de API não é liberado instantaneamente. A Shopee costuma levar alguns dias para analisar e disponibilizar o acesso.</li>
+                <li>A ativação depende exclusivamente da aprovação e critérios de parceiro da própria equipe da Shopee.</li>
+                <li>Se você prefere trabalhar de forma manual ou com fluxos simples e diretos, o preenchimento da API pode não ser obrigatório.</li>
+              </ul>
             </div>
           </div>
         </section>
 
-        {/* 3. Seção “Quando preciso solicitar a API?” */}
-        <section className="glass-card overflow-hidden border-white/[0.04] p-6 sm:p-8 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Info className="w-4.5 h-4.5 text-indigo-400" />
-            </div>
-            <h3 className="text-[17px] font-extrabold text-white tracking-tight">Quando preciso solicitar a API?</h3>
-          </div>
-          <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">
-            A API da Shopee é indicada para afiliados que desejam automatizar ou integrar processos, principalmente quando trabalham com equipe, bot, painel próprio ou múltiplos fluxos de divulgação. Com as credenciais corretas, o Link Oferta poderá usar os dados autorizados para melhorar a automação dos links da Shopee.
-          </p>
-        </section>
-
-        {/* 4. Passo a passo (Timeline / Stepper) */}
-        <section className="space-y-6">
-          <h3 className="text-xl font-black text-white tracking-tight">Passo a Passo para Solicitação</h3>
+        {/* 3. Passo a passo visual com 4 etapas */}
+        <section className="space-y-8">
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">Passo a Passo Detalhado</h2>
           
-          <div className="relative border-l border-white/[0.06] ml-4 pl-6 sm:pl-8 space-y-10">
+          <div className="space-y-12">
             {steps.map((step, idx) => (
-              <div key={idx} className="relative space-y-3">
-                {/* Stepper Circle Bullet */}
-                <div className="absolute left-[-39px] sm:left-[-47px] top-0.5 w-6 h-6 rounded-full bg-[#101827] border border-indigo-500 flex items-center justify-center text-[10px] font-black text-indigo-400 shadow-md">
-                  {idx + 1}
+              <div key={idx} className="glass-card border-white/[0.04] p-6 sm:p-8 space-y-6 relative overflow-hidden">
+                {/* Step number watermark */}
+                <div className="absolute top-4 right-6 text-6xl sm:text-7xl font-black text-white/[0.02] pointer-events-none select-none">
+                  {step.num}
                 </div>
 
-                <div className="glass-card border-white/[0.04] p-5 space-y-3">
-                  <h4 className="text-sm font-extrabold text-slate-100 tracking-tight">{step.title}</h4>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed font-medium">{step.text}</p>
-                  
-                  {step.buttonLabel && step.url && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-extrabold px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-md">
+                      PASSO {step.num}
+                    </span>
+                    <h3 className="text-lg font-black text-white tracking-tight">{step.title}</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">{step.desc}</p>
+                </div>
+
+                {step.bullets && (
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed font-medium list-disc list-inside pl-1">
+                    {step.bullets.map((b, bIdx) => <li key={bIdx}>{b}</li>)}
+                  </ul>
+                )}
+
+                {/* Paso Image with rounded borders and shadow */}
+                {step.image && (
+                  <div className="space-y-2.5 pt-2">
+                    <div className="border border-white/[0.05] rounded-xl overflow-hidden shadow-2xl bg-[#090e1c]/45 p-1.5 max-w-full">
+                      <img 
+                        src={step.image} 
+                        alt={step.title}
+                        className="w-full h-auto rounded-lg object-contain block max-h-[380px] mx-auto"
+                      />
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-slate-500 italic text-center font-medium">
+                      {step.caption}
+                    </p>
+                  </div>
+                )}
+
+                {step.note && (
+                  <div className="p-4 bg-indigo-950/20 border border-indigo-500/15 rounded-xl flex items-start gap-2.5">
+                    <Info className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-indigo-300 leading-relaxed font-semibold">
+                      {step.note}
+                    </p>
+                  </div>
+                )}
+
+                {step.buttonLabel && step.url && (
+                  <div className="pt-2">
                     <a
                       href={step.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600/10 hover:bg-indigo-650/20 border border-indigo-500/20 hover:border-indigo-500/35 text-indigo-400 text-[11px] font-bold rounded-lg transition-all"
+                      className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600/10 hover:bg-indigo-650/20 border border-indigo-500/20 hover:border-indigo-500/35 text-indigo-400 text-xs font-bold rounded-lg transition-all"
                     >
                       {step.buttonLabel}
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </section>
 
-        {/* 5. Seção “Depois que eu receber a API, o que faço?” */}
+        {/* 4. Seção “Depois disso, o que acontece?” */}
         <section className="glass-card border-white/[0.04] p-6 sm:p-8 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <CheckCircle2 className="w-4.5 h-4.5 text-indigo-400" />
             </div>
-            <h3 className="text-[17px] font-extrabold text-white tracking-tight">Depois que eu receber a API, o que faço?</h3>
+            <h3 className="text-[17px] font-extrabold text-white tracking-tight">Depois disso, o que acontece?</h3>
           </div>
           
           <div className="space-y-3 text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">
             <p>
-              Assim que você tiver suas credenciais da Shopee, acesse o painel do Link Oferta e vá até a área de configurações ou integrações da Shopee. Cole as informações solicitadas e salve. Depois disso, você poderá usar a integração conforme os recursos disponíveis na sua conta.
+              Após cadastrar as credenciais da Shopee Affiliate corretamente nas suas configurações, o Link Oferta passará a utilizar a integração direta para automatizar e otimizar a substituição e o processamento de links da plataforma Shopee conforme as definições habilitadas no seu painel.
             </p>
-            <div className="p-3 bg-[#0B1020]/50 border border-white/5 rounded-xl flex items-center gap-2 mt-2">
-              <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-              <p className="text-[11px] text-[#64748B]">
-                <strong>Nota:</strong> Se a integração Shopee ainda não estiver visível no seu painel, guarde suas credenciais e aguarde a liberação do módulo correspondente.
-              </p>
-            </div>
+            <p>
+              Isso garante maior agilidade no gerenciamento de ofertas e permite que suas publicações automáticas contem com a correta vinculação dos tokens e parâmetros oficiais da Shopee.
+            </p>
           </div>
         </section>
 
-        {/* 6. Seção de segurança */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-              <Lock className="w-4.5 h-4.5 text-rose-400" />
-            </div>
-            <h3 className="text-lg font-extrabold text-white tracking-tight">Cuidados importantes</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {precautions.map((prec, idx) => (
-              <div key={idx} className="p-4 bg-[#101827]/40 border border-white/5 rounded-xl flex items-start gap-2.5 shadow-sm">
-                <Shield className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#94A3B8] leading-relaxed font-medium">{prec}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 7. FAQ */}
+        {/* 5. FAQ */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
@@ -297,36 +336,25 @@ export const ShopeeAutomationPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 8. CTA Final */}
+        {/* 6. CTA final */}
         <section className="p-8 sm:p-10 bg-gradient-to-r from-indigo-950/40 to-slate-950/40 border border-indigo-500/15 rounded-3xl text-center space-y-5 relative overflow-hidden">
           {/* Subtle overlay glow */}
           <div className="absolute inset-0 bg-indigo-500/[0.02] pointer-events-none" />
           
           <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Pronto para automatizar suas ofertas da Shopee?
+            Pronto para configurar sua integração?
           </h3>
           <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto leading-relaxed font-medium">
-            Solicite suas credenciais, aguarde a liberação da Shopee e depois configure tudo no Link Oferta.
+            Retorne às configurações do painel administrativo do Link Oferta para colar o seu App ID e Secret Key salvos.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <a
-              href={shopeeFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto btn-gradient text-xs font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950/40"
+          <div className="flex justify-center pt-2">
+            <Link
+              to="/settings"
+              className="w-full sm:w-auto btn-gradient text-xs font-bold px-6 py-3 rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950/40"
             >
-              Solicitar API da Shopee
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href={shopeeOpenApiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-white/5 bg-[#101827]/40 hover:bg-[#101827]/70 text-xs font-bold text-[#F8FAFC] flex items-center justify-center gap-1.5 transition-all"
-            >
-              Acessar Open API
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
+              <Settings className="w-4 h-4" />
+              Voltar para as configurações
+            </Link>
           </div>
         </section>
       </div>
