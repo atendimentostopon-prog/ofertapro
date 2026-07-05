@@ -971,6 +971,13 @@ export const BotTab: React.FC = () => {
                         />
                       </Field>
                     </div>
+
+                    <p className="text-[11px] text-indigo-400 mt-1 font-medium">
+                      💡 Precisa de ajuda para obter o App ID e a Secret Key? 
+                      <a href="/automatizacao-shopee" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-indigo-300 font-bold transition-colors">
+                        Veja o tutorial de como solicitar a API da Shopee
+                      </a>
+                    </p>
                   </div>
                 </div>
 

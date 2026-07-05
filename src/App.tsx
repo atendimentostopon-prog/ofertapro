@@ -20,6 +20,7 @@ import DebugSupabase from './pages/DebugSupabase';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
+import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
 
@@ -248,6 +249,7 @@ const App: React.FC = () => {
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosUso />} />
           <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
+          <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
 
           {/* Public links */}
           <Route path="/o/:shortCode" element={<RedirectPage />} />
