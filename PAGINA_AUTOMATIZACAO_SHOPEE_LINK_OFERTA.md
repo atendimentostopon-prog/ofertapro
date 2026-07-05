@@ -17,7 +17,7 @@ Este documento relata as implementações feitas para criar a nova página insti
 
 ### Arquivos Alterados
 * [App.tsx](file:///d:/ofertapro/src/App.tsx): Importação da nova página e registro da rota no ecossistema público do React Router Dom.
-* [BotTab.tsx](file:///d:/ofertapro/src/components/settings/BotTab.tsx): Adicionado um atalho explicativo contextual linkando a nova página `/automatizacao-shopee` logo abaixo dos campos de App ID e Secret da Shopee na aba de configurações do Bot, melhorando a UX.
+* [BotTab.tsx](file:///d:/ofertapro/src/components/settings/BotTab.tsx): Adicionou-se o botão "Como pegar minhas credenciais?" com ícone de ajuda (`HelpCircle`), alinhado à direita do título "Credenciais Shopee Affiliate (opcional)" no desktop (quebrando para baixo responsivamente no mobile). O botão usa a navegação interna `<Link to="/automatizacao-shopee">` do React Router para redirecionar instantaneamente e sem reload.
 
 ---
 
@@ -27,14 +27,21 @@ Este documento relata as implementações feitas para criar a nova página insti
 
 ---
 
-## 4. Botões Externos
+## 4. Botão de Ajuda Adicionado
+* **Adicionado:** Sim, com o texto "Como pegar minhas credenciais?".
+* **Onde foi adicionado:** Na tela de Configurações, aba Bot, seção de Configurações Adicionais, posicionado ao lado direito do título "Credenciais Shopee Affiliate (opcional)".
+* **Navegação:** Rota interna do React Router `/automatizacao-shopee` (sem recarregar o navegador ou abrir localhost/links externos).
+
+---
+
+## 5. Botões Externos
 Todos os botões de atalho apontam para os links corretos abrindo em nova aba (`target="_blank" rel="noopener noreferrer"`):
 * **Formulário de Solicitação:** [https://help.shopee.com.br/portal/webform/bbce78695c364ba18c9cbceb74ec9091](https://help.shopee.com.br/portal/webform/bbce78695c364ba18c9cbceb74ec9091)
 * **Console do Open API Shopee:** [https://affiliate.shopee.com.br/open_api](https://affiliate.shopee.com.br/open_api)
 
 ---
 
-## 5. Responsividade e Design
+## 6. Responsividade e Design
 * **Design Dark Premium:** Mantida a identidade visual refinada com fundo `#070A12`, cards com glassmorphism (`bg-[#101827]/60 backdrop-blur-xl border border-white/[0.06]`), gradientes de botões e cores suaves de realce.
 * **Efeitos Visuais:** Adicionados emissores de brilho em posições estratégicas no fundo (`bg-[#7C3AED]/5` e `bg-[#6366F1]/5` com blur alto) sem prejudicar a leitura do conteúdo.
 * **Stepper / Timeline:** Linha de timeline vertical com marcadores circulares e expansão dinâmica.
@@ -43,7 +50,7 @@ Todos os botões de atalho apontam para os links corretos abrindo em nova aba (`
 
 ---
 
-## 6. Resultado do Build (`npm run build`)
+## 7. Resultado do Build (`npm run build`)
 * O comando de compilação de produção e validação de tipos TypeScript completou com sucesso:
 ```text
 > ofertapro@0.0.0 build
@@ -54,14 +61,14 @@ transforming...✓ 2460 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                             0.94 kB │ gzip:   0.51 kB
-dist/assets/index-K2OfCfo3.css             90.43 kB │ gzip:  15.30 kB
-dist/assets/HistoryService-C5QLBBFl.js      0.32 kB │ gzip:   0.22 kB
-dist/assets/index-JwRKehQS.js           1,347.47 kB │ gzip: 374.89 kB
+dist/assets/index-BS-SbEMF.css             90.51 kB │ gzip:  15.32 kB
+dist/assets/HistoryService-D7ehVXtw.js      0.32 kB │ gzip:   0.22 kB
+dist/assets/index-C6eUzruM.js           1,347.60 kB │ gzip: 374.87 kB
 
-✓ built in 1.66s
+✓ built in 1.76s
 ```
 
 ---
 
-## 7. Pendências Restantes
+## 8. Pendências Restantes
 * Nenhuma. O fluxo está completo e sem pendências funcionais ou estéticas.

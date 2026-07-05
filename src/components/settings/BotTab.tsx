@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Bot, AlertCircle, Loader2, CheckCircle2, Trash2, 
-  Plus, Save, Check, X, ShieldAlert, Play, Pause, AlertTriangle, Key
+  Plus, Save, Check, X, ShieldAlert, Play, Pause, AlertTriangle, Key, HelpCircle, BookOpen
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
@@ -948,7 +949,16 @@ export const BotTab: React.FC = () => {
                   </div>
 
                   <div className="border-t border-white/5 pt-4 space-y-4">
-                    <h4 className="text-xs font-bold text-slate-200">Credenciais Shopee Affiliate (opcional)</h4>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h4 className="text-xs font-bold text-slate-200">Credenciais Shopee Affiliate (opcional)</h4>
+                      <Link 
+                        to="/automatizacao-shopee"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/35 text-indigo-400 text-[10px] font-black rounded-lg transition-all duration-200 w-fit self-start sm:self-auto shadow-sm"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" />
+                        Como pegar minhas credenciais?
+                      </Link>
+                    </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field label="App ID">
@@ -971,13 +981,6 @@ export const BotTab: React.FC = () => {
                         />
                       </Field>
                     </div>
-
-                    <p className="text-[11px] text-indigo-400 mt-1 font-medium">
-                      💡 Precisa de ajuda para obter o App ID e a Secret Key? 
-                      <a href="/automatizacao-shopee" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-indigo-300 font-bold transition-colors">
-                        Veja o tutorial de como solicitar a API da Shopee
-                      </a>
-                    </p>
                   </div>
                 </div>
 
