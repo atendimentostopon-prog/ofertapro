@@ -232,11 +232,11 @@ export const ShopeeAutomationPage: React.FC = () => {
                 {/* Paso Image with rounded borders and shadow */}
                 {step.image && (
                   <div className="space-y-2.5 pt-2">
-                    <div className="border border-white/[0.05] rounded-xl overflow-hidden shadow-2xl bg-[#090e1c]/45 p-1.5 max-w-full">
+                    <div className="border border-white/[0.05] rounded-xl overflow-hidden shadow-2xl bg-[#090e1c]/45 p-1 sm:p-2 max-w-full group/img">
                       <img 
                         src={step.image} 
                         alt={step.title}
-                        className="w-full h-auto rounded-lg object-contain block max-h-[380px] mx-auto"
+                        className="w-full h-auto rounded-lg object-contain block max-h-[620px] mx-auto transition-transform duration-300 group-hover/img:scale-[1.01]"
                       />
                     </div>
                     <p className="text-[10px] sm:text-xs text-slate-500 italic text-center font-medium">
