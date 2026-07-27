@@ -351,7 +351,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                       <button
                         type="button"
                         onClick={() => setShowToken(!showToken)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-350 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400 transition-colors"
                         title={showToken ? 'Ocultar token' : 'Mostrar token'}
                       >
                         {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

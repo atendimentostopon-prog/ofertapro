@@ -216,7 +216,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             </button>
             <button
               onClick={() => setShowUpgradeModal(false)}
-              className="flex-1 bg-[#0B1020] hover:bg-[#101827] text-slate-350 border border-white/5 font-bold py-2.5 rounded-xl text-xs transition-colors"
+              className="flex-1 bg-[#0B1020] hover:bg-[#101827] text-slate-400 border border-white/5 font-bold py-2.5 rounded-xl text-xs transition-colors"
             >
               Voltar
             </button>
@@ -337,7 +337,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 setStep(nextSection);
                 scrollToSection(nextSection);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 text-xs font-semibold text-slate-350 hover:bg-[#101827] transition-all md:hidden"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 text-xs font-semibold text-slate-400 hover:bg-[#101827] transition-all md:hidden"
             >
               <Eye className="w-3.5 h-3.5" />
               {step === 'form' ? 'Ver Prévia' : 'Preencher'}
@@ -476,7 +476,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* URL da Imagem do Produto (Campo Opcional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-350 tracking-wider">
+              <label className="text-xs font-bold text-slate-400 tracking-wider">
                 OU URL da Imagem Externa (Opcional)
               </label>
               <input
@@ -708,7 +708,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
                         ? 'border-indigo-500 bg-indigo-650/20 text-indigo-350 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 text-slate-350 hover:bg-[#101827]/50'
+                        : 'border-white/5 bg-[#0B1020]/50 text-slate-400 hover:bg-[#101827]/50'
                     }`}
                     disabled={loading || uploading}
                   >
@@ -767,7 +767,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   </div>
                 ) : connectedChannels.length === 0 ? (
                   <div className="col-span-full bg-[#0B1020]/50 border border-white/5 rounded-xl p-4 text-center">
-                    <p className="text-xs text-slate-350 font-medium">
+                    <p className="text-xs text-slate-400 font-medium">
                       Conecte um canal Telegram, Discord ou WhatsApp antes de disparar.
                     </p>
                     <a
@@ -858,12 +858,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   )}
   
                   {form.coupon && form.coupon.trim() !== '' && (
-                    <div className="mt-2 bg-[#0B1020]/50 border border-white/5 rounded-md p-1.5 font-mono text-[9.5px] text-slate-350 font-bold flex items-center justify-between">
+                    <div className="mt-2 bg-[#0B1020]/50 border border-white/5 rounded-md p-1.5 font-mono text-[9.5px] text-slate-400 font-bold flex items-center justify-between">
                       <span>🎟️ Cupom: {form.coupon}</span>
                     </div>
                   )}
   
-                  <p className="text-indigo-450 text-[9.5px] mt-2 underline truncate">
+                  <p className="text-indigo-400 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
                       ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
                       : '🔗 linkoferta.vercel.app/o/...'}

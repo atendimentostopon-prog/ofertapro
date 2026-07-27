@@ -517,7 +517,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
             </p>
 
             {errorMsg && (
-              <div className="mb-5 p-4 rounded-2xl bg-rose-950/20 border border-rose-900/40 flex items-start gap-3 text-rose-450 text-xs font-semibold animate-shake">
+              <div className="mb-5 p-4 rounded-2xl bg-rose-950/20 border border-rose-900/40 flex items-start gap-3 text-rose-400 text-xs font-semibold animate-shake">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -567,7 +567,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Nome Completo */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                     <UserIcon className="w-3.5 h-3.5 text-slate-500" /> Nome Completo *
                   </label>
                   <input 
@@ -582,7 +582,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Preferred Name */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-slate-500" /> Como quer ser chamado? (Opcional)
                   </label>
                   <input 
@@ -609,7 +609,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Telefone */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-slate-500" /> Telefone (Opcional)
                   </label>
                   <input 
@@ -668,7 +668,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                 <div className="grid grid-cols-2 gap-4">
                   {/* Nome da Vitrine */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-350">Nome de Exibição da Vitrine *</label>
+                    <label className="text-xs font-bold text-slate-400">Nome de Exibição da Vitrine *</label>
                     <input 
                       type="text" 
                       value={publicName}
@@ -681,7 +681,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                   {/* Slug / Username */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-350">Link Público (Slug) *</label>
+                    <label className="text-xs font-bold text-slate-400">Link Público (Slug) *</label>
                     <div className="relative">
                       <input 
                         type="text" 
@@ -714,7 +714,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Bio */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                     <AlignLeft className="w-3.5 h-3.5 text-slate-500" /> Bio / Descrição (Máx. 200 caracteres)
                   </label>
                   <textarea 
@@ -776,7 +776,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Tema Visual */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-350">Tema de Cores da Vitrine</label>
+                  <label className="text-xs font-bold text-slate-400">Tema de Cores da Vitrine</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
@@ -913,7 +913,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Filtro fictício */}
                 <div className="flex items-center gap-1 mb-2.5 overflow-x-auto scrollbar-hide">
-                  <span className="text-[7.5px] bg-[#101827] text-slate-350 border border-white/5 px-2 py-0.5 rounded-full font-bold">🛍 Todas</span>
+                  <span className="text-[7.5px] bg-[#101827] text-slate-400 border border-white/5 px-2 py-0.5 rounded-full font-bold">🛍 Todas</span>
                   <span className="text-[7.5px] text-slate-550 px-2 py-0.5 rounded-full font-semibold">🟡 Mercado Livre</span>
                 </div>
 
@@ -941,7 +941,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
             {/* Footer do preview do celular */}
             <div className="py-2 bg-[#0B1020]/50 border-t border-white/5 text-center flex flex-col items-center">
-              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine Link Oferta</span>
+              <span className="text-[7.5px] font-extrabold text-slate-400">Vitrine Link Oferta</span>
             </div>
           </div>
         </div>
