@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthService } from './services/AuthService';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
 import Offers from './pages/Offers';
 import NewOfferPage from './pages/NewOfferPage';
@@ -260,10 +264,11 @@ const App: React.FC = () => {
           <Route path="/u/:username" element={<PublicPage />} />
 
           {/* Auth */}
-          <Route
-            path="/login"
-            element={<Login onLogin={() => {}} />}
-          />
+          <Route path="/login" element={<Login onLogin={() => {}} />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
+          <Route path="/reset" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
