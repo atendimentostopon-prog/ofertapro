@@ -1,5 +1,6 @@
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
+import { APP_NAME } from '../config/app';
 
 interface DiscordEmbed {
   title: string;
@@ -31,7 +32,7 @@ export const sender = {
       url: trackingLink,
       color: 0x4f46e5, // Indigo 600
       footer: {
-        text: 'Link Oferta • Enviado via Painel',
+        text: `${APP_NAME} • Enviado via Painel`,
       },
       timestamp: new Date().toISOString()
     };

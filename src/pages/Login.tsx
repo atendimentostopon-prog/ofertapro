@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
+import { APP_NAME } from '../config/app';
 
 interface LoginProps {
   onLogin: () => void;
@@ -224,7 +225,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <Zap className="w-4.5 h-4.5 text-white" fill="white" />
               </div>
               <div>
-                <span className="text-sm font-bold text-white tracking-tight leading-none block">Link Oferta</span>
+                <span className="text-sm font-bold text-white tracking-tight leading-none block">{APP_NAME}</span>
                 <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-widest mt-0.5">Plataforma de Afiliados</p>
               </div>
             </div>
@@ -472,7 +473,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />)}
                 </div>
                 <p className="text-[10px] text-slate-500">
-                  <span className="font-semibold text-slate-400">+2.400 afiliados</span> confiam no Link Oferta
+                  <span className="font-semibold text-slate-400">+2.400 afiliados</span> confiam no {APP_NAME}
                 </p>
               </div>
             </div>

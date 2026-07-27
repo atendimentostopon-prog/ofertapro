@@ -10,6 +10,7 @@ import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { Channel } from '../../types';
 import { getChannelLogo, getChannelLogoSrc } from '../../lib/logos';
+import { APP_NAME } from '../../config/app';
 
 const ApiIntegrationsTab: React.FC = () => {
   const { toast } = useToast();
@@ -151,7 +152,7 @@ const ApiIntegrationsTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] leading-relaxed max-w-xl">
-                Crie e configure chaves de API exclusivas para conectar o Link Oferta com robôs externos, Make, Zapier ou sistemas automatizados de afiliados.
+                Crie e configure chaves de API exclusivas para conectar o {APP_NAME} com robôs externos, Make, Zapier ou sistemas automatizados de afiliados.
               </p>
             </div>
           </div>
@@ -431,7 +432,7 @@ const ApiIntegrationsTab: React.FC = () => {
               <span className="font-mono font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10">POST /offers</span>
             </div>
             <p className="text-[11px] text-[#94A3B8] leading-relaxed">
-              Adiciona uma oferta na sua vitrine do Link Oferta via automação.
+              Adiciona uma oferta na sua vitrine do {APP_NAME} via automação.
             </p>
             <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8]">
               <span className="text-slate-500"># Exemplo de chamada cURL</span><br />

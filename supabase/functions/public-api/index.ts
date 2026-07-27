@@ -1077,7 +1077,7 @@ serve(async (req) => {
               url: purchaseUrl,
               color: 0x4f46e5,
               description: renderedMessage,
-              footer: { text: 'Link Oferta • Enviado via API' },
+              footer: { text: 'DisparoFlow • Enviado via API' },
               timestamp: new Date().toISOString()
             }
  

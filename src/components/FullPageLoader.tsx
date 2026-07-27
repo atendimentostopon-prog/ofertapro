@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { APP_NAME } from '../config/app';
 
 interface FullPageLoaderProps {
   message?: string;
@@ -60,7 +61,7 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
             <Zap className="w-6 h-6 text-white fill-white" />
           </div>
           <div>
-            <span className="text-base font-bold text-white tracking-tight">Link Oferta</span>
+            <span className="text-base font-bold text-white tracking-tight">{APP_NAME}</span>
           </div>
         </div>
 

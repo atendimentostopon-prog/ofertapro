@@ -16,6 +16,7 @@ import { LoadingState } from '../components/ui/LoadingState';
 import ProductImage from '../components/shared/ProductImage';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { useToast } from '../context/ToastContext';
+import { APP_NAME } from '../config/app';
 
 const marketplaceList: { value: Marketplace | 'all'; label: string; logoValue: string }[] = [
   { value: 'all', label: 'Todas', logoValue: '' },
@@ -271,7 +272,7 @@ const PublicPage: React.FC = () => {
   useEffect(() => {
     if (profile) {
       const displayName = profile.public_display_name || profile.full_name || 'Usuário';
-      document.title = `${displayName} | Vitrine Link Oferta`;
+      document.title = `${displayName} | Vitrine ${APP_NAME}`;
       
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
@@ -279,7 +280,7 @@ const PublicPage: React.FC = () => {
         metaDesc.setAttribute('name', 'description');
         document.head.appendChild(metaDesc);
       }
-      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no Link Oferta.`);
+      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no ${APP_NAME}.`);
     }
   }, [profile]);
 
@@ -676,7 +677,7 @@ const PublicPage: React.FC = () => {
             <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
               Powered by 
               <a href="/login" className="text-indigo-400 hover:text-indigo-300 hover:underline">
-                Link Oferta
+                {APP_NAME}
               </a>
             </span>
           </div>

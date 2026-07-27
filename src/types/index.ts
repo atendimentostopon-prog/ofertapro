@@ -1,5 +1,5 @@
 // ===========================
-// TYPES DO LINK OFERTA
+// TYPES DO DISPAROFLOW
 // ===========================
 
 export type Marketplace = 'mercadolivre' | 'shopee' | 'amazon' | 'magalu' | 'aliexpress' | 'kabum';
