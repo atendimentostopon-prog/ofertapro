@@ -46,7 +46,7 @@ const Field: React.FC<{
   children: React.ReactNode;
 }> = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="text-sm font-medium text-slate-350">{label}</label>
+    <label className="text-sm font-medium text-slate-400">{label}</label>
     {children}
     {hint && <p className="text-xs text-slate-500">{hint}</p>}
   </div>
@@ -257,7 +257,7 @@ const Settings: React.FC = () => {
       // Buscar templates dinâmicos
       loadTemplates();
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Validar e Formatar URLs de grupos sociais
   const formatAndValidateLink = (url: string, type: 'whatsapp' | 'telegram' | 'discord'): { valid: boolean; normalized: string } => {
@@ -754,7 +754,7 @@ const Settings: React.FC = () => {
                 >
                   {uploadingPublicAvatar ? (
                     <div className="w-full h-full flex items-center justify-center bg-slate-900/80">
-                      <Loader2 className="w-6 h-6 text-indigo-450 animate-spin" />
+                      <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
                     </div>
                   ) : (
                     <Avatar
@@ -947,7 +947,7 @@ const Settings: React.FC = () => {
 
             {/* Documentação na UI */}
             <div className="p-4 bg-[#0B1020]/45 rounded-2xl border border-white/5 space-y-2 mb-2">
-              <p className="text-[11.5px] text-slate-350 font-medium leading-relaxed">
+              <p className="text-[11.5px] text-slate-400 font-medium leading-relaxed">
                 ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{cupom_linha}`}</code>.
               </p>
               <p className="text-[11.5px] text-indigo-400 font-medium">
@@ -1044,7 +1044,7 @@ const Settings: React.FC = () => {
 
                 {/* Botões de Formatação Rápida */}
                 <div>
-                  <p className="text-xs font-bold text-slate-350 mb-2">Formatação Rápida:</p>
+                  <p className="text-xs font-bold text-slate-400 mb-2">Formatação Rápida:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { id: 'bold', label: 'Negrito 🌟', title: 'Negrito (**texto**)' },
@@ -1069,7 +1069,7 @@ const Settings: React.FC = () => {
 
                 {/* Variáveis dinâmicas para clicar */}
                 <div>
-                  <p className="text-xs font-bold text-slate-350 mb-2">Variáveis Disponíveis:</p>
+                  <p className="text-xs font-bold text-slate-400 mb-2">Variáveis Disponíveis:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {TemplateService.listAvailableVariables().map(v => (
                       <button
@@ -1209,7 +1209,7 @@ const Settings: React.FC = () => {
         <div className="space-y-6">
           <SettingsSection title="Planos & Cobrança" description="Status do seu plano de faturamento no Link Oferta" icon={CreditCard}>
             <div className="p-6 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-450 flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-400 flex-shrink-0">
                 <Sparkles className="w-5 h-5 animate-pulse" />
               </div>
               <div className="space-y-1.5 font-medium">
@@ -1245,7 +1245,7 @@ const Settings: React.FC = () => {
                 }`}>
                   {uploadingAvatar ? (
                     <div className="w-full h-full flex items-center justify-center bg-slate-900/80">
-                      <Loader2 className="w-4 h-4 text-indigo-450 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
                     </div>
                   ) : (
                     <Avatar
@@ -1324,7 +1324,7 @@ const Settings: React.FC = () => {
                     window.location.href = '/login';
                   }
                 }}
-                className="btn-secondary hover:bg-rose-950/20 hover:text-rose-450 hover:border-rose-900/50 transition-colors text-xs px-4 py-2 flex items-center gap-2"
+                className="btn-secondary hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/50 transition-colors text-xs px-4 py-2 flex items-center gap-2"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sair da Conta

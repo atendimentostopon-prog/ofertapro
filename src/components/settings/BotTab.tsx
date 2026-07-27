@@ -32,7 +32,7 @@ const Field: React.FC<{
   children: React.ReactNode;
 }> = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="text-sm font-medium text-slate-350">{label}</label>
+    <label className="text-sm font-medium text-slate-400">{label}</label>
     {children}
     {hint && <p className="text-xs text-slate-500">{hint}</p>}
   </div>
@@ -135,7 +135,7 @@ export const BotTab: React.FC = () => {
       setLoading(false);
     };
     init();
-  }, [user]);
+  }, [user?.id]);
 
   // Função geral para polling de requisições
   const pollRequest = (
@@ -628,7 +628,7 @@ export const BotTab: React.FC = () => {
                 {loginStep === 1 && (
                   <form onSubmit={handleStartLogin} className="space-y-4 max-w-md mx-auto">
                     <div className="p-3 bg-[#0B1020]/55 border border-white/5 rounded-xl space-y-1.5 mb-2">
-                      <p className="text-[11px] text-slate-350 leading-relaxed font-medium">
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
                         ℹ️ <strong>Como obter API ID e API Hash:</strong>
                         <br />
                         Acesse <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline hover:text-indigo-350">my.telegram.org</a>, faça login com seu telefone, vá em "API development tools" e crie uma aplicação para copiar suas credenciais de desenvolvedor.
@@ -691,7 +691,7 @@ export const BotTab: React.FC = () => {
                 {/* ETAPA 2: CÓDIGO DE VERIFICAÇÃO */}
                 {loginStep === 2 && (
                   <form onSubmit={handleVerifyCode} className="space-y-4 max-w-sm mx-auto text-center">
-                    <p className="text-xs text-slate-350 font-medium">
+                    <p className="text-xs text-slate-400 font-medium">
                       Digite o código de 5 dígitos enviado pelo Telegram no aplicativo:
                     </p>
 
@@ -754,7 +754,7 @@ export const BotTab: React.FC = () => {
                 <div>
                   <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                      <Bot className="w-4.5 h-4.5 text-indigo-450" size={18} />
+                      <Bot className="w-4.5 h-4.5 text-indigo-400" size={18} />
                     </div>
                     <div>
                       <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Grupos de Origem</h3>
@@ -777,7 +777,7 @@ export const BotTab: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => removeGroupLocally(group)}
-                              className="text-slate-400 hover:text-rose-450 p-1 hover:bg-rose-950/15 rounded-lg transition-colors cursor-pointer"
+                              className="text-slate-400 hover:text-rose-400 p-1 hover:bg-rose-950/15 rounded-lg transition-colors cursor-pointer"
                               title="Remover"
                             >
                               <X className="w-4 h-4" />
@@ -830,7 +830,7 @@ export const BotTab: React.FC = () => {
                 <div>
                   <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                      <Bot className="w-4.5 h-4.5 text-indigo-450" size={18} />
+                      <Bot className="w-4.5 h-4.5 text-indigo-400" size={18} />
                     </div>
                     <div>
                       <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Canais de Destino</h3>
@@ -841,7 +841,7 @@ export const BotTab: React.FC = () => {
                   <div className="p-6 space-y-4">
                     {channelsLoading ? (
                       <div className="flex justify-center py-6">
-                        <Loader2 className="w-6 h-6 text-indigo-450 animate-spin" />
+                        <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
                       </div>
                     ) : channels.length === 0 ? (
                       <div className="space-y-2 py-4">

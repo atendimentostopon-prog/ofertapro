@@ -66,7 +66,7 @@ const ApiIntegrationsTab: React.FC = () => {
   useEffect(() => {
     loadKeys();
     loadIntegrationChannels();
-  }, [user]);
+  }, [user?.id]);
 
   const handleGenerateKey = async () => {
     setActionLoading(true);
@@ -500,7 +500,7 @@ const ApiIntegrationsTab: React.FC = () => {
         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
         <div className="space-y-1 font-medium text-xs leading-relaxed">
           <p className="font-bold">Avisos e Boas Práticas de Segurança</p>
-          <ul className="list-disc pl-4 space-y-1 text-slate-350">
+          <ul className="list-disc pl-4 space-y-1 text-slate-400">
             <li><strong>Nunca compartilhe sua API Key</strong> com terceiros ou publique em locais visíveis (como GitHub público). Ela concede privilégios de escrita para cadastrar ofertas na sua vitrine.</li>
             <li>Se suspeitar de qualquer vazamento de credencial, clique em <strong>Regenerar API Key</strong> imediatamente para invalidar a chave anterior e gerar uma nova credencial.</li>
             <li>Para requisições externas, passe a chave sempre no cabeçalho HTTPS da chamada (`Authorization: Bearer lof_live_...`).</li>
