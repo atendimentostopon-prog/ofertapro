@@ -4,6 +4,7 @@ import { ChannelType } from '../../types';
 import { evolution } from '../../lib/evolution';
 import { supabase } from '../../lib/supabase';
 import { validateTelegramBot } from '../../lib/telegram';
+import { useToast } from '../../context/ToastContext';
 
 interface ConnectChannelModalProps {
   type: ChannelType;
@@ -12,6 +13,7 @@ interface ConnectChannelModalProps {
 }
 
 const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose, onConnect }) => {
+  const { toast } = useToast();
   const [step, setStep] = useState<'form' | 'connecting' | 'connected' | 'qrcode'>('form');
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');    // Webhook URL (Discord) / Chat ID (Telegram)
@@ -37,7 +39,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
    */
   const startWhatsAppFlow = async () => {
     if (!name) {
-      alert('Dê um nome para o canal primeiro.');
+      toast('Dê um nome para o canal primeiro.', 'warning');
       return;
     }
 
@@ -64,7 +66,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
       }
     } catch (err) {
       console.error('Erro no fluxo WhatsApp:', err);
-      alert('Erro ao conectar com a API de WhatsApp.');
+      toast('Erro ao conectar com a API de WhatsApp.', 'error');
     } finally {
       setLoading(false);
     }

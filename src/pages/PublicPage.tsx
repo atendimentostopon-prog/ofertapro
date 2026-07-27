@@ -15,6 +15,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingState } from '../components/ui/LoadingState';
 import ProductImage from '../components/shared/ProductImage';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
+import { useToast } from '../context/ToastContext';
 
 const marketplaceList: { value: Marketplace | 'all'; label: string; logoValue: string }[] = [
   { value: 'all', label: 'Todas', logoValue: '' },
@@ -199,6 +200,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
 
 const PublicPage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedMarketplace, setSelectedMarketplace] = useState<Marketplace | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -292,7 +294,7 @@ const PublicPage: React.FC = () => {
         });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert('Link da vitrine copiado!');
+        toast('Link da vitrine copiado!', 'success');
       }
     } catch (err) {
       console.error('Erro ao compartilhar', err);

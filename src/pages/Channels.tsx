@@ -395,7 +395,7 @@ const Channels: React.FC = () => {
       toast('Canal removido!', 'success');
     } catch (err) {
       console.error('Erro ao remover canal:', err);
-      alert('Erro ao remover canal. Tente novamente.');
+      toast('Erro ao remover canal. Tente novamente.', 'error');
     }
   };
 
@@ -412,7 +412,7 @@ const Channels: React.FC = () => {
       toast('Status do canal alterado!', 'success');
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
-      alert('Erro ao atualizar status.');
+      toast('Erro ao atualizar status.', 'error');
     }
   };
 
@@ -496,7 +496,7 @@ const Channels: React.FC = () => {
       await loadInstances();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao criar instância.');
+      toast(err.message || 'Erro ao criar instância.', 'error');
     } finally {
       setCreatingInstance(false);
     }
@@ -567,7 +567,7 @@ const Channels: React.FC = () => {
 
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao sincronizar grupos.');
+      toast(err.message || 'Erro ao sincronizar grupos.', 'error');
     } finally {
       setSyncingInstanceId(null);
     }
@@ -627,7 +627,7 @@ const Channels: React.FC = () => {
       await loadChannels();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao salvar canais.');
+      toast(err.message || 'Erro ao salvar canais.', 'error');
     } finally {
       setSavingGroups(false);
     }
@@ -660,7 +660,7 @@ const Channels: React.FC = () => {
       await loadChannels();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao desconectar.');
+      toast(err.message || 'Erro ao desconectar.', 'error');
     }
   };
 
@@ -978,7 +978,7 @@ const Channels: React.FC = () => {
               onConnect={() => {
                 if (type === 'whatsapp') {
                   if (instances.length >= 3) {
-                    alert('Você atingiu o limite de 3 instâncias WhatsApp.');
+                    toast('Você atingiu o limite de 3 instâncias WhatsApp.', 'warning');
                     return;
                   }
                   setShowConnectWhatsappModal(true);
@@ -986,7 +986,7 @@ const Channels: React.FC = () => {
                 }
                 const limits = getPlanLimits(user?.plan);
                 if (FEATURES.billing && connectedChannels.length >= limits.maxChannels) {
-                  alert(`Você atingiu o limite de canais conectados do seu plano (${limits.maxChannels} canal). Faça upgrade nas configurações.`);
+                  toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxChannels} canal). Faça upgrade nas configurações.`, 'warning');
                   return;
                 }
                 setConnectModal(type);

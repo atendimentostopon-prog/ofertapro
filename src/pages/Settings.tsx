@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import { compressImage, uploadAvatarImage } from '../lib/image-utils';
 import { FEATURES } from '../config/features';
 import { FeedbackService } from '../services/FeedbackService';
@@ -74,6 +75,7 @@ const Toggle: React.FC<{ label: string; description?: string; defaultChecked?: b
 
 const Settings: React.FC = () => {
   const { user, refreshProfile } = useUser();
+  const { toast } = useToast();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -189,7 +191,7 @@ const Settings: React.FC = () => {
     ) || TemplateService.getDefaultTemplate(currentEditingTemplateTab);
     const validation = TemplateService.validateTemplate(currentTemplate);
     if (!validation.valid) {
-      alert(`Erro no template de ${currentEditingTemplateTab}: ${validation.error}`);
+      toast(`Erro no template de ${currentEditingTemplateTab}: ${validation.error}`, 'error');
       return;
     }
     setSavingTemplates(true);
@@ -206,7 +208,7 @@ const Settings: React.FC = () => {
       setTimeout(() => setTemplatesSaved(false), 2500);
     } catch (err: any) {
       console.error('Erro ao salvar template:', err);
-      alert(`Erro ao salvar template: ${err.message || 'Tente novamente.'}`);
+      toast(`Erro ao salvar template: ${err.message || 'Tente novamente.'}`, 'error');
     } finally {
       clearTimeout(safetyTimer);
       setSavingTemplates(false);
@@ -298,7 +300,7 @@ const Settings: React.FC = () => {
       setAvatarUrl(publicUrl);
     } catch (err: any) {
       console.error('Erro no upload do avatar:', err);
-      alert('Erro ao carregar avatar. Tente novamente.');
+      toast('Erro ao carregar avatar. Tente novamente.', 'error');
     } finally {
       setUploadingAvatar(false);
     }
@@ -319,7 +321,7 @@ const Settings: React.FC = () => {
       setPublicAvatarUrl(uploadedUrl);
     } catch (err: any) {
       console.error('Erro no upload da foto pública:', err);
-      alert('Erro ao carregar foto pública. Tente novamente.');
+      toast('Erro ao carregar foto pública. Tente novamente.', 'error');
     } finally {
       setUploadingPublicAvatar(false);
     }
@@ -329,20 +331,20 @@ const Settings: React.FC = () => {
     if (!user) return;
 
     if (!fullName.trim()) {
-      alert('Nome da Conta é obrigatório.');
+      toast('Nome da Conta é obrigatório.', 'warning');
       return;
     }
     if (!publicName.trim()) {
-      alert('Nome Público da Vitrine é obrigatório.');
+      toast('Nome Público da Vitrine é obrigatório.', 'warning');
       return;
     }
     if (!username.trim() || username.length < 3) {
-      alert('Slug da vitrine é obrigatório e deve ter pelo menos 3 caracteres.');
+      toast('Slug da vitrine é obrigatório e deve ter pelo menos 3 caracteres.', 'warning');
       return;
     }
     const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
     if (cleanUsername !== username) {
-      alert('Slug inválido. Não use espaços ou caracteres especiais.');
+      toast('Slug inválido. Não use espaços ou caracteres especiais.', 'error');
       return;
     }
 
@@ -356,7 +358,7 @@ const Settings: React.FC = () => {
     setDiscordError(!discVal.valid);
 
     if (!wppVal.valid || !telVal.valid || !discVal.valid) {
-      alert('Por favor, corrija os links inválidos das redes sociais destacados.');
+      toast('Por favor, corrija os links inválidos das redes sociais destacados.', 'warning');
       return;
     }
 
@@ -372,7 +374,7 @@ const Settings: React.FC = () => {
 
         if (checkError) throw checkError;
         if (existingUser) {
-          alert('Este slug já está em uso por outro usuário. Escolha outro.');
+          toast('Este slug já está em uso por outro usuário. Escolha outro.', 'warning');
           setSaving(false);
           return;
         }
@@ -419,7 +421,7 @@ const Settings: React.FC = () => {
       setTimeout(() => setSaved(false), 2000);
     } catch (err: any) {
       console.error('Erro ao salvar configurações:', err);
-      alert(`Erro: ${err.message || 'Falha ao salvar configurações.'}`);
+      toast(`Erro: ${err.message || 'Falha ao salvar configurações.'}`, 'error');
     } finally {
       setSaving(false);
     }
@@ -446,10 +448,10 @@ const Settings: React.FC = () => {
       await refreshProfile();
       loadUsageStats();
       
-      alert(`Parabéns! Sua conta foi atualizada para o plano ${targetPlan.toUpperCase()} com sucesso! 🚀`);
+      toast(`Parabéns! Sua conta foi atualizada para o plano ${targetPlan.toUpperCase()} com sucesso! 🚀`, 'success');
     } catch (err: any) {
       console.error('Erro ao atualizar plano:', err);
-      alert('Erro ao atualizar plano.');
+      toast('Erro ao atualizar plano.', 'error');
     } finally {
       setUpdatingPlan(null);
     }
@@ -505,7 +507,7 @@ const Settings: React.FC = () => {
       if (error) throw error;
 
       if (!channels || channels.length === 0) {
-        alert(`Você não possui nenhum canal de ${currentEditingTemplateTab === 'telegram' ? 'Telegram' : currentEditingTemplateTab === 'discord' ? 'Discord' : 'WhatsApp'} conectado e ativo. Conecte um canal para realizar o disparo de teste.`);
+        toast(`Você não possui nenhum canal de ${currentEditingTemplateTab === 'telegram' ? 'Telegram' : currentEditingTemplateTab === 'discord' ? 'Discord' : 'WhatsApp'} conectado e ativo. Conecte um canal para realizar o disparo de teste.`, 'warning');
         setTestingTemplate(false);
         return;
       }
@@ -613,10 +615,10 @@ const Settings: React.FC = () => {
         }
       }
 
-      alert(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`);
+      toast(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`, 'success');
     } catch (err: any) {
       console.error('[TEST_TEMPLATE_ERROR_DEBUG]:', err);
-      alert("Não foi possível enviar o teste. Verifique os dados do template e tente novamente.");
+      toast("Não foi possível enviar o teste. Verifique os dados do template e tente novamente.", 'error');
     } finally {
       setTestingTemplate(false);
     }

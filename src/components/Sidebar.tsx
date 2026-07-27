@@ -5,6 +5,7 @@ import {
   ChevronRight, Zap, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
 import { Avatar } from './ui/Avatar';
 
@@ -25,6 +26,7 @@ const navItems = [
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
+  const { toast } = useToast();
 
   if (!user) return null;
 
@@ -103,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           onClick={() => {
             handleLinkClick();
             if (!user.username || user.username.includes('_temp') || !user.public_page_created) {
-              alert('Por favor, conclua a configuração da sua página pública.');
+              toast('Por favor, conclua a configuração da sua página pública.', 'warning');
               return;
             }
             window.open(`/u/${user.username}`, '_blank');

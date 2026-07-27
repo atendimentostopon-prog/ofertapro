@@ -107,7 +107,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
   const handleCloseClick = () => {
     if (progressStep === 'saving' || progressStep === 'sending') {
-      alert('O disparo de ofertas está em andamento. Aguarde a conclusão do processo para fechar.');
+      toast('O disparo de ofertas está em andamento. Aguarde a conclusão do processo para fechar.', 'warning');
       return;
     }
     onClose();
