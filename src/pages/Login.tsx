@@ -28,6 +28,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   }, [user, profileLoading, navigate]);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   // States para LGPD
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -49,9 +50,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const metCount = criteriaList.filter(c => c.met).length;
   const isPasswordValid = metCount === 4;
 
-  // Força da senha para a barra visual
   const getPasswordStrength = () => {
-    if (password.length === 0) return { label: '', width: '0%', colorClass: 'bg-slate-700', textClass: 'text-slate-500' };
+    let metCount = 0;
+    if (password.length >= 8) metCount++;
+    if (/[A-Z]/.test(password)) metCount++;
+    if (/[a-z]/.test(password)) metCount++;
+    if (/[0-9]/.test(password)) metCount++;
+    if (/[^A-Za-z0-9]/.test(password)) metCount++;
+
+    if (password.length === 0) return { label: 'Inexistente', width: '0%', colorClass: 'bg-zinc-800', textClass: 'text-zinc-500' };
     if (metCount <= 1) return { label: 'Fraca', width: '25%', colorClass: 'bg-red-500', textClass: 'text-red-400' };
     if (metCount <= 2) return { label: 'Razoável', width: '50%', colorClass: 'bg-amber-500', textClass: 'text-amber-400' };
     if (metCount <= 3) return { label: 'Boa', width: '75%', colorClass: 'bg-blue-500', textClass: 'text-blue-400' };
@@ -64,6 +71,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setInfoMessage(null);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
 
     // Validações de segurança antes de prosseguir
     if (isRegistering) {
@@ -82,46 +93,31 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       if (isRegistering) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
           options: {
             data: {
-              full_name: name,
+              full_name: name.trim(),
+              terms_accepted: true,
+              privacy_accepted: true,
+              cookies_accepted: acceptCookies,
+              terms_accepted_at: new Date().toISOString()
             }
           }
         });
         
         if (signUpError) throw signUpError;
-        
-        if (signUpData.user) {
-          const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '') + Math.floor(Math.random() * 1000);
-          
-          const { error: profileError } = await supabase.from('profiles').upsert({
-            id: signUpData.user.id,
-            full_name: name,
-            username: username,
-            avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-            plan: 'free',
-            created_at: new Date().toISOString(),
-            terms_accepted: true,
-            privacy_accepted: true,
-            cookies_accepted: acceptCookies,
-            terms_accepted_at: new Date().toISOString()
-          });
-
-          if (profileError) console.error('Erro ao criar perfil:', profileError);
-        }
 
         if (!signUpData.session) {
-          setError("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+          setInfoMessage("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.");
           setLoading(false);
           return;
         }
 
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
         });
         
         if (signInError) throw signInError;
@@ -258,6 +254,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <div className="mb-5 p-3 bg-red-500/6 border border-red-500/12 rounded-lg flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
               <p className="text-xs text-red-300/90 font-medium leading-relaxed">{error}</p>
+            </div>
+          )}
+
+          {/* Info/Success Message */}
+          {infoMessage && (
+            <div className="mb-5 p-3 bg-emerald-500/6 border border-emerald-500/12 rounded-lg flex items-start gap-2.5">
+              <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+              <p className="text-xs text-emerald-300/90 font-medium leading-relaxed">{infoMessage}</p>
             </div>
           )}
 
