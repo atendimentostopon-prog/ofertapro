@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   User as UserIcon, Link2, MessageSquare, Save, Check, Loader2,
   Globe, Shield, CreditCard, Bot,
@@ -27,10 +28,31 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
 
 const SAVE_BUTTON_TABS: TabId[] = ['account', 'profile', 'links'];
 
+const isValidTab = (value: string | null): value is TabId =>
+  !!value && TABS.some(t => t.id === value);
+
 const Settings: React.FC = () => {
   const { user } = useUser();
   const profile = useSettingsProfile();
-  const [activeTab, setActiveTab] = useState<TabId>('account');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab: TabId = isValidTab(searchParams.get('tab')) ? (searchParams.get('tab') as TabId) : 'account';
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+
+  useEffect(() => {
+    const paramTab = searchParams.get('tab');
+    if (isValidTab(paramTab) && paramTab !== activeTab) {
+      setActiveTab(paramTab as TabId);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    if (searchParams.get('tab')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('tab');
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   if (!user) return null;
 
@@ -67,7 +89,7 @@ const Settings: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`tab-item flex items-center gap-2 font-bold text-xs flex-shrink-0 ${
                   activeTab === tab.id ? 'active' : ''
                 }`}
@@ -84,7 +106,7 @@ const Settings: React.FC = () => {
       {activeTab === 'profile' && <PublicPageTab profile={profile} />}
       {activeTab === 'links' && <LinksTab profile={profile} />}
       {activeTab === 'templates' && (
-        <TemplatesTab onUpgradeClick={() => setActiveTab('billing')} />
+        <TemplatesTab onUpgradeClick={() => handleTabChange('billing')} />
       )}
       {activeTab === 'integrations' && <ApiIntegrationsTab />}
       {activeTab === 'bot' && <BotTab />}
