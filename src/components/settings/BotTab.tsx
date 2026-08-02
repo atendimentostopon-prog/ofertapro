@@ -12,6 +12,7 @@ import { getChannelLogo } from '../../lib/logos';
 import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Modal } from '../ui/Modal';
 
 interface BotConfig {
   user_id: string;
@@ -102,6 +103,9 @@ export const BotTab: React.FC = () => {
   const [savingGroups, setSavingGroups] = useState(false);
   const [savingChannels, setSavingChannels] = useState(false);
   const [savingConfigAdicionais, setSavingConfigAdicionais] = useState(false);
+
+  // Modal de confirmação
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
   const loadConfig = async () => {
     if (!user) return;
@@ -311,9 +315,7 @@ export const BotTab: React.FC = () => {
 
   const handleDisconnectBot = async () => {
     if (!user) return;
-    if (!window.confirm('Tem certeza de que deseja desconectar o bot do Telegram? Ele parará de monitorar seus canais imediatamente.')) {
-      return;
-    }
+    setConfirmDisconnect(false);
 
     setProcessingMessage('Desconectando bot...');
     setErrorMessage('');
@@ -522,7 +524,7 @@ export const BotTab: React.FC = () => {
               icon={Bot}
               footer={
                 <div className="flex justify-end">
-                  <Button variant="danger" size="sm" onClick={handleDisconnectBot}>
+                  <Button variant="danger" size="sm" onClick={() => setConfirmDisconnect(true)}>
                     Desconectar Bot
                   </Button>
                 </div>
@@ -877,6 +879,28 @@ export const BotTab: React.FC = () => {
           )}
         </>
       )}
+
+      <Modal
+        open={confirmDisconnect}
+        onClose={() => setConfirmDisconnect(false)}
+        title="Desconectar bot"
+        description="Confirme que deseja encerrar a sessão do Telegram."
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDisconnect(false)}>
+              Cancelar
+            </Button>
+            <Button variant="danger" size="sm" onClick={handleDisconnectBot}>
+              Desconectar
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-300 leading-relaxed">
+          Tem certeza de que deseja desconectar o bot do Telegram? Ele parará de monitorar seus grupos imediatamente.
+        </p>
+      </Modal>
     </div>
   );
 };
