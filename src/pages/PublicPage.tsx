@@ -53,7 +53,7 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   return (
     <Card 
       variant="default" 
-      className="overflow-hidden group flex flex-col h-full bg-[#0d1527]/40 backdrop-blur-md border border-white/[0.04] hover:border-white/[0.12] hover:-translate-y-1.5 transition-all duration-300 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-indigo-500/5 cursor-pointer"
+      className="overflow-hidden group flex flex-col h-full bg-surface-1/40 backdrop-blur-md border border-white/[0.04] hover:border-white/[0.12] hover:-translate-y-1.5 transition-all duration-300 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-indigo-500/5 cursor-pointer"
     >
       {/* Image container */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950/80 flex-shrink-0 border-b border-white/[0.04]">
@@ -141,7 +141,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   return (
     <Card 
       variant="default" 
-      className="p-4 flex items-center gap-4 bg-[#0d1527]/40 backdrop-blur-md border border-white/[0.04] hover:border-white/[0.1] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl cursor-pointer"
+      className="p-4 flex items-center gap-4 bg-surface-1/40 backdrop-blur-md border border-white/[0.04] hover:border-white/[0.1] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl cursor-pointer"
     >
       <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950/80 flex-shrink-0 border border-white/[0.06]">
         <ProductImage
@@ -304,9 +304,9 @@ const PublicPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#070A12] text-[#F8FAFC]">
-        <div className="h-[72px] bg-[#070A12]/80 backdrop-blur-md border-b border-white/[0.06]" />
-        <div className="h-64 bg-[#0B1020] animate-pulse" />
+      <div className="min-h-screen bg-surface-0 text-slate-100">
+        <div className="h-[72px] bg-surface-0/80 backdrop-blur-md border-b border-white/[0.06]" />
+        <div className="h-64 bg-surface-1 animate-pulse" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 relative z-10">
           <div className="flex items-start gap-5">
             <div className="w-20 h-20 rounded-full bg-white/10 border border-white/10 backdrop-blur-md animate-pulse" />
@@ -325,15 +325,15 @@ const PublicPage: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#070A12] text-[#F8FAFC] flex flex-col items-center justify-center p-4 text-center">
+      <div className="min-h-screen bg-surface-0 text-slate-100 flex flex-col items-center justify-center p-4 text-center">
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-[#7C3AED]/10 blur-3xl rounded-full" />
-          <div className="relative w-24 h-24 bg-[#101827] rounded-3xl shadow-xl flex items-center justify-center border border-white/[0.06]">
-            <Search className="w-10 h-10 text-[#64748B]" />
+          <div className="relative w-24 h-24 bg-surface-2 rounded-3xl shadow-xl flex items-center justify-center border border-white/[0.06]">
+            <Search className="w-10 h-10 text-slate-500" />
           </div>
         </div>
         <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Página não encontrada</h1>
-        <p className="text-[#94A3B8] mb-8 max-w-sm mx-auto leading-relaxed">
+        <p className="text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed">
           O canal <span className="font-bold text-white">@{username}</span> não possui uma vitrine pública ativa no momento.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -378,7 +378,7 @@ const PublicPage: React.FC = () => {
     },
     dark: {
       banner: 'bg-gradient-to-r from-[#030712] via-[#111827] to-[#1f2937]',
-      primaryBtn: 'bg-white/10 hover:bg-white/15 text-[#F8FAFC] border border-white/10',
+      primaryBtn: 'bg-white/10 hover:bg-white/15 text-slate-100 border border-white/10',
       accentText: 'text-purple-400',
       accentBg: 'bg-purple-500/10',
       accentBorder: 'border-purple-500/20',
@@ -400,13 +400,13 @@ const PublicPage: React.FC = () => {
   const availableCategories = ['Todos', ...Array.from(categoriesSet)];
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-[#F8FAFC] font-sans antialiased selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-surface-0 text-slate-100 font-sans antialiased selection:bg-indigo-500/30">
       
       {/* Top Banner Cover Area */}
       <div className={`relative h-44 sm:h-56 md:h-64 ${currentTheme.banner} overflow-hidden w-full transition-all duration-500`}>
         {/* Decorative elements */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:14px_24px] mix-blend-overlay" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070A12] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent" />
         
         {/* Support cover_url if it ever gets added */}
         {profile.public_cover_url && (
@@ -424,7 +424,7 @@ const PublicPage: React.FC = () => {
           
           {/* Circular Overlapping Avatar */}
           <div className="relative group">
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-[4px] border-[#070A12] shadow-2xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center flex-shrink-0">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-[4px] border-surface-0 shadow-2xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center flex-shrink-0">
               {(profile.public_avatar_url || profile.avatar_url) ? (
                 <img 
                   src={profile.public_avatar_url || profile.avatar_url} 
@@ -449,7 +449,7 @@ const PublicPage: React.FC = () => {
             </div>
             
             {/* Verified Badge Icon overlay */}
-            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-indigo-600 border-[3px] border-[#070A12] rounded-full p-1.5 sm:p-2 shadow-lg">
+            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-indigo-600 border-[3px] border-surface-0 rounded-full p-1.5 sm:p-2 shadow-lg">
               <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           </div>
@@ -525,7 +525,7 @@ const PublicPage: React.FC = () => {
       </div>
 
       {/* Marketplace Selector Tabs (Sticky Header) */}
-      <div className="bg-[#070A12]/80 backdrop-blur-xl border-b border-white/[0.04] sticky top-0 z-30 py-3.5">
+      <div className="bg-surface-0/80 backdrop-blur-xl border-b border-white/[0.04] sticky top-0 z-30 py-3.5">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="tab-container max-w-max flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
             {marketplaceList.map(mp => {
@@ -550,7 +550,7 @@ const PublicPage: React.FC = () => {
                   )}
                   {mp.label}
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ml-1 transition-all ${
-                    selectedMarketplace === mp.value ? 'bg-indigo-500/20 text-[#a5b4fc]' : 'bg-white/5 text-slate-500'
+                    selectedMarketplace === mp.value ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-slate-500'
                   }`}>
                     {count}
                   </span>
@@ -565,7 +565,7 @@ const PublicPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         
         {/* Filters and Search Row */}
-        <div className="flex flex-col md:flex-row items-center gap-4 bg-[#0d1527]/20 border border-white/[0.03] p-4 rounded-2xl">
+        <div className="flex flex-col md:flex-row items-center gap-4 bg-surface-1/20 border border-white/[0.03] p-4 rounded-2xl">
           
           {/* Search bar */}
           <div className="relative flex-1 w-full">
@@ -575,7 +575,7 @@ const PublicPage: React.FC = () => {
               placeholder="Buscar ofertas pelo nome..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input-modern pl-10 h-11 w-full bg-[#070a12]/60 hover:bg-[#070a12]/80 focus:bg-[#070a12] border-white/[0.06] focus:border-indigo-500/50"
+              className="input-modern pl-10 h-11 w-full bg-surface-0/60 hover:bg-surface-0/80 focus:bg-surface-0 border-white/[0.06] focus:border-indigo-500/50"
             />
           </div>
 
@@ -590,7 +590,7 @@ const PublicPage: React.FC = () => {
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-extrabold transition-all border cursor-pointer ${
                     selectedCategory === cat
                       ? `${currentTheme.tagActive}`
-                      : `bg-[#070a12]/40 border-white/[0.04] text-slate-400 hover:border-white/[0.1] hover:text-slate-200`
+                      : `bg-surface-0/40 border-white/[0.04] text-slate-400 hover:border-white/[0.1] hover:text-slate-200`
                   }`}
                 >
                   {cat}
@@ -658,7 +658,7 @@ const PublicPage: React.FC = () => {
       </div>
 
       {/* LGPD Footer */}
-      <footer className="border-t border-white/[0.04] bg-[#090e1c] mt-24 py-10 text-slate-400">
+      <footer className="border-t border-white/[0.04] bg-surface-1 mt-24 py-10 text-slate-400">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left space-y-1">
             <p className="text-xs font-semibold text-slate-300">
