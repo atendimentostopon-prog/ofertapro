@@ -337,10 +337,16 @@ const PublicPage: React.FC = () => {
           O canal <span className="font-bold text-white">@{username}</span> não possui uma vitrine pública ativa no momento.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <a href="/login" className="btn-gradient px-8 py-3 text-sm font-bold">
+          <a
+            href="/login"
+            className="inline-flex items-center justify-center gap-2 rounded-[10px] px-8 py-3 text-sm font-bold text-white bg-gradient-to-b from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 border border-white/10 shadow-sm shadow-brand-900/20 transition-all active:scale-[0.98]"
+          >
             Criar minha vitrine grátis
           </a>
-          <a href="/" className="btn-secondary px-8 py-3 text-sm font-semibold">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center gap-2 rounded-[10px] px-8 py-3 text-sm font-semibold text-slate-100 bg-surface-3 hover:bg-surface-4 border border-white/[0.06] shadow-sm transition-all active:scale-[0.98]"
+          >
             Página inicial
           </a>
         </div>
@@ -527,20 +533,23 @@ const PublicPage: React.FC = () => {
       {/* Marketplace Selector Tabs (Sticky Header) */}
       <div className="bg-surface-0/80 backdrop-blur-xl border-b border-white/[0.04] sticky top-0 z-30 py-3.5">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="tab-container max-w-max flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <div className="max-w-max flex items-center gap-1 p-1 bg-surface-1 border border-white/[0.04] rounded-xl overflow-x-auto scrollbar-none">
             {marketplaceList.map(mp => {
-              const count = mp.value === 'all' 
-                ? activeOffers.length 
+              const count = mp.value === 'all'
+                ? activeOffers.length
                 : activeOffers.filter(o => o.marketplace === mp.value).length;
-                
+
               if (count === 0 && mp.value !== 'all') return null;
 
+              const isActive = selectedMarketplace === mp.value;
               return (
                 <button
                   key={mp.value}
                   onClick={() => setSelectedMarketplace(mp.value)}
-                  className={`tab-item flex items-center gap-2 font-extrabold text-[11px] sm:text-xs py-2 px-3 sm:px-4 cursor-pointer transition-all ${
-                    selectedMarketplace === mp.value ? 'active' : ''
+                  className={`flex items-center gap-2 font-extrabold text-[11px] sm:text-xs py-2 px-3 sm:px-4 rounded-[9px] cursor-pointer transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-surface-3 text-slate-100 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'
                   }`}
                 >
                   {mp.logoValue ? (
@@ -550,7 +559,7 @@ const PublicPage: React.FC = () => {
                   )}
                   {mp.label}
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ml-1 transition-all ${
-                    selectedMarketplace === mp.value ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-slate-500'
+                    isActive ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-slate-500'
                   }`}>
                     {count}
                   </span>
@@ -575,7 +584,7 @@ const PublicPage: React.FC = () => {
               placeholder="Buscar ofertas pelo nome..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input-modern pl-10 h-11 w-full bg-surface-0/60 hover:bg-surface-0/80 focus:bg-surface-0 border-white/[0.06] focus:border-indigo-500/50"
+              className="w-full h-11 pl-10 pr-3.5 py-2.5 text-sm rounded-[10px] bg-surface-0/60 hover:bg-surface-0/80 focus:bg-surface-0 border border-white/[0.06] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 text-slate-100 placeholder-slate-500 outline-none transition-all"
             />
           </div>
 
@@ -599,17 +608,25 @@ const PublicPage: React.FC = () => {
             </div>
 
             {/* View Mode Switcher */}
-            <div className="tab-container flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center gap-0.5 p-1 bg-surface-1 border border-white/[0.04] rounded-xl">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`tab-item p-2 cursor-pointer ${viewMode === 'grid' ? 'active' : ''}`}
+                className={`p-2 rounded-[9px] cursor-pointer transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-surface-3 text-slate-100 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'
+                }`}
                 aria-label="Ver em grade"
               >
                 <Grid3x3 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`tab-item p-2 cursor-pointer ${viewMode === 'list' ? 'active' : ''}`}
+                className={`p-2 rounded-[9px] cursor-pointer transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-surface-3 text-slate-100 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'
+                }`}
                 aria-label="Ver em lista"
               >
                 <List className="w-4 h-4" />
