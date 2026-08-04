@@ -235,7 +235,7 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
     setSelectedChannels(prev => {
       if (FEATURES.billing && !prev.includes(id)) {
         const limits = getPlanLimits(user?.plan);
-        if (prev.length >= limits.maxChannels) {
+        if (prev.length >= limits.maxWhatsappConnections + limits.maxTelegramConnections) {
           setUpgradeReason('channels');
           setShowUpgradeModal(true);
           return prev;

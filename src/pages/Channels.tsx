@@ -985,8 +985,8 @@ const Channels: React.FC = () => {
                   return;
                 }
                 const limits = getPlanLimits(user?.plan);
-                if (FEATURES.billing && connectedChannels.length >= limits.maxChannels) {
-                  toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxChannels} canal). Faça upgrade nas configurações.`, 'warning');
+                if (FEATURES.billing && connectedChannels.length >= limits.maxTelegramConnections) {
+                  toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxTelegramConnections} canal). Faça upgrade nas configurações.`, 'warning');
                   return;
                 }
                 setConnectModal(type);
