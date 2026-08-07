@@ -976,15 +976,15 @@ const Channels: React.FC = () => {
               type={type}
               disabled={false}
               onConnect={() => {
+                const limits = getPlanLimits(user?.plan);
                 if (type === 'whatsapp') {
-                  if (instances.length >= 3) {
-                    toast('Você atingiu o limite de 3 instâncias WhatsApp.', 'warning');
+                  if (FEATURES.billing && instances.length >= limits.maxWhatsappConnections) {
+                    toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxWhatsappConnections} canal). Faça upgrade nas configurações.`, 'warning');
                     return;
                   }
                   setShowConnectWhatsappModal(true);
                   return;
                 }
-                const limits = getPlanLimits(user?.plan);
                 if (FEATURES.billing && connectedChannels.length >= limits.maxTelegramConnections) {
                   toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxTelegramConnections} canal). Faça upgrade nas configurações.`, 'warning');
                   return;
