@@ -1,7 +1,7 @@
 // supabase/functions/cakto-webhook/index.ts
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateSecret } from "./lib/validateSecret.ts";
-import { recordEventIfNew, deleteEventRecord } from "./lib/idempotency.ts";
+import { recordEventIfNew, deleteEventRecord, getEventId } from "./lib/idempotency.ts";
 import { subscriptionCreated } from "./handlers/subscription_created.ts";
 import { subscriptionRenewed } from "./handlers/subscription_renewed.ts";
 import { subscriptionCanceled } from "./handlers/subscription_canceled.ts";
@@ -55,12 +55,13 @@ serve(async (req: Request) => {
   }
 
   try {
-    await handler(payload);
+    // Cakto payload real: { secret, event, data: {...} } — handlers recebem só data.
+    await handler(payload.data ?? {});
     return new Response("OK", { status: 200 });
   } catch (e) {
     console.error(`[cakto-webhook] handler ${payload.event} error:`, e);
     // desfaz idempotência pra permitir retry do Cakto
-    await deleteEventRecord(payload.id);
+    await deleteEventRecord(getEventId(payload));
     return new Response("Internal error", { status: 500 });
   }
 });

@@ -12,8 +12,8 @@ export interface PlanSKU {
 // nada disso é acessado em runtime até Task 15.
 export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
   starter: {
-    monthly: { caktoOfferId: 'TBD-starter-monthly', price: 97,   checkoutUrl: 'https://pay.cakto.com.br/TBD-starter-monthly' },
-    yearly:  { caktoOfferId: 'TBD-starter-yearly',  price: 970,  checkoutUrl: 'https://pay.cakto.com.br/TBD-starter-yearly'  },
+    monthly: { caktoOfferId: 'TBD-starter-monthly', price: 47.9, checkoutUrl: 'https://pay.cakto.com.br/TBD-starter-monthly' },
+    yearly:  { caktoOfferId: 'TBD-starter-yearly',  price: 479,  checkoutUrl: 'https://pay.cakto.com.br/TBD-starter-yearly'  },
   },
   pro: {
     monthly: { caktoOfferId: 'TBD-pro-monthly',     price: 167,  checkoutUrl: 'https://pay.cakto.com.br/TBD-pro-monthly'     },

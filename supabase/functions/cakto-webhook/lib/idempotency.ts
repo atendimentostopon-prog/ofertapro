@@ -1,26 +1,31 @@
 // supabase/functions/cakto-webhook/lib/idempotency.ts
 import { getSupabaseAdmin } from "./supabase.ts";
 
+// Cakto envia { secret, event, data: {...} } — id/subscription/customer/etc estão em data.
 interface Payload {
-  id?: string;
   event?: string;
-  subscription?: { id?: string };
+  data?: {
+    id?: string;
+    subscription?: { id?: string };
+    [k: string]: unknown;
+  };
   [k: string]: unknown;
 }
 
-function getEventId(payload: Payload): string {
-  // Cakto envia payload.id — se ausente, reconstruir chave
-  return payload.id
-    ?? `${payload.event}-${payload.subscription?.id ?? "nosub"}-${Date.now()}`;
+export function getEventId(payload: Payload): string {
+  const data = payload.data ?? {};
+  return data.id
+    ?? `${payload.event}-${data.subscription?.id ?? "nosub"}-${Date.now()}`;
 }
 
 export async function recordEventIfNew(payload: Payload): Promise<boolean> {
   const eventId = getEventId(payload);
+  const data = payload.data ?? {};
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.from("webhook_events").insert({
     cakto_event_id: eventId,
     event_type: payload.event ?? "unknown",
-    cakto_subscription_id: payload.subscription?.id ?? null,
+    cakto_subscription_id: data.subscription?.id ?? null,
     payload,
   });
   if (error?.code === "23505") return false; // unique violation → duplicate

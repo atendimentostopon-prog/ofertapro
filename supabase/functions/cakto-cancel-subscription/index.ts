@@ -3,9 +3,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 async function getCaktoToken(): Promise<string> {
-  const url = `${Deno.env.get("CAKTO_API_BASE_URL")}/oauth/token`;
+  // Cakto public API: POST /public_api/token/ com client_id+client_secret form-encoded
+  // (SEM grant_type — doc: https://docs.cakto.com.br/authentication)
+  const url = `${Deno.env.get("CAKTO_API_BASE_URL")}/public_api/token/`;
   const body = new URLSearchParams({
-    grant_type: "client_credentials",
     client_id: Deno.env.get("CAKTO_CLIENT_ID") ?? "",
     client_secret: Deno.env.get("CAKTO_CLIENT_SECRET") ?? "",
   });
@@ -48,7 +49,7 @@ serve(async (req: Request) => {
   // Chamar API Cakto pra cancelar
   try {
     const token = await getCaktoToken();
-    const cancelUrl = `${Deno.env.get("CAKTO_API_BASE_URL")}/subscriptions/${subscription_id}/cancel`;
+    const cancelUrl = `${Deno.env.get("CAKTO_API_BASE_URL")}/public_api/subscriptions/${subscription_id}/cancel/`;
     const cancelRes = await fetch(cancelUrl, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },

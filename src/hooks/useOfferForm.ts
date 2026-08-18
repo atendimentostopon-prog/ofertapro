@@ -230,12 +230,23 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
            (type === 'telegram' || type === 'discord' || type === 'whatsapp');
   });
 
-  // Alternar seleção do canal
+  // Alternar seleção do canal — enforce cap per-type (WA e TG têm limites separados)
   const toggleChannel = (id: string) => {
     setSelectedChannels(prev => {
       if (FEATURES.billing && !prev.includes(id)) {
         const limits = getPlanLimits(user?.plan);
-        if (prev.length >= limits.maxWhatsappConnections + limits.maxTelegramConnections) {
+        const target = channels.find(c => c.id === id);
+        const targetType = (target?.type || '').toLowerCase();
+        const selectedOfType = prev.filter(pid => {
+          const p = channels.find(c => c.id === pid);
+          return (p?.type || '').toLowerCase() === targetType;
+        }).length;
+        const cap = targetType === 'whatsapp'
+          ? limits.maxWhatsappConnections
+          : targetType === 'telegram'
+          ? limits.maxTelegramConnections
+          : Infinity;
+        if (selectedOfType >= cap) {
           setUpgradeReason('channels');
           setShowUpgradeModal(true);
           return prev;

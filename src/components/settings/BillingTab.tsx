@@ -6,14 +6,12 @@ import { SettingsSection } from "./shared";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { useSubscription } from "../../hooks/useSubscription";
-import { useUser } from "../../context/UserContext";
 import { supabase } from "../../lib/supabase";
 import { FEATURES } from "../../config/features";
 import { useNavigate } from "react-router-dom";
 
 export const BillingTab: React.FC = () => {
   const { data: subscription, loading } = useSubscription();
-  const { user } = useUser();
   const nav = useNavigate();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [canceling, setCanceling] = useState(false);
