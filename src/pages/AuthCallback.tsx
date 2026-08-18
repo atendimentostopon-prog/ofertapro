@@ -22,6 +22,19 @@ const AuthCallback: React.FC = () => {
         if (!active) return;
         if (session) {
           clearTimeout(timeout);
+          const claimId = new URLSearchParams(window.location.search).get("claim");
+          if (claimId) {
+            const asUser = new URLSearchParams(window.location.search).get("as_user");
+            await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-finalize-claim`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ pending_id: claimId, as_user: asUser }),
+            });
+            // Depois de finalizar, seguir fluxo normal
+          }
           navigate('/dashboard', { replace: true });
         }
       } catch (err: any) {
