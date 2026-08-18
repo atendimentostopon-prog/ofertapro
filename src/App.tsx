@@ -25,6 +25,7 @@ import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
+import Pricing from './pages/Pricing';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
 import { APP_NAME } from './config/app';
@@ -280,6 +281,7 @@ const App: React.FC = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/feedbacks" element={<Feedbacks />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Route>
 
           {/* Fallback */}
