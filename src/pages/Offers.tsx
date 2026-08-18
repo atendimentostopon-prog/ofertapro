@@ -15,6 +15,9 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import { canCreateOffer } from '../config/plans';
+import { PaywallModal } from '../components/billing/PaywallModal';
 
 const marketplaces: { value: Marketplace | 'all'; label: string }[] = [
   { value: 'all', label: 'Todos' },
@@ -29,6 +32,11 @@ const Offers: React.FC = () => {
   const { offers, loading, error, deleteOffer, deleteAllOffers, toggleStatus, refresh } = useOffers();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useUser();
+
+  // Paywall state
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
   
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get('q') || '';
@@ -189,7 +197,15 @@ const Offers: React.FC = () => {
           <Button
             variant="primary"
             icon={Plus}
-            onClick={() => navigate('/offers/new')}
+            onClick={() => {
+              const activeCount = offers.filter(o => o.status === 'active').length;
+              if (!canCreateOffer(activeCount, user?.plan)) {
+                setPaywallFeature('criar mais ofertas');
+                setPaywallOpen(true);
+                return;
+              }
+              navigate('/offers/new');
+            }}
             size="sm"
           >
             Nova Oferta
@@ -410,6 +426,12 @@ const Offers: React.FC = () => {
           </div>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        featureName={paywallFeature}
+      />
     </div>
   );
 };

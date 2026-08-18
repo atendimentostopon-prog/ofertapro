@@ -13,6 +13,8 @@ import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
+import { canAddSourceGroup } from '../../config/plans';
+import { PaywallModal } from '../billing/PaywallModal';
 
 interface BotConfig {
   user_id: string;
@@ -98,6 +100,10 @@ export const BotTab: React.FC = () => {
   const [amazonTag, setAmazonTag] = useState('');
   const [shopeeAppId, setShopeeAppId] = useState('');
   const [shopeeAppSecret, setShopeeAppSecret] = useState('');
+
+  // Paywall state
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
 
   // Loaders específicos de salvamento
   const [savingGroups, setSavingGroups] = useState(false);
@@ -379,6 +385,11 @@ export const BotTab: React.FC = () => {
     if (!trimmed) return;
     if (gruposOrigem.includes(trimmed)) {
       toast('Este grupo já está na lista.', 'info');
+      return;
+    }
+    if (!canAddSourceGroup(gruposOrigem.length, user?.plan)) {
+      setPaywallFeature('adicionar outro grupo');
+      setPaywallOpen(true);
       return;
     }
     setGruposOrigem(prev => [...prev, trimmed]);
@@ -901,6 +912,12 @@ export const BotTab: React.FC = () => {
           Tem certeza de que deseja desconectar o bot do Telegram? Ele parará de monitorar seus grupos imediatamente.
         </p>
       </Modal>
+
+      <PaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        featureName={paywallFeature}
+      />
     </div>
   );
 };

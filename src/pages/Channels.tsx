@@ -9,10 +9,10 @@ import Badge from '../components/Badge';
 import ConnectChannelModal from '../components/modals/ConnectChannelModal';
 import { supabase } from '../lib/supabase';
 import { testTelegramConnection, maskBotToken } from '../lib/telegram';
-import { FEATURES } from '../config/features';
 import { FeedbackService } from '../services/FeedbackService';
 import { useUser } from '../context/UserContext';
-import { getPlanLimits } from '../config/plans';
+import { getPlanLimits, canConnectChannel } from '../config/plans';
+import { PaywallModal } from '../components/billing/PaywallModal';
 import { LoadingState } from '../components/ui/LoadingState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
@@ -315,6 +315,10 @@ const Channels: React.FC = () => {
   const [channels, setChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectModal, setConnectModal] = useState<ChannelType | null>(null);
+
+  // Paywall state
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
 
   // Estados para WhatsApp (Evolution API)
   const [instances, setInstances] = useState<any[]>([]);
@@ -976,17 +980,18 @@ const Channels: React.FC = () => {
               type={type}
               disabled={false}
               onConnect={() => {
-                const limits = getPlanLimits(user?.plan);
                 if (type === 'whatsapp') {
-                  if (FEATURES.billing && instances.length >= limits.maxWhatsappConnections) {
-                    toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxWhatsappConnections} canal). Faça upgrade nas configurações.`, 'warning');
+                  if (!canConnectChannel(instances.length, user?.plan, 'whatsapp')) {
+                    setPaywallFeature('conectar outro WhatsApp');
+                    setPaywallOpen(true);
                     return;
                   }
                   setShowConnectWhatsappModal(true);
                   return;
                 }
-                if (FEATURES.billing && connectedChannels.length >= limits.maxTelegramConnections) {
-                  toast(`Você atingiu o limite de canais conectados do seu plano (${limits.maxTelegramConnections} canal). Faça upgrade nas configurações.`, 'warning');
+                if (!canConnectChannel(connectedChannels.length, user?.plan, 'telegram')) {
+                  setPaywallFeature('conectar outro Telegram');
+                  setPaywallOpen(true);
                   return;
                 }
                 setConnectModal(type);
@@ -1137,6 +1142,12 @@ const Channels: React.FC = () => {
           </div>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        featureName={paywallFeature}
+      />
     </div>
   );
 };
