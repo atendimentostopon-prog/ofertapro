@@ -8,10 +8,20 @@ import { CheckoutWaitingDialog } from "../components/billing/CheckoutWaitingDial
 import { ClaimSubscriptionDialog } from "../components/billing/ClaimSubscriptionDialog";
 import { useSubscription } from "../hooks/useSubscription";
 
-const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
+// MVP: mostra apenas starter — pro/enterprise viram quando os produtos existirem na Cakto.
+const PLAN_ORDER: PlanCode[] = ["starter"];
 
 const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
-  starter: ["Até 100 ofertas ativas", "2 WhatsApp + 1 Telegram", "10 grupos de origem", "Analytics básico"],
+  starter: [
+    "Monitora 1 grupo",
+    "5 grupos de disparo",
+    "1 conexão WhatsApp",
+    "Disparo em massa",
+    "Agendamento de horários",
+    "Rodízio de links inteligentes",
+    "Shopee, Amazon, Mercado Livre",
+    "Suporte 24/7 + aulas em vídeo",
+  ],
   pro: ["Ofertas ilimitadas", "5 WhatsApp + 3 Telegram", "30 grupos de origem", "Analytics avançado", "Agendamento futuro", "Templates custom", "Sem branding"],
   enterprise: ["Ofertas ilimitadas", "WhatsApp e Telegram sem limite", "Grupos ilimitados", "Prioridade no suporte", "Tudo do PRO"],
 };

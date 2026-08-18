@@ -318,7 +318,15 @@ const Offers: React.FC = () => {
               : 'Você ainda não cadastrou nenhuma oferta. Crie sua primeira oferta para começar a disparar para seus canais.'
           }
           actionText={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Criar Primeira Oferta'}
-          onAction={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => navigate('/offers/new')}
+          onAction={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => {
+            const activeCount = offers.filter(o => o.status === 'active').length;
+            if (!canCreateOffer(activeCount, user?.plan)) {
+              setPaywallFeature('criar mais ofertas');
+              setPaywallOpen(true);
+              return;
+            }
+            navigate('/offers/new');
+          }}
         />
       )}
 
