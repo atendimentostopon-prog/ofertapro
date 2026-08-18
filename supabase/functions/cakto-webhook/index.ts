@@ -6,6 +6,9 @@ import { subscriptionCreated } from "./handlers/subscription_created.ts";
 import { subscriptionRenewed } from "./handlers/subscription_renewed.ts";
 import { subscriptionCanceled } from "./handlers/subscription_canceled.ts";
 import { subscriptionRenewalRefused } from "./handlers/subscription_renewal_refused.ts";
+import { purchaseApproved } from "./handlers/purchase_approved.ts";
+import { refund } from "./handlers/refund.ts";
+import { chargeback } from "./handlers/chargeback.ts";
 
 type Handler = (payload: any) => Promise<void>;
 
@@ -14,6 +17,9 @@ const HANDLERS: Record<string, Handler> = {
   subscription_renewed: subscriptionRenewed,
   subscription_canceled: subscriptionCanceled,
   subscription_renewal_refused: subscriptionRenewalRefused,
+  purchase_approved: purchaseApproved,
+  refund,
+  chargeback,
 };
 
 serve(async (req: Request) => {
