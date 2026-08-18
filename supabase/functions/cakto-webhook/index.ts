@@ -2,11 +2,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateSecret } from "./lib/validateSecret.ts";
 import { recordEventIfNew, deleteEventRecord } from "./lib/idempotency.ts";
+import { subscriptionCreated } from "./handlers/subscription_created.ts";
+import { subscriptionRenewed } from "./handlers/subscription_renewed.ts";
+import { subscriptionCanceled } from "./handlers/subscription_canceled.ts";
+import { subscriptionRenewalRefused } from "./handlers/subscription_renewal_refused.ts";
 
 type Handler = (payload: any) => Promise<void>;
 
 const HANDLERS: Record<string, Handler> = {
-  // populado nas tasks 5, 6, 7
+  subscription_created: subscriptionCreated,
+  subscription_renewed: subscriptionRenewed,
+  subscription_canceled: subscriptionCanceled,
+  subscription_renewal_refused: subscriptionRenewalRefused,
 };
 
 serve(async (req: Request) => {
