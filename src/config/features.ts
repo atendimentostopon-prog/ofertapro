@@ -1,7 +1,7 @@
 // Flags de features globais para o DisparoFlow
 // Permite desativar ou ocultar temporariamente recursos em desenvolvimento ou em fases específicas de teste.
 export const FEATURES = {
-  billing: false,      // Desativa planos pagos, upgrades, CTAs de cobrança e telas de checkout
+  billing: true,       // Task 15 flip 2026-08-18: aflyo Starter mensal/anual ativo via Cakto
    whatsapp: true,     // Ativa Evolution API/WhatsApp no frontend
   telegram: true,      // Habilita canal Telegram Bot API
   discord: true,       // Habilita canal Discord Webhooks

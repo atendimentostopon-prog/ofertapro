@@ -5,8 +5,9 @@
 // Task 15 atualiza AMBOS os arquivos com os IDs reais do Cakto.
 
 const OFFER_MAP: Record<string, { plan: string; cycle: string }> = {
-  "TBD-starter-monthly":    { plan: "starter",    cycle: "monthly" },
-  "TBD-starter-yearly":     { plan: "starter",    cycle: "yearly"  },
+  // Reais (criados via API Cakto 2026-08-18): STARTER apenas — pro/enterprise ficam TBD até serem criados.
+  "oy56ftb":                { plan: "starter",    cycle: "monthly" },
+  "5523xh7":                { plan: "starter",    cycle: "yearly"  },
   "TBD-pro-monthly":        { plan: "pro",        cycle: "monthly" },
   "TBD-pro-yearly":         { plan: "pro",        cycle: "yearly"  },
   "TBD-enterprise-monthly": { plan: "enterprise", cycle: "monthly" },
