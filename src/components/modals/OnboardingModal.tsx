@@ -150,7 +150,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase mb-1">
               <Sparkles className="w-3.5 h-3.5" />
-              Seja Bem-vindo ao Link Oferta
+              Seja Bem-vindo ao Aflyo
             </div>
             <h2 className="text-2xl font-bold tracking-tight">Configure sua conta em segundos</h2>
             <p className="text-sm text-indigo-100 max-w-sm mx-auto">

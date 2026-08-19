@@ -8,11 +8,11 @@ import { Link } from 'react-router-dom';
 
 export const ShopeeAutomationPage: React.FC = () => {
   useEffect(() => {
-    document.title = 'Como solicitar a API da Shopee | Link Oferta';
+    document.title = 'Como solicitar a API da Shopee | Aflyo';
     
     // Configuração de meta description para SEO
     const metaDescription = document.querySelector('meta[name="description"]');
-    const descriptionText = 'Veja o tutorial completo e passo a passo de como solicitar e cadastrar suas credenciais da API Shopee Affiliate no Link Oferta.';
+    const descriptionText = 'Veja o tutorial completo e passo a passo de como solicitar e cadastrar suas credenciais da API Shopee Affiliate no Aflyo.';
     if (metaDescription) {
       metaDescription.setAttribute('content', descriptionText);
     } else {
@@ -83,18 +83,18 @@ export const ShopeeAutomationPage: React.FC = () => {
     },
     {
       num: '04',
-      title: 'Cadastrar as credenciais no Link Oferta',
-      desc: 'Depois de copiar suas credenciais do console da Shopee, conclua a configuração dentro da sua conta do Link Oferta:',
+      title: 'Cadastrar as credenciais no Aflyo',
+      desc: 'Depois de copiar suas credenciais do console da Shopee, conclua a configuração dentro da sua conta do Aflyo:',
       bullets: [
-        'Acesse o painel administrativo do Link Oferta.',
+        'Acesse o painel administrativo do Aflyo.',
         'Vá em Configurações > Configurações Adicionais (aba Bot).',
         'Localize a seção "Credenciais Shopee Affiliate (opcional)".',
         'Insira o seu App ID e a Secret Key nos respectivos campos.',
         'Clique no botão "Salvar configurações".'
       ],
-      note: 'Pronto! Suas credenciais estarão salvas com segurança no Link Oferta e prontas para rodar integrações automatizadas.',
+      note: 'Pronto! Suas credenciais estarão salvas com segurança no Aflyo e prontas para rodar integrações automatizadas.',
       image: '/shopee-guide/step4.png',
-      caption: 'Seção de preenchimento das credenciais Shopee Affiliate dentro do painel do Link Oferta.',
+      caption: 'Seção de preenchimento das credenciais Shopee Affiliate dentro do painel do Aflyo.',
       buttonLabel: null,
       url: null
     }
@@ -118,12 +118,12 @@ export const ShopeeAutomationPage: React.FC = () => {
       a: 'Se você já recebeu o e-mail confirmando a liberação e o botão ainda não aparece, tente limpar o cache do navegador, acessar por uma janela anônima ou aguardar mais 24 horas até que a liberação seja propagada no banco de dados da Shopee.'
     },
     {
-      q: 'Onde cadastro o App ID e a Secret Key no Link Oferta?',
+      q: 'Onde cadastro o App ID e a Secret Key no Aflyo?',
       a: 'No menu principal, acesse Configurações > vá na aba "Bot" > desça até a seção "Configurações Adicionais" > preencha os campos sob "Credenciais Shopee Affiliate (opcional)" e salve.'
     },
     {
       q: 'Posso usar essa integração sem aprovação da Shopee?',
-      a: 'Não. Para que a automação e integração de links da Shopee funcionem de forma direta no Link Oferta, você precisa obrigatoriamente preencher credenciais válidas e aprovadas pela plataforma.'
+      a: 'Não. Para que a automação e integração de links da Shopee funcionem de forma direta no Aflyo, você precisa obrigatoriamente preencher credenciais válidas e aprovadas pela plataforma.'
     }
   ];
 
@@ -148,7 +148,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-indigo-400" />
             </div>
-            <span className="text-sm font-extrabold text-white tracking-tight">Central de Ajuda · Link Oferta</span>
+            <span className="text-sm font-extrabold text-white tracking-tight">Central de Ajuda · Aflyo</span>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             Como pegar suas credenciais da Shopee
           </h1>
           <p className="text-sm sm:text-base text-[#94A3B8] leading-relaxed max-w-xl mx-auto font-medium">
-            Siga este passo a passo para solicitar acesso à API da Shopee Affiliate e depois cadastrar seu App ID e Secret Key no Link Oferta.
+            Siga este passo a passo para solicitar acesso à API da Shopee Affiliate e depois cadastrar seu App ID e Secret Key no Aflyo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
             <a
@@ -192,7 +192,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             <div className="space-y-3">
               <h4 className="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-wider">Aviso Importante</h4>
               <ul className="space-y-2 text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium list-disc list-inside">
-                <li>Este processo é necessário para quem deseja usar a automação da Shopee no Link Oferta.</li>
+                <li>Este processo é necessário para quem deseja usar a automação da Shopee no Aflyo.</li>
                 <li>O acesso de API não é liberado instantaneamente. A Shopee costuma levar alguns dias para analisar e disponibilizar o acesso.</li>
                 <li>A ativação depende exclusivamente da aprovação e critérios de parceiro da própria equipe da Shopee.</li>
                 <li>Se você prefere trabalhar de forma manual ou com fluxos simples e diretos, o preenchimento da API pode não ser obrigatório.</li>
@@ -283,7 +283,7 @@ export const ShopeeAutomationPage: React.FC = () => {
           
           <div className="space-y-3 text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">
             <p>
-              Após cadastrar as credenciais da Shopee Affiliate corretamente nas suas configurações, o Link Oferta passará a utilizar a integração direta para automatizar e otimizar a substituição e o processamento de links da plataforma Shopee conforme as definições habilitadas no seu painel.
+              Após cadastrar as credenciais da Shopee Affiliate corretamente nas suas configurações, o Aflyo passará a utilizar a integração direta para automatizar e otimizar a substituição e o processamento de links da plataforma Shopee conforme as definições habilitadas no seu painel.
             </p>
             <p>
               Isso garante maior agilidade no gerenciamento de ofertas e permite que suas publicações automáticas contem com a correta vinculação dos tokens e parâmetros oficiais da Shopee.
@@ -345,7 +345,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             Pronto para configurar sua integração?
           </h3>
           <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto leading-relaxed font-medium">
-            Retorne às configurações do painel administrativo do Link Oferta para colar o seu App ID e Secret Key salvos.
+            Retorne às configurações do painel administrativo do Aflyo para colar o seu App ID e Secret Key salvos.
           </p>
           <div className="flex justify-center pt-2">
             <Link

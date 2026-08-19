@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm shadow-brand-900/30">
             <Zap className="w-4 h-4 text-white" fill="white" />
           </div>
-          <span className="text-[15px] font-bold text-slate-100 tracking-tight">Link Oferta</span>
+          <span className="text-[15px] font-bold text-slate-100 tracking-tight">Aflyo</span>
         </div>
         
         {/* Botão fechar para Mobile */}

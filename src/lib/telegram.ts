@@ -327,7 +327,7 @@ export async function testTelegramConnection(
     await sendTelegramMessage(
       cleanToken,
       cleanChatId,
-      '✅ *Link Oferta conectado com sucesso!*\n\nSeu canal Telegram está pronto para receber ofertas.'
+      '✅ *Aflyo conectado com sucesso!*\n\nSeu canal Telegram está pronto para receber ofertas.'
     );
     return { success: true };
   } catch (err: any) {

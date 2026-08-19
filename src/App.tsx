@@ -174,7 +174,7 @@ const App: React.FC = () => {
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o Link Oferta</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o Aflyo</h2>
         <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
           {bootError.message || "O carregamento demorou mais que o esperado. Você pode tentar novamente ou limpar a sessão local."}
         </p>

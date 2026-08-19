@@ -3,7 +3,7 @@ import { Shield, ArrowLeft } from 'lucide-react';
 
 const PoliticaPrivacidade: React.FC = () => {
   useEffect(() => {
-    document.title = 'Política de Privacidade | Link Oferta';
+    document.title = 'Política de Privacidade | Aflyo';
   }, []);
 
   return (
@@ -24,7 +24,7 @@ const PoliticaPrivacidade: React.FC = () => {
           </button>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm font-extrabold text-white tracking-tight">Link Oferta</span>
+            <span className="text-sm font-extrabold text-white tracking-tight">Aflyo</span>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ const PoliticaPrivacidade: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">1. Introdução e Escopo</h2>
               <p>
-                O <strong>Link Oferta</strong> tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
+                O <strong>Aflyo</strong> tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
               </p>
             </section>
 
@@ -72,7 +72,7 @@ const PoliticaPrivacidade: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">4. Provedores de Serviços Terceirizados</h2>
               <p>
-                Compartilhamos dados exclusivamente com serviços terceirizados essenciais que garantem a infraestrutura e segurança do Link Oferta:
+                Compartilhamos dados exclusivamente com serviços terceirizados essenciais que garantem a infraestrutura e segurança do Aflyo:
               </p>
               <ul className="list-disc pl-5 space-y-1.5">
                 <li><strong>Supabase:</strong> Infraestrutura de banco de dados, armazenamento de perfis e serviço de autenticação com segurança de dados de ponta a ponta.</li>
@@ -110,7 +110,7 @@ const PoliticaPrivacidade: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
               <p>
-                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo Link Oferta, envie um e-mail para <a href="mailto:privacidade@linkoferta.com" className="text-indigo-400 font-bold hover:underline">privacidade@linkoferta.com</a>.
+                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo Aflyo, envie um e-mail para <a href="mailto:privacidade@linkoferta.com" className="text-indigo-400 font-bold hover:underline">privacidade@linkoferta.com</a>.
               </p>
             </section>
           </div>

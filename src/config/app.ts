@@ -1,4 +1,4 @@
-export const APP_NAME = 'Link Oferta';
+export const APP_NAME = 'Aflyo';
 
 export const getAppUrl = (): string => {
   // Se VITE_PUBLIC_APP_URL estiver definido no ambiente (ex: build/Vercel)

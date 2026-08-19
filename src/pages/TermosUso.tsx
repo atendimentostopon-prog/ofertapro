@@ -3,7 +3,7 @@ import { FileText, ArrowLeft } from 'lucide-react';
 
 const TermosUso: React.FC = () => {
   useEffect(() => {
-    document.title = 'Termos de Uso | Link Oferta';
+    document.title = 'Termos de Uso | Aflyo';
   }, []);
 
   return (
@@ -24,7 +24,7 @@ const TermosUso: React.FC = () => {
           </button>
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm font-extrabold text-white tracking-tight">Link Oferta</span>
+            <span className="text-sm font-extrabold text-white tracking-tight">Aflyo</span>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ const TermosUso: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">1. Relação Contratual</h2>
               <p>
-                Bem-vindo ao <strong>Link Oferta</strong>. Ao se cadastrar ou utilizar nossa plataforma, você concorda expressamente em cumprir e vincular-se a estes Termos de Uso. Caso não concorde com qualquer termo estabelecido, você não deverá acessar ou utilizar nossos serviços.
+                Bem-vindo ao <strong>Aflyo</strong>. Ao se cadastrar ou utilizar nossa plataforma, você concorda expressamente em cumprir e vincular-se a estes Termos de Uso. Caso não concorde com qualquer termo estabelecido, você não deverá acessar ou utilizar nossos serviços.
               </p>
             </section>
 
@@ -53,7 +53,7 @@ const TermosUso: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">3. Regras de Conduta e Uso Aceitável</h2>
               <p>
-                O usuário compromete-se a usar o Link Oferta de boa-fé. É expressamente vedado:
+                O usuário compromete-se a usar o Aflyo de boa-fé. É expressamente vedado:
               </p>
               <ul className="list-disc pl-5 space-y-1.5">
                 <li>Publicar ou disseminar links de ofertas falsas, enganosas, ou que configurem golpes financeiros e esquemas de pirâmide.</li>
@@ -66,14 +66,14 @@ const TermosUso: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">4. Propriedade Intelectual</h2>
               <p>
-                Todo o conteúdo visual, códigos de programação, interfaces, designs, marcas, logotipos e patentes relacionados à plataforma são de propriedade exclusiva do <strong>Link Oferta</strong>. O uso do serviço confere a você uma licença temporária, revogável, não-exclusiva e pessoal, limitada ao painel e vitrines providos de acordo com seu plano atual.
+                Todo o conteúdo visual, códigos de programação, interfaces, designs, marcas, logotipos e patentes relacionados à plataforma são de propriedade exclusiva do <strong>Aflyo</strong>. O uso do serviço confere a você uma licença temporária, revogável, não-exclusiva e pessoal, limitada ao painel e vitrines providos de acordo com seu plano atual.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">5. Limitação de Responsabilidade</h2>
               <p>
-                O Link Oferta funciona como uma plataforma facilitadora de organização de links e vitrines. Nós não garantimos vendas, tráfego ou lucros decorrentes da divulgação de seus links. Também não nos responsabilizamos pelas transações efetuadas entre o seu público final e as lojas parceiras (como Mercado Livre, Amazon, Shopee, Magalu e AliExpress). Qualquer problema relativo à compra do produto deve ser resolvido junto ao respectivo marketplace.
+                O Aflyo funciona como uma plataforma facilitadora de organização de links e vitrines. Nós não garantimos vendas, tráfego ou lucros decorrentes da divulgação de seus links. Também não nos responsabilizamos pelas transações efetuadas entre o seu público final e as lojas parceiras (como Mercado Livre, Amazon, Shopee, Magalu e AliExpress). Qualquer problema relativo à compra do produto deve ser resolvido junto ao respectivo marketplace.
               </p>
             </section>
 
@@ -94,7 +94,7 @@ const TermosUso: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">8. Modificações dos Termos</h2>
               <p>
-                Podemos modificar estes termos a qualquer momento para refletir mudanças operacionais, regulatórias ou de segurança. Ao continuar a usar o Link Oferta após a data das atualizações, você aceita implicitamente as novas regras contratuais.
+                Podemos modificar estes termos a qualquer momento para refletir mudanças operacionais, regulatórias ou de segurança. Ao continuar a usar o Aflyo após a data das atualizações, você aceita implicitamente as novas regras contratuais.
               </p>
             </section>
           </div>

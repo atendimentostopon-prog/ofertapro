@@ -3,7 +3,7 @@ import { Eye, ArrowLeft } from 'lucide-react';
 
 const PoliticaCookies: React.FC = () => {
   useEffect(() => {
-    document.title = 'Política de Cookies | Link Oferta';
+    document.title = 'Política de Cookies | Aflyo';
   }, []);
 
   return (
@@ -24,7 +24,7 @@ const PoliticaCookies: React.FC = () => {
           </button>
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm font-extrabold text-white tracking-tight">Link Oferta</span>
+            <span className="text-sm font-extrabold text-white tracking-tight">Aflyo</span>
           </div>
         </div>
 
@@ -46,7 +46,7 @@ const PoliticaCookies: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-white">2. Como Utilizamos os Cookies?</h2>
               <p>
-                O <strong>Link Oferta</strong> utiliza cookies e tecnologias similares de armazenamento (como localStorage e cookies de sessão) para garantir o funcionamento adequado dos nossos serviços digitais, em especial:
+                O <strong>Aflyo</strong> utiliza cookies e tecnologias similares de armazenamento (como localStorage e cookies de sessão) para garantir o funcionamento adequado dos nossos serviços digitais, em especial:
               </p>
               <ul className="list-disc pl-5 space-y-1.5">
                 <li>Manter a segurança e a integridade de sua sessão de usuário logado.</li>
@@ -62,7 +62,7 @@ const PoliticaCookies: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
-                  <strong>Cookies Essenciais (Estritamente Necessários):</strong> São cookies fundamentais para o funcionamento do painel e login do Link Oferta. Sem estes cookies, serviços básicos como autenticação no Supabase ou manutenção do carrinho e segurança das sessões não podem ser prestados. Eles não podem ser desativados.
+                  <strong>Cookies Essenciais (Estritamente Necessários):</strong> São cookies fundamentais para o funcionamento do painel e login do Aflyo. Sem estes cookies, serviços básicos como autenticação no Supabase ou manutenção do carrinho e segurança das sessões não podem ser prestados. Eles não podem ser desativados.
                 </li>
                 <li>
                   <strong>Cookies Funcionais:</strong> Armazenam informações sobre escolhas que você fez na plataforma (como preferências de idioma ou o fechamento de avisos rápidos), personalizando a sua experiência de uso no painel.

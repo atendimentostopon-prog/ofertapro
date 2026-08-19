@@ -60,7 +60,7 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
             <Zap className="w-6 h-6 text-white fill-white" />
           </div>
           <div>
-            <span className="text-base font-bold text-white tracking-tight">Link Oferta</span>
+            <span className="text-base font-bold text-white tracking-tight">Aflyo</span>
           </div>
         </div>
 

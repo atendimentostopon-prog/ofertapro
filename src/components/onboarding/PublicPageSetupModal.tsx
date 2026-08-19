@@ -941,7 +941,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
             {/* Footer do preview do celular */}
             <div className="py-2 bg-[#0B1020]/50 border-t border-white/5 text-center flex flex-col items-center">
-              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine Link Oferta</span>
+              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine Aflyo</span>
             </div>
           </div>
         </div>

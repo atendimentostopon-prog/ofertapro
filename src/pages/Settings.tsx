@@ -951,7 +951,7 @@ const Settings: React.FC = () => {
                 ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{cupom_linha}`}</code>.
               </p>
               <p className="text-[11.5px] text-indigo-400 font-medium">
-                ⚠️ <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O Link Oferta converte automaticamente para Telegram, Discord e WhatsApp.
+                ⚠️ <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O Aflyo converte automaticamente para Telegram, Discord e WhatsApp.
               </p>
               <p className="text-[11.5px] text-indigo-400 font-medium">
                 ⚠️ A variável <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
@@ -1207,7 +1207,7 @@ const Settings: React.FC = () => {
       {/* ========================================================== */}
       {activeTab === 'billing' && (
         <div className="space-y-6">
-          <SettingsSection title="Planos & Cobrança" description="Status do seu plano de faturamento no Link Oferta" icon={CreditCard}>
+          <SettingsSection title="Planos & Cobrança" description="Status do seu plano de faturamento no Aflyo" icon={CreditCard}>
             <div className="p-6 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-450 flex-shrink-0">
                 <Sparkles className="w-5 h-5 animate-pulse" />
@@ -1215,7 +1215,7 @@ const Settings: React.FC = () => {
               <div className="space-y-1.5 font-medium">
                 <h4 className="text-sm font-bold text-white">Plano Beta Gratuito Ativo 🚀</h4>
                 <p className="text-xs text-[#94A3B8] leading-relaxed">
-                  O Link Oferta está atualmente em fase de testes beta pública e é 100% gratuito. Todos os recursos PRO estão liberados por padrão para a sua conta, sem bloqueios de uso, limites de ofertas cadastradas ou restrições nos canais conectados.
+                  O Aflyo está atualmente em fase de testes beta pública e é 100% gratuito. Todos os recursos PRO estão liberados por padrão para a sua conta, sem bloqueios de uso, limites de ofertas cadastradas ou restrições nos canais conectados.
                 </p>
                 <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400 rounded-xl">
                   Recursos PRO Liberados: Sem limites ou cobranças no Beta
@@ -1230,7 +1230,7 @@ const Settings: React.FC = () => {
       {/* ========================================================== */}
       {activeTab === 'account' && (
         <div className="space-y-6">
-          <SettingsSection title="Configurações da Conta" description="Suas informações internas e de contato no Link Oferta" icon={UserIcon}>
+          <SettingsSection title="Configurações da Conta" description="Suas informações internas e de contato no Aflyo" icon={UserIcon}>
             <div className="flex items-center gap-5 p-4 bg-[#0B1020]/50 rounded-2xl border border-white/5 mb-2">
               <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
                 <input

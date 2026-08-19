@@ -31,7 +31,7 @@ export const sender = {
       url: trackingLink,
       color: 0x4f46e5, // Indigo 600
       footer: {
-        text: 'Link Oferta • Enviado via Painel',
+        text: 'Aflyo • Enviado via Painel',
       },
       timestamp: new Date().toISOString()
     };

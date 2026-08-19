@@ -269,7 +269,7 @@ const PublicPage: React.FC = () => {
   useEffect(() => {
     if (profile) {
       const displayName = profile.public_display_name || profile.full_name || 'Usuário';
-      document.title = `${displayName} | Vitrine Link Oferta`;
+      document.title = `${displayName} | Vitrine Aflyo`;
       
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
@@ -277,7 +277,7 @@ const PublicPage: React.FC = () => {
         metaDesc.setAttribute('name', 'description');
         document.head.appendChild(metaDesc);
       }
-      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no Link Oferta.`);
+      metaDesc.setAttribute('content', profile.bio || `Confira as melhores ofertas e promoções selecionadas por ${displayName} no Aflyo.`);
     }
   }, [profile]);
 
@@ -674,7 +674,7 @@ const PublicPage: React.FC = () => {
             <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
               Powered by 
               <a href="/login" className="text-indigo-400 hover:text-indigo-300 hover:underline">
-                Link Oferta
+                Aflyo
               </a>
             </span>
           </div>

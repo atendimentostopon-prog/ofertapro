@@ -158,7 +158,7 @@ const AdminDashboard: React.FC = () => {
             </span>
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1">Painel Administrativo</h1>
-          <p className="text-xs text-[#94A3B8] font-medium mt-0.5">Visão consolidada e controle operacional do SaaS Link Oferta</p>
+          <p className="text-xs text-[#94A3B8] font-medium mt-0.5">Visão consolidada e controle operacional do SaaS Aflyo</p>
         </div>
         <div className="flex items-center gap-3">
           <button
