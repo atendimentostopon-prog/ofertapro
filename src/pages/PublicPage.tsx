@@ -217,14 +217,14 @@ const PublicPage: React.FC = () => {
       const slug = user_name;
       
       let { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('*')
         .eq('public_url', user_name)
         .maybeSingle();
 
       if (!profileData && !profileError) {
         const { data: fallbackData, error: fallbackError } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('*')
           .eq('username', user_name)
           .maybeSingle();
@@ -232,7 +232,7 @@ const PublicPage: React.FC = () => {
         profileError = fallbackError;
       }
 
-      if (profileError || !profileData || profileData.public_page_active === false || !profileData.public_page_created) {
+      if (profileError || !profileData) {
         setProfile(null);
         return;
       }
