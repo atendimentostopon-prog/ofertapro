@@ -32,9 +32,9 @@ const Field: React.FC<{
   children: React.ReactNode;
 }> = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="text-sm font-medium text-slate-350">{label}</label>
+    <label className="text-sm font-medium text-ink-secondary">{label}</label>
     {children}
-    {hint && <p className="text-xs text-slate-500">{hint}</p>}
+    {hint && <p className="text-xs text-ink-tertiary">{hint}</p>}
   </div>
 );
 
@@ -459,7 +459,7 @@ export const BotTab: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
       </div>
     );
   }
@@ -474,10 +474,10 @@ export const BotTab: React.FC = () => {
       {/* SPINNER DE OPERAÇÃO DO BOT (POLLING ATIVO)               */}
       {/* ──────────────────────────────────────────────────────── */}
       {isProcessing && (
-        <div className="p-6 bg-slate-900/60 border border-white/[0.04] rounded-2xl flex flex-col items-center justify-center text-center space-y-3 backdrop-blur-sm animate-pulse">
-          <Loader2 className="w-10 h-10 text-indigo-400 animate-spin" />
-          <h4 className="text-sm font-bold text-slate-100">{processingMessage}</h4>
-          <p className="text-xs text-slate-400 max-w-sm">
+        <div className="p-6 bg-graphite/60 border border-line rounded-2xl flex flex-col items-center justify-center text-center space-y-3 backdrop-blur-sm animate-pulse">
+          <Loader2 className="w-10 h-10 text-mint-700 animate-spin" />
+          <h4 className="text-sm font-bold text-ink">{processingMessage}</h4>
+          <p className="text-xs text-ink-secondary max-w-sm">
             Esta operação costuma levar menos de 30 segundos. Por favor, aguarde a resposta do Telegram.
           </p>
         </div>
@@ -490,12 +490,12 @@ export const BotTab: React.FC = () => {
             <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-zinc-400 flex-shrink-0" />
               <div className="flex-1">
-                <h5 className="text-xs font-bold text-slate-200">Bot Pausado</h5>
-                <p className="text-[11px] text-slate-400 mt-0.5">O robô de monitoramento está inativo no momento.</p>
+                <h5 className="text-xs font-bold text-ink">Bot Pausado</h5>
+                <p className="text-[11px] text-ink-secondary mt-0.5">O robô de monitoramento está inativo no momento.</p>
               </div>
               <button 
                 onClick={() => setIsReconnecting(true)} 
-                className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-750 text-white font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-graphite hover:bg-indigo-750 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
               >
                 Reconectar
               </button>
@@ -507,13 +507,13 @@ export const BotTab: React.FC = () => {
               <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0" />
               <div className="flex-1">
                 <h5 className="text-xs font-bold text-rose-400">Falha na Conexão do Bot</h5>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-ink-secondary mt-0.5">
                   {config.error_message || 'Houve um problema de autenticação na sessão do Telegram.'}
                 </p>
               </div>
               <button 
                 onClick={() => setIsReconnecting(true)} 
-                className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-750 text-white font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-graphite hover:bg-indigo-750 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
               >
                 Reconectar
               </button>
@@ -524,15 +524,15 @@ export const BotTab: React.FC = () => {
           {/* SEÇÃO 1: STATUS DO BOT                                   */}
           {/* ──────────────────────────────────────────────────────── */}
           {!showConnectionForm && config && (
-            <div className="glass-card overflow-hidden border-white/[0.04]">
-              <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center justify-between">
+            <div className="glass-card overflow-hidden border-line">
+              <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                    <Bot className="w-4.5 h-4.5 text-indigo-400" size={18} />
+                  <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+                    <Bot className="w-4.5 h-4.5 text-mint-700" size={18} />
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">🤖 Bot de Monitoramento</h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Monitora grupos do Telegram e envia ofertas para seus canais.</p>
+                    <h3 className="text-[15px] font-bold text-ink tracking-tight">🤖 Bot de Monitoramento</h3>
+                    <p className="text-[11px] text-ink-secondary mt-0.5">Monitora grupos do Telegram e envia ofertas para seus canais.</p>
                   </div>
                 </div>
                 
@@ -545,27 +545,27 @@ export const BotTab: React.FC = () => {
               </div>
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-3 bg-[#0B1020]/50 border border-white/5 rounded-xl space-y-1">
-                    <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Status</p>
+                  <div className="p-3 bg-surface-1 border border-line rounded-xl space-y-1">
+                    <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Status</p>
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span className="text-xs font-bold text-slate-200">Conectado</span>
+                      <span className="text-xs font-bold text-ink">Conectado</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-[#0B1020]/50 border border-white/5 rounded-xl space-y-1">
-                    <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Conta Telegram</p>
-                    <p className="text-xs font-bold text-slate-200 truncate">{config.telegram_phone || 'Não informado'}</p>
+                  <div className="p-3 bg-surface-1 border border-line rounded-xl space-y-1">
+                    <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Conta Telegram</p>
+                    <p className="text-xs font-bold text-ink truncate">{config.telegram_phone || 'Não informado'}</p>
                   </div>
 
-                  <div className="p-3 bg-[#0B1020]/50 border border-white/5 rounded-xl space-y-1">
-                    <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Grupos monitorados</p>
-                    <p className="text-xs font-bold text-slate-200">{(config.grupos_origem || []).length}</p>
+                  <div className="p-3 bg-surface-1 border border-line rounded-xl space-y-1">
+                    <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Grupos monitorados</p>
+                    <p className="text-xs font-bold text-ink">{(config.grupos_origem || []).length}</p>
                   </div>
 
-                  <div className="p-3 bg-[#0B1020]/50 border border-white/5 rounded-xl space-y-1">
-                    <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Última atividade</p>
-                    <p className="text-xs font-bold text-slate-200 truncate">{formatRelativeTime(config.updated_at)}</p>
+                  <div className="p-3 bg-surface-1 border border-line rounded-xl space-y-1">
+                    <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Última atividade</p>
+                    <p className="text-xs font-bold text-ink truncate">{formatRelativeTime(config.updated_at)}</p>
                   </div>
                 </div>
               </div>
@@ -576,14 +576,14 @@ export const BotTab: React.FC = () => {
           {/* SEÇÃO 2: CONECTAR BOT (FLUXO DE LOGIN)                  */}
           {/* ──────────────────────────────────────────────────────── */}
           {showConnectionForm && (
-            <div className="glass-card overflow-hidden border-white/[0.04]">
-              <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <Bot className="w-4.5 h-4.5 text-indigo-400" size={18} />
+            <div className="glass-card overflow-hidden border-line">
+              <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+                  <Bot className="w-4.5 h-4.5 text-mint-700" size={18} />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Conectar Bot do Telegram</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Siga as etapas abaixo para integrar o robô ao seu Telegram pessoal.</p>
+                  <h3 className="text-[15px] font-bold text-ink tracking-tight">Conectar Bot do Telegram</h3>
+                  <p className="text-[11px] text-ink-secondary mt-0.5">Siga as etapas abaixo para integrar o robô ao seu Telegram pessoal.</p>
                 </div>
               </div>
               <div className="p-6 space-y-5">
@@ -599,18 +599,18 @@ export const BotTab: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
                           loginStep === s.step 
-                            ? 'bg-indigo-600 text-white' 
+                            ? 'bg-graphite text-ink-inverse' 
                             : loginStep > s.step 
-                              ? 'bg-indigo-950 text-indigo-400 border border-indigo-500/25'
-                              : 'bg-zinc-800 text-slate-500'
+                              ? 'bg-surface-1 text-mint-700 border border-mint-200'
+                              : 'bg-surface-2 text-ink-tertiary'
                         }`}>
                           {loginStep > s.step ? <Check className="w-3 h-3" /> : s.step}
                         </div>
-                        <span className={`text-[11px] font-bold ${loginStep === s.step ? 'text-indigo-400' : 'text-slate-500'}`}>
+                        <span className={`text-[11px] font-bold ${loginStep === s.step ? 'text-mint-700' : 'text-ink-tertiary'}`}>
                           {s.label}
                         </span>
                       </div>
-                      {s.step < 3 && <div className="w-8 h-px bg-zinc-800" />}
+                      {s.step < 3 && <div className="w-8 h-px bg-surface-2" />}
                     </React.Fragment>
                   ))}
                 </div>
@@ -627,11 +627,11 @@ export const BotTab: React.FC = () => {
                 {/* ETAPA 1: CREDENCIAIS */}
                 {loginStep === 1 && (
                   <form onSubmit={handleStartLogin} className="space-y-4 max-w-md mx-auto">
-                    <div className="p-3 bg-[#0B1020]/55 border border-white/5 rounded-xl space-y-1.5 mb-2">
-                      <p className="text-[11px] text-slate-350 leading-relaxed font-medium">
+                    <div className="p-3 bg-surface-1/55 border border-line rounded-xl space-y-1.5 mb-2">
+                      <p className="text-[11px] text-ink-secondary leading-relaxed font-medium">
                         ℹ️ <strong>Como obter API ID e API Hash:</strong>
                         <br />
-                        Acesse <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline hover:text-indigo-350">my.telegram.org</a>, faça login com seu telefone, vá em "API development tools" e crie uma aplicação para copiar suas credenciais de desenvolvedor.
+                        Acesse <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-mint-700 underline hover:text-indigo-350">my.telegram.org</a>, faça login com seu telefone, vá em "API development tools" e crie uma aplicação para copiar suas credenciais de desenvolvedor.
                       </p>
                     </div>
 
@@ -673,7 +673,7 @@ export const BotTab: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setIsReconnecting(false)}
-                          className="px-4 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-slate-300 transition-colors cursor-pointer"
+                          className="px-4 py-2 border border-line hover:border-line-strong hover:bg-surface-1 rounded-xl text-[11px] font-bold text-ink transition-colors cursor-pointer"
                         >
                           Cancelar
                         </button>
@@ -691,7 +691,7 @@ export const BotTab: React.FC = () => {
                 {/* ETAPA 2: CÓDIGO DE VERIFICAÇÃO */}
                 {loginStep === 2 && (
                   <form onSubmit={handleVerifyCode} className="space-y-4 max-w-sm mx-auto text-center">
-                    <p className="text-xs text-slate-350 font-medium">
+                    <p className="text-xs text-ink-secondary font-medium">
                       Digite o código de 5 dígitos enviado pelo Telegram no aplicativo:
                     </p>
 
@@ -702,7 +702,7 @@ export const BotTab: React.FC = () => {
                         onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
                         placeholder="12345"
                         maxLength={5}
-                        className="w-36 text-center text-xl font-bold tracking-[8px] py-2 px-3 border border-indigo-500/25 bg-slate-900 text-white rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none"
+                        className="w-36 text-center text-xl font-bold tracking-[8px] py-2 px-3 border border-mint-200 bg-graphite text-ink-inverse rounded-xl focus:border-mint-500 focus:ring-1 focus:ring-indigo-500/50 outline-none"
                         required
                       />
                     </div>
@@ -718,7 +718,7 @@ export const BotTab: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleStartLogin} // Reenvia o código
-                        className="text-[11px] font-bold text-indigo-400 hover:text-indigo-350 transition-colors bg-transparent border-none outline-none mt-1 cursor-pointer"
+                        className="text-[11px] font-bold text-mint-700 hover:text-indigo-350 transition-colors bg-transparent border-none outline-none mt-1 cursor-pointer"
                       >
                         Reenviar código
                       </button>
@@ -729,11 +729,11 @@ export const BotTab: React.FC = () => {
                 {/* ETAPA 3: SUCESSO */}
                 {loginStep === 3 && (
                   <div className="max-w-xs mx-auto text-center py-6 space-y-3">
-                    <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/25 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+                    <div className="w-12 h-12 bg-success-bg border border-emerald-500/25 rounded-full flex items-center justify-center mx-auto text-success-ink">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
-                    <h4 className="text-sm font-bold text-slate-100">✅ Bot conectado com sucesso!</h4>
-                    <p className="text-[11px] text-slate-400">
+                    <h4 className="text-sm font-bold text-ink">✅ Bot conectado com sucesso!</h4>
+                    <p className="text-[11px] text-ink-secondary">
                       As credenciais foram validadas. Redirecionando para o painel de monitoramento...
                     </p>
                   </div>
@@ -750,15 +750,15 @@ export const BotTab: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* SEÇÃO 3: GRUPOS DE ORIGEM */}
-              <div className="glass-card overflow-hidden border-white/[0.04] flex flex-col justify-between">
+              <div className="glass-card overflow-hidden border-line flex flex-col justify-between">
                 <div>
-                  <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                      <Bot className="w-4.5 h-4.5 text-indigo-450" size={18} />
+                  <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+                      <Bot className="w-4.5 h-4.5 text-mint-700" size={18} />
                     </div>
                     <div>
-                      <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Grupos de Origem</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">IDs dos grupos do Telegram que o bot monitora.</p>
+                      <h3 className="text-[15px] font-bold text-ink tracking-tight">Grupos de Origem</h3>
+                      <p className="text-[11px] text-ink-secondary mt-0.5">IDs dos grupos do Telegram que o bot monitora.</p>
                     </div>
                   </div>
                   
@@ -766,18 +766,18 @@ export const BotTab: React.FC = () => {
                     {/* Lista de Grupos */}
                     <div className="space-y-1.5 max-h-[220px] overflow-y-auto scrollbar-none pr-1">
                       {gruposOrigem.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic py-2">Nenhum grupo de Telegram adicionado.</p>
+                        <p className="text-xs text-ink-tertiary italic py-2">Nenhum grupo de Telegram adicionado.</p>
                       ) : (
                         gruposOrigem.map((group, index) => (
                           <div 
                             key={index} 
-                            className="flex items-center justify-between p-2.5 bg-[#0B1020]/40 border border-white/5 rounded-xl"
+                            className="flex items-center justify-between p-2.5 bg-surface-1/40 border border-line rounded-xl"
                           >
-                            <span className="text-xs font-mono text-indigo-300 font-bold">{group}</span>
+                            <span className="text-xs font-mono text-mint-800 font-bold">{group}</span>
                             <button
                               type="button"
                               onClick={() => removeGroupLocally(group)}
-                              className="text-slate-400 hover:text-rose-450 p-1 hover:bg-rose-950/15 rounded-lg transition-colors cursor-pointer"
+                              className="text-ink-secondary hover:text-rose-450 p-1 hover:bg-rose-950/15 rounded-lg transition-colors cursor-pointer"
                               title="Remover"
                             >
                               <X className="w-4 h-4" />
@@ -788,7 +788,7 @@ export const BotTab: React.FC = () => {
                     </div>
 
                     {/* Input de Adicionar Grupo */}
-                    <div className="flex gap-2 pt-2 border-t border-white/5">
+                    <div className="flex gap-2 pt-2 border-t border-line">
                       <input
                         type="text"
                         value={newGroup}
@@ -800,7 +800,7 @@ export const BotTab: React.FC = () => {
                       <button
                         type="button"
                         onClick={addGroupLocally}
-                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" /> Adicionar
                       </button>
@@ -808,7 +808,7 @@ export const BotTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6 bg-surface-3/10 border-t border-white/[0.04] flex justify-end">
+                <div className="p-6 bg-surface-1/10 border-t border-line flex justify-end">
                   <button
                     type="button"
                     onClick={handleSaveGroups}
@@ -826,29 +826,29 @@ export const BotTab: React.FC = () => {
               </div>
 
               {/* SEÇÃO 4: CANAIS DE DESTINO */}
-              <div className="glass-card overflow-hidden border-white/[0.04] flex flex-col justify-between">
+              <div className="glass-card overflow-hidden border-line flex flex-col justify-between">
                 <div>
-                  <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                      <Bot className="w-4.5 h-4.5 text-indigo-450" size={18} />
+                  <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+                      <Bot className="w-4.5 h-4.5 text-mint-700" size={18} />
                     </div>
                     <div>
-                      <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Canais de Destino</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Selecione quais canais recebem as ofertas do bot.</p>
+                      <h3 className="text-[15px] font-bold text-ink tracking-tight">Canais de Destino</h3>
+                      <p className="text-[11px] text-ink-secondary mt-0.5">Selecione quais canais recebem as ofertas do bot.</p>
                     </div>
                   </div>
 
                   <div className="p-6 space-y-4">
                     {channelsLoading ? (
                       <div className="flex justify-center py-6">
-                        <Loader2 className="w-6 h-6 text-indigo-450 animate-spin" />
+                        <Loader2 className="w-6 h-6 text-mint-700 animate-spin" />
                       </div>
                     ) : channels.length === 0 ? (
                       <div className="space-y-2 py-4">
-                        <p className="text-xs text-slate-500 italic">
+                        <p className="text-xs text-ink-tertiary italic">
                           Nenhum canal ativo cadastrado.
                         </p>
-                        <p className="text-[11px] text-[#94A3B8]">
+                        <p className="text-[11px] text-ink-secondary">
                           Conecte canais nas configurações gerais ou no painel para usá-los como destino.
                         </p>
                       </div>
@@ -860,23 +860,23 @@ export const BotTab: React.FC = () => {
                           return (
                             <label
                               key={channel.id}
-                              className={`flex items-center gap-3 p-3 bg-[#0B1020]/45 hover:bg-[#0B1020]/75 border rounded-xl cursor-pointer transition-all ${
+                              className={`flex items-center gap-3 p-3 bg-surface-1/45 hover:bg-surface-1/75 border rounded-xl cursor-pointer transition-all ${
                                 isChecked 
-                                  ? 'border-indigo-500/40 bg-indigo-950/10' 
-                                  : 'border-white/5'
+                                  ? 'border-mint-500 bg-surface-1/10' 
+                                  : 'border-line'
                               }`}
                             >
                               <input
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={() => toggleChannel(channel.id)}
-                                className="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-white/10 focus:ring-indigo-500 focus:ring-opacity-25"
+                                className="w-4 h-4 rounded text-indigo-600 bg-graphite border-line-strong focus:ring-indigo-500 focus:ring-opacity-25"
                               />
                               <div className="flex items-center gap-2">
                                 <span className="text-base select-none">{logo.emoji}</span>
                                 <div className="min-w-0">
-                                  <p className="text-xs font-bold text-slate-200 truncate">{channel.name}</p>
-                                  <p className="text-[10px] text-slate-500 capitalize">{channel.type}</p>
+                                  <p className="text-xs font-bold text-ink truncate">{channel.name}</p>
+                                  <p className="text-[10px] text-ink-tertiary capitalize">{channel.type}</p>
                                 </div>
                               </div>
                             </label>
@@ -887,7 +887,7 @@ export const BotTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6 bg-surface-3/10 border-t border-white/[0.04] flex justify-end">
+                <div className="p-6 bg-surface-1/10 border-t border-line flex justify-end">
                   <button
                     type="button"
                     onClick={handleSaveChannels}
@@ -911,14 +911,14 @@ export const BotTab: React.FC = () => {
           {/* SEÇÃO 5: CONFIGURAÇÕES ADICIONAIS                        */}
           {/* ──────────────────────────────────────────────────────── */}
           {!showConnectionForm && config && (
-            <div className="glass-card overflow-hidden border-white/[0.04]">
-              <div className="px-6 py-4 border-b border-white/[0.04] bg-surface-3/30 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <Key className="w-4.5 h-4.5 text-indigo-400" size={18} />
+            <div className="glass-card overflow-hidden border-line">
+              <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+                  <Key className="w-4.5 h-4.5 text-mint-700" size={18} />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Configurações Adicionais</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Associe suas tags e chaves de afiliado para substituição automática de links.</p>
+                  <h3 className="text-[15px] font-bold text-ink tracking-tight">Configurações Adicionais</h3>
+                  <p className="text-[11px] text-ink-secondary mt-0.5">Associe suas tags e chaves de afiliado para substituição automática de links.</p>
                 </div>
               </div>
               
@@ -938,9 +938,9 @@ export const BotTab: React.FC = () => {
                       />
                     </Field>
 
-                    <div className="p-4 bg-[#0B1020]/25 border border-white/5 rounded-xl flex items-start gap-2.5">
-                      <AlertCircle className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                      <div className="text-[11px] text-[#94A3B8] leading-normal font-medium">
+                    <div className="p-4 bg-surface-1/25 border border-line rounded-xl flex items-start gap-2.5">
+                      <AlertCircle className="w-4.5 h-4.5 text-ink-secondary mt-0.5 flex-shrink-0" />
+                      <div className="text-[11px] text-ink-secondary leading-normal font-medium">
                         <strong>Substituição de Links:</strong>
                         <br />
                         Quando o bot identificar um link de produto da Amazon ou Shopee nos canais de origem, ele tentará converter usando as tags salvas aqui.
@@ -948,12 +948,12 @@ export const BotTab: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="border-t border-white/5 pt-4 space-y-4">
+                  <div className="border-t border-line pt-4 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h4 className="text-xs font-bold text-slate-200">Credenciais Shopee Affiliate (opcional)</h4>
+                      <h4 className="text-xs font-bold text-ink">Credenciais Shopee Affiliate (opcional)</h4>
                       <Link 
                         to="/automatizacao-shopee"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/35 text-indigo-400 text-[10px] font-black rounded-lg transition-all duration-200 w-fit self-start sm:self-auto shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ice hover:bg-ice border border-mint-200 hover:border-mint-500 text-mint-700 text-[10px] font-black rounded-lg transition-all duration-200 w-fit self-start sm:self-auto shadow-sm"
                       >
                         <HelpCircle className="w-3.5 h-3.5" />
                         Como pegar minhas credenciais?
@@ -984,7 +984,7 @@ export const BotTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6 bg-surface-3/10 border-t border-white/[0.04] flex justify-end">
+                <div className="p-6 bg-surface-1/10 border-t border-line flex justify-end">
                   <button
                     type="submit"
                     disabled={savingConfigAdicionais}

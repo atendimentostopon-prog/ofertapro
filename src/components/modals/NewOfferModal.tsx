@@ -146,25 +146,25 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
     const isFinished = progressText.toLowerCase().includes('finalizado') || progressText.toLowerCase().includes('concluído');
 
     return (
-      <div className="absolute inset-0 bg-[#070A12]/80 backdrop-blur-[4px] z-50 flex flex-col items-center justify-center p-6 text-center animate-fade-in rounded-2xl">
-        <div className="bg-[#101827] rounded-2xl shadow-2xl p-8 max-w-sm w-full border border-white/5 flex flex-col items-center gap-4">
+      <div className="absolute inset-0 bg-surface-1/80 backdrop-blur-[4px] z-50 flex flex-col items-center justify-center p-6 text-center animate-fade-in rounded-2xl">
+        <div className="bg-surface-0 rounded-2xl shadow-2xl p-8 max-w-sm w-full border border-line flex flex-col items-center gap-4">
           <div className="relative">
             {!isFinished ? (
               <>
                 <div className="w-14 h-14 border-4 border-zinc-800 border-t-indigo-500 rounded-full animate-spin" />
-                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-indigo-400 animate-pulse" />
+                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-mint-700 animate-pulse" />
               </>
             ) : (
-              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="w-14 h-14 rounded-full bg-success-bg border border-emerald-500/30 flex items-center justify-center text-success-ink">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
             )}
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-ink-inverse">
               {isFinished ? 'Operação Concluída' : 'Processando Operação'}
             </h3>
-            <p className="text-xs text-slate-400 font-semibold">{progressText || 'Processando...'}</p>
+            <p className="text-xs text-ink-secondary font-semibold">{progressText || 'Processando...'}</p>
           </div>
           {isFinished && (
             <button
@@ -191,14 +191,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
       : 'Você atingiu o limite de canais conectados do seu plano Free.';
 
     return (
-      <div className="absolute inset-0 bg-[#070A12]/80 backdrop-blur-[4px] z-50 flex items-center justify-center p-6 animate-fade-in rounded-2xl">
-        <div className="bg-[#101827] rounded-2xl shadow-2xl p-6 max-w-md w-full border border-white/5 flex flex-col items-center text-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
+      <div className="absolute inset-0 bg-surface-1/80 backdrop-blur-[4px] z-50 flex items-center justify-center p-6 animate-fade-in rounded-2xl">
+        <div className="bg-surface-0 rounded-2xl shadow-2xl p-6 max-w-md w-full border border-line flex flex-col items-center text-center gap-5">
+          <div className="w-12 h-12 rounded-2xl bg-ice border border-mint-200 flex items-center justify-center text-mint-700">
             <AlertTriangle className="w-6 h-6 animate-bounce" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-white">Upgrade Necessário 🚀</h3>
-            <p className="text-xs text-[#94A3B8] font-medium leading-relaxed">
+            <h3 className="text-lg font-bold text-ink-inverse">Upgrade Necessário 🚀</h3>
+            <p className="text-xs text-ink-secondary font-medium leading-relaxed">
               {limitsText} Faça o upgrade para o plano **Starter** ou **PRO** para desfrutar de ofertas e canais ilimitados, agendamentos futuros e templates avançados.
             </p>
           </div>
@@ -209,14 +209,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 onClose();
                 navigate('/settings'); // Ir para as configurações / faturamento
               }}
-              className="flex-1 btn-gradient text-white font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
               Fazer Upgrade
             </button>
             <button
               onClick={() => setShowUpgradeModal(false)}
-              className="flex-1 bg-[#0B1020] hover:bg-[#101827] text-slate-350 border border-white/5 font-bold py-2.5 rounded-xl text-xs transition-colors"
+              className="flex-1 bg-surface-1 hover:bg-surface-0 text-ink-secondary border border-line font-bold py-2.5 rounded-xl text-xs transition-colors"
             >
               Voltar
             </button>
@@ -241,19 +241,19 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
     if (totalFailed === 0) {
       statusTitle = 'Oferta enviada com sucesso.';
       statusSubtitle = `Enviada para todos os ${totalSuccess} canal(is) selecionados.`;
-      statusColorClass = 'bg-emerald-950/20 border border-emerald-900/40 text-emerald-400';
+      statusColorClass = 'bg-emerald-950/20 border border-emerald-900/40 text-success-ink';
     } else if (totalSuccess > 0) {
       statusTitle = 'Oferta enviada parcialmente.';
       statusSubtitle = `Enviada com sucesso para ${totalSuccess} de ${totalChannels} canal(is).`;
-      statusColorClass = 'bg-amber-950/20 border border-amber-900/40 text-amber-400';
+      statusColorClass = 'bg-amber-950/20 border border-amber-900/40 text-warning-ink';
     } else {
       statusTitle = 'Oferta salva, mas o envio falhou.';
       statusSubtitle = `Ocorreu um erro no disparo para todos os ${totalChannels} canal(is).`;
-      statusColorClass = 'bg-red-950/20 border border-red-900/40 text-red-400';
+      statusColorClass = 'bg-danger-bg border border-danger/20 text-danger-ink';
     }
 
     return (
-      <div className="absolute inset-0 bg-[#101827] z-40 rounded-2xl flex flex-col p-6 border border-white/5 animate-fade-in">
+      <div className="absolute inset-0 bg-surface-0 z-40 rounded-2xl flex flex-col p-6 border border-line animate-fade-in">
         <div className={`p-4 rounded-xl border mb-4 ${statusColorClass}`}>
           <h3 className="text-sm font-bold tracking-tight">{statusTitle}</h3>
           <p className="text-[11px] font-medium mt-1 leading-relaxed">{statusSubtitle}</p>
@@ -264,20 +264,20 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             <div
               key={res.channelId}
               className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
-                res.success ? 'bg-emerald-950/10 border border-emerald-900/20' : 'bg-red-950/10 border border-red-900/20'
+                res.success ? 'bg-emerald-950/10 border border-emerald-900/20' : 'bg-danger-bg/10 border border-red-900/20'
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-[#070A12] border border-white/5 flex items-center justify-center shadow-sm text-sm">
+              <div className="w-8 h-8 rounded-lg bg-surface-1 border border-line flex items-center justify-center shadow-sm text-sm">
                 <ChannelLogo type={res.channelType} size="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-bold text-slate-200 truncate">{res.channelName}</p>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${res.success ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                  <p className="text-[12px] font-bold text-ink truncate">{res.channelName}</p>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${res.success ? 'bg-success-bg text-success-ink' : 'bg-danger-bg text-danger-ink'}`}>
                     {res.success ? 'Sucesso' : 'Falhou'}
                   </span>
                 </div>
-                <p className={`text-[11px] mt-1 font-medium leading-relaxed ${res.success ? 'text-slate-450' : 'text-red-405'}`}>
+                <p className={`text-[11px] mt-1 font-medium leading-relaxed ${res.success ? 'text-ink-secondary' : 'text-red-405'}`}>
                   {res.message || res.errorMessage || 'Erro de conexão ou envio.'}
                 </p>
               </div>
@@ -285,14 +285,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
           ))}
         </div>
 
-        <div className="pt-4 border-t border-white/5 flex gap-3">
+        <div className="pt-4 border-t border-line flex gap-3">
           <button
             onClick={() => {
               onClose();
               if (onSuccess) onSuccess();
               navigate('/history');
             }}
-            className="flex-1 btn-gradient text-white font-bold py-2.5 rounded-xl text-xs shadow-md shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-md shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
           >
             <ShieldCheck className="w-4 h-4" />
             Ver no Histórico
@@ -323,12 +323,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         {renderSummaryScreen()}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#101827]/40 rounded-t-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface-1 rounded-t-2xl">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
+            <h2 className="text-lg font-bold text-ink-inverse tracking-tight">
               {offerToEdit ? 'Editar Oferta' : 'Nova Oferta'}
             </h2>
-            <p className="text-[11px] font-medium text-[#94A3B8] mt-0.5">Configure, salve e envie em lote com um clique</p>
+            <p className="text-[11px] font-medium text-ink-secondary mt-0.5">Configure, salve e envie em lote com um clique</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -337,14 +337,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 setStep(nextSection);
                 scrollToSection(nextSection);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 text-xs font-semibold text-slate-350 hover:bg-[#101827] transition-all md:hidden"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink-secondary hover:bg-surface-0 transition-all md:hidden"
             >
               <Eye className="w-3.5 h-3.5" />
               {step === 'form' ? 'Ver Prévia' : 'Preencher'}
             </button>
             <button
               onClick={handleCloseClick}
-              className="w-8 h-8 rounded-lg border border-transparent flex items-center justify-center hover:bg-[#101827]/60 transition-all text-slate-400"
+              className="w-8 h-8 rounded-lg border border-transparent flex items-center justify-center hover:bg-surface-0/60 transition-all text-ink-secondary"
             >
               <X className="w-4 h-4" />
             </button>
@@ -356,16 +356,16 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
           {/* Lado Esquerdo: Formulário */}
           <div ref={formContainerRef} className="w-full md:flex-1 px-6 py-4 space-y-4 md:overflow-y-auto md:h-full">
             {error && (
-              <div className="flex items-start gap-2 p-3 bg-red-950/20 text-red-400 rounded-xl border border-red-900/40 text-xs font-semibold">
-                <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 p-3 bg-danger-bg text-danger-ink rounded-xl border border-danger/20 text-xs font-semibold">
+                <XCircle className="w-4 h-4 text-danger-ink flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Upload de Imagem */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">1</span>
+              <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">1</span>
                 Imagem do Produto
               </label>
               <input
@@ -388,16 +388,16 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
                     className={`relative group cursor-pointer border border-dashed rounded-xl transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center overflow-hidden ${
-                      dragActive ? 'border-indigo-500 bg-indigo-950/20' :
+                      dragActive ? 'border-mint-500 bg-surface-1' :
                       previewImage 
-                        ? 'border-white/5 bg-[#0B1020]/50' 
-                        : 'border-white/5 bg-[#0B1020]/50 hover:border-indigo-500/50 hover:bg-[#101827]/30'
+                        ? 'border-line bg-surface-1' 
+                        : 'border-line bg-surface-1 hover:border-mint-500/50 hover:bg-surface-0/30'
                     }`}
                   >
                     {imageUploading && (
-                      <div className="absolute inset-0 z-10 bg-[#101827]/85 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
-                        <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
-                        <p className="text-[10px] font-bold text-indigo-400 animate-pulse">Comprimindo e carregando...</p>
+                      <div className="absolute inset-0 z-10 bg-surface-0/85 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-6 h-6 text-mint-700 animate-spin" />
+                        <p className="text-[10px] font-bold text-mint-700 animate-pulse">Comprimindo e carregando...</p>
                       </div>
                     )}
                     {previewImage ? (
@@ -407,7 +407,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                           alt="Preview da Imagem" 
                           onError={() => setImageLoadError(true)}
                           onLoad={() => setImageLoadError(false)}
-                          className="w-full h-36 object-contain bg-[#070A12] p-2"
+                          className="w-full h-36 object-contain bg-surface-1 p-2"
                         />
                         {/* Botões persistentes/hover para Trocar e Remover */}
                         <div className="absolute bottom-2 right-2 flex gap-2 z-20">
@@ -417,7 +417,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                               e.stopPropagation();
                               fileInputRef.current?.click();
                             }}
-                            className="bg-[#101827]/90 hover:bg-[#101827] text-white border border-white/10 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
+                            className="bg-surface-0/90 hover:bg-surface-0 text-ink-inverse border border-line-strong px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
                           >
                             <RefreshCw className="w-3 h-3" />
                             Trocar Imagem
@@ -429,7 +429,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                               handleRemoveImage();
                               setImageLoadError(false);
                             }}
-                            className="bg-red-900/90 hover:bg-red-855 text-white border border-red-500/20 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
+                            className="bg-red-900/90 hover:bg-red-855 text-ink-inverse border border-danger/20 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
                           >
                             <X className="w-3 h-3" />
                             Remover Imagem
@@ -437,7 +437,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                         </div>
                         
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                          <span className="bg-[#101827] px-3 py-1.5 rounded-full shadow-lg text-white border border-white/5 text-[10px] font-bold flex items-center gap-1.5">
+                          <span className="bg-surface-0 px-3 py-1.5 rounded-full shadow-lg text-ink-inverse border border-line text-[10px] font-bold flex items-center gap-1.5">
                             <Upload className="w-3.5 h-3.5" />
                             Trocar por Arquivo Local
                           </span>
@@ -445,12 +445,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                       </div>
                     ) : (
                       <div className="p-4 text-center space-y-2">
-                        <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center mx-auto text-slate-500 group-hover:text-indigo-400 transition-transform">
+                        <div className="w-10 h-10 rounded-xl bg-surface-0 border border-line flex items-center justify-center mx-auto text-ink-tertiary group-hover:text-mint-700 transition-transform">
                           <ImageIcon className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-300">Solte ou clique para carregar imagem</p>
-                          <p className="text-[10px] text-slate-500">JPG, PNG ou WEBP otimizados de até 5MB</p>
+                          <p className="text-xs font-bold text-ink">Solte ou clique para carregar imagem</p>
+                          <p className="text-[10px] text-ink-tertiary">JPG, PNG ou WEBP otimizados de até 5MB</p>
                         </div>
                       </div>
                     )}
@@ -460,13 +460,13 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
               {(imageError || imageLoadError) && (
                 <div className="flex flex-col gap-1 mt-1 text-center">
-                  <p className="text-[10px] text-amber-500 font-bold">
+                  <p className="text-[10px] text-warning-ink font-bold">
                     ⚠️ {imageError || 'Não foi possível carregar essa imagem. Tente outra URL ou faça upload manual.'}
                   </p>
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="text-[9px] text-slate-400 hover:text-white underline font-bold mt-0.5 mx-auto"
+                    className="text-[9px] text-ink-secondary hover:text-ink-inverse underline font-bold mt-0.5 mx-auto"
                   >
                     Remover imagem e continuar
                   </button>
@@ -476,7 +476,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* URL da Imagem do Produto (Campo Opcional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-350 tracking-wider">
+              <label className="text-xs font-bold text-ink-secondary tracking-wider">
                 OU URL da Imagem Externa (Opcional)
               </label>
               <input
@@ -494,8 +494,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* Informações da Oferta */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">2</span>
+              <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">2</span>
                 Título do Produto *
               </label>
               <input
@@ -510,7 +510,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* Descrição / Chamada da Oferta (Opcional) */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-205 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
                 Descrição / Chamada da oferta (Opcional)
               </label>
               <textarea
@@ -525,8 +525,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             {/* Valores */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">3</span>
+                <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                  <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">3</span>
                   Preço Original
                 </label>
                 <div className="relative">
@@ -539,12 +539,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     className="input-modern pl-9 text-xs"
                     disabled={loading || uploading}
                   />
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">↓</span>
+                <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                  <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">↓</span>
                   Preço Promocional *
                 </label>
                 <div className="relative">
@@ -557,7 +557,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     className="input-modern pl-9 text-xs"
                     disabled={loading || uploading}
                   />
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-success-ink" />
                 </div>
               </div>
             </div>
@@ -565,8 +565,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             <div className="grid grid-cols-2 gap-4">
               {/* Cupom */}
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">4</span>
+                <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                  <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">4</span>
                   Cupom
                 </label>
                 <div className="relative">
@@ -578,13 +578,13 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     className="input-modern pl-9 text-xs font-mono font-bold"
                     disabled={loading || uploading}
                   />
-                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
                 </div>
               </div>
               {/* Categoria */}
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">5</span>
+                <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                  <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">5</span>
                   Categoria
                 </label>
                 <select
@@ -593,9 +593,9 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   className="input-modern text-xs"
                   disabled={loading || uploading}
                 >
-                  <option value="" className="bg-[#101827] text-white">Selecione...</option>
+                  <option value="" className="bg-surface-0 text-ink-inverse">Selecione...</option>
                   {CATEGORIES.filter(cat => cat !== 'Todos').map(cat => (
-                    <option key={cat} value={cat} className="bg-[#101827] text-white">{cat}</option>
+                    <option key={cat} value={cat} className="bg-surface-0 text-ink-inverse">{cat}</option>
                   ))}
                 </select>
               </div>
@@ -604,8 +604,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             {/* Link de Afiliado */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between w-full">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">6</span>
+                <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                  <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">6</span>
                   Link de Afiliado *
                 </label>
                 {form.link && form.link.trim().startsWith('http') && (
@@ -613,16 +613,16 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     type="button"
                     onClick={handleFetchProductDetails}
                     disabled={loading || uploading || enriching}
-                    className="text-[10px] font-extrabold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                    className="text-[10px] font-extrabold text-mint-700 hover:text-mint-800 disabled:opacity-50 flex items-center gap-1 transition-colors"
                   >
                     {enriching ? (
                       <>
-                        <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
+                        <Loader2 className="w-3 h-3 animate-spin text-mint-700" />
                         Buscando...
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
+                        <Sparkles className="w-3 h-3 text-mint-700 animate-pulse" />
                         Buscar dados do produto
                       </>
                     )}
@@ -642,7 +642,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   className="input-modern pl-9 text-xs"
                   disabled={loading || uploading || enriching}
                 />
-                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
               </div>
               
               {/* Aviso discreto de Marketplace detectado */}
@@ -659,13 +659,13 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                         aliexpress: 'AliExpress'
                       };
                       return (
-                        <span className="text-indigo-400">
+                        <span className="text-mint-700">
                           ✨ Marketplace detectado: <strong>{labels[detected] || detected}</strong>
                         </span>
                       );
                     } else {
                       return (
-                        <span className="text-slate-400">
+                        <span className="text-ink-secondary">
                           ℹ️ Não foi possível detectar automaticamente. Selecione manualmente.
                         </span>
                       );
@@ -675,14 +675,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               )}
               
               {enrichSuccess && (
-                <div className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-1 animate-fade-in">
+                <div className="text-[10px] text-success-ink font-extrabold flex items-center gap-1 animate-fade-in">
                   <Check className="w-3.5 h-3.5" />
                   Dados importados automaticamente! Revise os dados antes de disparar. Preços e cupons podem mudar.
                 </div>
               )}
 
               {enrichWarnings.length > 0 && (
-                <div className="space-y-0.5 mt-1 bg-amber-950/20 p-2 rounded-lg border border-amber-900/30 text-[10px] font-semibold text-amber-400 animate-fade-in">
+                <div className="space-y-0.5 mt-1 bg-amber-950/20 p-2 rounded-lg border border-amber-900/30 text-[10px] font-semibold text-warning-ink animate-fade-in">
                   {enrichWarnings.map((w, idx) => (
                     <div key={idx} className="flex items-start gap-1">
                       <span>•</span>
@@ -695,8 +695,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* Marketplace */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-200 uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-extrabold flex items-center justify-center">7</span>
+              <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">7</span>
                 Marketplace *
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -707,8 +707,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     onClick={() => setForm({ ...form, marketplace: mp.value })}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
-                        ? 'border-indigo-500 bg-indigo-650/20 text-indigo-350 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 text-slate-350 hover:bg-[#101827]/50'
+                        ? 'border-mint-500 bg-graphite/20 text-indigo-350 shadow-sm'
+                        : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-0/50'
                     }`}
                     disabled={loading || uploading}
                   >
@@ -729,15 +729,15 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             </div>
 
             {/* Canais */}
-            <div className="space-y-3 pt-4 border-t border-white/5">
+            <div className="space-y-3 pt-4 border-t border-line">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Canais para Disparar</p>
+                <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Canais para Disparar</p>
                 <div className="flex items-center gap-3">
                   {connectedChannels.length > 0 && (
                     <button
                       type="button"
                       onClick={handleSelectAllChannels}
-                      className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                      className="text-[10px] font-bold text-mint-700 hover:text-mint-800 transition-colors"
                     >
                       {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
                     </button>
@@ -746,7 +746,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     type="button"
                     onClick={loadChannels}
                     disabled={loading || uploading || channelsLoading}
-                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                    className="text-[10px] font-bold text-mint-700 hover:text-mint-800 disabled:opacity-50 flex items-center gap-1 transition-colors"
                     title="Atualizar canais"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${channelsLoading ? 'animate-spin' : ''}`} />
@@ -756,18 +756,18 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               </div>
 
               {channelsError && (
-                <p className="text-[10px] text-red-400 font-semibold">{channelsError}</p>
+                <p className="text-[10px] text-danger-ink font-semibold">{channelsError}</p>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {channelsLoading ? (
-                  <div className="col-span-full flex items-center gap-2 py-3 text-xs text-slate-500 justify-center">
+                  <div className="col-span-full flex items-center gap-2 py-3 text-xs text-ink-tertiary justify-center">
                     <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
                     Carregando canais...
                   </div>
                 ) : connectedChannels.length === 0 ? (
-                  <div className="col-span-full bg-[#0B1020]/50 border border-white/5 rounded-xl p-4 text-center">
-                    <p className="text-xs text-slate-350 font-medium">
+                  <div className="col-span-full bg-surface-1 border border-line rounded-xl p-4 text-center">
+                    <p className="text-xs text-ink-secondary font-medium">
                       Conecte um canal Telegram, Discord ou WhatsApp antes de disparar.
                     </p>
                     <a
@@ -777,7 +777,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                         onClose();
                         navigate('/channels');
                       }}
-                      className="inline-block mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-350 hover:underline"
+                      className="inline-block mt-2 text-xs font-bold text-mint-700 hover:text-indigo-350 hover:underline"
                     >
                       Ir para Canais →
                     </a>
@@ -789,21 +789,21 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     onClick={() => toggleChannel(ch.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl border text-left cursor-pointer transition-all ${
                       selectedChannels.includes(ch.id)
-                        ? 'border-indigo-500 bg-indigo-650/20 text-indigo-305 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 hover:bg-[#101827]/50'
+                        ? 'border-mint-500 bg-graphite/20 text-indigo-305 shadow-sm'
+                        : 'border-line bg-surface-1 hover:bg-surface-0/50'
                     }`}
                     disabled={loading || uploading}
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                      selectedChannels.includes(ch.id) ? 'bg-indigo-600 border-indigo-600' : 'border-white/10'
+                      selectedChannels.includes(ch.id) ? 'bg-graphite border-indigo-600' : 'border-line-strong'
                     }`}>
-                      {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-white" />}
+                      {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-ink-inverse" />}
                     </div>
-                    <div className="w-5 h-5 rounded bg-[#070A12]/40 border border-white/5 flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
+                    <div className="w-5 h-5 rounded bg-surface-1/40 border border-line flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
                       <ChannelLogo type={ch.type} size="w-full h-full" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-200 truncate">{ch.name}</p>
+                      <p className="text-xs font-bold text-ink truncate">{ch.name}</p>
                     </div>
                   </button>
                 ))}
@@ -812,42 +812,42 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
           </div>
 
           {/* Lado Direito: Preview (Mockup de Canal de Transmissão Geral) */}
-          <div ref={previewRef} className="w-full md:w-80 px-6 py-4 bg-[#0B1020]/30 flex flex-col gap-4 md:overflow-y-auto md:h-full">
-            <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">PRÉVIA DO DISPARO</p>
+          <div ref={previewRef} className="w-full md:w-80 px-6 py-4 bg-surface-1 flex flex-col gap-4 md:overflow-y-auto md:h-full">
+            <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">PRÉVIA DO DISPARO</p>
             
             {/* Celular Mockup */}
             <div className="bg-[#0b0c10] rounded-2xl p-3 border border-slate-800 shadow-xl flex flex-col flex-1 min-h-[350px]">
-              <div className="bg-[#101827] rounded-t-xl px-3 py-2 flex items-center gap-2 mb-1.5 flex-shrink-0 border-b border-white/5">
-                <div className="w-7 h-7 rounded-full bg-[#070A12] flex items-center justify-center text-xs shadow-sm border border-white/5">📢</div>
+              <div className="bg-surface-0 rounded-t-xl px-3 py-2 flex items-center gap-2 mb-1.5 flex-shrink-0 border-b border-line">
+                <div className="w-7 h-7 rounded-full bg-surface-1 flex items-center justify-center text-xs shadow-sm border border-line">📢</div>
                 <div className="min-w-0">
-                  <p className="text-slate-100 text-xs font-bold truncate">
+                  <p className="text-ink text-xs font-bold truncate">
                     {selectedChannels.length > 0 
                       ? connectedChannels.find(c => selectedChannels.includes(c.id))?.name || 'Canal Selecionado' 
                       : 'Canal de Transmissão'}
                   </p>
-                  <p className="text-[#94A3B8] text-[9px] font-medium">{selectedChannels.length} canal(is) selecionado(s)</p>
+                  <p className="text-ink-secondary text-[9px] font-medium">{selectedChannels.length} canal(is) selecionado(s)</p>
                 </div>
               </div>
               
-              <div className="bg-[#070A12] rounded-b-xl p-3 flex-1 flex flex-col justify-end overflow-hidden">
-                <div className="bg-[#101827] rounded-xl p-2.5 shadow-sm border border-white/5 max-w-full text-xs text-slate-100">
+              <div className="bg-surface-1 rounded-b-xl p-3 flex-1 flex flex-col justify-end overflow-hidden">
+                <div className="bg-surface-0 rounded-xl p-2.5 shadow-sm border border-line max-w-full text-xs text-ink">
                   {imagePreviewUrl && (
-                    <div className="mb-2 rounded-lg overflow-hidden border border-white/5 bg-[#0B1020]/50">
+                    <div className="mb-2 rounded-lg overflow-hidden border border-line bg-surface-1">
                       <img src={imagePreviewUrl} alt="Preview" className="w-full h-28 object-contain" />
                     </div>
                   )}
-                  <p className="font-bold text-indigo-400 text-[11px] mb-1">🔥 OFERTA ENCONTRADA</p>
-                  <p className="font-bold text-white text-[11.5px] line-clamp-2 leading-tight mb-1.5">
+                  <p className="font-bold text-mint-700 text-[11px] mb-1">🔥 OFERTA ENCONTRADA</p>
+                  <p className="font-bold text-ink-inverse text-[11.5px] line-clamp-2 leading-tight mb-1.5">
                     {form.name || 'Nome do produto aparecerá aqui'}
                   </p>
                   
                   {parseCurrencyInputToCents(form.originalPrice) > 0 && (
-                    <p className="text-slate-500 line-through text-[10px]">
+                    <p className="text-ink-tertiary line-through text-[10px]">
                       De: {formatCentsToBRL(parseCurrencyInputToCents(form.originalPrice))}
                     </p>
                   )}
                   {parseCurrencyInputToCents(form.salePrice) > 0 && (
-                    <p className="text-emerald-450 font-extrabold text-[13px] mt-0.5">
+                    <p className="text-success-ink font-extrabold text-[13px] mt-0.5">
                       Por apenas: {formatCentsToBRL(parseCurrencyInputToCents(form.salePrice))}
                     </p>
                   )}
@@ -858,12 +858,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   )}
   
                   {form.coupon && form.coupon.trim() !== '' && (
-                    <div className="mt-2 bg-[#0B1020]/50 border border-white/5 rounded-md p-1.5 font-mono text-[9.5px] text-slate-350 font-bold flex items-center justify-between">
+                    <div className="mt-2 bg-surface-1 border border-line rounded-md p-1.5 font-mono text-[9.5px] text-ink-secondary font-bold flex items-center justify-between">
                       <span>🎟️ Cupom: {form.coupon}</span>
                     </div>
                   )}
   
-                  <p className="text-indigo-450 text-[9.5px] mt-2 underline truncate">
+                  <p className="text-mint-700 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
                       ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
                       : '🔗 linkoferta.vercel.app/o/...'}
@@ -872,7 +872,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               </div>
             </div>
             
-            <p className="text-[10px] text-slate-500 text-center font-medium leading-relaxed">
+            <p className="text-[10px] text-ink-tertiary text-center font-medium leading-relaxed">
               {FEATURES.useDirectAffiliateLinkInChannels
                 ? 'O link de afiliado direto configurado será enviado nas mensagens dos canais.'
                 : 'O link acima é gerado automaticamente para rastrear cliques e creditar suas comissões.'}
@@ -881,8 +881,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-white/5 bg-[#101827]/40 rounded-b-2xl">
-          <div className="text-xs font-semibold text-[#94A3B8]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-line bg-surface-1 rounded-b-2xl">
+          <div className="text-xs font-semibold text-ink-secondary">
             {selectedChannels.length > 0
               ? `${selectedChannels.length} canal(is) selecionado(s)`
               : 'Nenhum canal selecionado'}

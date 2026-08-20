@@ -474,43 +474,43 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
     default: 'bg-[#7C3AED]',
     indigo: 'bg-[#4F46E5]',
     emerald: 'bg-[#10B981]',
-    dark: 'bg-[#070A12]',
+    dark: 'bg-surface-1',
   };
 
   const themeAccentColors: Record<string, string> = {
-    default: 'bg-indigo-600 hover:bg-indigo-700',
-    indigo: 'bg-indigo-500 hover:bg-indigo-600',
-    emerald: 'bg-emerald-500 hover:bg-emerald-600',
-    dark: 'bg-zinc-800 hover:bg-zinc-700 border border-white/5',
+    default: 'bg-graphite hover:bg-graphite-800',
+    indigo: 'bg-graphite hover:bg-graphite',
+    emerald: 'bg-emerald-500 hover:bg-mint-500',
+    dark: 'bg-surface-2 hover:bg-zinc-700 border border-line',
   };
 
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#101827] rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[660px] border border-white/5 animate-scale-up">
+      <div className="bg-surface-0 rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[660px] border border-line animate-scale-up">
         
         {/* Lado Esquerdo: Formulários e Passos */}
-        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between overflow-y-auto border-b md:border-b-0 md:border-r border-white/5">
+        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between overflow-y-auto border-b md:border-b-0 md:border-r border-line">
           <div>
             {/* Header com indicador de progresso */}
             <div className="flex items-center justify-between mb-4">
-              <span className="bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="bg-ice text-mint-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 fill-current animate-pulse" /> Onboarding Beta
               </span>
-              <span className="text-xs font-bold text-slate-400">
+              <span className="text-xs font-bold text-ink-secondary">
                 Etapa {step} de 2 — {step === 1 ? 'Minha Conta' : 'Minha Vitrine'}
               </span>
             </div>
 
             {/* Barra de progresso visual */}
-            <div className="w-full bg-[#070A12] h-1 rounded-full overflow-hidden mb-6 flex gap-1">
-              <div className={`h-full flex-1 rounded-full transition-all duration-300 ${step >= 1 ? 'bg-indigo-500' : 'bg-zinc-800'}`} />
-              <div className={`h-full flex-1 rounded-full transition-all duration-300 ${step >= 2 ? 'bg-indigo-500' : 'bg-zinc-800'}`} />
+            <div className="w-full bg-surface-1 h-1 rounded-full overflow-hidden mb-6 flex gap-1">
+              <div className={`h-full flex-1 rounded-full transition-all duration-300 ${step >= 1 ? 'bg-graphite' : 'bg-surface-2'}`} />
+              <div className={`h-full flex-1 rounded-full transition-all duration-300 ${step >= 2 ? 'bg-graphite' : 'bg-surface-2'}`} />
             </div>
 
-            <h2 className="text-2xl font-black text-white tracking-tight">
+            <h2 className="text-2xl font-black text-ink-inverse tracking-tight">
               {step === 1 ? 'Configure sua Conta Pessoal' : 'Configure sua Vitrine Pública'}
             </h2>
-            <p className="text-xs text-[#94A3B8] mt-1 mb-6 leading-relaxed">
+            <p className="text-xs text-ink-secondary mt-1 mb-6 leading-relaxed">
               {step === 1 
                 ? 'Preencha seus dados internos da conta. Essas informações são confidenciais e usadas no seu painel.' 
                 : 'Defina o link, nome e grupos sociais que aparecerão na sua vitrine para a sua audiência.'}
@@ -527,7 +527,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
             {step === 1 && (
               <div className="space-y-4">
                 {/* Upload Foto Pessoal */}
-                <div className="flex items-center gap-4 p-4 bg-[#0b0c10]/40 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-4 p-4 bg-[#0b0c10]/40 rounded-2xl border border-line">
                   <div className="relative group">
                     <input 
                       type="file" 
@@ -538,27 +538,27 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     />
                     <div 
                       onClick={() => !uploadingPersonalAvatar && personalFileInputRef.current?.click()}
-                      className="w-16 h-16 rounded-2xl overflow-hidden bg-[#101827] border border-white/10 flex items-center justify-center cursor-pointer relative"
+                      className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-0 border border-line-strong flex items-center justify-center cursor-pointer relative"
                     >
                       {uploadingPersonalAvatar ? (
-                        <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-5 h-5 text-mint-700 animate-spin" />
                       ) : avatarUrl ? (
                         <img src={avatarUrl} alt="Foto Pessoal" className="w-full h-full object-cover" />
                       ) : (
-                        <UserIcon className="w-7 h-7 text-slate-500" />
+                        <UserIcon className="w-7 h-7 text-ink-tertiary" />
                       )}
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
-                        <Camera className="w-4 h-4 text-white" />
+                        <Camera className="w-4 h-4 text-ink-inverse" />
                       </div>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-200">Foto Pessoal</p>
-                    <p className="text-[10px] text-[#94A3B8] mt-0.5">JPG, PNG ou WEBP. Comprimida automaticamente.</p>
+                    <p className="text-xs font-bold text-ink">Foto Pessoal</p>
+                    <p className="text-[10px] text-ink-secondary mt-0.5">JPG, PNG ou WEBP. Comprimida automaticamente.</p>
                     <button 
                       type="button"
                       onClick={() => personalFileInputRef.current?.click()}
-                      className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 mt-1"
+                      className="text-[11px] font-bold text-mint-700 hover:text-mint-800 mt-1"
                     >
                       Carregar Foto
                     </button>
@@ -567,8 +567,8 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Nome Completo */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <UserIcon className="w-3.5 h-3.5 text-slate-500" /> Nome Completo *
+                  <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5">
+                    <UserIcon className="w-3.5 h-3.5 text-ink-tertiary" /> Nome Completo *
                   </label>
                   <input 
                     type="text" 
@@ -582,8 +582,8 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Preferred Name */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-slate-500" /> Como quer ser chamado? (Opcional)
+                  <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-ink-tertiary" /> Como quer ser chamado? (Opcional)
                   </label>
                   <input 
                     type="text" 
@@ -596,21 +596,21 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* E-mail (Readonly) */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-slate-650" /> E-mail de Login
+                  <label className="text-xs font-bold text-ink-tertiary flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-ink-tertiary" /> E-mail de Login
                   </label>
                   <input 
                     type="email" 
                     value={user.email}
                     disabled
-                    className="w-full input-modern text-xs px-4 py-2.5 rounded-xl bg-[#070A12]/40 text-slate-500 cursor-not-allowed border-white/5"
+                    className="w-full input-modern text-xs px-4 py-2.5 rounded-xl bg-surface-1/40 text-ink-tertiary cursor-not-allowed border-line"
                   />
                 </div>
 
                 {/* Telefone */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-slate-500" /> Telefone (Opcional)
+                  <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-ink-tertiary" /> Telefone (Opcional)
                   </label>
                   <input 
                     type="text" 
@@ -627,7 +627,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
             {step === 2 && (
               <div className="space-y-4">
                 {/* Upload Foto da Vitrine */}
-                <div className="flex items-center gap-4 p-4 bg-[#0b0c10]/40 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-4 p-4 bg-[#0b0c10]/40 rounded-2xl border border-line">
                   <div className="relative group">
                     <input 
                       type="file" 
@@ -638,27 +638,27 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     />
                     <div 
                       onClick={() => !uploadingPublicAvatar && publicFileInputRef.current?.click()}
-                      className="w-16 h-16 rounded-2xl overflow-hidden bg-[#101827] border border-white/10 flex items-center justify-center cursor-pointer relative"
+                      className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-0 border border-line-strong flex items-center justify-center cursor-pointer relative"
                     >
                       {uploadingPublicAvatar ? (
-                        <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-5 h-5 text-mint-700 animate-spin" />
                       ) : publicAvatarUrl ? (
                         <img src={publicAvatarUrl} alt="Foto Vitrine" className="w-full h-full object-cover" />
                       ) : (
-                        <Globe className="w-7 h-7 text-slate-500" />
+                        <Globe className="w-7 h-7 text-ink-tertiary" />
                       )}
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
-                        <Camera className="w-4 h-4 text-white" />
+                        <Camera className="w-4 h-4 text-ink-inverse" />
                       </div>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-200">Logo/Foto da Vitrine (Opcional)</p>
-                    <p className="text-[10px] text-[#94A3B8] mt-0.5">Se não carregar, usaremos sua foto pessoal.</p>
+                    <p className="text-xs font-bold text-ink">Logo/Foto da Vitrine (Opcional)</p>
+                    <p className="text-[10px] text-ink-secondary mt-0.5">Se não carregar, usaremos sua foto pessoal.</p>
                     <button 
                       type="button"
                       onClick={() => publicFileInputRef.current?.click()}
-                      className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 mt-1"
+                      className="text-[11px] font-bold text-mint-700 hover:text-mint-800 mt-1"
                     >
                       Carregar Foto
                     </button>
@@ -668,7 +668,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                 <div className="grid grid-cols-2 gap-4">
                   {/* Nome da Vitrine */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-350">Nome de Exibição da Vitrine *</label>
+                    <label className="text-xs font-bold text-ink-secondary">Nome de Exibição da Vitrine *</label>
                     <input 
                       type="text" 
                       value={publicName}
@@ -681,7 +681,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                   {/* Slug / Username */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-350">Link Público (Slug) *</label>
+                    <label className="text-xs font-bold text-ink-secondary">Link Público (Slug) *</label>
                     <div className="relative">
                       <input 
                         type="text" 
@@ -693,15 +693,15 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                         required
                       />
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                        {usernameStatus === 'checking' && <Loader2 className="w-3.5 h-3.5 text-slate-500 animate-spin" />}
-                        {usernameStatus === 'available' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                        {usernameStatus === 'checking' && <Loader2 className="w-3.5 h-3.5 text-ink-tertiary animate-spin" />}
+                        {usernameStatus === 'available' && <CheckCircle2 className="w-3.5 h-3.5 text-success-ink" />}
                         {usernameStatus === 'taken' && <AlertCircle className="w-3.5 h-3.5 text-rose-500" />}
-                        {usernameStatus === 'invalid' && username.length > 0 && <AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
+                        {usernameStatus === 'invalid' && username.length > 0 && <AlertCircle className="w-3.5 h-3.5 text-warning-ink" />}
                         {usernameStatus === 'error' && <AlertCircle className="w-3.5 h-3.5 text-rose-500" />}
                       </div>
                     </div>
                     {usernameStatus === 'invalid' && username.length > 0 && username.length < 3 && (
-                      <p className="text-[10px] text-amber-500 mt-1">Use pelo menos 3 caracteres.</p>
+                      <p className="text-[10px] text-warning-ink mt-1">Use pelo menos 3 caracteres.</p>
                     )}
                     {usernameStatus === 'taken' && (
                       <p className="text-[10px] text-rose-500 mt-1">Este link já está em uso.</p>
@@ -714,8 +714,8 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
 
                 {/* Bio */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <AlignLeft className="w-3.5 h-3.5 text-slate-500" /> Bio / Descrição (Máx. 200 caracteres)
+                  <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5">
+                    <AlignLeft className="w-3.5 h-3.5 text-ink-tertiary" /> Bio / Descrição (Máx. 200 caracteres)
                   </label>
                   <textarea 
                     value={bio}
@@ -725,64 +725,64 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     rows={2}
                     className="w-full input-modern text-xs px-4 py-2 rounded-xl resize-none"
                   />
-                  <p className="text-[9px] text-slate-500 text-right">{bio.length}/200</p>
+                  <p className="text-[9px] text-ink-tertiary text-right">{bio.length}/200</p>
                 </div>
 
                 {/* Links dos Canais */}
-                <div className="space-y-3 pt-2 border-t border-white/5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Canais Sociais na Vitrine (Links de Grupos/Canais)</p>
+                <div className="space-y-3 pt-2 border-t border-line">
+                  <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-wider">Canais Sociais na Vitrine (Links de Grupos/Canais)</p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* WhatsApp URL */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-emerald-400">Grupo WhatsApp</label>
+                      <label className="text-[10px] font-bold text-success-ink">Grupo WhatsApp</label>
                       <input 
                         type="text" 
                         value={whatsappGroupUrl}
                         onChange={e => { setWhatsappGroupUrl(e.target.value); setWhatsappError(false); }}
                         placeholder="chat.whatsapp.com/..."
-                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${whatsappError ? 'border-red-500 focus:border-red-500 bg-red-950/10' : ''}`}
+                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${whatsappError ? 'border-red-500 focus:border-red-500 bg-danger-bg/10' : ''}`}
                       />
-                      {whatsappError && <span className="text-[9px] text-red-500">Link WhatsApp inválido</span>}
+                      {whatsappError && <span className="text-[9px] text-danger-ink">Link WhatsApp inválido</span>}
                     </div>
 
                     {/* Telegram URL */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-sky-400">Grupo/Canal Telegram</label>
+                      <label className="text-[10px] font-bold text-info-ink">Grupo/Canal Telegram</label>
                       <input 
                         type="text" 
                         value={telegramGroupUrl}
                         onChange={e => { setTelegramGroupUrl(e.target.value); setTelegramError(false); }}
                         placeholder="t.me/..."
-                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${telegramError ? 'border-red-500 focus:border-red-500 bg-red-950/10' : ''}`}
+                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${telegramError ? 'border-red-500 focus:border-red-500 bg-danger-bg/10' : ''}`}
                       />
-                      {telegramError && <span className="text-[9px] text-red-500">Link Telegram inválido</span>}
+                      {telegramError && <span className="text-[9px] text-danger-ink">Link Telegram inválido</span>}
                     </div>
 
                     {/* Discord URL */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-indigo-400">Convite Discord</label>
+                      <label className="text-[10px] font-bold text-mint-700">Convite Discord</label>
                       <input 
                         type="text" 
                         value={discordGroupUrl}
                         onChange={e => { setDiscordGroupUrl(e.target.value); setDiscordError(false); }}
                         placeholder="discord.gg/..."
-                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${discordError ? 'border-red-500 focus:border-red-500 bg-red-950/10' : ''}`}
+                        className={`w-full input-modern text-xs px-3 py-2 rounded-xl ${discordError ? 'border-red-500 focus:border-red-500 bg-danger-bg/10' : ''}`}
                       />
-                      {discordError && <span className="text-[9px] text-red-500">Link Discord inválido</span>}
+                      {discordError && <span className="text-[9px] text-danger-ink">Link Discord inválido</span>}
                     </div>
                   </div>
                 </div>
 
                 {/* Tema Visual */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-350">Tema de Cores da Vitrine</label>
+                  <label className="text-xs font-bold text-ink-secondary">Tema de Cores da Vitrine</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
-                      { id: 'indigo', name: 'Índigo', color: 'bg-indigo-650' },
+                      { id: 'indigo', name: 'Índigo', color: 'bg-graphite' },
                       { id: 'emerald', name: 'Esmeralda', color: 'bg-emerald-650' },
-                      { id: 'dark', name: 'Dark/Escuro', color: 'bg-zinc-800' },
+                      { id: 'dark', name: 'Dark/Escuro', color: 'bg-surface-2' },
                     ].map(t => (
                       <button
                         key={t.id}
@@ -790,12 +790,12 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                         onClick={() => setTheme(t.id)}
                         className={`py-1.5 rounded-xl border text-center transition-all ${
                           theme === t.id 
-                            ? 'border-indigo-500 bg-indigo-600/20' 
-                            : 'border-white/5 bg-[#0B1020]/50 hover:bg-[#101827]/50'
+                            ? 'border-mint-500 bg-graphite/20' 
+                            : 'border-line bg-surface-1 hover:bg-surface-0/50'
                         }`}
                       >
                         <div className={`w-3.5 h-3.5 rounded-full mx-auto mb-1 ${t.color}`} />
-                        <span className="text-[9px] font-bold text-slate-300">{t.name}</span>
+                        <span className="text-[9px] font-bold text-ink">{t.name}</span>
                       </button>
                     ))}
                   </div>
@@ -805,12 +805,12 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
           </div>
 
           {/* Rodapé de Ações do Formulário */}
-          <div className="flex gap-4 mt-6 pt-4 border-t border-white/5">
+          <div className="flex gap-4 mt-6 pt-4 border-t border-line">
             {step === 2 && (
               <button
                 type="button"
                 onClick={handlePrevStep}
-                className="btn-secondary px-5 py-3 rounded-2xl flex items-center justify-center gap-1.5 text-xs text-slate-300 font-bold"
+                className="btn-secondary px-5 py-3 rounded-2xl flex items-center justify-center gap-1.5 text-xs text-ink font-bold"
               >
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </button>
@@ -847,21 +847,21 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
         </div>
 
         {/* Lado Direito: Live Preview (Celular Mockup) */}
-        <div className="hidden md:flex w-[380px] bg-[#0B1020]/30 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-white/5">
+        <div className="hidden md:flex w-[380px] bg-surface-1 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-line">
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-950/20 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-surface-1 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-950/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="relative z-10 w-full max-w-[280px] rounded-[36px] border-[8px] border-slate-900 bg-[#070A12] shadow-2xl overflow-hidden aspect-[9/18] flex flex-col justify-between">
+          <div className="relative z-10 w-full max-w-[280px] rounded-[36px] border-[8px] border-slate-900 bg-surface-1 shadow-2xl overflow-hidden aspect-[9/18] flex flex-col justify-between">
             
             {/* Celular Tela Interna */}
             <div className="flex-1 flex flex-col overflow-y-auto scrollbar-hide">
               {/* Top Banner de acordo com o tema */}
-              <div className={`h-24 ${themePreviewStyles[theme] || 'bg-indigo-650'} relative p-4 flex flex-col justify-end transition-colors duration-300`}>
+              <div className={`h-24 ${themePreviewStyles[theme] || 'bg-graphite'} relative p-4 flex flex-col justify-end transition-colors duration-300`}>
                 <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-3 bg-black rounded-full" />
                 <div className="flex items-center gap-2 -mb-8 z-10">
-                  <div className="w-12 h-12 rounded-lg border-2 border-white/10 shadow-md overflow-hidden bg-[#101827] flex-shrink-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg border-2 border-line-strong shadow-md overflow-hidden bg-surface-0 flex-shrink-0 flex items-center justify-center">
                     <Avatar 
                       src={publicAvatarUrl || avatarUrl} 
                       name={publicName || fullName || 'Vitrine'} 
@@ -874,16 +874,16 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
               {/* Informações da Vitrine */}
               <div className="pt-9 px-3 pb-3">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="text-[11px] font-bold text-white truncate max-w-[150px]">
+                  <h4 className="text-[11px] font-bold text-ink-inverse truncate max-w-[150px]">
                     {publicName || 'Minha Vitrine'}
                   </h4>
-                  <span className="inline-flex items-center bg-indigo-500/10 text-indigo-400 text-[7px] font-bold px-1 py-0.5 rounded">
+                  <span className="inline-flex items-center bg-ice text-mint-700 text-[7px] font-bold px-1 py-0.5 rounded">
                     <Star className="w-2 h-2 fill-current mr-0.5" /> Verificado
                   </span>
                 </div>
-                <p className="text-[8px] text-slate-500 font-mono">linkoferta.vercel.app/u/{username || 'slug'}</p>
+                <p className="text-[8px] text-ink-tertiary font-mono">linkoferta.vercel.app/u/{username || 'slug'}</p>
                 
-                <p className="text-[10px] text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                <p className="text-[10px] text-ink-secondary mt-2 line-clamp-2 leading-relaxed">
                   {bio || 'Sua descrição aparecerá aqui. Adicione uma bio informativa para seus visitantes.'}
                 </p>
 
@@ -891,17 +891,17 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                 {(whatsappGroupUrl || telegramGroupUrl || discordGroupUrl) && (
                   <div className="flex items-center gap-1.5 mt-3 flex-wrap">
                     {whatsappGroupUrl && (
-                      <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[8px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="bg-success-bg text-success-ink border border-success/20 text-[8px] font-bold px-2 py-0.5 rounded-full">
                         🟢 WhatsApp
                       </span>
                     )}
                     {telegramGroupUrl && (
-                      <span className="bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[8px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="bg-info-bg text-info-ink border border-info/20 text-[8px] font-bold px-2 py-0.5 rounded-full">
                         🔵 Telegram
                       </span>
                     )}
                     {discordGroupUrl && (
-                      <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[8px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="bg-ice text-mint-700 border border-mint-200 text-[8px] font-bold px-2 py-0.5 rounded-full">
                         🎮 Discord
                       </span>
                     )}
@@ -909,28 +909,28 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                 )}
 
                 {/* Linha Divisória */}
-                <div className="my-3 border-t border-white/5" />
+                <div className="my-3 border-t border-line" />
 
                 {/* Filtro fictício */}
                 <div className="flex items-center gap-1 mb-2.5 overflow-x-auto scrollbar-hide">
-                  <span className="text-[7.5px] bg-[#101827] text-slate-350 border border-white/5 px-2 py-0.5 rounded-full font-bold">🛍 Todas</span>
-                  <span className="text-[7.5px] text-slate-550 px-2 py-0.5 rounded-full font-semibold">🟡 Mercado Livre</span>
+                  <span className="text-[7.5px] bg-surface-0 text-ink-secondary border border-line px-2 py-0.5 rounded-full font-bold">🛍 Todas</span>
+                  <span className="text-[7.5px] text-ink-tertiary px-2 py-0.5 rounded-full font-semibold">🟡 Mercado Livre</span>
                 </div>
 
                 {/* Oferta fictícia */}
-                <div className="border border-white/5 rounded-xl overflow-hidden shadow-sm flex flex-col bg-[#101827]">
-                  <div className="h-16 bg-[#0B1020]/50 flex items-center justify-center text-slate-500 relative text-[9px] font-bold">
+                <div className="border border-line rounded-xl overflow-hidden shadow-sm flex flex-col bg-surface-0">
+                  <div className="h-16 bg-surface-1 flex items-center justify-center text-ink-tertiary relative text-[9px] font-bold">
                     📱 Imagem do Produto
-                    <div className="absolute top-1 left-1 bg-red-650 text-white text-[7px] font-bold px-1 rounded-full">-30%</div>
+                    <div className="absolute top-1 left-1 bg-red-650 text-ink-inverse text-[7px] font-bold px-1 rounded-full">-30%</div>
                   </div>
                   <div className="p-2">
-                    <span className="text-[6px] bg-indigo-500/10 text-indigo-400 font-bold px-1 py-0.5 rounded">Amazon</span>
-                    <h5 className="text-[9px] font-bold text-slate-100 mt-1 truncate">Smartphone de Última Geração</h5>
+                    <span className="text-[6px] bg-ice text-mint-700 font-bold px-1 py-0.5 rounded">Amazon</span>
+                    <h5 className="text-[9px] font-bold text-ink mt-1 truncate">Smartphone de Última Geração</h5>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-[10px] font-bold text-white">R$ 1.999</span>
-                      <span className="text-[8px] text-slate-500 line-through">R$ 2.999</span>
+                      <span className="text-[10px] font-bold text-ink-inverse">R$ 1.999</span>
+                      <span className="text-[8px] text-ink-tertiary line-through">R$ 2.999</span>
                     </div>
-                    <div className={`w-full text-center text-[7.5px] font-bold text-white py-1 rounded-md mt-2 transition-colors ${themeAccentColors[theme] || 'bg-indigo-600'} flex items-center justify-center gap-1`}>
+                    <div className={`w-full text-center text-[7.5px] font-bold text-ink-inverse py-1 rounded-md mt-2 transition-colors ${themeAccentColors[theme] || 'bg-graphite'} flex items-center justify-center gap-1`}>
                       Acessar Oferta
                     </div>
                   </div>
@@ -940,8 +940,8 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
             </div>
 
             {/* Footer do preview do celular */}
-            <div className="py-2 bg-[#0B1020]/50 border-t border-white/5 text-center flex flex-col items-center">
-              <span className="text-[7.5px] font-extrabold text-slate-350">Vitrine Aflyo</span>
+            <div className="py-2 bg-surface-1 border-t border-line text-center flex flex-col items-center">
+              <span className="text-[7.5px] font-extrabold text-ink-secondary">Vitrine Aflyo</span>
             </div>
           </div>
         </div>

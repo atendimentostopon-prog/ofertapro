@@ -127,30 +127,30 @@ const ApiIntegrationsTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up text-[#F8FAFC]">
+    <div className="space-y-6 animate-slide-up text-ink">
       {/* 1. Header do Status da API */}
-      <div className="glass-card overflow-hidden border-white/5 shadow-sm p-6 bg-[#101827]/40">
+      <div className="glass-card overflow-hidden border-line shadow-sm p-6 bg-surface-1">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
               activeKey 
-                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-450' 
-                : 'bg-zinc-800 border border-white/5 text-slate-400'
+                ? 'bg-success-bg border border-success/20 text-success-ink' 
+                : 'bg-surface-2 border border-line text-ink-secondary'
             }`}>
               {activeKey ? <ShieldCheck className="w-6 h-6" /> : <Key className="w-6 h-6" />}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
-                <h3 className="text-[15px] font-bold text-slate-100 tracking-tight">Status da API e Integrações</h3>
+                <h3 className="text-[15px] font-bold text-ink tracking-tight">Status da API e Integrações</h3>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
                   activeKey 
-                    ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400' 
-                    : 'bg-zinc-800 border-white/5 text-slate-400'
+                    ? 'bg-success-bg border-emerald-500/25 text-success-ink' 
+                    : 'bg-surface-2 border-line text-ink-secondary'
                 }`}>
                   {activeKey ? 'Ativo' : 'Não configurado'}
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] leading-relaxed max-w-xl">
+              <p className="text-xs text-ink-secondary leading-relaxed max-w-xl">
                 Crie e configure chaves de API exclusivas para conectar o Aflyo com robôs externos, Make, Zapier ou sistemas automatizados de afiliados.
               </p>
             </div>
@@ -182,14 +182,14 @@ const ApiIntegrationsTab: React.FC = () => {
 
       {/* 2. Visualização das Chaves Atuais */}
       {loading ? (
-        <div className="glass-card p-8 flex items-center justify-center border-white/5">
-          <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+        <div className="glass-card p-8 flex items-center justify-center border-line">
+          <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
         </div>
       ) : keys.length > 0 ? (
-        <div className="glass-card overflow-hidden border-white/5 shadow-sm">
-          <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex items-center gap-2.5">
-            <Key className="w-4.5 h-4.5 text-indigo-400" />
-            <h4 className="text-[13px] font-bold text-slate-100 uppercase tracking-wider">Suas Credenciais</h4>
+        <div className="glass-card overflow-hidden border-line shadow-sm">
+          <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-2.5">
+            <Key className="w-4.5 h-4.5 text-mint-700" />
+            <h4 className="text-[13px] font-bold text-ink uppercase tracking-wider">Suas Credenciais</h4>
           </div>
           
           <div className="divide-y divide-white/[0.04]">
@@ -197,29 +197,29 @@ const ApiIntegrationsTab: React.FC = () => {
               <div key={k.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-2.5 min-w-0">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-white font-mono bg-[#070A12] border border-white/5 px-3 py-1 rounded-lg">
+                    <span className="text-xs font-bold text-ink-inverse font-mono bg-surface-1 border border-line px-3 py-1 rounded-lg">
                       {k.key_prefix}••••••••••••{k.key_last4}
                     </span>
                     <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
                       k.status === 'active' 
-                        ? 'bg-emerald-500/10 border-emerald-500/15 text-emerald-400' 
-                        : 'bg-red-500/10 border-red-500/15 text-red-400'
+                        ? 'bg-success-bg border-emerald-500/15 text-success-ink' 
+                        : 'bg-danger-bg border-danger/20 text-danger-ink'
                     }`}>
                       {k.status === 'active' ? 'Ativa' : 'Revogada'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] text-[#94A3B8]">
-                    <p>Criada em: <span className="font-semibold text-slate-200">{formatDate(k.created_at)}</span></p>
-                    <p>Último uso: <span className="font-semibold text-slate-200">{formatDate(k.last_used_at)}</span></p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] text-ink-secondary">
+                    <p>Criada em: <span className="font-semibold text-ink">{formatDate(k.created_at)}</span></p>
+                    <p>Último uso: <span className="font-semibold text-ink">{formatDate(k.last_used_at)}</span></p>
                     {k.status === 'revoked' && (
-                      <p>Revogada em: <span className="font-semibold text-slate-200">{formatDate(k.revoked_at)}</span></p>
+                      <p>Revogada em: <span className="font-semibold text-ink">{formatDate(k.revoked_at)}</span></p>
                     )}
                   </div>
 
                   <div className="flex flex-wrap gap-1">
                     {k.scopes.map(s => (
-                      <span key={s} className="text-[9px] font-semibold font-mono bg-indigo-500/5 text-indigo-300 border border-indigo-500/10 px-2 py-0.5 rounded">
+                      <span key={s} className="text-[9px] font-semibold font-mono bg-graphite/5 text-mint-800 border border-mint-200 px-2 py-0.5 rounded">
                         {s}
                       </span>
                     ))}
@@ -231,7 +231,7 @@ const ApiIntegrationsTab: React.FC = () => {
                     <button
                       onClick={() => handleRevokeKey(k.id)}
                       disabled={actionLoading}
-                      className="px-3.5 py-2 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/5 hover:border-red-500/30 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      className="px-3.5 py-2 rounded-xl border border-danger/20 text-danger-ink hover:bg-danger-bg hover:border-red-500/30 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Revogar Chave
@@ -243,31 +243,31 @@ const ApiIntegrationsTab: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="glass-card p-12 text-center border-white/5 bg-[#101827]/15">
-          <Key className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-          <h4 className="text-sm font-bold text-white">Nenhuma chave de API gerada</h4>
-          <p className="text-xs text-[#94A3B8] max-w-xs mx-auto mt-1 leading-relaxed">
+        <div className="glass-card p-12 text-center border-line bg-surface-0/15">
+          <Key className="w-10 h-10 text-ink-tertiary mx-auto mb-3" />
+          <h4 className="text-sm font-bold text-ink-inverse">Nenhuma chave de API gerada</h4>
+          <p className="text-xs text-ink-secondary max-w-xs mx-auto mt-1 leading-relaxed">
             Você ainda não possui chaves de API cadastradas. Clique em "Gerar API Key" no topo para obter sua credencial.
           </p>
         </div>
       )}
 
       {/* 2.5 Canais Conectados para Integração */}
-      <div className="glass-card overflow-hidden border-white/5 shadow-sm">
-        <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="glass-card overflow-hidden border-line shadow-sm">
+        <div className="px-6 py-4 border-b border-line bg-surface-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Radio className="w-4.5 h-4.5 text-indigo-400" />
+            <div className="w-9 h-9 rounded-xl bg-ice border border-mint-200 flex items-center justify-center">
+              <Radio className="w-4.5 h-4.5 text-mint-700" />
             </div>
             <div>
-              <h4 className="text-[13px] font-bold text-slate-100 uppercase tracking-wider">Canais conectados para integração</h4>
-              <p className="text-[11px] text-[#94A3B8] mt-0.5">Use estes IDs para disparar ofertas via API usando o campo channel_ids.</p>
+              <h4 className="text-[13px] font-bold text-ink uppercase tracking-wider">Canais conectados para integração</h4>
+              <p className="text-[11px] text-ink-secondary mt-0.5">Use estes IDs para disparar ofertas via API usando o campo channel_ids.</p>
             </div>
           </div>
           <button
             onClick={loadIntegrationChannels}
             disabled={channelsLoading}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 flex items-center gap-1.5 transition-all text-xs font-bold disabled:opacity-50 self-start sm:self-auto shrink-0"
+            className="px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 text-ink hover:text-ink-inverse border border-line flex items-center gap-1.5 transition-all text-xs font-bold disabled:opacity-50 self-start sm:self-auto shrink-0"
           >
             {channelsLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -281,7 +281,7 @@ const ApiIntegrationsTab: React.FC = () => {
         <div className="p-6">
           {channelsLoading && channels.length === 0 ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
             </div>
           ) : channels.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -290,11 +290,11 @@ const ApiIntegrationsTab: React.FC = () => {
                 return (
                   <div 
                     key={channel.id} 
-                    className="p-4 rounded-2xl bg-[#101827]/40 border border-white/5 flex flex-col justify-between gap-3 relative overflow-hidden group hover:border-white/10 transition-all"
+                    className="p-4 rounded-2xl bg-surface-1 border border-line flex flex-col justify-between gap-3 relative overflow-hidden group hover:border-line-strong transition-all"
                   >
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center overflow-hidden p-2 shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-graphite border border-line-strong flex items-center justify-center overflow-hidden p-2 shrink-0">
                           <img
                             src={getChannelLogoSrc(channel.type)}
                             alt={channel.type}
@@ -305,26 +305,26 @@ const ApiIntegrationsTab: React.FC = () => {
                           />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-xs text-white tracking-tight truncate">{channel.name}</p>
+                          <p className="font-bold text-xs text-ink-inverse tracking-tight truncate">{channel.name}</p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[10px] text-slate-400 capitalize">{logoInfo.label}</span>
-                            <span className="text-slate-650 font-black text-[9px]">•</span>
-                            <span className="text-[10px] text-emerald-400 font-bold">Conectado</span>
+                            <span className="text-[10px] text-ink-secondary capitalize">{logoInfo.label}</span>
+                            <span className="text-ink-tertiary font-black text-[9px]">•</span>
+                            <span className="text-[10px] text-success-ink font-bold">Conectado</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">ID do canal</span>
-                      <div className="flex items-center bg-[#070A12] border border-white/5 rounded-xl px-3.5 py-2 justify-between gap-2">
-                        <code className="text-[10px] font-mono text-slate-300 truncate select-all">{channel.id}</code>
+                      <span className="text-[10px] font-bold text-ink-tertiary block uppercase tracking-wider">ID do canal</span>
+                      <div className="flex items-center bg-surface-1 border border-line rounded-xl px-3.5 py-2 justify-between gap-2">
+                        <code className="text-[10px] font-mono text-ink truncate select-all">{channel.id}</code>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(channel.id);
                             toast('ID do canal copiado!', 'success');
                           }}
-                          className="text-slate-400 hover:text-white transition-colors shrink-0 p-1 hover:bg-white/5 rounded-lg border border-transparent hover:border-white/5"
+                          className="text-ink-secondary hover:text-ink-inverse transition-colors shrink-0 p-1 hover:bg-surface-1 rounded-lg border border-transparent hover:border-line"
                           title="Copiar ID"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -336,9 +336,9 @@ const ApiIntegrationsTab: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 bg-[#101827]/15 rounded-2xl border border-dashed border-white/5">
-              <Radio className="w-8 h-8 text-slate-550 mx-auto mb-2 opacity-50" />
-              <p className="text-xs text-slate-400">Nenhum canal conectado ainda.</p>
+            <div className="text-center py-8 bg-surface-0/15 rounded-2xl border border-dashed border-line">
+              <Radio className="w-8 h-8 text-ink-tertiary mx-auto mb-2 opacity-50" />
+              <p className="text-xs text-ink-secondary">Nenhum canal conectado ainda.</p>
               <Link
                 to="/channels"
                 className="mt-3.5 btn-gradient inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2"
@@ -353,37 +353,37 @@ const ApiIntegrationsTab: React.FC = () => {
       {/* 3. Modal de Chave Criada (Exibe uma única vez) */}
       {newKey && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[999] animate-fade-in">
-          <div className="bg-[#101827] rounded-3xl border border-white/[0.08] shadow-2xl p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scale-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3 text-indigo-400">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                <Key className="w-5 h-5 text-indigo-400" />
+          <div className="bg-surface-0 rounded-3xl border border-line shadow-2xl p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 text-mint-700">
+              <div className="w-10 h-10 rounded-xl bg-ice border border-mint-200 flex items-center justify-center shrink-0">
+                <Key className="w-5 h-5 text-mint-700" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white">Chave de API Criada com Sucesso</h4>
-                <p className="text-[11px] text-[#94A3B8] font-medium mt-0.5">Sua credencial de integração externa está pronta</p>
+                <h4 className="text-sm font-bold text-ink-inverse">Chave de API Criada com Sucesso</h4>
+                <p className="text-[11px] text-ink-secondary font-medium mt-0.5">Sua credencial de integração externa está pronta</p>
               </div>
             </div>
 
             {/* Aviso de Segurança */}
-            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-3 text-amber-400">
+            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-3 text-warning-ink">
               <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="space-y-1 font-medium text-xs leading-relaxed">
                 <p className="font-bold">Atenção! Esta chave será exibida apenas uma vez.</p>
-                <p className="text-amber-400/80">Copie e salve este código em um local seguro. Por motivos de segurança, você não poderá visualizá-lo novamente depois de fechar este modal.</p>
+                <p className="text-warning-ink/80">Copie e salve este código em um local seguro. Por motivos de segurança, você não poderá visualizá-lo novamente depois de fechar este modal.</p>
               </div>
             </div>
 
             {/* Chave Pura e Copiador */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#94A3B8]">Token da Chave de API</label>
-              <div className="relative flex items-center bg-[#070A12] border border-white/5 rounded-2xl p-3.5 pr-14">
-                <span className="font-mono text-xs text-white break-all select-all">{newKey}</span>
+              <label className="text-[11px] font-bold text-ink-secondary">Token da Chave de API</label>
+              <div className="relative flex items-center bg-surface-1 border border-line rounded-2xl p-3.5 pr-14">
+                <span className="font-mono text-xs text-ink-inverse break-all select-all">{newKey}</span>
                 <button
                   onClick={handleCopyNewKey}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-all border border-white/5"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink hover:text-ink-inverse transition-all border border-line"
                   title="Copiar chave"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-450" /> : <Copy className="w-4 h-4" />}
+                  {copied ? <Check className="w-4 h-4 text-success-ink" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -400,10 +400,10 @@ const ApiIntegrationsTab: React.FC = () => {
       )}
 
       {/* 4. Documentação de Endpoints Rápidos */}
-      <div className="glass-card overflow-hidden border-white/5 shadow-sm">
-        <div className="px-6 py-4 border-b border-white/5 bg-[#101827]/40 flex items-center gap-2.5">
-          <Terminal className="w-4.5 h-4.5 text-indigo-400" />
-          <h4 className="text-[13px] font-bold text-slate-100 uppercase tracking-wider">Documentação Rápida da API</h4>
+      <div className="glass-card overflow-hidden border-line shadow-sm">
+        <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-2.5">
+          <Terminal className="w-4.5 h-4.5 text-mint-700" />
+          <h4 className="text-[13px] font-bold text-ink uppercase tracking-wider">Documentação Rápida da API</h4>
         </div>
 
         <div className="p-6 space-y-6">
@@ -411,32 +411,32 @@ const ApiIntegrationsTab: React.FC = () => {
           {/* Exemplo 1: Listar Canais */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-200">1. Listar canais conectados</span>
-              <span className="font-mono font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10">GET /channels</span>
+              <span className="font-bold text-ink">1. Listar canais conectados</span>
+              <span className="font-mono font-bold text-mint-700 bg-graphite/5 px-2.5 py-0.5 rounded border border-mint-200">GET /channels</span>
             </div>
-            <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+            <p className="text-[11px] text-ink-secondary leading-relaxed">
               Obtém os canais ativos (Telegram e Discord) da sua conta para descobrir os IDs corretos de disparo.
             </p>
-            <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8]">
-              <span className="text-slate-500"># Exemplo de chamada cURL</span><br />
-              curl -X GET "<span className="text-white">{apiEndpointBase}/channels</span>" \<br />
-              &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>"
+            <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary">
+              <span className="text-ink-tertiary"># Exemplo de chamada cURL</span><br />
+              curl -X GET "<span className="text-ink-inverse">{apiEndpointBase}/channels</span>" \<br />
+              &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>"
             </div>
           </div>
 
           {/* Exemplo 2: Criar Oferta */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-200">2. Cadastrar nova oferta</span>
-              <span className="font-mono font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10">POST /offers</span>
+              <span className="font-bold text-ink">2. Cadastrar nova oferta</span>
+              <span className="font-mono font-bold text-mint-700 bg-graphite/5 px-2.5 py-0.5 rounded border border-mint-200">POST /offers</span>
             </div>
-            <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+            <p className="text-[11px] text-ink-secondary leading-relaxed">
               Adiciona uma oferta na sua vitrine do Aflyo via automação.
             </p>
-            <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8]">
-              <span className="text-slate-500"># Exemplo de chamada cURL</span><br />
-              curl -X POST "<span className="text-white">{apiEndpointBase}/offers</span>" \<br />
-              &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
+            <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary">
+              <span className="text-ink-tertiary"># Exemplo de chamada cURL</span><br />
+              curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/offers</span>" \<br />
+              &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
               &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
               &nbsp;&nbsp;-d '&#123;<br />
               &nbsp;&nbsp;&nbsp;&nbsp;"name": "Smartphone Samsung Galaxy S24 Ultra",<br />
@@ -452,17 +452,17 @@ const ApiIntegrationsTab: React.FC = () => {
           {/* Exemplo 3: Disparar Oferta */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-200">3. Disparar oferta em canais</span>
-              <span className="font-mono font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10">POST /dispatch</span>
+              <span className="font-bold text-ink">3. Disparar oferta em canais</span>
+              <span className="font-mono font-bold text-mint-700 bg-graphite/5 px-2.5 py-0.5 rounded border border-mint-200">POST /dispatch</span>
             </div>
-            <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+            <p className="text-[11px] text-ink-secondary leading-relaxed">
               Envia uma oferta diretamente para canais ativos. Pode referenciar um ID de oferta existente ou criar uma oferta nova e disparar no mesmo payload.
             </p>
-            <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8] space-y-4">
+            <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary space-y-4">
               <div>
-                <span className="text-slate-500"># Opção A: Disparar oferta cadastrada existente</span><br />
-                curl -X POST "<span className="text-white">{apiEndpointBase}/dispatch</span>" \<br />
-                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
+                <span className="text-ink-tertiary"># Opção A: Disparar oferta cadastrada existente</span><br />
+                curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/dispatch</span>" \<br />
+                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
                 &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
                 &nbsp;&nbsp;-d '&#123;<br />
                 &nbsp;&nbsp;&nbsp;&nbsp;"offer_id": "UUID_DA_OFERTA",<br />
@@ -471,10 +471,10 @@ const ApiIntegrationsTab: React.FC = () => {
                 &nbsp;&nbsp;&nbsp;&nbsp;]<br />
                 &nbsp;&nbsp;&#125;'
               </div>
-              <div className="border-t border-white/5 pt-3">
-                <span className="text-slate-550"># Opção B: Cadastrar e disparar nova oferta</span><br />
-                curl -X POST "<span className="text-white">{apiEndpointBase}/dispatch</span>" \<br />
-                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-emerald-400">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
+              <div className="border-t border-line pt-3">
+                <span className="text-ink-tertiary"># Opção B: Cadastrar e disparar nova oferta</span><br />
+                curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/dispatch</span>" \<br />
+                &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
                 &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
                 &nbsp;&nbsp;-d '&#123;<br />
                 &nbsp;&nbsp;&nbsp;&nbsp;"offer": &#123;<br />
@@ -496,11 +496,11 @@ const ApiIntegrationsTab: React.FC = () => {
       </div>
 
       {/* 5. Alerta de Segurança de Boas Práticas */}
-      <div className="p-4 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex gap-3 text-indigo-300">
+      <div className="p-4 bg-surface-1 border border-mint-200/40 rounded-2xl flex gap-3 text-mint-800">
         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
         <div className="space-y-1 font-medium text-xs leading-relaxed">
           <p className="font-bold">Avisos e Boas Práticas de Segurança</p>
-          <ul className="list-disc pl-4 space-y-1 text-slate-350">
+          <ul className="list-disc pl-4 space-y-1 text-ink-secondary">
             <li><strong>Nunca compartilhe sua API Key</strong> com terceiros ou publique em locais visíveis (como GitHub público). Ela concede privilégios de escrita para cadastrar ofertas na sua vitrine.</li>
             <li>Se suspeitar de qualquer vazamento de credencial, clique em <strong>Regenerar API Key</strong> imediatamente para invalidar a chave anterior e gerar uma nova credencial.</li>
             <li>Para requisições externas, passe a chave sempre no cabeçalho HTTPS da chamada (`Authorization: Bearer lof_live_...`).</li>

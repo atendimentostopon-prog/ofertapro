@@ -140,12 +140,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="bg-[#101827] w-full max-w-lg rounded-3xl shadow-2xl border border-white/[0.08] overflow-hidden animate-slide-up my-auto">
+      <div className="bg-surface-0 w-full max-w-lg rounded-3xl shadow-2xl border border-line overflow-hidden animate-slide-up my-auto">
         
         {/* Banner Decorativo */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-white text-center">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-ink-inverse text-center">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-surface-2 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-surface-2 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
           
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase mb-1">
@@ -162,41 +162,41 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs text-red-400 font-semibold">
+            <div className="p-4 bg-danger-bg border border-danger/20 rounded-2xl text-xs text-danger-ink font-semibold">
               ⚠️ {error}
             </div>
           )}
 
           {success ? (
             <div className="flex flex-col items-center justify-center py-10 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg animate-pulse">
-                <Check className="w-8 h-8 text-emerald-400" />
+              <div className="w-16 h-16 rounded-full bg-success-bg border border-success/20 flex items-center justify-center shadow-lg animate-pulse">
+                <Check className="w-8 h-8 text-success-ink" />
               </div>
               <div className="text-center">
-                <h3 className="text-lg font-bold text-[#F8FAFC]">Tudo pronto!</h3>
-                <p className="text-xs text-[#94A3B8] mt-1">Seu painel está sendo liberado...</p>
+                <h3 className="text-lg font-bold text-ink">Tudo pronto!</h3>
+                <p className="text-xs text-ink-secondary mt-1">Seu painel está sendo liberado...</p>
               </div>
             </div>
           ) : (
             <>
               {/* Upload de Avatar */}
-              <div className="flex items-center gap-4 bg-[#162033] p-4 rounded-2xl border border-white/5">
-                <div className="relative w-16 h-16 rounded-2xl bg-[#101827] border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 group shadow-inner">
+              <div className="flex items-center gap-4 bg-[#162033] p-4 rounded-2xl border border-line">
+                <div className="relative w-16 h-16 rounded-2xl bg-surface-0 border border-line-strong flex items-center justify-center overflow-hidden flex-shrink-0 group shadow-inner">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <UserIcon className="w-8 h-8 text-[#64748B]" />
+                    <UserIcon className="w-8 h-8 text-ink-tertiary" />
                   )}
                   {uploading && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                      <Loader2 className="w-5 h-5 text-mint-700 animate-spin" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-[#F8FAFC]">Foto de Perfil</p>
-                  <p className="text-[10px] text-[#94A3B8] mt-0.5">Clique para carregar uma imagem quadrada</p>
-                  <label className="inline-block mt-2 text-[11px] font-bold text-[#F8FAFC] hover:text-white cursor-pointer bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 shadow-sm transition-all">
+                  <p className="text-xs font-bold text-ink">Foto de Perfil</p>
+                  <p className="text-[10px] text-ink-secondary mt-0.5">Clique para carregar uma imagem quadrada</p>
+                  <label className="inline-block mt-2 text-[11px] font-bold text-ink hover:text-ink-inverse cursor-pointer bg-surface-1 hover:bg-surface-2 px-3 py-1.5 rounded-xl border border-line-strong shadow-sm transition-all">
                     Carregar Foto
                     <input
                       type="file"
@@ -211,8 +211,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
 
               {/* Nome Completo */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[#94A3B8] flex items-center gap-1.5 uppercase tracking-wider">
-                  <UserIcon className="w-3.5 h-3.5 text-[#64748B]" />
+                <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5 uppercase tracking-wider">
+                  <UserIcon className="w-3.5 h-3.5 text-ink-tertiary" />
                   Nome de Exibição *
                 </label>
                 <input
@@ -227,12 +227,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
 
               {/* Username / Slug Público */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[#94A3B8] flex items-center gap-1.5 uppercase tracking-wider">
-                  <Globe className="w-3.5 h-3.5 text-[#64748B]" />
+                <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5 uppercase tracking-wider">
+                  <Globe className="w-3.5 h-3.5 text-ink-tertiary" />
                   Endereço da sua Vitrine (Slug) *
                 </label>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-bold text-[#64748B] select-none">
+                  <span className="absolute left-3.5 text-xs font-bold text-ink-tertiary select-none">
                     linkoferta.vercel.app/u/
                   </span>
                   <input
@@ -245,15 +245,15 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
                     minLength={3}
                   />
                 </div>
-                <p className="text-[10px] text-[#64748B] leading-normal">
+                <p className="text-[10px] text-ink-tertiary leading-normal">
                   Este será o endereço da sua vitrine pública (ex: linkoferta.vercel.app/u/promocoes). Use apenas letras minúsculas, números e hífens.
                 </p>
               </div>
 
               {/* Bio (Descrição Curta) */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[#94A3B8] flex items-center gap-1.5 uppercase tracking-wider">
-                  <FileText className="w-3.5 h-3.5 text-[#64748B]" />
+                <label className="text-xs font-bold text-ink-secondary flex items-center gap-1.5 uppercase tracking-wider">
+                  <FileText className="w-3.5 h-3.5 text-ink-tertiary" />
                   Bio / Descrição do Perfil
                 </label>
                 <textarea
@@ -264,7 +264,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
                   maxLength={160}
                   className="input-modern text-sm resize-none py-2.5"
                 />
-                <div className="flex justify-end text-[9px] text-[#64748B]">
+                <div className="flex justify-end text-[9px] text-ink-tertiary">
                   {bio.length}/160 caracteres
                 </div>
               </div>

@@ -128,7 +128,7 @@ export const ShopeeAutomationPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-[#F8FAFC] py-12 px-4 sm:px-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-surface-1 text-ink py-12 px-4 sm:px-6 relative overflow-hidden font-sans">
       {/* Background Glow Emitters */}
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#7C3AED]/5 rounded-full blur-3xl opacity-60 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#6366F1]/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
@@ -136,19 +136,19 @@ export const ShopeeAutomationPage: React.FC = () => {
 
       <div className="max-w-4xl mx-auto relative z-10 space-y-12">
         {/* Navigation Bar / Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-white/[0.06] select-none">
+        <div className="flex items-center justify-between pb-6 border-b border-line select-none">
           <Link
             to="/settings"
-            className="flex items-center gap-2 text-xs font-bold text-[#94A3B8] hover:text-white transition-colors group"
+            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink-inverse transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             Voltar para Configurações
           </Link>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-indigo-400" />
+            <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-mint-700" />
             </div>
-            <span className="text-sm font-extrabold text-white tracking-tight">Central de Ajuda · Aflyo</span>
+            <span className="text-sm font-extrabold text-ink-inverse tracking-tight">Central de Ajuda · Aflyo</span>
           </div>
         </div>
 
@@ -157,10 +157,10 @@ export const ShopeeAutomationPage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 text-[11px] font-bold text-orange-400 rounded-full select-none">
             🍊 Integração Shopee Affiliate
           </div>
-          <h1 className="text-3xl sm:text-4.5xl font-black text-white tracking-tight leading-tight max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4.5xl font-black text-ink-inverse tracking-tight leading-tight max-w-2xl mx-auto">
             Como pegar suas credenciais da Shopee
           </h1>
-          <p className="text-sm sm:text-base text-[#94A3B8] leading-relaxed max-w-xl mx-auto font-medium">
+          <p className="text-sm sm:text-base text-ink-secondary leading-relaxed max-w-xl mx-auto font-medium">
             Siga este passo a passo para solicitar acesso à API da Shopee Affiliate e depois cadastrar seu App ID e Secret Key no Aflyo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
@@ -177,7 +177,7 @@ export const ShopeeAutomationPage: React.FC = () => {
               href={shopeeOpenApiUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/5 bg-[#101827]/40 hover:bg-[#101827]/70 text-[13px] font-bold text-[#F8FAFC] flex items-center justify-center gap-2 transition-all"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl border border-line bg-surface-1 hover:bg-surface-0/70 text-[13px] font-bold text-ink flex items-center justify-center gap-2 transition-all"
             >
               Abrir painel Open API
               <ArrowRight className="w-4 h-4" />
@@ -188,9 +188,9 @@ export const ShopeeAutomationPage: React.FC = () => {
         {/* 2. Card de aviso importante */}
         <section className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-6 sm:p-7 space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5.5 h-5.5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5.5 h-5.5 text-warning-ink flex-shrink-0 mt-0.5" />
             <div className="space-y-3">
-              <h4 className="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-wider">Aviso Importante</h4>
+              <h4 className="text-xs sm:text-sm font-extrabold text-warning-ink uppercase tracking-wider">Aviso Importante</h4>
               <ul className="space-y-2 text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium list-disc list-inside">
                 <li>Este processo é necessário para quem deseja usar a automação da Shopee no Aflyo.</li>
                 <li>O acesso de API não é liberado instantaneamente. A Shopee costuma levar alguns dias para analisar e disponibilizar o acesso.</li>
@@ -203,28 +203,28 @@ export const ShopeeAutomationPage: React.FC = () => {
 
         {/* 3. Passo a passo visual com 4 etapas */}
         <section className="space-y-8">
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">Passo a Passo Detalhado</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-ink-inverse tracking-tight">Passo a Passo Detalhado</h2>
           
           <div className="space-y-12">
             {steps.map((step, idx) => (
-              <div key={idx} className="glass-card border-white/[0.04] p-6 sm:p-8 space-y-6 relative overflow-hidden">
+              <div key={idx} className="glass-card border-line p-6 sm:p-8 space-y-6 relative overflow-hidden">
                 {/* Step number watermark */}
-                <div className="absolute top-4 right-6 text-6xl sm:text-7xl font-black text-white/[0.02] pointer-events-none select-none">
+                <div className="absolute top-4 right-6 text-6xl sm:text-7xl font-black text-ink-inverse/[0.02] pointer-events-none select-none">
                   {step.num}
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[11px] font-extrabold px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-md">
+                    <span className="text-[11px] font-extrabold px-2.5 py-1 bg-ice border border-mint-200 text-mint-700 rounded-md">
                       PASSO {step.num}
                     </span>
-                    <h3 className="text-lg font-black text-white tracking-tight">{step.title}</h3>
+                    <h3 className="text-lg font-black text-ink-inverse tracking-tight">{step.title}</h3>
                   </div>
-                  <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">{step.desc}</p>
+                  <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">{step.desc}</p>
                 </div>
 
                 {step.bullets && (
-                  <ul className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed font-medium list-disc list-inside pl-1">
+                  <ul className="space-y-2 text-xs sm:text-sm text-ink leading-relaxed font-medium list-disc list-inside pl-1">
                     {step.bullets.map((b, bIdx) => <li key={bIdx}>{b}</li>)}
                   </ul>
                 )}
@@ -239,16 +239,16 @@ export const ShopeeAutomationPage: React.FC = () => {
                         className="w-full h-auto rounded-lg object-contain block max-h-[620px] mx-auto transition-transform duration-300 group-hover/img:scale-[1.01]"
                       />
                     </div>
-                    <p className="text-[10px] sm:text-xs text-slate-500 italic text-center font-medium">
+                    <p className="text-[10px] sm:text-xs text-ink-tertiary italic text-center font-medium">
                       {step.caption}
                     </p>
                   </div>
                 )}
 
                 {step.note && (
-                  <div className="p-4 bg-indigo-950/20 border border-indigo-500/15 rounded-xl flex items-start gap-2.5">
-                    <Info className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-indigo-300 leading-relaxed font-semibold">
+                  <div className="p-4 bg-surface-1 border border-mint-200 rounded-xl flex items-start gap-2.5">
+                    <Info className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-mint-800 leading-relaxed font-semibold">
                       {step.note}
                     </p>
                   </div>
@@ -260,7 +260,7 @@ export const ShopeeAutomationPage: React.FC = () => {
                       href={step.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600/10 hover:bg-indigo-650/20 border border-indigo-500/20 hover:border-indigo-500/35 text-indigo-400 text-xs font-bold rounded-lg transition-all"
+                      className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-graphite/10 hover:bg-graphite/20 border border-mint-200 hover:border-mint-500 text-mint-700 text-xs font-bold rounded-lg transition-all"
                     >
                       {step.buttonLabel}
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -273,15 +273,15 @@ export const ShopeeAutomationPage: React.FC = () => {
         </section>
 
         {/* 4. Seção “Depois disso, o que acontece?” */}
-        <section className="glass-card border-white/[0.04] p-6 sm:p-8 space-y-4">
+        <section className="glass-card border-line p-6 sm:p-8 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-4.5 h-4.5 text-indigo-400" />
+            <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
+              <CheckCircle2 className="w-4.5 h-4.5 text-mint-700" />
             </div>
-            <h3 className="text-[17px] font-extrabold text-white tracking-tight">Depois disso, o que acontece?</h3>
+            <h3 className="text-[17px] font-extrabold text-ink-inverse tracking-tight">Depois disso, o que acontece?</h3>
           </div>
           
-          <div className="space-y-3 text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">
+          <div className="space-y-3 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
             <p>
               Após cadastrar as credenciais da Shopee Affiliate corretamente nas suas configurações, o Aflyo passará a utilizar a integração direta para automatizar e otimizar a substituição e o processamento de links da plataforma Shopee conforme as definições habilitadas no seu painel.
             </p>
@@ -294,10 +294,10 @@ export const ShopeeAutomationPage: React.FC = () => {
         {/* 5. FAQ */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <HelpCircle className="w-4.5 h-4.5 text-indigo-400" />
+            <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
+              <HelpCircle className="w-4.5 h-4.5 text-mint-700" />
             </div>
-            <h3 className="text-lg font-extrabold text-white tracking-tight">Perguntas Frequentes (FAQ)</h3>
+            <h3 className="text-lg font-extrabold text-ink-inverse tracking-tight">Perguntas Frequentes (FAQ)</h3>
           </div>
 
           <div className="space-y-2.5">
@@ -308,24 +308,24 @@ export const ShopeeAutomationPage: React.FC = () => {
                   key={idx} 
                   className={`border rounded-xl transition-all duration-200 overflow-hidden ${
                     isOpen 
-                      ? 'border-indigo-500/20 bg-indigo-950/5' 
-                      : 'border-white/5 bg-[#101827]/30 hover:bg-[#101827]/60'
+                      ? 'border-mint-200 bg-surface-1/5' 
+                      : 'border-line bg-surface-0/30 hover:bg-surface-0/60'
                   }`}
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
                     className="w-full flex items-center justify-between p-4 text-left cursor-pointer transition-colors"
                   >
-                    <span className="text-xs sm:text-sm font-bold text-slate-100 pr-4">{faq.q}</span>
+                    <span className="text-xs sm:text-sm font-bold text-ink pr-4">{faq.q}</span>
                     {isOpen ? (
-                      <ChevronUp className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                      <ChevronUp className="w-4 h-4 text-mint-700 flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                      <ChevronDown className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
                     )}
                   </button>
                   {isOpen && (
                     <div className="px-4 pb-4 pt-1 border-t border-white/[0.03]">
-                      <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-medium">
+                      <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
                         {faq.a}
                       </p>
                     </div>
@@ -337,14 +337,14 @@ export const ShopeeAutomationPage: React.FC = () => {
         </section>
 
         {/* 6. CTA final */}
-        <section className="p-8 sm:p-10 bg-gradient-to-r from-indigo-950/40 to-slate-950/40 border border-indigo-500/15 rounded-3xl text-center space-y-5 relative overflow-hidden">
+        <section className="p-8 sm:p-10 bg-gradient-to-r from-indigo-950/40 to-slate-950/40 border border-mint-200 rounded-3xl text-center space-y-5 relative overflow-hidden">
           {/* Subtle overlay glow */}
-          <div className="absolute inset-0 bg-indigo-500/[0.02] pointer-events-none" />
+          <div className="absolute inset-0 bg-graphite/[0.02] pointer-events-none" />
           
-          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-black text-ink-inverse tracking-tight">
             Pronto para configurar sua integração?
           </h3>
-          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto leading-relaxed font-medium">
+          <p className="text-xs sm:text-sm text-ink-secondary max-w-lg mx-auto leading-relaxed font-medium">
             Retorne às configurações do painel administrativo do Aflyo para colar o seu App ID e Secret Key salvos.
           </p>
           <div className="flex justify-center pt-2">
