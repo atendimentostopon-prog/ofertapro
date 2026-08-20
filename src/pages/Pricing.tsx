@@ -7,6 +7,7 @@ import { CheckoutRedirectDialog } from "../components/billing/CheckoutRedirectDi
 import { CheckoutWaitingDialog } from "../components/billing/CheckoutWaitingDialog";
 import { ClaimSubscriptionDialog } from "../components/billing/ClaimSubscriptionDialog";
 import { useSubscription } from "../hooks/useSubscription";
+import { useUser } from "../context/UserContext";
 
 // MVP: mostra apenas starter — pro/enterprise viram quando os produtos existirem na Cakto.
 const PLAN_ORDER: PlanCode[] = ["starter"];
@@ -32,6 +33,7 @@ export default function Pricing() {
   const [showWaiting, setShowWaiting] = useState(false);
   const [showClaim, setShowClaim] = useState(false);
   const { data: currentSub } = useSubscription();
+  const { user } = useUser();
 
   const handleAssinar = (plan: PlanCode) => setSelectedPlan(plan);
   const closeRedirect = () => setSelectedPlan(null);
@@ -39,6 +41,14 @@ export default function Pricing() {
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
+      {user?.plan === 'starter' && !currentSub && (
+        <div className="mb-6 mx-auto max-w-3xl p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-100">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold">Você já usa o Aflyo Starter por cortesia.</span>
+          </div>
+          <p className="text-caption text-emerald-200/80 mt-1">Como usuário fundador, seu acesso é vitalício e não precisa de assinatura.</p>
+        </div>
+      )}
       <h1 className="text-display font-bold text-white text-center">Planos</h1>
       <p className="text-body text-slate-400 text-center mt-2">
         Escolha o plano ideal pro seu volume de ofertas e canais.
@@ -61,6 +71,7 @@ export default function Pricing() {
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan][cycle];
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
+          const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           return (
             <div key={plan} className="bg-surface-2 border border-white/5 rounded-2xl p-6 flex flex-col">
               <h3 className="text-h2 font-bold text-white capitalize">{plan}</h3>
@@ -79,9 +90,9 @@ export default function Pricing() {
               <Button
                 className="mt-6 w-full"
                 onClick={() => handleAssinar(plan)}
-                disabled={isCurrent}
+                disabled={isCurrent || isGrandfathered}
               >
-                {isCurrent ? "Plano atual" : "Assinar"}
+                {isCurrent ? "Plano atual" : isGrandfathered ? "Já ativo (cortesia)" : "Assinar"}
               </Button>
             </div>
           );

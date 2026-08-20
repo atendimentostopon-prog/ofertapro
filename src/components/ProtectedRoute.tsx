@@ -1,9 +1,10 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Layout from './Layout';
 import { useUser } from '../context/UserContext';
 import FullPageLoader from './FullPageLoader';
 import { supabase } from '../lib/supabase';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface ProtectedRouteProps {
   isLoggedIn: boolean;
@@ -12,7 +13,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, onLogout }) => {
-  const { user, loading, authUser, profileLoadFailed, refreshProfile } = useUser();
+  const { user, loading, authUser, profileLoadFailed, refreshProfile, isAdmin } = useUser();
+  const { data: subscription, loading: subLoading } = useSubscription();
+  const location = useLocation();
   const [retrying, setRetrying] = React.useState(false);
 
   // 1. Se o App.tsx ou o UserContext identificou falta de sessão do Supabase, redireciona imediatamente
@@ -29,7 +32,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
     );
   }
 
-  // 3. Se existe sessão do auth, mas o perfil falhou ou não carregou
+  // 3. Gate de paywall: free sem subscription e sem admin → /pricing
+  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/auth/callback'];
+  const isAllowedRoute = ALLOWED_WHEN_UNPAID.some(r => location.pathname.startsWith(r));
+
+  if (
+    !subLoading &&
+    !isAdmin &&
+    user?.plan === 'free' &&
+    !subscription &&
+    !isAllowedRoute
+  ) {
+    return <Navigate to="/pricing" replace />;
+  }
+
+  // 4. Se existe sessão do auth, mas o perfil falhou ou não carregou
   if ((isLoggedIn || authUser) && (profileLoadFailed || !user)) {
     console.warn("[ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.");
     
@@ -94,7 +111,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
     );
   }
 
-  // 4. Fluxo normal: renderiza o layout com o dashboard ou outra página privada
+  // 5. Fluxo normal: renderiza o layout com o dashboard ou outra página privada
   return (
     <Layout onLogout={onLogout}>
       <Outlet />

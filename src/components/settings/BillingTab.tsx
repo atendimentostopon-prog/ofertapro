@@ -9,9 +9,11 @@ import { useSubscription } from "../../hooks/useSubscription";
 import { supabase } from "../../lib/supabase";
 import { FEATURES } from "../../config/features";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../context/UserContext";
 
 export const BillingTab: React.FC = () => {
   const { data: subscription, loading } = useSubscription();
+  const { user } = useUser();
   const nav = useNavigate();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [canceling, setCanceling] = useState(false);
@@ -64,10 +66,15 @@ export const BillingTab: React.FC = () => {
       <SettingsSection title="Meu plano" description="Detalhes da sua assinatura atual" icon={CreditCard}>
         {loading ? (
           <div className="p-6 text-caption text-slate-400">Carregando…</div>
+        ) : !subscription && user?.plan === 'starter' ? (
+          <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+            <h4 className="text-sm font-bold text-emerald-100">Plano Starter — cortesia</h4>
+            <p className="text-xs text-emerald-200/80 mt-2">Você usa o Aflyo por cortesia como usuário fundador. Uso vitalício, sem cobrança.</p>
+          </div>
         ) : !subscription ? (
           <div className="p-6 bg-surface-2 border border-white/5 rounded-2xl">
-            <h4 className="text-sm font-bold text-white">Você está no plano Free</h4>
-            <p className="text-xs text-slate-400 mt-2">Faça upgrade pra desbloquear todos os recursos.</p>
+            <h4 className="text-sm font-bold text-white">Sem plano ativo</h4>
+            <p className="text-xs text-slate-400 mt-2">Escolha um plano para desbloquear o acesso ao Aflyo.</p>
             <Button className="mt-4" onClick={() => nav("/pricing")}>Ver planos</Button>
           </div>
         ) : (
