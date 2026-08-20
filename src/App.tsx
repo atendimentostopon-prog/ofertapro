@@ -170,15 +170,15 @@ const App: React.FC = () => {
   if (bootError && !isPublicRoute()) {
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] p-6 text-center animate-fade-in text-[#F8FAFC]">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface-1 p-6 text-center animate-fade-in text-ink">
+        <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-danger/20 flex items-center justify-center mb-6 text-danger-ink text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o Aflyo</h2>
-        <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
+        <h2 className="text-xl font-bold text-ink tracking-tight">Não foi possível carregar o Aflyo</h2>
+        <p className="text-sm text-ink-secondary mt-2 max-w-sm leading-relaxed">
           {bootError.message || "O carregamento demorou mais que o esperado. Você pode tentar novamente ou limpar a sessão local."}
         </p>
-        <p className="text-xs text-[#64748B] mt-2 max-w-xs leading-normal">
+        <p className="text-xs text-ink-tertiary mt-2 max-w-xs leading-normal">
           Você pode tentar novamente ou redefinir suas credenciais para tentar destravar o aplicativo.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-8">

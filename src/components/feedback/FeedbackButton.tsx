@@ -75,37 +75,36 @@ const FeedbackButton: React.FC = () => {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 hover:bg-black transition-all cursor-pointer group"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-graphite text-ink-inverse rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 hover:bg-graphite-800 transition-all cursor-pointer group"
         title="Enviar Feedback do Beta"
       >
         <MessageSquare className="w-5.5 h-5.5 group-hover:rotate-6 transition-transform" />
-        <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none tracking-tight border border-slate-800">
-          Feedbacks & Bugs ⚡
+        <span className="absolute right-14 bg-graphite text-ink-inverse text-[11px] font-semibold px-2.5 py-1.5 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none tracking-tight border border-graphite-700">
+          Feedbacks & Bugs
         </span>
       </button>
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-fade-in" onClick={() => !loading && setIsOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-graphite/48 backdrop-blur-xs p-4 animate-fade-in" onClick={() => !loading && setIsOpen(false)}>
           {/* Modal Card */}
           <div
-            className="bg-white/95 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200/50 overflow-hidden animate-scale-up my-auto max-h-[90vh] flex flex-col"
+            className="bg-surface-0 w-full max-w-md rounded-2xl shadow-lg border border-line overflow-hidden animate-scale-in my-auto max-h-[90vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white flex-shrink-0">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl" />
+            <div className="relative overflow-hidden bg-gradient-to-r from-graphite to-graphite-800 p-6 text-ink-inverse flex-shrink-0">
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold tracking-tight">Canal de Feedback Beta</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Ajude-nos a lapidar o Aflyo</p>
+                  <p className="text-xs text-graphite-200 mt-0.5">Ajude-nos a lapidar o Aflyo</p>
                 </div>
                 <button
                   onClick={() => !loading && setIsOpen(false)}
                   disabled={loading}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors disabled:opacity-50"
+                  className="w-8 h-8 rounded-md bg-white/10 hover:bg-white/15 flex items-center justify-center transition-colors disabled:opacity-50"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <X className="w-4 h-4 text-ink-inverse" />
                 </button>
               </div>
             </div>
@@ -114,25 +113,25 @@ const FeedbackButton: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
               {success ? (
                 <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center shadow-lg shadow-emerald-100 animate-bounce">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                  <div className="w-14 h-14 rounded-full bg-success-bg flex items-center justify-center animate-bounce">
+                    <CheckCircle2 className="w-8 h-8 text-success-ink" />
                   </div>
                   <div className="text-center">
-                    <h4 className="text-sm font-bold text-slate-800">Obrigado pelo seu feedback!</h4>
-                    <p className="text-[11px] text-slate-500 mt-1">Seu relatório foi registrado com sucesso.</p>
+                    <h4 className="text-sm font-bold text-ink">Obrigado pelo seu feedback!</h4>
+                    <p className="text-[11px] text-ink-tertiary mt-1">Seu relatório foi registrado com sucesso.</p>
                   </div>
                 </div>
               ) : (
                 <>
                   {error && (
-                    <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 font-medium">
+                    <div className="p-3.5 bg-danger-bg border border-danger/20 rounded-xl text-xs text-danger-ink font-medium">
                       ⚠️ {error}
                     </div>
                   )}
 
                   {/* Feedback Type Chips */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700">O que você deseja reportar? *</label>
+                    <label className="text-xs font-bold text-ink">O que você deseja reportar? *</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(Object.keys(typeConfig) as FeedbackType[]).map(t => {
                         const IconComponent = typeConfig[t].icon;
@@ -158,8 +157,8 @@ const FeedbackButton: React.FC = () => {
 
                   {/* Rating Stars */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700">Sua avaliação para este fluxo (1 a 5) *</label>
-                    <div className="flex items-center gap-1.5 justify-center py-2 bg-slate-50 rounded-2xl border border-slate-100">
+                    <label className="text-xs font-bold text-ink">Sua avaliação para este fluxo (1 a 5) *</label>
+                    <div className="flex items-center gap-1.5 justify-center py-2 bg-surface-1 rounded-xl border border-line">
                       {[1, 2, 3, 4, 5].map(star => (
                         <button
                           key={star}
@@ -172,8 +171,8 @@ const FeedbackButton: React.FC = () => {
                           <Star
                             className={`w-8 h-8 ${
                               star <= (hoverRating ?? rating)
-                                ? 'text-amber-400 fill-amber-400'
-                                : 'text-slate-200'
+                                ? 'text-mint-500 fill-mint-500'
+                                : 'text-ink-disabled'
                             } transition-colors`}
                           />
                         </button>
@@ -183,7 +182,7 @@ const FeedbackButton: React.FC = () => {
 
                   {/* Message Input */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Mensagem detalhada *</label>
+                    <label className="text-xs font-bold text-ink">Mensagem detalhada *</label>
                     <textarea
                       placeholder="Descreva o problema, dê sua sugestão de melhoria ou envie sua dúvida..."
                       value={message}
@@ -193,8 +192,8 @@ const FeedbackButton: React.FC = () => {
                       className="input-modern text-sm resize-none"
                       required
                     />
-                    <div className="flex justify-between items-center text-[10px] text-slate-400">
-                      <span>Página atual: <code className="font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{window.location.pathname}</code></span>
+                    <div className="flex justify-between items-center text-[10px] text-ink-tertiary">
+                      <span>Página atual: <code className="font-mono text-ink-secondary bg-surface-1 px-1.5 py-0.5 rounded">{window.location.pathname}</code></span>
                       <span>{message.length}/1000</span>
                     </div>
                   </div>
@@ -203,7 +202,7 @@ const FeedbackButton: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full btn-gradient py-3 flex items-center justify-center gap-2 font-bold text-sm tracking-tight shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full btn-gradient py-3 flex items-center justify-center gap-2 font-bold text-sm tracking-tight disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
