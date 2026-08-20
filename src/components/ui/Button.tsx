@@ -18,14 +18,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyle = 'inline-flex items-center justify-center gap-2 font-semibold rounded-[10px] transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed';
-  
+  const baseStyle = 'inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-colors duration-160 cursor-pointer focus:outline-none focus-visible:shadow-focus active:translate-y-px disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed';
+
   const variants = {
-    primary: 'bg-gradient-to-b from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white shadow-sm shadow-brand-900/20 border border-white/10',
-    secondary: 'bg-surface-3 hover:bg-surface-4 text-slate-100 border border-white/[0.06] shadow-sm',
-    danger: 'bg-red-500/8 hover:bg-red-500/15 text-red-400 border border-red-500/15',
-    success: 'bg-emerald-500/8 hover:bg-emerald-500/15 text-emerald-400 border border-emerald-500/15',
-    ghost: 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] border border-transparent'
+    primary:   'bg-graphite hover:bg-graphite-800 text-ink-inverse border border-graphite',
+    secondary: 'bg-surface-0 hover:bg-surface-1 text-ink border border-line hover:border-line-strong shadow-xs',
+    danger:    'bg-danger-bg hover:bg-danger/15 text-danger-ink border border-danger/20',
+    success:   'bg-success-bg hover:bg-success/15 text-success-ink border border-success/20',
+    ghost:     'text-ink-secondary hover:text-ink hover:bg-surface-1 border border-transparent'
   };
 
   const sizes = {

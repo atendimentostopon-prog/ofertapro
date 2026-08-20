@@ -10,21 +10,21 @@ interface BadgeProps {
 }
 
 const statusConfig: Record<string, { label: string; className: string; dot: string }> = {
-  active: { label: 'Ativo', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
-  paused: { label: 'Pausado', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-500' },
-  draft: { label: 'Rascunho', className: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-500' },
-  connected: { label: 'Conectado', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
-  disconnected: { label: 'Desconectado', className: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-500' },
-  error: { label: 'Erro', className: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-500' },
-  failed: { label: 'Erro', className: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-500' },
-  success: { label: 'Enviado', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
-  partial: { label: 'Parcial', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-550' },
+  active:       { label: 'Ativo',        className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
+  paused:       { label: 'Pausado',      className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
+  draft:        { label: 'Rascunho',     className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
+  connected:    { label: 'Conectado',    className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
+  disconnected: { label: 'Desconectado', className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
+  error:        { label: 'Erro',         className: 'bg-danger-bg text-danger-ink border-danger/20',    dot: 'bg-danger' },
+  failed:       { label: 'Erro',         className: 'bg-danger-bg text-danger-ink border-danger/20',    dot: 'bg-danger' },
+  success:      { label: 'Enviado',      className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
+  partial:      { label: 'Parcial',      className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
 };
 
 const channelConfig: Record<string, { className: string; label: string; logo: string; emoji: string }> = {
-  whatsapp: { className: 'bg-green-500/10 text-green-400 border-green-500/20', label: 'WhatsApp', logo: getChannelLogoSrc('whatsapp'), emoji: '💬' },
-  telegram: { className: 'bg-sky-500/10 text-sky-400 border-sky-500/20', label: 'Telegram', logo: getChannelLogoSrc('telegram'), emoji: '✈️' },
-  discord: { className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', label: 'Discord', logo: getChannelLogoSrc('discord'), emoji: '🎮' },
+  whatsapp: { className: 'bg-ice text-mint-800 border-mint-200',                label: 'WhatsApp', logo: getChannelLogoSrc('whatsapp'), emoji: '💬' },
+  telegram: { className: 'bg-info-bg text-info-ink border-info/20',             label: 'Telegram', logo: getChannelLogoSrc('telegram'), emoji: '✈️' },
+  discord:  { className: 'bg-surface-1 text-ink-secondary border-line',         label: 'Discord',  logo: getChannelLogoSrc('discord'),  emoji: '🎮' },
 };
 
 const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
@@ -33,7 +33,7 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
   if (type === 'marketplace') {
     const mp = value as Marketplace;
     const label = MARKETPLACE_LABELS[mp] || value;
-    const bgClass = MARKETPLACE_COLORS[mp] || 'bg-slate-800 text-slate-300 border-slate-700/50';
+    const bgClass = MARKETPLACE_COLORS[mp] || 'bg-surface-1 text-ink-secondary border-line';
     const emoji = MARKETPLACE_EMOJIS[mp] || '🛒';
 
     return (
@@ -43,7 +43,6 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
           alt={label}
           className="w-3 h-3 object-contain flex-shrink-0"
           onError={(e: any) => {
-            // Se o arquivo não existir ou falhar, substitui a própria tag de imagem pelo emoji fallback
             e.target.outerHTML = `<span>${emoji}</span>`;
           }}
         />
@@ -84,7 +83,7 @@ const Badge: React.FC<BadgeProps> = ({ type, value, size = 'sm' }) => {
 
   // category
   return (
-    <span className={`inline-flex items-center font-medium rounded-full bg-slate-800 text-slate-300 border border-slate-700/50 ${sizeClass}`}>
+    <span className={`inline-flex items-center font-medium rounded-full bg-surface-1 text-ink-secondary border border-line ${sizeClass}`}>
       {value}
     </span>
   );
