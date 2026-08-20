@@ -15,13 +15,13 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center w-full">
-      <div className="w-16 h-16 rounded-2xl bg-red-500/8 border border-red-500/15 flex items-center justify-center mb-5 shadow-sm">
-        <AlertCircle className="w-7 h-7 text-red-400" />
+      <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-danger/20 flex items-center justify-center mb-5">
+        <AlertCircle className="w-7 h-7 text-danger-ink" />
       </div>
-      <h3 className="text-slate-100 font-semibold text-[15px] mb-2 tracking-tight">
+      <h3 className="text-ink font-semibold text-[15px] mb-2 tracking-tight">
         {title}
       </h3>
-      <p className="text-sm text-slate-400 mb-6 max-w-sm leading-relaxed">
+      <p className="text-sm text-ink-secondary mb-6 max-w-sm leading-relaxed">
         {message}
       </p>
       {onRetry && (
