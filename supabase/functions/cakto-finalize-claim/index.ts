@@ -18,7 +18,7 @@ serve(async (req: Request) => {
   if (!pending_id) return new Response("Missing pending_id", { status: 400 });
 
   // Segurança: só quem originou a solicitação (as_user) pode finalizar
-  if (as_user && as_user !== user.id) {
+  if (!as_user || as_user !== user.id) {
     return new Response("Forbidden", { status: 403 });
   }
 

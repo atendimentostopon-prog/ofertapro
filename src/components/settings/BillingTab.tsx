@@ -15,6 +15,7 @@ export const BillingTab: React.FC = () => {
   const nav = useNavigate();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [canceling, setCanceling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   // Beta gratuito (fallback quando billing off)
   if (!FEATURES.billing) {
@@ -35,9 +36,10 @@ export const BillingTab: React.FC = () => {
   const handleCancel = async () => {
     if (!subscription) return;
     setCanceling(true);
+    setCancelError(null);
     try {
       const session = (await supabase.auth.getSession()).data.session;
-      await fetch(
+      const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-cancel-subscription`,
         {
           method: "POST",
@@ -48,6 +50,9 @@ export const BillingTab: React.FC = () => {
           body: JSON.stringify({ subscription_id: subscription.cakto_subscription_id }),
         }
       );
+      if (!res.ok) {
+        setCancelError("Erro ao cancelar. Tente novamente ou entre em contato com o suporte.");
+      }
     } finally {
       setCanceling(false);
       setConfirmCancel(false);
@@ -90,12 +95,15 @@ export const BillingTab: React.FC = () => {
             <div className="flex gap-2 pt-2">
               <Button variant="ghost" onClick={() => nav("/pricing")}>Trocar plano</Button>
               {!subscription.cancel_at_period_end && (
-                <Button variant="ghost" onClick={() => setConfirmCancel(true)} className="text-red-400 hover:text-red-300">
+                <Button variant="ghost" onClick={() => { setCancelError(null); setConfirmCancel(true); }} className="text-red-400 hover:text-red-300">
                   <XCircle className="w-4 h-4 mr-2" />
                   Cancelar assinatura
                 </Button>
               )}
             </div>
+            {cancelError && (
+              <div className="mt-3 text-caption text-red-400">{cancelError}</div>
+            )}
           </div>
         )}
       </SettingsSection>

@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import {
   X, Image as ImageIcon, DollarSign, Tag, Link2,
-  Send, Check, Eye, Upload, Loader2, Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, RefreshCw
+  Send, Check, Eye, Upload, Loader2, Sparkles, CheckCircle2, XCircle, ShieldCheck, RefreshCw
 } from 'lucide-react';
+import { PaywallModal } from '../billing/PaywallModal';
 import { MARKETPLACE_LABELS, CATEGORIES, MARKETPLACES } from '../../lib/utils';
 import { Marketplace } from '../../types';
 import { useOfferForm } from '../../hooks/useOfferForm';
@@ -185,44 +186,16 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
   // Modal de Upgrade SaaS Premium
   const renderUpgradeModal = () => {
     if (!showUpgradeModal) return null;
-
-    const limitsText = upgradeReason === 'offers' 
-      ? 'Você atingiu o limite de ofertas ativas do seu plano Free.' 
-      : 'Você atingiu o limite de canais conectados do seu plano Free.';
-
+    const featureName = upgradeReason === 'offers'
+      ? 'criar mais ofertas'
+      : 'conectar mais canais';
     return (
-      <div className="absolute inset-0 bg-[#070A12]/80 backdrop-blur-[4px] z-50 flex items-center justify-center p-6 animate-fade-in rounded-2xl">
-        <div className="bg-[#101827] rounded-2xl shadow-2xl p-6 max-w-md w-full border border-white/5 flex flex-col items-center text-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
-            <AlertTriangle className="w-6 h-6 animate-bounce" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-bold text-white">Upgrade Necessário 🚀</h3>
-            <p className="text-xs text-[#94A3B8] font-medium leading-relaxed">
-              {limitsText} Faça o upgrade para o plano **Starter** ou **PRO** para desfrutar de ofertas e canais ilimitados, agendamentos futuros e templates avançados.
-            </p>
-          </div>
-          <div className="flex gap-3 w-full">
-            <button
-              onClick={() => {
-                setShowUpgradeModal(false);
-                onClose();
-                navigate('/settings'); // Ir para as configurações / faturamento
-              }}
-              className="flex-1 btn-gradient text-white font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-4 h-4" />
-              Fazer Upgrade
-            </button>
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              className="flex-1 bg-[#0B1020] hover:bg-[#101827] text-slate-400 border border-white/5 font-bold py-2.5 rounded-xl text-xs transition-colors"
-            >
-              Voltar
-            </button>
-          </div>
-        </div>
-      </div>
+      <PaywallModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName={featureName}
+        planSuggestion="starter"
+      />
     );
   };
 

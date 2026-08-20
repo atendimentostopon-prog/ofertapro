@@ -12,7 +12,7 @@ interface Props {
   planSuggestion?: 'starter' | 'pro' | 'enterprise';
 }
 
-export const PaywallModal: React.FC<Props> = ({ open, onClose, featureName, planSuggestion = 'pro' }) => {
+export const PaywallModal: React.FC<Props> = ({ open, onClose, featureName, planSuggestion = 'starter' }) => {
   const nav = useNavigate();
   return (
     <Modal open={open} onClose={onClose} size="sm" title="Limite do plano atingido"
