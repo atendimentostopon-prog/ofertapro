@@ -10,6 +10,7 @@ import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { Channel } from '../../types';
 import { getChannelLogo, getChannelLogoSrc } from '../../lib/logos';
+import { APP_NAME } from '../../config/app';
 
 const ApiIntegrationsTab: React.FC = () => {
   const { toast } = useToast();
@@ -66,7 +67,7 @@ const ApiIntegrationsTab: React.FC = () => {
   useEffect(() => {
     loadKeys();
     loadIntegrationChannels();
-  }, [user]);
+  }, [user?.id]);
 
   const handleGenerateKey = async () => {
     setActionLoading(true);
@@ -151,7 +152,7 @@ const ApiIntegrationsTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] leading-relaxed max-w-xl">
-                Crie e configure chaves de API exclusivas para conectar o Link Oferta com robôs externos, Make, Zapier ou sistemas automatizados de afiliados.
+                Crie e configure chaves de API exclusivas para conectar o {APP_NAME} com robôs externos, Make, Zapier ou sistemas automatizados de afiliados.
               </p>
             </div>
           </div>
@@ -431,7 +432,7 @@ const ApiIntegrationsTab: React.FC = () => {
               <span className="font-mono font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10">POST /offers</span>
             </div>
             <p className="text-[11px] text-[#94A3B8] leading-relaxed">
-              Adiciona uma oferta na sua vitrine do Link Oferta via automação.
+              Adiciona uma oferta na sua vitrine do {APP_NAME} via automação.
             </p>
             <div className="bg-[#070A12] border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#94A3B8]">
               <span className="text-slate-500"># Exemplo de chamada cURL</span><br />
@@ -500,7 +501,7 @@ const ApiIntegrationsTab: React.FC = () => {
         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
         <div className="space-y-1 font-medium text-xs leading-relaxed">
           <p className="font-bold">Avisos e Boas Práticas de Segurança</p>
-          <ul className="list-disc pl-4 space-y-1 text-slate-350">
+          <ul className="list-disc pl-4 space-y-1 text-slate-400">
             <li><strong>Nunca compartilhe sua API Key</strong> com terceiros ou publique em locais visíveis (como GitHub público). Ela concede privilégios de escrita para cadastrar ofertas na sua vitrine.</li>
             <li>Se suspeitar de qualquer vazamento de credencial, clique em <strong>Regenerar API Key</strong> imediatamente para invalidar a chave anterior e gerar uma nova credencial.</li>
             <li>Para requisições externas, passe a chave sempre no cabeçalho HTTPS da chamada (`Authorization: Bearer lof_live_...`).</li>

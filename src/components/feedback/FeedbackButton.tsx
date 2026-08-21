@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MessageSquare, X, Star, Bug, Lightbulb, HelpCircle, Heart, Loader2, CheckCircle2 } from 'lucide-react';
 import { FeedbackService } from '../../services/FeedbackService';
 import { FEATURES } from '../../config/features';
+import { APP_NAME } from '../../config/app';
 
 type FeedbackType = 'Bug' | 'Sugestão' | 'Dúvida' | 'Elogio';
 
@@ -98,7 +99,7 @@ const FeedbackButton: React.FC = () => {
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold tracking-tight">Canal de Feedback Beta</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Ajude-nos a lapidar o Link Oferta</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Ajude-nos a lapidar o {APP_NAME}</p>
                 </div>
                 <button
                   onClick={() => !loading && setIsOpen(false)}

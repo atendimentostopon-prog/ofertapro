@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
-import { getPlanLimits } from '../config/plans';
 
 export function useDashboardStats() {
   const { user } = useUser();

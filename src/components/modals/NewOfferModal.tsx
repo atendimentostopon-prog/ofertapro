@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import {
   X, Image as ImageIcon, DollarSign, Tag, Link2,
-  Send, Check, Eye, Upload, Loader2, Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, RefreshCw
+  Send, Check, Eye, Upload, Loader2, Sparkles, CheckCircle2, XCircle, ShieldCheck, RefreshCw
 } from 'lucide-react';
+import { PaywallModal } from '../billing/PaywallModal';
 import { MARKETPLACE_LABELS, CATEGORIES, MARKETPLACES } from '../../lib/utils';
 import { Marketplace } from '../../types';
 import { useOfferForm } from '../../hooks/useOfferForm';
@@ -107,7 +108,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
   const handleCloseClick = () => {
     if (progressStep === 'saving' || progressStep === 'sending') {
-      alert('O disparo de ofertas está em andamento. Aguarde a conclusão do processo para fechar.');
+      toast('O disparo de ofertas está em andamento. Aguarde a conclusão do processo para fechar.', 'warning');
       return;
     }
     onClose();
@@ -185,44 +186,16 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
   // Modal de Upgrade SaaS Premium
   const renderUpgradeModal = () => {
     if (!showUpgradeModal) return null;
-
-    const limitsText = upgradeReason === 'offers' 
-      ? 'Você atingiu o limite de ofertas ativas do seu plano Free.' 
-      : 'Você atingiu o limite de canais conectados do seu plano Free.';
-
+    const featureName = upgradeReason === 'offers'
+      ? 'criar mais ofertas'
+      : 'conectar mais canais';
     return (
-      <div className="absolute inset-0 bg-[#070A12]/80 backdrop-blur-[4px] z-50 flex items-center justify-center p-6 animate-fade-in rounded-2xl">
-        <div className="bg-[#101827] rounded-2xl shadow-2xl p-6 max-w-md w-full border border-white/5 flex flex-col items-center text-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
-            <AlertTriangle className="w-6 h-6 animate-bounce" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-bold text-white">Upgrade Necessário 🚀</h3>
-            <p className="text-xs text-[#94A3B8] font-medium leading-relaxed">
-              {limitsText} Faça o upgrade para o plano **Starter** ou **PRO** para desfrutar de ofertas e canais ilimitados, agendamentos futuros e templates avançados.
-            </p>
-          </div>
-          <div className="flex gap-3 w-full">
-            <button
-              onClick={() => {
-                setShowUpgradeModal(false);
-                onClose();
-                navigate('/settings'); // Ir para as configurações / faturamento
-              }}
-              className="flex-1 btn-gradient text-white font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-4 h-4" />
-              Fazer Upgrade
-            </button>
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              className="flex-1 bg-[#0B1020] hover:bg-[#101827] text-slate-350 border border-white/5 font-bold py-2.5 rounded-xl text-xs transition-colors"
-            >
-              Voltar
-            </button>
-          </div>
-        </div>
-      </div>
+      <PaywallModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName={featureName}
+        planSuggestion="starter"
+      />
     );
   };
 
@@ -337,7 +310,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 setStep(nextSection);
                 scrollToSection(nextSection);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 text-xs font-semibold text-slate-350 hover:bg-[#101827] transition-all md:hidden"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 text-xs font-semibold text-slate-400 hover:bg-[#101827] transition-all md:hidden"
             >
               <Eye className="w-3.5 h-3.5" />
               {step === 'form' ? 'Ver Prévia' : 'Preencher'}
@@ -476,7 +449,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
             {/* URL da Imagem do Produto (Campo Opcional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-350 tracking-wider">
+              <label className="text-xs font-bold text-slate-400 tracking-wider">
                 OU URL da Imagem Externa (Opcional)
               </label>
               <input
@@ -708,7 +681,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
                         ? 'border-indigo-500 bg-indigo-650/20 text-indigo-350 shadow-sm'
-                        : 'border-white/5 bg-[#0B1020]/50 text-slate-350 hover:bg-[#101827]/50'
+                        : 'border-white/5 bg-[#0B1020]/50 text-slate-400 hover:bg-[#101827]/50'
                     }`}
                     disabled={loading || uploading}
                   >
@@ -767,7 +740,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   </div>
                 ) : connectedChannels.length === 0 ? (
                   <div className="col-span-full bg-[#0B1020]/50 border border-white/5 rounded-xl p-4 text-center">
-                    <p className="text-xs text-slate-350 font-medium">
+                    <p className="text-xs text-slate-400 font-medium">
                       Conecte um canal Telegram, Discord ou WhatsApp antes de disparar.
                     </p>
                     <a
@@ -858,12 +831,12 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   )}
   
                   {form.coupon && form.coupon.trim() !== '' && (
-                    <div className="mt-2 bg-[#0B1020]/50 border border-white/5 rounded-md p-1.5 font-mono text-[9.5px] text-slate-350 font-bold flex items-center justify-between">
+                    <div className="mt-2 bg-[#0B1020]/50 border border-white/5 rounded-md p-1.5 font-mono text-[9.5px] text-slate-400 font-bold flex items-center justify-between">
                       <span>🎟️ Cupom: {form.coupon}</span>
                     </div>
                   )}
   
-                  <p className="text-indigo-450 text-[9.5px] mt-2 underline truncate">
+                  <p className="text-indigo-400 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
                       ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
                       : '🔗 linkoferta.vercel.app/o/...'}

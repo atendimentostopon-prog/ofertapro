@@ -17,6 +17,7 @@
 
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
+import { APP_NAME } from '../config/app';
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
 
@@ -327,7 +328,7 @@ export async function testTelegramConnection(
     await sendTelegramMessage(
       cleanToken,
       cleanChatId,
-      '✅ *Link Oferta conectado com sucesso!*\n\nSeu canal Telegram está pronto para receber ofertas.'
+      `✅ *${APP_NAME} conectado com sucesso!*\n\nSeu canal Telegram está pronto para receber ofertas.`
     );
     return { success: true };
   } catch (err: any) {

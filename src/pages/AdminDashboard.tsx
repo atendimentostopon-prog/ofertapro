@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatCentsToBRL, databaseValueToCents } from '../lib/currency';
 import { Card } from '../components/ui/Card';
+import { APP_NAME } from '../config/app';
 
 interface Stats {
   total_users: number;
@@ -158,7 +159,7 @@ const AdminDashboard: React.FC = () => {
             </span>
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1">Painel Administrativo</h1>
-          <p className="text-xs text-[#94A3B8] font-medium mt-0.5">Visão consolidada e controle operacional do SaaS Link Oferta</p>
+          <p className="text-xs text-[#94A3B8] font-medium mt-0.5">Visão consolidada e controle operacional do SaaS {APP_NAME}</p>
         </div>
         <div className="flex items-center gap-3">
           <button

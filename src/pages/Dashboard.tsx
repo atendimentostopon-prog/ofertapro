@@ -193,14 +193,14 @@ const Dashboard: React.FC = () => {
             <div className="flex items-baseline gap-1">
               <h3 className="text-2xl font-bold text-slate-100 tracking-tight tabular-nums">{connectedChannels}</h3>
               <span className="text-[10px] font-medium text-slate-500">
-                / {limits.maxChannels === Infinity ? '∞' : limits.maxChannels}
+                / {limits.maxWhatsappConnections === Infinity ? '∞' : limits.maxWhatsappConnections + limits.maxTelegramConnections}
               </span>
             </div>
-            {limits.maxChannels !== Infinity && (
+            {limits.maxWhatsappConnections !== Infinity && (
               <div className="w-full bg-surface-0 h-1.5 rounded-full overflow-hidden mt-2">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-sky-500/60 to-sky-400/80 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((connectedChannels / limits.maxChannels) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((connectedChannels / (limits.maxWhatsappConnections + limits.maxTelegramConnections)) * 100, 100)}%` }}
                 />
               </div>
             )}

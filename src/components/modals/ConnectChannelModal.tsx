@@ -4,6 +4,8 @@ import { ChannelType } from '../../types';
 import { evolution } from '../../lib/evolution';
 import { supabase } from '../../lib/supabase';
 import { validateTelegramBot } from '../../lib/telegram';
+import { useToast } from '../../context/ToastContext';
+import { APP_NAME } from '../../config/app';
 
 interface ConnectChannelModalProps {
   type: ChannelType;
@@ -12,6 +14,7 @@ interface ConnectChannelModalProps {
 }
 
 const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose, onConnect }) => {
+  const { toast } = useToast();
   const [step, setStep] = useState<'form' | 'connecting' | 'connected' | 'qrcode'>('form');
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');    // Webhook URL (Discord) / Chat ID (Telegram)
@@ -37,7 +40,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
    */
   const startWhatsAppFlow = async () => {
     if (!name) {
-      alert('Dê um nome para o canal primeiro.');
+      toast('Dê um nome para o canal primeiro.', 'warning');
       return;
     }
 
@@ -64,7 +67,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
       }
     } catch (err) {
       console.error('Erro no fluxo WhatsApp:', err);
-      alert('Erro ao conectar com a API de WhatsApp.');
+      toast('Erro ao conectar com a API de WhatsApp.', 'error');
     } finally {
       setLoading(false);
     }
@@ -263,7 +266,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
               <p className="text-lg font-bold text-white">Canal Conectado!</p>
-              <p className="text-sm text-slate-400 text-center">O canal foi adicionado com sucesso ao Link Oferta.</p>
+              <p className="text-sm text-slate-400 text-center">O canal foi adicionado com sucesso ao {APP_NAME}.</p>
             </div>
           ) : step === 'connecting' ? (
             <div className="flex flex-col items-center py-8 gap-4">
@@ -351,7 +354,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                       <button
                         type="button"
                         onClick={() => setShowToken(!showToken)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-350 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400 transition-colors"
                         title={showToken ? 'Ocultar token' : 'Mostrar token'}
                       >
                         {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

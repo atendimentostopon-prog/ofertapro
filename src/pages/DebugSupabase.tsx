@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../context/ToastContext';
 
 export const DebugSupabase: React.FC = () => {
+  const { toast } = useToast();
   const [results, setResults] = useState<Record<string, string>>({
     react: 'OK',
     envUrl: 'Carregando...',
@@ -200,7 +202,7 @@ export const DebugSupabase: React.FC = () => {
                   });
                   sessionStorage.clear();
                   addLog('sessionStorage limpo com sucesso.');
-                  alert('Sessão local limpa!');
+                  toast('Sessão local limpa!', 'success');
                 } catch (e: any) {
                   addLog(`Erro ao limpar chaves: ${e.message}`);
                 }
@@ -215,7 +217,7 @@ export const DebugSupabase: React.FC = () => {
                 try {
                   await supabase.auth.signOut();
                   addLog('signOut executado.');
-                  alert('SignOut executado com sucesso!');
+                  toast('SignOut executado com sucesso!', 'success');
                 } catch (e: any) {
                   addLog(`Erro no signOut: ${e.message}`);
                 }

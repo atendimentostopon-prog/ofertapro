@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthService } from './services/AuthService';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
 import Offers from './pages/Offers';
 import NewOfferPage from './pages/NewOfferPage';
@@ -21,8 +25,10 @@ import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
+import Pricing from './pages/Pricing';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
+import { APP_NAME } from './config/app';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
@@ -174,7 +180,7 @@ const App: React.FC = () => {
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o Link Oferta</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Não foi possível carregar o {APP_NAME}</h2>
         <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
           {bootError.message || "O carregamento demorou mais que o esperado. Você pode tentar novamente ou limpar a sessão local."}
         </p>
@@ -259,10 +265,11 @@ const App: React.FC = () => {
           <Route path="/u/:username" element={<PublicPage />} />
 
           {/* Auth */}
-          <Route
-            path="/login"
-            element={<Login onLogin={() => {}} />}
-          />
+          <Route path="/login" element={<Login onLogin={() => {}} />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
+          <Route path="/reset" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
@@ -274,6 +281,7 @@ const App: React.FC = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/feedbacks" element={<Feedbacks />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Route>
 
           {/* Fallback */}

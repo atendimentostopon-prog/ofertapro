@@ -1,26 +1,24 @@
 import React, { ReactNode, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import NewOfferModal from './modals/NewOfferModal';
-import OnboardingModal from './modals/OnboardingModal';
 import FeedbackButton from './feedback/FeedbackButton';
 import { useUser } from '../context/UserContext';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
+import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
 
 interface LayoutProps {
   children: ReactNode;
   onLogout: () => void;
 }
 
-const DEBUG_DISABLE_ONBOARDING = false;
-
 const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
-  const { user, refreshProfile } = useUser();
+  const { user } = useUser();
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const needsSetup = needsPublicPageSetup(user);
+  const needsWizard = !!user && !needsSetup && user.onboarded !== true;
 
   return (
     <div className="min-h-screen bg-surface-0 flex text-slate-100 relative overflow-x-hidden">
@@ -60,6 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         <NewOfferModal onClose={() => setShowNewOffer(false)} />
       )}
       <PublicPageSetupModal isOpen={needsSetup} />
+      <OnboardingWizardModal isOpen={needsWizard} />
       <FeedbackButton />
     </div>
   );

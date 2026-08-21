@@ -120,7 +120,7 @@ const Feedbacks: React.FC = () => {
                     {fb.page && (
                       <div className="text-[11px] text-slate-400 flex items-center gap-1">
                         <span>Página de envio:</span>
-                        <code className="font-mono text-slate-350 bg-[#070A12] px-1.5 py-0.5 rounded border border-white/5">{fb.page}</code>
+                        <code className="font-mono text-slate-400 bg-[#070A12] px-1.5 py-0.5 rounded border border-white/5">{fb.page}</code>
                       </div>
                     )}
                   </div>

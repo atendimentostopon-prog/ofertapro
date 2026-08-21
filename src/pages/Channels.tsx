@@ -9,10 +9,10 @@ import Badge from '../components/Badge';
 import ConnectChannelModal from '../components/modals/ConnectChannelModal';
 import { supabase } from '../lib/supabase';
 import { testTelegramConnection, maskBotToken } from '../lib/telegram';
-import { FEATURES } from '../config/features';
 import { FeedbackService } from '../services/FeedbackService';
 import { useUser } from '../context/UserContext';
-import { getPlanLimits } from '../config/plans';
+import { getPlanLimits, canConnectChannel } from '../config/plans';
+import { PaywallModal } from '../components/billing/PaywallModal';
 import { LoadingState } from '../components/ui/LoadingState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
@@ -316,6 +316,10 @@ const Channels: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [connectModal, setConnectModal] = useState<ChannelType | null>(null);
 
+  // Paywall state
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
+
   // Estados para WhatsApp (Evolution API)
   const [instances, setInstances] = useState<any[]>([]);
   const [instancesLoading, setInstancesLoading] = useState(true);
@@ -395,7 +399,7 @@ const Channels: React.FC = () => {
       toast('Canal removido!', 'success');
     } catch (err) {
       console.error('Erro ao remover canal:', err);
-      alert('Erro ao remover canal. Tente novamente.');
+      toast('Erro ao remover canal. Tente novamente.', 'error');
     }
   };
 
@@ -412,7 +416,7 @@ const Channels: React.FC = () => {
       toast('Status do canal alterado!', 'success');
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
-      alert('Erro ao atualizar status.');
+      toast('Erro ao atualizar status.', 'error');
     }
   };
 
@@ -496,7 +500,7 @@ const Channels: React.FC = () => {
       await loadInstances();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao criar instância.');
+      toast(err.message || 'Erro ao criar instância.', 'error');
     } finally {
       setCreatingInstance(false);
     }
@@ -567,7 +571,7 @@ const Channels: React.FC = () => {
 
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao sincronizar grupos.');
+      toast(err.message || 'Erro ao sincronizar grupos.', 'error');
     } finally {
       setSyncingInstanceId(null);
     }
@@ -627,7 +631,7 @@ const Channels: React.FC = () => {
       await loadChannels();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao salvar canais.');
+      toast(err.message || 'Erro ao salvar canais.', 'error');
     } finally {
       setSavingGroups(false);
     }
@@ -660,7 +664,7 @@ const Channels: React.FC = () => {
       await loadChannels();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Erro ao desconectar.');
+      toast(err.message || 'Erro ao desconectar.', 'error');
     }
   };
 
@@ -977,16 +981,17 @@ const Channels: React.FC = () => {
               disabled={false}
               onConnect={() => {
                 if (type === 'whatsapp') {
-                  if (instances.length >= 3) {
-                    alert('Você atingiu o limite de 3 instâncias WhatsApp.');
+                  if (!canConnectChannel(instances.length, user?.plan, 'whatsapp')) {
+                    setPaywallFeature('conectar outro WhatsApp');
+                    setPaywallOpen(true);
                     return;
                   }
                   setShowConnectWhatsappModal(true);
                   return;
                 }
-                const limits = getPlanLimits(user?.plan);
-                if (FEATURES.billing && connectedChannels.length >= limits.maxChannels) {
-                  alert(`Você atingiu o limite de canais conectados do seu plano (${limits.maxChannels} canal). Faça upgrade nas configurações.`);
+                if (!canConnectChannel(connectedChannels.length, user?.plan, 'telegram')) {
+                  setPaywallFeature('conectar outro Telegram');
+                  setPaywallOpen(true);
                   return;
                 }
                 setConnectModal(type);
@@ -1137,6 +1142,12 @@ const Channels: React.FC = () => {
           </div>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        featureName={paywallFeature}
+      />
     </div>
   );
 };

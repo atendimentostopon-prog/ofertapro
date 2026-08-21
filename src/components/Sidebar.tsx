@@ -2,10 +2,12 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, Zap, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck
+  ChevronRight, Zap, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck, CreditCard
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
+import { APP_NAME } from '../config/app';
 import { Avatar } from './ui/Avatar';
 
 interface SidebarProps {
@@ -20,11 +22,13 @@ const navItems = [
   { to: '/history', icon: History, label: 'Histórico' },
   { to: '/settings', icon: Settings, label: 'Configurações' },
   ...(FEATURES.feedback ? [{ to: '/feedbacks', icon: MessageSquare, label: 'Feedbacks' }] : []),
+  { to: '/pricing', icon: CreditCard, label: 'Planos' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
+  const { toast } = useToast();
 
   if (!user) return null;
 
@@ -49,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm shadow-brand-900/30">
             <Zap className="w-4 h-4 text-white" fill="white" />
           </div>
-          <span className="text-[15px] font-bold text-slate-100 tracking-tight">Link Oferta</span>
+          <span className="text-[15px] font-bold text-slate-100 tracking-tight">{APP_NAME}</span>
         </div>
         
         {/* Botão fechar para Mobile */}
@@ -103,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           onClick={() => {
             handleLinkClick();
             if (!user.username || user.username.includes('_temp') || !user.public_page_created) {
-              alert('Por favor, conclua a configuração da sua página pública.');
+              toast('Por favor, conclua a configuração da sua página pública.', 'warning');
               return;
             }
             window.open(`/u/${user.username}`, '_blank');
@@ -125,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           </div>
           <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">Desbloqueie canais ilimitados e recursos avançados.</p>
           <button 
-            onClick={() => { handleLinkClick(); navigate('/settings'); }}
+            onClick={() => { handleLinkClick(); navigate('/pricing'); }}
             className="text-[11px] font-semibold text-brand-300 bg-brand-500/10 hover:bg-brand-500/15 px-3 py-2 rounded-lg transition-colors w-full border border-brand-500/10 cursor-pointer"
           >
             Ver planos
