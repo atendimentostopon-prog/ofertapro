@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
-    "axios": "^1.16.1",
+    "axios": "^1.19.0",
     "browser-image-compression": "^2.0.2",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.15.0",
+    "react-router-dom": "^7.18.2",
     "recharts": "^3.8.1"
   },
   "devDependencies": {
