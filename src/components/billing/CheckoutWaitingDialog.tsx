@@ -5,6 +5,7 @@ import { Button } from "../ui/Button";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useSubscription } from "../../hooks/useSubscription";
 import { useCheckoutIntent } from "../../hooks/useCheckoutIntent";
+import { useUser } from "../../context/UserContext";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,7 @@ interface Props {
 export const CheckoutWaitingDialog: React.FC<Props> = ({ open, onClose, onNeedsClaim }) => {
   const { data: subscription } = useSubscription();
   const { intent, clearIntent } = useCheckoutIntent();
+  const { refreshProfile } = useUser();
   const [timedOut, setTimedOut] = useState(false);
 
   // detectar sucesso: subscription apareceu com plan igual ao intent, criada depois de intent.openedAt
@@ -31,8 +33,14 @@ export const CheckoutWaitingDialog: React.FC<Props> = ({ open, onClose, onNeedsC
   }, [open, success]);
 
   useEffect(() => {
-    if (success) clearIntent();
-  }, [success, clearIntent]);
+    if (success) {
+      clearIntent();
+      // profiles.plan já foi atualizado pelo webhook no banco, mas o UserContext
+      // só recarrega no login/onAuthStateChange — sem isso, o resto do app (Dashboard,
+      // limites de oferta/canal, etc.) continua achando que o usuário é free.
+      refreshProfile();
+    }
+  }, [success, clearIntent, refreshProfile]);
 
   return (
     <Modal open={open} onClose={onClose} size="sm" showCloseButton={success || timedOut}

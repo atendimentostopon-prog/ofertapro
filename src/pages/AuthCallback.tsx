@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AuthLayout } from '../components/auth/AuthLayout';
+import { useUser } from '../context/UserContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshProfile } = useUser();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ const AuthCallback: React.FC = () => {
           const claimId = new URLSearchParams(window.location.search).get("claim");
           if (claimId) {
             const asUser = new URLSearchParams(window.location.search).get("as_user");
-            await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-finalize-claim`, {
+            const finalizeRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-finalize-claim`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -33,7 +35,13 @@ const AuthCallback: React.FC = () => {
               },
               body: JSON.stringify({ pending_id: claimId, as_user: asUser }),
             });
-            // Depois de finalizar, seguir fluxo normal
+            // finalize-claim já atualizou profiles.plan no banco; sem recarregar
+            // aqui, o UserContext pode ter carregado o perfil antes dessa escrita
+            // (corrida com o onAuthStateChange do próprio login por magic link) e
+            // o app inteiro ficaria achando que o plano ainda é o antigo.
+            if (finalizeRes.ok) {
+              await refreshProfile();
+            }
           }
           navigate('/dashboard', { replace: true });
         }
