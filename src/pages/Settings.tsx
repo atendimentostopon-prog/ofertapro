@@ -892,7 +892,7 @@ const Settings: React.FC = () => {
                 className={`input-modern text-xs ${whatsappError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: chat.whatsapp.com/ABC123xyz"
               />
-              {whatsappError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
+              {whatsappError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
             </Field>
 
             <Field label="Link do Canal/Grupo Telegram" hint="Insira o link público do seu canal ou grupo no Telegram (t.me/... ou telegram.me/...)">
@@ -903,7 +903,7 @@ const Settings: React.FC = () => {
                 className={`input-modern text-xs ${telegramError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: t.me/meucanal"
               />
-              {telegramError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
+              {telegramError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
             </Field>
 
             <Field label="Link do Convite Discord" hint="Insira o link do convite do seu servidor do Discord (discord.gg/... ou discord.com/invite/...)">
@@ -914,7 +914,7 @@ const Settings: React.FC = () => {
                 className={`input-modern text-xs ${discordError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: discord.gg/abcde"
               />
-              {discordError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
+              {discordError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
             </Field>
           </SettingsSection>
         </div>
@@ -1033,7 +1033,7 @@ const Settings: React.FC = () => {
                       </div>
 
                       {!validation.valid && validation.error && (
-                        <div className="flex items-center gap-2 p-2.5 bg-rose-950/20 border border-rose-900/30 rounded-xl text-rose-400 text-[11px] font-bold">
+                        <div className="flex items-center gap-2 p-2.5 bg-danger-bg border border-danger/25 rounded-xl text-danger-ink text-[11px] font-bold">
                           <AlertCircle className="w-4 h-4 flex-shrink-0" />
                           <span>{validation.error}</span>
                         </div>
@@ -1324,7 +1324,7 @@ const Settings: React.FC = () => {
                     window.location.href = '/login';
                   }
                 }}
-                className="btn-secondary hover:bg-rose-950/20 hover:text-rose-450 hover:border-rose-900/50 transition-colors text-xs px-4 py-2 flex items-center gap-2"
+                className="btn-secondary hover:bg-danger-bg hover:text-danger-ink hover:border-danger/30 transition-colors text-xs px-4 py-2 flex items-center gap-2"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sair da Conta
