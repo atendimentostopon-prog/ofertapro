@@ -14,8 +14,14 @@ interface Payload {
 
 export function getEventId(payload: Payload): string {
   const data = payload.data ?? {};
-  return data.id
-    ?? `${payload.event}-${data.subscription?.id ?? "nosub"}-${Date.now()}`;
+  if (data.id) return String(data.id);
+  // Fallback ESTÁVEL (sem Date.now): mesmo evento retried deve gerar a
+  // mesma chave, senão a idempotência não detecta duplicata.
+  const sub = data.subscription?.id ?? "nosub";
+  const stamp = (data as { paidAt?: string; created_at?: string }).paidAt
+    ?? (data as { paidAt?: string; created_at?: string }).created_at
+    ?? "nostamp";
+  return `${payload.event ?? "unknown"}-${sub}-${stamp}`;
 }
 
 export async function recordEventIfNew(payload: Payload): Promise<boolean> {
