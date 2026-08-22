@@ -51,19 +51,18 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   return (
     <Card 
       variant="default" 
-      className="overflow-hidden group flex flex-col h-full bg-[#0d1527]/40 backdrop-blur-md border border-line hover:border-line-strong hover:-translate-y-1.5 transition-all duration-300 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-indigo-500/5 cursor-pointer"
+      className="overflow-hidden group flex flex-col h-full bg-surface-0 border border-line hover:border-line-strong hover:-translate-y-1.5 transition-all duration-300 rounded-2xl shadow-xs hover:shadow-md cursor-pointer"
     >
       {/* Image container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950/80 flex-shrink-0 border-b border-line">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-1 flex-shrink-0 border-b border-line">
         <ProductImage
           src={offer.image || offer.image_url}
           alt={offer.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
         {discountVal > 0 && (
           <div className="absolute top-3 left-3 z-10">
-            <span className="bg-gradient-to-r from-red-500 to-pink-500 text-ink-inverse text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-md border border-red-400/20 backdrop-blur-md">
+            <span className="bg-danger text-ink-inverse text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-md border border-danger/20 backdrop-blur-md">
               -{discountVal}% OFF
             </span>
           </div>
@@ -76,12 +75,12 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
             <Badge type="marketplace" value={offer.marketplace} size="sm" />
             <Badge type="category" value={offer.category} size="sm" />
           </div>
-          <h3 className="text-[13px] sm:text-sm font-bold text-ink leading-snug line-clamp-2 mb-2 tracking-tight group-hover:text-ink-inverse transition-colors">
+          <h3 className="text-[13px] sm:text-sm font-bold text-ink leading-snug line-clamp-2 mb-2 tracking-tight group-hover:text-mint-800 transition-colors">
             {offer.name}
           </h3>
 
           <div className="flex items-baseline gap-2 mb-1.5">
-            <span className="text-lg font-black text-ink-inverse tracking-tight">
+            <span className="text-lg font-black text-ink tracking-tight">
               {formatCurrency(offer.sale_price || offer.salePrice)}
             </span>
             {offer.original_price > 0 && (
@@ -94,7 +93,7 @@ const OfferGridCard: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
           {offer.coupon && (
             <button
               onClick={copyCoupon}
-              className="flex items-center justify-between w-full mt-3 px-3 py-2 rounded-xl bg-amber-500/5 border border-dashed border-warning/20 hover:bg-warning-bg transition-colors group/coupon text-warning-ink cursor-pointer"
+              className="flex items-center justify-between w-full mt-3 px-3 py-2 rounded-xl bg-warning-bg/50 border border-dashed border-warning/25 hover:bg-warning-bg transition-colors group/coupon text-warning-ink cursor-pointer"
             >
               <span className="text-[11px] font-mono font-bold flex items-center gap-1">
                 <span className="text-[9px] uppercase font-sans font-extrabold bg-warning-bg px-1 py-0.5 rounded">Cupom</span>
@@ -139,9 +138,9 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
   return (
     <Card 
       variant="default" 
-      className="p-4 flex items-center gap-4 bg-[#0d1527]/40 backdrop-blur-md border border-line hover:border-line-strong hover:-translate-y-0.5 transition-all duration-300 rounded-2xl cursor-pointer"
+      className="p-4 flex items-center gap-4 bg-surface-0 border border-line hover:border-line-strong hover:-translate-y-0.5 transition-all duration-300 rounded-2xl cursor-pointer"
     >
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950/80 flex-shrink-0 border border-line">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-1 flex-shrink-0 border border-line">
         <ProductImage
           src={offer.image || offer.image_url}
           alt={offer.name}
@@ -149,7 +148,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
         />
         {discountVal > 0 && (
           <div className="absolute top-1 left-1 z-10">
-            <span className="bg-red-500 text-ink-inverse text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+            <span className="bg-danger text-ink-inverse text-[9px] font-black px-1.5 py-0.5 rounded shadow">
               -{discountVal}%
             </span>
           </div>
@@ -161,9 +160,9 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
           <Badge type="marketplace" value={offer.marketplace} size="sm" />
           <Badge type="category" value={offer.category} size="sm" />
         </div>
-        <h3 className="text-xs sm:text-sm font-bold text-ink truncate tracking-tight group-hover:text-ink-inverse transition-colors">{offer.name}</h3>
+        <h3 className="text-xs sm:text-sm font-bold text-ink truncate tracking-tight group-hover:text-mint-800 transition-colors">{offer.name}</h3>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-[15px] font-black text-ink-inverse tracking-tight">
+          <span className="text-[15px] font-black text-ink tracking-tight">
             {formatCurrency(offer.sale_price || offer.salePrice)}
           </span>
           {offer.original_price > 0 && (
@@ -178,7 +177,7 @@ const OfferListItem: React.FC<{ offer: any; theme: any }> = ({ offer, theme }) =
         {offer.coupon && (
           <button
             onClick={copyCoupon}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/5 border border-dashed border-warning/20 hover:bg-warning-bg text-[11px] font-mono font-bold text-warning-ink transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-warning-bg/50 border border-dashed border-warning/25 hover:bg-warning-bg text-[11px] font-mono font-bold text-warning-ink transition-all cursor-pointer"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-success-ink" /> : offer.coupon}
           </button>
@@ -308,7 +307,7 @@ const PublicPage: React.FC = () => {
           <div className="flex items-start gap-5">
             <div className="w-20 h-20 rounded-full bg-surface-2 border border-line-strong backdrop-blur-md animate-pulse" />
             <div className="flex-1 space-y-3 mt-4">
-              <div className="h-6 w-48 bg-white/20 rounded animate-pulse" />
+              <div className="h-6 w-48 bg-surface-2 rounded animate-pulse" />
               <div className="h-4 w-32 bg-surface-2 rounded animate-pulse" />
             </div>
           </div>
@@ -324,14 +323,14 @@ const PublicPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-surface-1 text-ink flex flex-col items-center justify-center p-4 text-center">
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-[#7C3AED]/10 blur-3xl rounded-full" />
+          <div className="absolute inset-0 bg-mint-400/15 blur-3xl rounded-full" />
           <div className="relative w-24 h-24 bg-surface-0 rounded-3xl shadow-xl flex items-center justify-center border border-line">
             <Search className="w-10 h-10 text-ink-tertiary" />
           </div>
         </div>
-        <h1 className="text-3xl font-extrabold text-ink-inverse mb-2 tracking-tight">Página não encontrada</h1>
+        <h1 className="text-3xl font-extrabold text-ink mb-2 tracking-tight">Página não encontrada</h1>
         <p className="text-ink-secondary mb-8 max-w-sm mx-auto leading-relaxed">
-          O canal <span className="font-bold text-ink-inverse">@{username}</span> não possui uma vitrine pública ativa no momento.
+          O canal <span className="font-bold text-ink">@{username}</span> não possui uma vitrine pública ativa no momento.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <a href="/login" className="btn-gradient px-8 py-3 text-sm font-bold">
@@ -375,7 +374,7 @@ const PublicPage: React.FC = () => {
     },
     dark: {
       banner: 'bg-gradient-to-r from-[#030712] via-[#111827] to-[#1f2937]',
-      primaryBtn: 'bg-surface-2 hover:bg-white/15 text-ink border border-line-strong',
+      primaryBtn: 'bg-graphite-800 hover:bg-graphite-700 text-ink-inverse border border-line-strong',
       accentText: 'text-purple-400',
       accentBg: 'bg-purple-500/10',
       accentBorder: 'border-purple-500/20',
@@ -421,7 +420,7 @@ const PublicPage: React.FC = () => {
           
           {/* Circular Overlapping Avatar */}
           <div className="relative group">
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-[4px] border-[#070A12] shadow-2xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center flex-shrink-0">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-[4px] border-[#070A12] shadow-2xl bg-gradient-to-br from-graphite to-graphite-700 flex items-center justify-center flex-shrink-0">
               {(profile.public_avatar_url || profile.avatar_url) ? (
                 <img 
                   src={profile.public_avatar_url || profile.avatar_url} 
@@ -432,14 +431,14 @@ const PublicPage: React.FC = () => {
                     const parent = (e.target as HTMLImageElement).parentElement;
                     if (parent && !parent.querySelector('.avatar-initials')) {
                       const fallback = document.createElement('div');
-                      fallback.className = "avatar-initials w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 text-ink-inverse flex items-center justify-center uppercase font-black text-3xl sm:text-4xl";
+                      fallback.className = "avatar-initials w-full h-full bg-gradient-to-br from-graphite to-graphite-700 text-ink-inverse flex items-center justify-center uppercase font-black text-3xl sm:text-4xl";
                       fallback.innerText = getInitials(profile.public_name || profile.public_display_name || profile.full_name || 'Vitrine');
                       parent.appendChild(fallback);
                     }
                   }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 text-ink-inverse flex items-center justify-center uppercase font-black text-3xl sm:text-4xl">
+                <div className="w-full h-full bg-gradient-to-br from-graphite to-graphite-700 text-ink-inverse flex items-center justify-center uppercase font-black text-3xl sm:text-4xl">
                   {getInitials(profile.public_name || profile.public_display_name || profile.full_name || 'Vitrine')}
                 </div>
               )}
@@ -454,7 +453,7 @@ const PublicPage: React.FC = () => {
           {/* Profile Text Info */}
           <div className="mt-4 space-y-2.5 max-w-xl">
             <div className="flex items-center justify-center gap-2">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-ink-inverse tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-ink tracking-tight">
                 {profile.public_name || profile.public_display_name || profile.full_name || 'Usuário'}
               </h1>
             </div>
@@ -469,7 +468,7 @@ const PublicPage: React.FC = () => {
 
             {/* Micro stats banner */}
             <div className="flex items-center justify-center gap-1.5 pt-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span className="text-[10px] font-bold text-ink-tertiary uppercase tracking-widest">
                 {activeOffers.length} {activeOffers.length === 1 ? 'Oferta ativa' : 'Ofertas ativas'}
               </span>
@@ -547,7 +546,7 @@ const PublicPage: React.FC = () => {
                   )}
                   {mp.label}
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ml-1 transition-all ${
-                    selectedMarketplace === mp.value ? 'bg-ice text-[#a5b4fc]' : 'bg-surface-1 text-ink-tertiary'
+                    selectedMarketplace === mp.value ? 'bg-ice text-mint-700' : 'bg-surface-1 text-ink-tertiary'
                   }`}>
                     {count}
                   </span>
@@ -562,8 +561,8 @@ const PublicPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         
         {/* Filters and Search Row */}
-        <div className="flex flex-col md:flex-row items-center gap-4 bg-[#0d1527]/20 border border-white/[0.03] p-4 rounded-2xl">
-          
+        <div className="flex flex-col md:flex-row items-center gap-4 bg-surface-0 border border-line p-4 rounded-2xl">
+
           {/* Search bar */}
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
@@ -572,7 +571,7 @@ const PublicPage: React.FC = () => {
               placeholder="Buscar ofertas pelo nome..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input-modern pl-10 h-11 w-full bg-[#070a12]/60 hover:bg-[#070a12]/80 focus:bg-[#070a12] border-line focus:border-mint-500/50"
+              className="input-modern pl-10 h-11 w-full"
             />
           </div>
 
@@ -587,7 +586,7 @@ const PublicPage: React.FC = () => {
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-extrabold transition-all border cursor-pointer ${
                     selectedCategory === cat
                       ? `${currentTheme.tagActive}`
-                      : `bg-[#070a12]/40 border-line text-ink-secondary hover:border-line-strong hover:text-ink`
+                      : `bg-surface-1 border-line text-ink-secondary hover:border-line-strong hover:text-ink`
                   }`}
                 >
                   {cat}
@@ -616,9 +615,9 @@ const PublicPage: React.FC = () => {
         </div>
 
         {/* Results Header */}
-        <div className="flex items-center justify-between pt-1 border-b border-white/[0.03] pb-2">
+        <div className="flex items-center justify-between pt-1 border-b border-line pb-2">
           <p className="text-xs text-ink-secondary font-medium">
-            Mostrando <span className="font-extrabold text-ink-inverse">{filtered.length}</span> de <span className="font-bold text-ink">{activeOffers.length}</span> ofertas
+            Mostrando <span className="font-extrabold text-ink">{filtered.length}</span> de <span className="font-bold text-ink">{activeOffers.length}</span> ofertas
           </p>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-graphite rounded-full animate-ping" />
@@ -655,23 +654,23 @@ const PublicPage: React.FC = () => {
       </div>
 
       {/* LGPD Footer */}
-      <footer className="border-t border-line bg-[#090e1c] mt-24 py-10 text-ink-secondary">
+      <footer className="border-t border-line bg-graphite mt-24 py-10 text-ink-inverse/70">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left space-y-1">
-            <p className="text-xs font-semibold text-ink">
+            <p className="text-xs font-semibold text-ink-inverse">
               &copy; {new Date().getFullYear()} {profile.public_name || profile.public_display_name || profile.full_name || 'Vitrine'}.
             </p>
-            <p className="text-[11px] text-ink-tertiary">Todos os direitos reservados.</p>
+            <p className="text-[11px] text-ink-inverse/60">Todos os direitos reservados.</p>
           </div>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-5 text-xs font-bold">
             <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="hover:text-ink-inverse transition-colors">Termos de Uso</a>
             <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="hover:text-ink-inverse transition-colors">Privacidade</a>
             <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="hover:text-ink-inverse transition-colors">Cookies</a>
           </div>
-          
+
           <div className="text-center md:text-right">
-            <span className="text-[10px] font-black text-ink-tertiary tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
+            <span className="text-[10px] font-black text-ink-inverse/60 tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
               Powered by 
               <a href="/login" className="text-mint-700 hover:text-mint-800 hover:underline">
                 Aflyo
