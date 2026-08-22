@@ -624,7 +624,7 @@ serve(async (req) => {
     // ROUTING ENDPOINTS
     // ==========================================
 
-    const appUrl = Deno.env.get('VITE_PUBLIC_APP_URL') || 'https://linkoferta.vercel.app'
+    const appUrl = Deno.env.get('VITE_PUBLIC_APP_URL') || 'https://www.aflyo.com.br'
 
     // ------------------------------------------
     // ENDPOINT 1: Listar Canais (GET /channels)
@@ -1077,7 +1077,7 @@ serve(async (req) => {
               url: purchaseUrl,
               color: 0x4f46e5,
               description: renderedMessage,
-              footer: { text: 'DisparoFlow • Enviado via API' },
+              footer: { text: 'Aflyo • Enviado via API' },
               timestamp: new Date().toISOString()
             }
  

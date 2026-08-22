@@ -839,7 +839,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   <p className="text-indigo-400 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
                       ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
-                      : '🔗 linkoferta.vercel.app/o/...'}
+                      : '🔗 aflyo.com.br/o/...'}
                   </p>
                 </div>
               </div>

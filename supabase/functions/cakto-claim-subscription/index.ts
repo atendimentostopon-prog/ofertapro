@@ -38,7 +38,7 @@ serve(async (req: Request) => {
   }
 
   // Enviar magic link
-  const appUrl = Deno.env.get("APP_URL") ?? "https://disparoflow.com.br";
+  const appUrl = Deno.env.get("APP_URL") ?? "https://www.aflyo.com.br";
   const { error: mlError } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,

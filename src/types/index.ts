@@ -1,5 +1,5 @@
 // ===========================
-// TYPES DO DISPAROFLOW
+// TYPES DO AFLYO
 // ===========================
 
 export type Marketplace = 'mercadolivre' | 'shopee' | 'amazon' | 'magalu' | 'aliexpress' | 'kabum';

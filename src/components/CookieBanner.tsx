@@ -6,19 +6,19 @@ const CookieBanner: React.FC = () => {
 
   useEffect(() => {
     // Verifica se já existe um consentimento salvo
-    const consent = localStorage.getItem('linkoferta-cookie-consent');
+    const consent = localStorage.getItem('aflyo-cookie-consent');
     if (!consent) {
       setIsVisible(true);
     }
   }, []);
 
   const handleAcceptAll = () => {
-    localStorage.setItem('linkoferta-cookie-consent', 'all');
+    localStorage.setItem('aflyo-cookie-consent', 'all');
     setIsVisible(false);
   };
 
   const handleAcceptEssential = () => {
-    localStorage.setItem('linkoferta-cookie-consent', 'essential');
+    localStorage.setItem('aflyo-cookie-consent', 'essential');
     setIsVisible(false);
   };
 

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { PlanCode, BillingCycle } from "../config/planCatalog";
 
-const KEY = "disparoflow.checkout_intent";
+const KEY = "aflyo.checkout_intent";
 
 export interface CheckoutIntent {
   planCode: PlanCode;
