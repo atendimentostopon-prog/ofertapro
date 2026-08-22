@@ -237,9 +237,9 @@ const App: React.FC = () => {
 
           {/* Diagnostic route */}
           <Route path="/debug-boot" element={
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] p-6 text-center text-[#F8FAFC]">
-              <h2 className="text-xl font-bold text-white mb-2">React carregou com sucesso.</h2>
-              <p className="text-sm text-[#94A3B8]">Esta é uma rota pública de diagnóstico que ignora o Supabase e o UserContext.</p>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-surface-1 p-6 text-center text-ink">
+              <h2 className="text-xl font-bold text-ink mb-2 font-display">React carregou com sucesso.</h2>
+              <p className="text-sm text-ink-secondary">Esta é uma rota pública de diagnóstico que ignora o Supabase e o UserContext.</p>
             </div>
           } />
 

@@ -68,12 +68,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
     };
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] p-6 text-center text-[#F8FAFC]">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface-1 p-6 text-center text-ink">
+        <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-danger/25 flex items-center justify-center mb-6 text-danger-ink shadow-sm text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Erro ao carregar seu perfil</h2>
-        <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
+        <h2 className="text-xl font-bold text-ink tracking-tight font-display">Erro ao carregar seu perfil</h2>
+        <p className="text-sm text-ink-secondary mt-2 max-w-sm leading-relaxed">
           Não conseguimos carregar as informações do seu perfil do banco de dados. Verifique sua conexão.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-8">
