@@ -160,7 +160,7 @@ const ApiIntegrationsTab: React.FC = () => {
             <button
               onClick={handleGenerateKey}
               disabled={loading || actionLoading}
-              className="btn-gradient text-xs font-bold px-4 py-2.5 flex items-center gap-2 shadow-lg shadow-indigo-950/20 disabled:opacity-50"
+              className="btn-gradient text-xs font-bold px-4 py-2.5 flex items-center gap-2 shadow-lg disabled:opacity-50"
             >
               {actionLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -192,17 +192,17 @@ const ApiIntegrationsTab: React.FC = () => {
             <h4 className="text-[13px] font-bold text-ink uppercase tracking-wider">Suas Credenciais</h4>
           </div>
           
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-line">
             {keys.map((k) => (
               <div key={k.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-2.5 min-w-0">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-ink-inverse font-mono bg-surface-1 border border-line px-3 py-1 rounded-lg">
+                    <span className="text-xs font-bold text-ink font-mono bg-surface-1 border border-line px-3 py-1 rounded-lg">
                       {k.key_prefix}••••••••••••{k.key_last4}
                     </span>
                     <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
-                      k.status === 'active' 
-                        ? 'bg-success-bg border-emerald-500/15 text-success-ink' 
+                      k.status === 'active'
+                        ? 'bg-success-bg border-success/15 text-success-ink'
                         : 'bg-danger-bg border-danger/20 text-danger-ink'
                     }`}>
                       {k.status === 'active' ? 'Ativa' : 'Revogada'}
@@ -231,7 +231,7 @@ const ApiIntegrationsTab: React.FC = () => {
                     <button
                       onClick={() => handleRevokeKey(k.id)}
                       disabled={actionLoading}
-                      className="px-3.5 py-2 rounded-xl border border-danger/20 text-danger-ink hover:bg-danger-bg hover:border-red-500/30 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      className="px-3.5 py-2 rounded-xl border border-danger/20 text-danger-ink hover:bg-danger-bg hover:border-danger/30 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Revogar Chave
@@ -245,7 +245,7 @@ const ApiIntegrationsTab: React.FC = () => {
       ) : (
         <div className="glass-card p-12 text-center border-line bg-surface-0/15">
           <Key className="w-10 h-10 text-ink-tertiary mx-auto mb-3" />
-          <h4 className="text-sm font-bold text-ink-inverse">Nenhuma chave de API gerada</h4>
+          <h4 className="text-sm font-bold text-ink">Nenhuma chave de API gerada</h4>
           <p className="text-xs text-ink-secondary max-w-xs mx-auto mt-1 leading-relaxed">
             Você ainda não possui chaves de API cadastradas. Clique em "Gerar API Key" no topo para obter sua credencial.
           </p>
@@ -267,7 +267,7 @@ const ApiIntegrationsTab: React.FC = () => {
           <button
             onClick={loadIntegrationChannels}
             disabled={channelsLoading}
-            className="px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 text-ink hover:text-ink-inverse border border-line flex items-center gap-1.5 transition-all text-xs font-bold disabled:opacity-50 self-start sm:self-auto shrink-0"
+            className="px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 text-ink border border-line flex items-center gap-1.5 transition-all text-xs font-bold disabled:opacity-50 self-start sm:self-auto shrink-0"
           >
             {channelsLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -305,7 +305,7 @@ const ApiIntegrationsTab: React.FC = () => {
                           />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-xs text-ink-inverse tracking-tight truncate">{channel.name}</p>
+                          <p className="font-bold text-xs text-ink tracking-tight truncate">{channel.name}</p>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-[10px] text-ink-secondary capitalize">{logoInfo.label}</span>
                             <span className="text-ink-tertiary font-black text-[9px]">•</span>
@@ -324,7 +324,7 @@ const ApiIntegrationsTab: React.FC = () => {
                             navigator.clipboard.writeText(channel.id);
                             toast('ID do canal copiado!', 'success');
                           }}
-                          className="text-ink-secondary hover:text-ink-inverse transition-colors shrink-0 p-1 hover:bg-surface-1 rounded-lg border border-transparent hover:border-line"
+                          className="text-ink-secondary hover:text-ink transition-colors shrink-0 p-1 hover:bg-surface-1 rounded-lg border border-transparent hover:border-line"
                           title="Copiar ID"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -359,13 +359,13 @@ const ApiIntegrationsTab: React.FC = () => {
                 <Key className="w-5 h-5 text-mint-700" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-ink-inverse">Chave de API Criada com Sucesso</h4>
+                <h4 className="text-sm font-bold text-ink">Chave de API Criada com Sucesso</h4>
                 <p className="text-[11px] text-ink-secondary font-medium mt-0.5">Sua credencial de integração externa está pronta</p>
               </div>
             </div>
 
             {/* Aviso de Segurança */}
-            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-3 text-warning-ink">
+            <div className="p-4 bg-warning-bg border border-warning/20 rounded-2xl flex gap-3 text-warning-ink">
               <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="space-y-1 font-medium text-xs leading-relaxed">
                 <p className="font-bold">Atenção! Esta chave será exibida apenas uma vez.</p>
@@ -377,10 +377,10 @@ const ApiIntegrationsTab: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-ink-secondary">Token da Chave de API</label>
               <div className="relative flex items-center bg-surface-1 border border-line rounded-2xl p-3.5 pr-14">
-                <span className="font-mono text-xs text-ink-inverse break-all select-all">{newKey}</span>
+                <span className="font-mono text-xs text-ink break-all select-all">{newKey}</span>
                 <button
                   onClick={handleCopyNewKey}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink hover:text-ink-inverse transition-all border border-line"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink hover:text-mint-700 transition-all border border-line"
                   title="Copiar chave"
                 >
                   {copied ? <Check className="w-4 h-4 text-success-ink" /> : <Copy className="w-4 h-4" />}
@@ -419,7 +419,7 @@ const ApiIntegrationsTab: React.FC = () => {
             </p>
             <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary">
               <span className="text-ink-tertiary"># Exemplo de chamada cURL</span><br />
-              curl -X GET "<span className="text-ink-inverse">{apiEndpointBase}/channels</span>" \<br />
+              curl -X GET "<span className="text-mint-800">{apiEndpointBase}/channels</span>" \<br />
               &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>"
             </div>
           </div>
@@ -435,7 +435,7 @@ const ApiIntegrationsTab: React.FC = () => {
             </p>
             <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary">
               <span className="text-ink-tertiary"># Exemplo de chamada cURL</span><br />
-              curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/offers</span>" \<br />
+              curl -X POST "<span className="text-mint-800">{apiEndpointBase}/offers</span>" \<br />
               &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
               &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
               &nbsp;&nbsp;-d '&#123;<br />
@@ -461,7 +461,7 @@ const ApiIntegrationsTab: React.FC = () => {
             <div className="bg-surface-1 border border-line rounded-xl p-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-ink-secondary space-y-4">
               <div>
                 <span className="text-ink-tertiary"># Opção A: Disparar oferta cadastrada existente</span><br />
-                curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/dispatch</span>" \<br />
+                curl -X POST "<span className="text-mint-800">{apiEndpointBase}/dispatch</span>" \<br />
                 &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
                 &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
                 &nbsp;&nbsp;-d '&#123;<br />
@@ -473,7 +473,7 @@ const ApiIntegrationsTab: React.FC = () => {
               </div>
               <div className="border-t border-line pt-3">
                 <span className="text-ink-tertiary"># Opção B: Cadastrar e disparar nova oferta</span><br />
-                curl -X POST "<span className="text-ink-inverse">{apiEndpointBase}/dispatch</span>" \<br />
+                curl -X POST "<span className="text-mint-800">{apiEndpointBase}/dispatch</span>" \<br />
                 &nbsp;&nbsp;-H "Authorization: Bearer <span className="text-success-ink">{activeKey ? 'lof_live_••••' : 'SUA_API_KEY'}</span>" \<br />
                 &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
                 &nbsp;&nbsp;-d '&#123;<br />

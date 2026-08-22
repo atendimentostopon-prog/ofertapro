@@ -33,11 +33,11 @@ const CookieBanner: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center text-mint-700">
               <Cookie className="w-4.5 h-4.5" />
             </div>
-            <h4 className="text-xs font-bold text-ink-inverse uppercase tracking-wider">Aviso de Cookies</h4>
+            <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Aviso de Cookies</h4>
           </div>
           <button
             onClick={handleAcceptEssential}
-            className="text-ink-tertiary hover:text-ink-inverse transition-colors"
+            className="text-ink-tertiary hover:text-ink transition-colors"
             title="Fechar (Apenas Essenciais)"
           >
             <X className="w-4 h-4" />
