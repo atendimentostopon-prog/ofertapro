@@ -59,7 +59,7 @@ export const ClaimSubscriptionDialog: React.FC<Props> = ({ open, onClose }) => {
       }
     >
       {result === "sent" ? (
-        <p className="text-sm text-emerald-400">Link enviado. Verifique sua caixa de entrada.</p>
+        <p className="text-sm text-mint-700">Link enviado. Verifique sua caixa de entrada.</p>
       ) : (
         <>
           <Input
@@ -70,10 +70,10 @@ export const ClaimSubscriptionDialog: React.FC<Props> = ({ open, onClose }) => {
             disabled={loading}
           />
           {result === "not_found" && (
-            <p className="text-sm text-amber-400 mt-2">Não encontramos pagamento com esse email.</p>
+            <p className="text-sm text-warning-ink mt-2">Não encontramos pagamento com esse email.</p>
           )}
           {result === "error" && (
-            <p className="text-sm text-red-400 mt-2">Erro ao processar. Tente novamente.</p>
+            <p className="text-sm text-danger-ink mt-2">Erro ao processar. Tente novamente.</p>
           )}
         </>
       )}

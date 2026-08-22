@@ -363,32 +363,32 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         icon={MessageSquare}
       >
         {!limits.customTemplates && (
-          <div className="p-4 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-indigo-400 flex-shrink-0">
+          <div className="p-4 bg-ice border border-mint-200 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
+            <div className="w-10 h-10 rounded-xl bg-surface-0 border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex-1 space-y-1">
-              <h4 className="text-xs font-bold text-slate-200">Customização disponível no plano Starter! 🚀</h4>
-              <p className="text-[11px] text-[#94A3B8] font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
+              <h4 className="text-xs font-bold text-ink">Customização disponível no plano Starter! 🚀</h4>
+              <p className="text-[11px] text-ink-secondary font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
             </div>
             <button
               onClick={onUpgradeClick}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-[11px] transition-colors shadow-md shadow-indigo-900/40 flex-shrink-0"
+              className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors flex-shrink-0"
             >
               Fazer Upgrade
             </button>
           </div>
         )}
 
-        <div className="p-4 bg-[#0B1020]/45 rounded-2xl border border-white/5 space-y-2 mb-2">
-          <p className="text-[11.5px] text-slate-400 font-medium leading-relaxed">
-            ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{cupom_linha}`}</code>.
+        <div className="p-4 bg-surface-1 rounded-2xl border border-line space-y-2 mb-2">
+          <p className="text-[11.5px] text-ink-secondary font-medium leading-relaxed">
+            ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{cupom_linha}`}</code>.
           </p>
-          <p className="text-[11.5px] text-indigo-400 font-medium">
+          <p className="text-[11.5px] text-warning-ink font-medium">
             ⚠️ <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O {APP_NAME} converte automaticamente para Telegram, Discord e WhatsApp.
           </p>
-          <p className="text-[11.5px] text-indigo-400 font-medium">
-            ⚠️ A variável <code className="bg-white/5 px-1 py-0.5 rounded text-indigo-300 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
+          <p className="text-[11.5px] text-warning-ink font-medium">
+            ⚠️ A variável <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
           </p>
         </div>
 
@@ -432,25 +432,25 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   }}
                   disabled={!limits.customTemplates || loadingTemplates}
                   rows={10}
-                  className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-[#070A12]/50 cursor-not-allowed text-slate-500 border-white/5' : ''}`}
+                  className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-surface-1 cursor-not-allowed text-ink-tertiary' : ''}`}
                 />
               </div>
             </Field>
 
-            <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold px-1">
+            <div className="flex justify-between items-center text-[10px] text-ink-tertiary font-bold px-1">
               <span>Caracteres no template: {activeContent.length}</span>
               <span>Preview aproximado: {renderedPreview.length} caracteres</span>
             </div>
 
             {!validation.valid && validation.error && (
-              <div className="flex items-center gap-2 p-2.5 bg-rose-950/20 border border-rose-900/30 rounded-xl text-rose-400 text-[11px] font-bold">
+              <div className="flex items-center gap-2 p-2.5 bg-danger-bg border border-danger/20 rounded-xl text-danger-ink text-[11px] font-bold">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{validation.error}</span>
               </div>
             )}
 
             <div>
-              <p className="text-xs font-bold text-slate-400 mb-2">Formatação Rápida:</p>
+              <p className="text-xs font-bold text-ink-secondary mb-2">Formatação Rápida:</p>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { id: 'bold', label: 'Negrito 🌟', title: 'Negrito (**texto**)' },
@@ -462,7 +462,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                     key={f.id}
                     type="button"
                     onClick={() => limits.customTemplates && injectFormat(f.id as any)}
-                    className={`px-3 py-1.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:border-indigo-500/50 hover:bg-surface-3 text-[10px] font-bold text-slate-300 transition-all ${
+                    className={`px-3 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary transition-all ${
                       !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     title={f.title}
@@ -474,14 +474,14 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
             </div>
 
             <div>
-              <p className="text-xs font-bold text-slate-400 mb-2">Variáveis Disponíveis:</p>
+              <p className="text-xs font-bold text-ink-secondary mb-2">Variáveis Disponíveis:</p>
               <div className="flex flex-wrap gap-1.5">
                 {TemplateService.listAvailableVariables().map(v => (
                   <button
                     key={v.name}
                     type="button"
                     onClick={() => limits.customTemplates && injectVariable(v.name)}
-                    className={`px-2.5 py-1.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:border-indigo-500/50 hover:bg-surface-3 text-[10px] font-bold text-slate-300 flex items-center transition-all ${
+                    className={`px-2.5 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary flex items-center transition-all ${
                       !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     title={v.description}
@@ -497,7 +497,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                 type="button"
                 disabled={!limits.customTemplates || loadingTemplates || restoringTemplate || savingTemplates}
                 onClick={handleRestoreDefaultTemplate}
-                className="px-3.5 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-slate-300 bg-[#101827] transition-all disabled:opacity-50 flex items-center gap-1.5"
+                className="px-3.5 py-2 border border-line hover:border-line-strong hover:bg-surface-1 rounded-xl text-[11px] font-bold text-ink-secondary bg-surface-0 transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
                 {restoringTemplate ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                 Restaurar Padrão
@@ -507,7 +507,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                 type="button"
                 disabled={!limits.customTemplates || loadingTemplates || testingTemplate || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
                 onClick={handleTestTemplate}
-                className="px-3.5 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 hover:border-indigo-500/30 text-indigo-400 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3.5 py-2 bg-ice hover:bg-mint-100 border border-mint-200 hover:border-mint-300 text-mint-700 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {testingTemplate ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -521,12 +521,12 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                 type="button"
                 disabled={!limits.customTemplates || loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
                 onClick={handleSaveTemplates}
-                className="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-900/40"
+                className="ml-auto px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {savingTemplates ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : templatesSaved ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-300" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-mint-400" />
                 ) : (
                   <Save className="w-3.5 h-3.5" />
                 )}
@@ -535,15 +535,15 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
             </div>
           </div>
 
-          <div className="md:col-span-4 space-y-3 bg-[#0B1020]/30 rounded-xl p-4 border border-white/5 flex flex-col justify-between">
+          <div className="md:col-span-4 space-y-3 bg-surface-1 rounded-xl p-4 border border-line flex flex-col justify-between">
             <div>
-              <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2.5">Preview no Canal</p>
+              <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider mb-2.5">Preview no Canal</p>
 
-              <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-[#070A12]/80 border border-white/5 p-3.5 shadow-sm rounded-xl text-slate-300 ${
-                currentEditingTemplateTab === 'discord' ? 'border-l-4 border-l-indigo-500' : ''
+              <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-surface-0 border border-line p-3.5 shadow-xs rounded-xl text-ink-secondary ${
+                currentEditingTemplateTab === 'discord' ? 'border-l-4 border-l-mint-500' : ''
               }`}>
                 {currentEditingTemplateTab === 'discord' && (
-                  <div className="text-[11px] font-bold text-indigo-400 mb-1.5 truncate">
+                  <div className="text-[11px] font-bold text-mint-700 mb-1.5 truncate">
                     {mockOffer.name}
                   </div>
                 )}
@@ -560,7 +560,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
               </div>
             </div>
 
-            <p className="text-[9.5px] text-slate-500 font-medium text-center leading-normal">As variáveis serão preenchidas com dados da oferta em runtime.</p>
+            <p className="text-[9.5px] text-ink-tertiary font-medium text-center leading-normal">As variáveis serão preenchidas com dados da oferta em runtime.</p>
           </div>
         </div>
       </SettingsSection>

@@ -68,8 +68,8 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
       <div className="space-y-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-300">Seu progresso</span>
-            <span className="font-mono font-bold text-slate-400 tabular-nums">
+            <span className="font-bold text-ink-secondary">Seu progresso</span>
+            <span className="font-mono font-bold text-ink-tertiary tabular-nums">
               {doneCount} / {total}
             </span>
           </div>
@@ -78,7 +78,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
               <div
                 key={s.id}
                 className={`h-full flex-1 rounded-full transition-colors ${
-                  s.done ? 'bg-emerald-500' : 'bg-surface-4'
+                  s.done ? 'bg-mint-500' : 'bg-surface-4'
                 }`}
               />
             ))}
@@ -91,39 +91,39 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
               key={step.id}
               className={`p-4 rounded-2xl border transition-colors ${
                 step.done
-                  ? 'bg-emerald-500/[0.04] border-emerald-500/20'
-                  : 'bg-surface-1 border-white/[0.06] hover:border-white/[0.12]'
+                  ? 'bg-ice/40 border-mint-200'
+                  : 'bg-surface-1 border-line hover:border-line-strong'
               }`}
             >
               <div className="flex items-start gap-4">
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${
                     step.done
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                      : 'bg-surface-2 border-white/[0.08] text-slate-500'
+                      ? 'bg-ice border-mint-200 text-mint-700'
+                      : 'bg-surface-2 border-line text-ink-tertiary'
                   }`}
                 >
                   {step.done ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-ink-tertiary uppercase tracking-wider">
                       Passo {index + 1}
                     </span>
                     {step.done && (
-                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-mint-700 uppercase tracking-wider">
                         Concluído
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm font-bold text-slate-100 mt-1 tracking-tight">{step.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{step.description}</p>
+                  <h3 className="text-sm font-bold text-ink mt-1 tracking-tight">{step.title}</h3>
+                  <p className="text-xs text-ink-tertiary mt-1 leading-relaxed">{step.description}</p>
                 </div>
                 {!step.done && (
                   <button
                     type="button"
                     onClick={() => navigate(step.route)}
-                    className="btn-gradient px-3.5 py-2 flex items-center gap-1.5 text-xs font-bold shadow-lg shadow-indigo-950/40 flex-shrink-0"
+                    className="btn-gradient px-3.5 py-2 flex items-center gap-1.5 text-xs font-bold flex-shrink-0"
                   >
                     Fazer agora
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -135,15 +135,15 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
         </div>
 
         {allDone && (
-          <div className="p-4 rounded-2xl bg-emerald-500/[0.06] border border-emerald-500/20 flex items-center gap-3">
-            <Rocket className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          <div className="p-4 rounded-2xl bg-ice/60 border border-mint-200 flex items-center gap-3">
+            <Rocket className="w-5 h-5 text-mint-700 flex-shrink-0" />
             <div className="flex-1 text-xs">
-              <p className="font-bold text-emerald-400">Tudo pronto!</p>
-              <p className="text-slate-400 mt-0.5">
+              <p className="font-bold text-mint-700">Tudo pronto!</p>
+              <p className="text-ink-tertiary mt-0.5">
                 {persisting ? 'Finalizando setup...' : 'Liberando o painel...'}
               </p>
             </div>
-            {persisting && <Loader2 className="w-4 h-4 text-emerald-400 animate-spin flex-shrink-0" />}
+            {persisting && <Loader2 className="w-4 h-4 text-mint-700 animate-spin flex-shrink-0" />}
           </div>
         )}
       </div>

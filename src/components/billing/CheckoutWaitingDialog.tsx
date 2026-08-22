@@ -40,16 +40,16 @@ export const CheckoutWaitingDialog: React.FC<Props> = ({ open, onClose, onNeedsC
     >
       {success ? (
         <div className="flex flex-col items-center gap-3 py-4">
-          <CheckCircle className="w-12 h-12 text-emerald-400" />
-          <p className="text-sm text-slate-300 text-center">
-            Seu plano <strong>{subscription?.plan_code}</strong> está ativo.
+          <CheckCircle className="w-12 h-12 text-mint-500" />
+          <p className="text-sm text-ink-secondary text-center">
+            Seu plano <strong className="text-ink">{subscription?.plan_code}</strong> está ativo.
           </p>
           <Button onClick={onClose}>Fechar</Button>
         </div>
       ) : timedOut ? (
         <div className="flex flex-col items-center gap-3 py-4">
-          <AlertCircle className="w-12 h-12 text-amber-400" />
-          <p className="text-sm text-slate-300 text-center">
+          <AlertCircle className="w-12 h-12 text-warning" />
+          <p className="text-sm text-ink-secondary text-center">
             Seu pagamento pode ter sido concluído com um email diferente do cadastrado. Clique abaixo pra reivindicar.
           </p>
           <div className="flex gap-2">
@@ -59,8 +59,8 @@ export const CheckoutWaitingDialog: React.FC<Props> = ({ open, onClose, onNeedsC
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3 py-6">
-          <Loader2 className="w-10 h-10 text-brand-400 animate-spin" />
-          <p className="text-sm text-slate-300 text-center">
+          <Loader2 className="w-10 h-10 text-mint-500 animate-spin" />
+          <p className="text-sm text-ink-secondary text-center">
             Finalize o pagamento na aba que abrimos.<br />
             Você pode fechar esta janela — a atualização acontece automaticamente.
           </p>
