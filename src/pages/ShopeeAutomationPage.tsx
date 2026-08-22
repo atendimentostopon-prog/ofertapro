@@ -130,16 +130,16 @@ export const ShopeeAutomationPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-1 text-ink py-12 px-4 sm:px-6 relative overflow-hidden font-sans">
       {/* Background Glow Emitters */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#7C3AED]/5 rounded-full blur-3xl opacity-60 pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#6366F1]/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute top-[40%] right-[20%] w-[400px] h-[400px] bg-[#4F46E5]/3 rounded-full blur-3xl opacity-40 pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-mint-400/10 rounded-full blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-graphite/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute top-[40%] right-[20%] w-[400px] h-[400px] bg-mint-400/5 rounded-full blur-3xl opacity-40 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10 space-y-12">
         {/* Navigation Bar / Header */}
         <div className="flex items-center justify-between pb-6 border-b border-line select-none">
           <Link
             to="/settings"
-            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink-inverse transition-colors group"
+            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             Voltar para Configurações
@@ -148,7 +148,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-mint-700" />
             </div>
-            <span className="text-sm font-extrabold text-ink-inverse tracking-tight">Central de Ajuda · Aflyo</span>
+            <span className="text-sm font-extrabold text-ink tracking-tight">Central de Ajuda · Aflyo</span>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export const ShopeeAutomationPage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 text-[11px] font-bold text-orange-400 rounded-full select-none">
             🍊 Integração Shopee Affiliate
           </div>
-          <h1 className="text-3xl sm:text-4.5xl font-black text-ink-inverse tracking-tight leading-tight max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4.5xl font-black text-ink tracking-tight leading-tight max-w-2xl mx-auto">
             Como pegar suas credenciais da Shopee
           </h1>
           <p className="text-sm sm:text-base text-ink-secondary leading-relaxed max-w-xl mx-auto font-medium">
@@ -168,7 +168,7 @@ export const ShopeeAutomationPage: React.FC = () => {
               href={shopeeFormUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto btn-gradient text-[13px] font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/50 hover:opacity-95 transition-opacity"
+              className="w-full sm:w-auto btn-gradient text-[13px] font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:opacity-95 transition-opacity"
             >
               Abrir formulário da Shopee
               <ExternalLink className="w-4 h-4" />
@@ -186,12 +186,12 @@ export const ShopeeAutomationPage: React.FC = () => {
         </section>
 
         {/* 2. Card de aviso importante */}
-        <section className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-6 sm:p-7 space-y-4">
+        <section className="bg-warning-bg border border-warning/20 rounded-2xl p-6 sm:p-7 space-y-4">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5.5 h-5.5 text-warning-ink flex-shrink-0 mt-0.5" />
             <div className="space-y-3">
               <h4 className="text-xs sm:text-sm font-extrabold text-warning-ink uppercase tracking-wider">Aviso Importante</h4>
-              <ul className="space-y-2 text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-medium list-disc list-inside">
+              <ul className="space-y-2 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium list-disc list-inside">
                 <li>Este processo é necessário para quem deseja usar a automação da Shopee no Aflyo.</li>
                 <li>O acesso de API não é liberado instantaneamente. A Shopee costuma levar alguns dias para analisar e disponibilizar o acesso.</li>
                 <li>A ativação depende exclusivamente da aprovação e critérios de parceiro da própria equipe da Shopee.</li>
@@ -203,13 +203,13 @@ export const ShopeeAutomationPage: React.FC = () => {
 
         {/* 3. Passo a passo visual com 4 etapas */}
         <section className="space-y-8">
-          <h2 className="text-xl sm:text-2xl font-black text-ink-inverse tracking-tight">Passo a Passo Detalhado</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-ink tracking-tight">Passo a Passo Detalhado</h2>
           
           <div className="space-y-12">
             {steps.map((step, idx) => (
               <div key={idx} className="glass-card border-line p-6 sm:p-8 space-y-6 relative overflow-hidden">
                 {/* Step number watermark */}
-                <div className="absolute top-4 right-6 text-6xl sm:text-7xl font-black text-ink-inverse/[0.02] pointer-events-none select-none">
+                <div className="absolute top-4 right-6 text-6xl sm:text-7xl font-black text-ink/[0.04] pointer-events-none select-none">
                   {step.num}
                 </div>
 
@@ -218,7 +218,7 @@ export const ShopeeAutomationPage: React.FC = () => {
                     <span className="text-[11px] font-extrabold px-2.5 py-1 bg-ice border border-mint-200 text-mint-700 rounded-md">
                       PASSO {step.num}
                     </span>
-                    <h3 className="text-lg font-black text-ink-inverse tracking-tight">{step.title}</h3>
+                    <h3 className="text-lg font-black text-ink tracking-tight">{step.title}</h3>
                   </div>
                   <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">{step.desc}</p>
                 </div>
@@ -232,7 +232,7 @@ export const ShopeeAutomationPage: React.FC = () => {
                 {/* Paso Image with rounded borders and shadow */}
                 {step.image && (
                   <div className="space-y-2.5 pt-2">
-                    <div className="border border-white/[0.05] rounded-xl overflow-hidden shadow-2xl bg-[#090e1c]/45 p-1 sm:p-2 max-w-full group/img">
+                    <div className="border border-line rounded-xl overflow-hidden shadow-md bg-surface-1 p-1 sm:p-2 max-w-full group/img">
                       <img 
                         src={step.image} 
                         alt={step.title}
@@ -278,7 +278,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
               <CheckCircle2 className="w-4.5 h-4.5 text-mint-700" />
             </div>
-            <h3 className="text-[17px] font-extrabold text-ink-inverse tracking-tight">Depois disso, o que acontece?</h3>
+            <h3 className="text-[17px] font-extrabold text-ink tracking-tight">Depois disso, o que acontece?</h3>
           </div>
           
           <div className="space-y-3 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
@@ -297,7 +297,7 @@ export const ShopeeAutomationPage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
               <HelpCircle className="w-4.5 h-4.5 text-mint-700" />
             </div>
-            <h3 className="text-lg font-extrabold text-ink-inverse tracking-tight">Perguntas Frequentes (FAQ)</h3>
+            <h3 className="text-lg font-extrabold text-ink tracking-tight">Perguntas Frequentes (FAQ)</h3>
           </div>
 
           <div className="space-y-2.5">
@@ -324,7 +324,7 @@ export const ShopeeAutomationPage: React.FC = () => {
                     )}
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 border-t border-white/[0.03]">
+                    <div className="px-4 pb-4 pt-1 border-t border-line-subtle">
                       <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
                         {faq.a}
                       </p>
@@ -337,20 +337,20 @@ export const ShopeeAutomationPage: React.FC = () => {
         </section>
 
         {/* 6. CTA final */}
-        <section className="p-8 sm:p-10 bg-gradient-to-r from-indigo-950/40 to-slate-950/40 border border-mint-200 rounded-3xl text-center space-y-5 relative overflow-hidden">
+        <section className="p-8 sm:p-10 bg-graphite border border-graphite rounded-3xl text-center space-y-5 relative overflow-hidden">
           {/* Subtle overlay glow */}
-          <div className="absolute inset-0 bg-graphite/[0.02] pointer-events-none" />
-          
+          <div className="absolute inset-0 bg-mint-500/[0.06] pointer-events-none" />
+
           <h3 className="text-xl sm:text-2xl font-black text-ink-inverse tracking-tight">
             Pronto para configurar sua integração?
           </h3>
-          <p className="text-xs sm:text-sm text-ink-secondary max-w-lg mx-auto leading-relaxed font-medium">
+          <p className="text-xs sm:text-sm text-ink-inverse/70 max-w-lg mx-auto leading-relaxed font-medium">
             Retorne às configurações do painel administrativo do Aflyo para colar o seu App ID e Secret Key salvos.
           </p>
           <div className="flex justify-center pt-2">
             <Link
               to="/settings"
-              className="w-full sm:w-auto btn-gradient text-xs font-bold px-6 py-3 rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950/40"
+              className="w-full sm:w-auto btn-gradient text-xs font-bold px-6 py-3 rounded-lg flex items-center justify-center gap-1.5 shadow-md"
             >
               <Settings className="w-4 h-4" />
               Voltar para as configurações
