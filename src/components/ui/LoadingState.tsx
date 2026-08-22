@@ -13,7 +13,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
     return (
       <div className="flex items-center justify-center py-20 w-full">
         <div className="relative">
-          <div className="w-8 h-8 border-[3px] border-brand-500/15 border-t-brand-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-line border-t-mint-500 rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -25,7 +25,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         {Array.from({ length: count }).map((_, idx) => (
           <div
             key={idx}
-            className="rounded-2xl border border-white/[0.04] bg-surface-2 overflow-hidden"
+            className="rounded-2xl border border-line bg-surface-0 overflow-hidden shadow-xs"
           >
             <div className="h-40 shimmer w-full" />
             <div className="p-4 space-y-3">
@@ -35,7 +35,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
               </div>
               <div className="h-4 shimmer rounded-full w-5/6" />
               <div className="h-3 shimmer rounded-full w-1/2" />
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.04]">
+              <div className="flex items-center justify-between pt-3 border-t border-line">
                 <div className="h-4 shimmer rounded-full w-16" />
                 <div className="h-5 shimmer rounded-full w-14" />
               </div>
@@ -51,7 +51,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       {Array.from({ length: count }).map((_, idx) => (
         <div
           key={idx}
-          className="rounded-2xl border border-white/[0.04] bg-surface-2 p-4 flex items-center gap-4"
+          className="rounded-2xl border border-line bg-surface-0 p-4 flex items-center gap-4 shadow-xs"
         >
           <div className="w-12 h-12 shimmer rounded-xl flex-shrink-0" />
           <div className="flex-1 space-y-2">

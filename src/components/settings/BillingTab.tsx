@@ -24,9 +24,9 @@ export const BillingTab: React.FC = () => {
     return (
       <div className="space-y-6">
         <SettingsSection title="Planos & Cobrança" description={`Status do seu plano de faturamento no ${APP_NAME}`} icon={CreditCard}>
-          <div className="p-6 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl">
-            <h4 className="text-sm font-bold text-white">Plano Beta Gratuito Ativo</h4>
-            <p className="text-xs text-slate-400 mt-2">
+          <div className="p-6 bg-ice border border-mint-200 rounded-2xl">
+            <h4 className="text-sm font-bold text-ink font-display">Plano Beta Gratuito Ativo</h4>
+            <p className="text-xs text-ink-secondary mt-2">
               O {APP_NAME} está em beta e todos os recursos PRO estão liberados. Cobrança começa na próxima atualização.
             </p>
           </div>
@@ -65,29 +65,29 @@ export const BillingTab: React.FC = () => {
     <div className="space-y-6">
       <SettingsSection title="Meu plano" description="Detalhes da sua assinatura atual" icon={CreditCard}>
         {loading ? (
-          <div className="p-6 text-caption text-slate-400">Carregando…</div>
+          <div className="p-6 text-xs text-ink-secondary">Carregando…</div>
         ) : !subscription && user?.plan === 'starter' ? (
-          <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-            <h4 className="text-sm font-bold text-emerald-100">Plano Starter — cortesia</h4>
-            <p className="text-xs text-emerald-200/80 mt-2">Você usa o Aflyo por cortesia como usuário fundador. Uso vitalício, sem cobrança.</p>
+          <div className="p-6 bg-success-bg border border-success/20 rounded-2xl">
+            <h4 className="text-sm font-bold text-success-ink font-display">Plano Starter — cortesia</h4>
+            <p className="text-xs text-success-ink/80 mt-2">Você usa o {APP_NAME} por cortesia como usuário fundador. Uso vitalício, sem cobrança.</p>
           </div>
         ) : !subscription ? (
-          <div className="p-6 bg-surface-2 border border-white/5 rounded-2xl">
-            <h4 className="text-sm font-bold text-white">Sem plano ativo</h4>
-            <p className="text-xs text-slate-400 mt-2">Escolha um plano para desbloquear o acesso ao Aflyo.</p>
+          <div className="p-6 bg-surface-1 border border-line rounded-2xl">
+            <h4 className="text-sm font-bold text-ink font-display">Sem plano ativo</h4>
+            <p className="text-xs text-ink-secondary mt-2">Escolha um plano para desbloquear o acesso ao {APP_NAME}.</p>
             <Button className="mt-4" onClick={() => nav("/pricing")}>Ver planos</Button>
           </div>
         ) : (
-          <div className="p-6 bg-surface-2 border border-white/5 rounded-2xl space-y-4">
+          <div className="p-6 bg-surface-1 border border-line rounded-2xl space-y-4">
             <div>
-              <h4 className="text-sm font-bold text-white capitalize">
+              <h4 className="text-sm font-bold text-ink capitalize font-display">
                 Plano {subscription.plan_code} ({subscription.billing_cycle === "monthly" ? "mensal" : "anual"})
               </h4>
-              <p className="text-caption text-slate-400 mt-1">
+              <p className="text-xs text-ink-secondary mt-1">
                 R$ {subscription.amount.toFixed(2).replace(".", ",")}/{subscription.billing_cycle === "monthly" ? "mês" : "ano"}
               </p>
             </div>
-            <div className="flex items-center gap-2 text-caption text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-ink-secondary">
               <Calendar className="w-4 h-4" />
               {subscription.cancel_at_period_end
                 ? <>Cancelada — acesso até <strong>{new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}</strong></>
@@ -95,21 +95,21 @@ export const BillingTab: React.FC = () => {
               }
             </div>
             {subscription.status === "past_due" && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-caption text-amber-400">
+              <div className="p-3 bg-warning-bg border border-warning/20 rounded-lg text-xs text-warning-ink">
                 Pagamento em atraso. Cakto está retentando. Se não recuperar até {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}, seu plano cai pra free.
               </div>
             )}
             <div className="flex gap-2 pt-2">
               <Button variant="ghost" onClick={() => nav("/pricing")}>Trocar plano</Button>
               {!subscription.cancel_at_period_end && (
-                <Button variant="ghost" onClick={() => { setCancelError(null); setConfirmCancel(true); }} className="text-red-400 hover:text-red-300">
+                <Button variant="ghost" onClick={() => { setCancelError(null); setConfirmCancel(true); }} className="text-danger-ink hover:text-danger">
                   <XCircle className="w-4 h-4 mr-2" />
                   Cancelar assinatura
                 </Button>
               )}
             </div>
             {cancelError && (
-              <div className="mt-3 text-caption text-red-400">{cancelError}</div>
+              <div className="mt-3 text-xs text-danger-ink">{cancelError}</div>
             )}
           </div>
         )}
@@ -124,7 +124,7 @@ export const BillingTab: React.FC = () => {
           </div>
         }
       >
-        <p className="text-caption text-slate-400">A cobrança automática será desligada imediatamente. Reative a qualquer momento em Planos.</p>
+        <p className="text-xs text-ink-secondary">A cobrança automática será desligada imediatamente. Reative a qualquer momento em Planos.</p>
       </Modal>
     </div>
   );

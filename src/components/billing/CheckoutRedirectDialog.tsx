@@ -44,8 +44,8 @@ export const CheckoutRedirectDialog: React.FC<Props> = ({ open, plan, cycle, onC
         </div>
       }
     >
-      <div className="text-sm text-slate-300">
-        Plano <strong>{plan}</strong> — cobrança {cycle === "monthly" ? "mensal" : "anual"} de <strong>R$ {sku.price.toFixed(2).replace(".", ",")}</strong>.
+      <div className="text-sm text-ink-secondary">
+        Plano <strong className="text-ink">{plan}</strong> — cobrança {cycle === "monthly" ? "mensal" : "anual"} de <strong className="text-ink">R$ {sku.price.toFixed(2).replace(".", ",")}</strong>.
       </div>
     </Modal>
   );

@@ -49,19 +49,19 @@ const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
                   isActive
-                    ? 'bg-brand-500 text-white border-brand-400'
+                    ? 'bg-graphite text-ink-inverse border-graphite'
                     : isDone
-                    ? 'bg-brand-500/10 text-brand-400 border-brand-500/25'
-                    : 'bg-surface-3 text-slate-500 border-white/[0.06]'
+                    ? 'bg-ice text-mint-700 border-mint-200'
+                    : 'bg-surface-2 text-ink-tertiary border-line'
                 }`}
               >
                 {isDone ? <Check className="w-3.5 h-3.5" /> : item.step}
               </div>
-              <span className={`text-xs font-bold ${isActive ? 'text-brand-400' : 'text-slate-500'}`}>
+              <span className={`text-xs font-bold ${isActive ? 'text-ink' : 'text-ink-tertiary'}`}>
                 {item.label}
               </span>
             </div>
-            {i < items.length - 1 && <div className="w-8 h-px bg-white/[0.08]" />}
+            {i < items.length - 1 && <div className="w-8 h-px bg-line" />}
           </React.Fragment>
         );
       })}
@@ -479,7 +479,7 @@ export const BotTab: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
       </div>
     );
   }
@@ -489,10 +489,10 @@ export const BotTab: React.FC = () => {
   return (
     <div className="space-y-6">
       {isProcessing && (
-        <div className="p-6 bg-surface-2 border border-white/[0.06] rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
-          <Loader2 className="w-10 h-10 text-brand-400 animate-spin" />
-          <h4 className="text-sm font-bold text-slate-100">{processingMessage}</h4>
-          <p className="text-xs text-slate-400 max-w-sm">
+        <div className="p-6 bg-surface-1 border border-line rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
+          <Loader2 className="w-10 h-10 text-mint-700 animate-spin" />
+          <h4 className="text-sm font-bold text-ink">{processingMessage}</h4>
+          <p className="text-xs text-ink-secondary max-w-sm">
             Esta operação costuma levar menos de 30 segundos. Aguarde a resposta do Telegram.
           </p>
         </div>
@@ -501,11 +501,11 @@ export const BotTab: React.FC = () => {
       {!isProcessing && (
         <>
           {!showConnectionForm && config && config.status === 'paused' && (
-            <div className="p-4 bg-surface-2 border border-white/[0.06] rounded-2xl flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-slate-400 flex-shrink-0" />
+            <div className="p-4 bg-surface-2 border border-line-strong rounded-2xl flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-ink-tertiary flex-shrink-0" />
               <div className="flex-1">
-                <h5 className="text-xs font-bold text-slate-200">Bot Pausado</h5>
-                <p className="text-xs text-slate-400 mt-1">O robô de monitoramento está inativo no momento.</p>
+                <h5 className="text-xs font-bold text-ink">Bot Pausado</h5>
+                <p className="text-xs text-ink-secondary mt-1">O robô de monitoramento está inativo no momento.</p>
               </div>
               <Button size="sm" onClick={() => setIsReconnecting(true)}>
                 Reconectar
@@ -514,11 +514,11 @@ export const BotTab: React.FC = () => {
           )}
 
           {!showConnectionForm && config && config.status === 'error' && (
-            <div className="p-4 bg-red-500/[0.06] border border-red-500/20 rounded-2xl flex items-center gap-3">
-              <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <div className="p-4 bg-danger-bg border border-danger/25 rounded-2xl flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 text-danger-ink flex-shrink-0" />
               <div className="flex-1">
-                <h5 className="text-xs font-bold text-red-400">Falha na Conexão do Bot</h5>
-                <p className="text-xs text-slate-400 mt-1">
+                <h5 className="text-xs font-bold text-danger-ink">Falha na Conexão do Bot</h5>
+                <p className="text-xs text-ink-secondary mt-1">
                   {config.error_message || 'Houve um problema de autenticação na sessão do Telegram.'}
                 </p>
               </div>
@@ -542,27 +542,27 @@ export const BotTab: React.FC = () => {
               }
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl space-y-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</p>
+                <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
+                  <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Status</p>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-sm font-bold text-slate-200">Conectado</span>
+                    <span className="w-2 h-2 rounded-full bg-success" />
+                    <span className="text-sm font-bold text-ink">Conectado</span>
                   </div>
                 </div>
 
-                <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl space-y-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Conta Telegram</p>
-                  <p className="text-sm font-bold text-slate-200 truncate">{config.telegram_phone || 'Não informado'}</p>
+                <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
+                  <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Conta Telegram</p>
+                  <p className="text-sm font-bold text-ink truncate">{config.telegram_phone || 'Não informado'}</p>
                 </div>
 
-                <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl space-y-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Grupos monitorados</p>
-                  <p className="text-sm font-bold text-slate-200">{(config.grupos_origem || []).length}</p>
+                <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
+                  <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Grupos monitorados</p>
+                  <p className="text-sm font-bold text-ink">{(config.grupos_origem || []).length}</p>
                 </div>
 
-                <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl space-y-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Última atividade</p>
-                  <p className="text-sm font-bold text-slate-200 truncate">{formatRelativeTime(config.updated_at)}</p>
+                <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
+                  <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Última atividade</p>
+                  <p className="text-sm font-bold text-ink truncate">{formatRelativeTime(config.updated_at)}</p>
                 </div>
               </div>
             </Section>
@@ -577,7 +577,7 @@ export const BotTab: React.FC = () => {
               <StepIndicator current={loginStep} />
 
               {errorMessage && (
-                <div className="flex items-start gap-3 p-4 bg-red-500/[0.06] border border-red-500/20 rounded-2xl text-red-400 text-xs">
+                <div className="flex items-start gap-3 p-4 bg-danger-bg border border-danger/25 rounded-2xl text-danger-ink text-xs">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 font-medium">
                     <strong>Erro no processo:</strong> {errorMessage}
@@ -587,15 +587,15 @@ export const BotTab: React.FC = () => {
 
               {loginStep === 1 && (
                 <form onSubmit={handleStartLogin} className="space-y-4 max-w-md mx-auto">
-                  <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl">
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      <strong className="text-slate-300">Como obter API ID e API Hash:</strong>{' '}
+                  <div className="p-4 bg-surface-1 border border-line rounded-2xl">
+                    <p className="text-xs text-ink-secondary leading-relaxed">
+                      <strong className="text-ink">Como obter API ID e API Hash:</strong>{' '}
                       Acesse{' '}
                       <a
                         href="https://my.telegram.org"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-400 underline hover:text-brand-300"
+                        className="text-mint-700 underline hover:text-mint-800"
                       >
                         my.telegram.org
                       </a>
@@ -648,7 +648,7 @@ export const BotTab: React.FC = () => {
 
               {loginStep === 2 && (
                 <form onSubmit={handleVerifyCode} className="space-y-4 max-w-sm mx-auto text-center">
-                  <p className="text-sm text-slate-300 font-medium">
+                  <p className="text-sm text-ink font-medium">
                     Digite o código de 5 dígitos enviado pelo Telegram:
                   </p>
 
@@ -659,7 +659,7 @@ export const BotTab: React.FC = () => {
                       onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
                       placeholder="12345"
                       maxLength={5}
-                      className="w-40 text-center text-2xl font-bold tracking-[8px] py-3 px-3 border border-white/[0.08] bg-surface-1 text-slate-100 rounded-[10px] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 outline-none"
+                      className="w-40 text-center text-2xl font-bold tracking-[8px] py-3 px-3 border border-line bg-surface-0 text-ink rounded-md focus:border-mint-500 focus:shadow-focus outline-none"
                       required
                     />
                   </div>
@@ -671,7 +671,7 @@ export const BotTab: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleStartLogin}
-                      className="text-xs font-bold text-brand-400 hover:text-brand-300 transition-colors cursor-pointer"
+                      className="text-xs font-bold text-mint-700 hover:text-mint-800 transition-colors cursor-pointer"
                     >
                       Reenviar código
                     </button>
@@ -681,11 +681,11 @@ export const BotTab: React.FC = () => {
 
               {loginStep === 3 && (
                 <div className="max-w-xs mx-auto text-center py-6 space-y-3">
-                  <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+                  <div className="w-12 h-12 bg-success-bg border border-success/20 rounded-full flex items-center justify-center mx-auto text-success-ink">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-100">Bot conectado com sucesso!</h4>
-                  <p className="text-xs text-slate-400">
+                  <h4 className="text-sm font-bold text-ink">Bot conectado com sucesso!</h4>
+                  <p className="text-xs text-ink-secondary">
                     As credenciais foram validadas. Redirecionando para o painel de monitoramento...
                   </p>
                 </div>
@@ -715,18 +715,18 @@ export const BotTab: React.FC = () => {
               >
                 <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                   {gruposOrigem.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic py-2">Nenhum grupo de Telegram adicionado.</p>
+                    <p className="text-xs text-ink-tertiary italic py-2">Nenhum grupo de Telegram adicionado.</p>
                   ) : (
                     gruposOrigem.map((group, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-surface-1 border border-white/[0.06] rounded-xl"
+                        className="flex items-center justify-between p-3 bg-surface-1 border border-line rounded-xl"
                       >
-                        <span className="text-xs font-mono text-brand-300 font-bold">{group}</span>
+                        <span className="text-xs font-mono text-mint-800 font-bold">{group}</span>
                         <button
                           type="button"
                           onClick={() => removeGroupLocally(group)}
-                          className="text-slate-400 hover:text-red-400 p-1 -m-1 rounded-lg transition-colors cursor-pointer"
+                          className="text-ink-tertiary hover:text-danger p-1 -m-1 rounded-lg transition-colors cursor-pointer"
                           title="Remover"
                         >
                           <X className="w-4 h-4" />
@@ -736,7 +736,7 @@ export const BotTab: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-4 border-t border-white/[0.06]">
+                <div className="flex gap-2 pt-4 border-t border-line">
                   <div className="flex-1">
                     <Input
                       value={newGroup}
@@ -772,12 +772,12 @@ export const BotTab: React.FC = () => {
               >
                 {channelsLoading ? (
                   <div className="flex justify-center py-6">
-                    <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
+                    <Loader2 className="w-6 h-6 text-mint-700 animate-spin" />
                   </div>
                 ) : channels.length === 0 ? (
                   <div className="space-y-2 py-2">
-                    <p className="text-xs text-slate-500 italic">Nenhum canal ativo cadastrado.</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-ink-tertiary italic">Nenhum canal ativo cadastrado.</p>
+                    <p className="text-xs text-ink-secondary">
                       Conecte canais nas configurações gerais ou no painel para usá-los como destino.
                     </p>
                   </div>
@@ -789,23 +789,23 @@ export const BotTab: React.FC = () => {
                       return (
                         <label
                           key={channel.id}
-                          className={`flex items-center gap-3 p-3 bg-surface-1 hover:bg-surface-3 border rounded-xl cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-3 bg-surface-1 hover:bg-surface-2 border rounded-xl cursor-pointer transition-all ${
                             isChecked
-                              ? 'border-brand-500/40 bg-brand-500/[0.06]'
-                              : 'border-white/[0.06]'
+                              ? 'border-mint-500 bg-ice/50'
+                              : 'border-line'
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleChannel(channel.id)}
-                            className="w-4 h-4 rounded text-brand-500 bg-surface-2 border-white/10 focus:ring-brand-500 focus:ring-opacity-25"
+                            className="w-4 h-4 rounded text-mint-600 bg-surface-0 border-line-strong focus:ring-mint-500 focus:ring-opacity-25"
                           />
                           <div className="flex items-center gap-2">
                             <span className="text-base select-none">{logo.emoji}</span>
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-200 truncate">{channel.name}</p>
-                              <p className="text-xs text-slate-500 capitalize">{channel.type}</p>
+                              <p className="text-xs font-bold text-ink truncate">{channel.name}</p>
+                              <p className="text-xs text-ink-tertiary capitalize">{channel.type}</p>
                             </div>
                           </div>
                         </label>
@@ -845,21 +845,21 @@ export const BotTab: React.FC = () => {
                   hint="Sua tag de afiliado Amazon"
                 />
 
-                <div className="p-4 bg-surface-1 border border-white/[0.06] rounded-2xl flex items-start gap-3">
-                  <AlertCircle className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-slate-400 leading-relaxed font-medium">
-                    <strong className="text-slate-300">Substituição de Links:</strong>{' '}
+                <div className="p-4 bg-surface-1 border border-line rounded-2xl flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 text-ink-tertiary mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-ink-secondary leading-relaxed font-medium">
+                    <strong className="text-ink">Substituição de Links:</strong>{' '}
                     Quando o bot identificar um link de produto da Amazon ou Shopee, ele tentará converter usando as tags salvas aqui.
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-white/[0.06] pt-4 space-y-4">
+              <div className="border-t border-line pt-4 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h4 className="text-sm font-bold text-slate-200">Credenciais Shopee Affiliate (opcional)</h4>
+                  <h4 className="text-sm font-bold text-ink">Credenciais Shopee Affiliate (opcional)</h4>
                   <Link
                     to="/automatizacao-shopee"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/20 hover:border-brand-500/35 text-brand-400 text-xs font-bold rounded-[10px] transition-colors w-fit self-start sm:self-auto"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ice hover:bg-mint-200 border border-mint-200 hover:border-mint-500 text-mint-700 text-xs font-bold rounded-md transition-colors w-fit self-start sm:self-auto"
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
                     Como pegar minhas credenciais?
@@ -908,7 +908,7 @@ export const BotTab: React.FC = () => {
           </>
         }
       >
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm text-ink leading-relaxed">
           Tem certeza de que deseja desconectar o bot do Telegram? Ele parará de monitorar seus grupos imediatamente.
         </p>
       </Modal>

@@ -27,20 +27,20 @@ const genId = (): string => {
 
 const TYPE_STYLES: Record<ToastType, { container: string; icon: React.ReactNode }> = {
   success: {
-    container: 'border-emerald-500/20 text-emerald-300 bg-emerald-950/20',
-    icon: <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />,
+    container: 'border-success/20 text-success-ink bg-success-bg',
+    icon: <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />,
   },
   error: {
-    container: 'border-red-500/20 text-red-300 bg-red-950/20',
-    icon: <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />,
+    container: 'border-danger/25 text-danger-ink bg-danger-bg',
+    icon: <AlertCircle className="w-4 h-4 text-danger flex-shrink-0" />,
   },
   warning: {
-    container: 'border-amber-500/20 text-amber-300 bg-amber-950/20',
-    icon: <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />,
+    container: 'border-warning/25 text-warning-ink bg-warning-bg',
+    icon: <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0" />,
   },
   info: {
-    container: 'border-white/10 text-slate-200 bg-surface-2',
-    icon: <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />,
+    container: 'border-info/20 text-info-ink bg-info-bg',
+    icon: <Info className="w-4 h-4 text-info flex-shrink-0" />,
   },
 };
 
@@ -75,7 +75,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             <div
               key={t.id}
               role={t.type === 'error' ? 'alert' : 'status'}
-              className={`pointer-events-auto flex items-start justify-between gap-3 p-4 rounded-xl border shadow-2xl bg-surface-2/95 backdrop-blur-md flex-shrink-0 ${style.container}`}
+              className={`pointer-events-auto flex items-start justify-between gap-3 p-4 rounded-xl border shadow-lg bg-surface-0 flex-shrink-0 ${style.container}`}
               style={{
                 animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
               }}
@@ -89,7 +89,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <button
                 type="button"
                 onClick={() => dismiss(t.id)}
-                className="text-slate-500 hover:text-slate-300 transition-colors p-1 -m-1 flex-shrink-0"
+                className="text-ink-tertiary hover:text-ink transition-colors p-1 -m-1 flex-shrink-0"
                 aria-label="Fechar notificação"
               >
                 <X className="w-3.5 h-3.5" />

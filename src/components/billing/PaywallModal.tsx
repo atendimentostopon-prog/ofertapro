@@ -27,7 +27,7 @@ export const PaywallModal: React.FC<Props> = ({ open, onClose, featureName, plan
         </div>
       }
     >
-      <div className="text-sm text-slate-300">
+      <div className="text-sm text-ink-secondary">
         Você atingiu o limite do seu plano atual pra esta ação.
       </div>
     </Modal>

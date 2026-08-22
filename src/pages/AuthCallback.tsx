@@ -66,17 +66,16 @@ const AuthCallback: React.FC = () => {
     <AuthLayout
       title="Concluindo o login…"
       description="Verificando suas credenciais e preparando seu painel."
-      showFloatingDecor={false}
       showFeatureHighlights={false}
     >
       {error ? (
         <div className="text-center space-y-4 py-4">
-          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-            <AlertCircle className="w-7 h-7 text-red-400" />
+          <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-danger/20 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7 text-danger-ink" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">Não foi possível concluir</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">{error}</p>
+            <h3 className="text-base font-bold text-ink font-display">Não foi possível concluir</h3>
+            <p className="text-xs text-ink-secondary leading-relaxed">{error}</p>
           </div>
           <button
             type="button"
@@ -88,7 +87,7 @@ const AuthCallback: React.FC = () => {
         </div>
       ) : (
         <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-[3px] border-brand-500/25 border-t-brand-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-mint-200 border-t-mint-500 rounded-full animate-spin" />
         </div>
       )}
     </AuthLayout>

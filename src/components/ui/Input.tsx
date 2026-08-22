@@ -35,13 +35,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className="space-y-1.5 w-full">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-400 tracking-wide">
+        <label htmlFor={id} className="text-xs font-semibold text-ink-secondary tracking-wide">
           {label}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none">
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -51,12 +51,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           type={effectiveType}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : hint ? hintId : undefined}
-          className={`w-full text-sm rounded-[10px] border bg-surface-1 text-slate-100 placeholder-slate-500 outline-none transition-all duration-200 ${
+          className={`w-full text-sm rounded-md border bg-surface-0 text-ink placeholder-ink-tertiary outline-none transition-colors duration-160 ${
             Icon ? 'pl-10' : 'pl-3.5'
-          } ${hasRightSlot ? 'pr-10' : 'pr-3.5'} py-2.5 ${
+          } ${hasRightSlot ? 'pr-10' : 'pr-3.5'} py-2.5 shadow-xs ${
             error
-              ? 'border-red-500/25 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-              : 'border-white/[0.06] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10'
+              ? 'border-danger focus:border-danger focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
+              : 'border-line focus:border-mint-500 focus:shadow-focus'
           } ${className}`}
           {...props}
         />
@@ -65,23 +65,23 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
             type="button"
             onClick={() => setPasswordVisible(v => !v)}
             aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1 -m-1"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink transition-colors p-1 -m-1"
           >
             {passwordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         ) : IconRight ? (
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary pointer-events-none">
             <IconRight className="w-4 h-4" />
           </div>
         ) : null}
       </div>
       {error && (
-        <p id={errorId} className="text-xs font-medium text-red-400">
+        <p id={errorId} className="text-xs font-medium text-danger-ink">
           {error}
         </p>
       )}
       {hint && !error && (
-        <p id={hintId} className="text-xs text-slate-500">
+        <p id={hintId} className="text-xs text-ink-tertiary">
           {hint}
         </p>
       )}

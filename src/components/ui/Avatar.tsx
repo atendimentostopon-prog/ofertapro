@@ -40,7 +40,7 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <div
-      className={`relative flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/10 select-none ${sizes[size]} ${rounded} ${className}`}
+      className={`relative flex-shrink-0 flex items-center justify-center overflow-hidden border border-line select-none ${sizes[size]} ${rounded} ${className}`}
     >
       {src && !error ? (
         <img
@@ -50,7 +50,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           onError={() => setError(true)}
         />
       ) : (
-        <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 text-[#F8FAFC] flex items-center justify-center uppercase font-bold">
+        <div className="w-full h-full bg-graphite text-ink-inverse flex items-center justify-center uppercase font-bold tracking-tight">
           {initials}
         </div>
       )}
