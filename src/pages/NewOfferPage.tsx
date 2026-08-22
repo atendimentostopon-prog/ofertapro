@@ -183,17 +183,17 @@ const NewOfferPage: React.FC = () => {
           <div className="relative">
             {!isFinished ? (
               <>
-                <div className="w-14 h-14 border-4 border-zinc-800 border-t-indigo-500 rounded-full animate-spin" />
+                <div className="w-14 h-14 border-4 border-line border-t-mint-500 rounded-full animate-spin" />
                 <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-mint-700 animate-pulse" />
               </>
             ) : (
-              <div className="w-14 h-14 rounded-full bg-success-bg border border-emerald-500/30 flex items-center justify-center text-success-ink">
+              <div className="w-14 h-14 rounded-full bg-success-bg border border-success/30 flex items-center justify-center text-success-ink">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
             )}
           </div>
           <div className="space-y-1 text-center">
-            <h3 className="text-base font-bold text-ink-inverse">{isFinished ? 'Concluído!' : 'Processando...'}</h3>
+            <h3 className="text-base font-bold text-ink">{isFinished ? 'Concluído!' : 'Processando...'}</h3>
             <p className="text-xs text-ink-secondary font-semibold">{progressText || 'Aguarde...'}</p>
           </div>
           {isFinished && (
@@ -220,11 +220,11 @@ const NewOfferPage: React.FC = () => {
     if (totalFailed === 0) {
       statusTitle = 'Oferta enviada com sucesso!';
       statusSubtitle = `Enviada para todos os ${totalSuccess} canal(is) selecionados.`;
-      statusColorClass = 'bg-emerald-950/20 border-emerald-900/40 text-success-ink';
+      statusColorClass = 'bg-success-bg border-success/25 text-success-ink';
     } else if (totalSuccess > 0) {
       statusTitle = 'Oferta enviada parcialmente.';
       statusSubtitle = `Enviada para ${totalSuccess} de ${totalChannels} canal(is).`;
-      statusColorClass = 'bg-amber-950/20 border-amber-900/40 text-warning-ink';
+      statusColorClass = 'bg-warning-bg border-warning/25 text-warning-ink';
     } else {
       statusTitle = 'Oferta salva, mas o envio falhou.';
       statusSubtitle = `Erro no disparo para todos os ${totalChannels} canal(is).`;
@@ -240,7 +240,7 @@ const NewOfferPage: React.FC = () => {
           </div>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {dispatchResults.map((res) => (
-              <div key={res.channelId} className={`flex items-start gap-3 p-3 rounded-xl border ${res.success ? 'bg-emerald-950/10 border-emerald-900/20' : 'bg-danger-bg/10 border-red-900/20'}`}>
+              <div key={res.channelId} className={`flex items-start gap-3 p-3 rounded-xl border ${res.success ? 'bg-success-bg/40 border-success/20' : 'bg-danger-bg/40 border-danger/20'}`}>
                 <div className="w-8 h-8 rounded-lg bg-surface-1 border border-line flex items-center justify-center text-sm">
                   <ChannelLogo type={res.channelType} size="w-4 h-4" />
                 </div>
@@ -282,13 +282,13 @@ const NewOfferPage: React.FC = () => {
     <div className="min-h-screen bg-surface-1 flex flex-col relative overflow-hidden">
       {/* Glows de fundo */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-graphite/8 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-600/6 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-mint-400/8 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Nav */}
       <div className="relative z-10 flex items-center px-6 py-5 border-b border-line">
         <button
           onClick={() => navigate('/offers')}
-          className="flex items-center gap-2 text-ink-secondary hover:text-ink-inverse transition-colors text-sm font-semibold group"
+          className="flex items-center gap-2 text-ink-secondary hover:text-ink transition-colors text-sm font-semibold group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Voltar para Ofertas
@@ -312,7 +312,7 @@ const NewOfferPage: React.FC = () => {
               <Zap className="w-3.5 h-3.5" fill="currentColor" />
               Publicação Inteligente
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-ink-inverse tracking-tight leading-tight">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-ink tracking-tight leading-tight">
               Publicar nova oferta
             </h1>
             <p className="text-ink-secondary text-sm md:text-base font-medium leading-relaxed">
@@ -324,10 +324,10 @@ const NewOfferPage: React.FC = () => {
           <div className="space-y-3">
             <div className={`relative flex items-center rounded-2xl border transition-all duration-300 ${
               linkError
-                ? 'border-red-500/60 shadow-[0_0_0_3px_rgba(239,68,68,0.1)]'
+                ? 'border-danger/60 shadow-[0_0_0_3px_rgba(239,68,68,0.1)]'
                 : linkInput
-                ? 'border-mint-500 shadow-[0_0_0_3px_rgba(124,58,237,0.12)]'
-                : 'border-line-strong hover:border-white/20'
+                ? 'border-mint-500 shadow-focus'
+                : 'border-line-strong hover:border-line-strong'
             } bg-surface-0`}>
               <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <Link2 className="w-5 h-5 text-ink-tertiary" />
@@ -339,13 +339,13 @@ const NewOfferPage: React.FC = () => {
                 onChange={handleLinkChange}
                 onKeyDown={e => e.key === 'Enter' && !fetchingData && handleContinue()}
                 placeholder="https://amzn.to/... ou outro link de promoção"
-                className="flex-1 bg-transparent pl-12 pr-4 py-4 text-[15px] font-medium text-ink-inverse placeholder-slate-600 outline-none"
+                className="flex-1 bg-transparent pl-12 pr-4 py-4 text-[15px] font-medium text-ink placeholder-ink-tertiary outline-none"
                 disabled={fetchingData}
               />
               {linkInput && (
                 <button
                   onClick={() => { setLinkInput(''); setLinkError(''); setDetectedMarketplace(null); }}
-                  className="absolute right-16 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink-tertiary hover:text-ink-inverse transition-colors"
+                  className="absolute right-16 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink-tertiary hover:text-ink transition-colors"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -353,7 +353,7 @@ const NewOfferPage: React.FC = () => {
               <button
                 onClick={handleContinue}
                 disabled={fetchingData || !linkInput.trim()}
-                className="m-2 px-5 py-2.5 bg-graphite hover:bg-graphite disabled:opacity-50 disabled:cursor-not-allowed text-ink-inverse text-sm font-bold rounded-xl transition-all flex items-center gap-2 min-w-[120px] justify-center"
+                className="m-2 px-5 py-2.5 bg-graphite hover:bg-graphite-800 disabled:opacity-50 disabled:cursor-not-allowed text-ink-inverse text-sm font-bold rounded-xl transition-all flex items-center gap-2 min-w-[120px] justify-center"
               >
                 {fetchingData ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Buscando...</>
@@ -366,7 +366,7 @@ const NewOfferPage: React.FC = () => {
             {/* Marketplace detectado */}
             {detectedMarketplace && (
               <div className="flex items-center gap-2 text-xs font-semibold text-mint-700 animate-fade-in">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-mint-500" />
                 Marketplace detectado: <strong>{MARKETPLACE_LABELS[detectedMarketplace] || detectedMarketplace}</strong>
               </div>
             )}
@@ -381,7 +381,7 @@ const NewOfferPage: React.FC = () => {
 
             {/* Warnings etapa 1 */}
             {enrichWarningsStep1.length > 0 && (
-              <div className="bg-amber-950/20 border border-amber-900/30 rounded-xl p-3 space-y-1 animate-fade-in">
+              <div className="bg-warning-bg border border-warning/25 rounded-xl p-3 space-y-1 animate-fade-in">
                 {enrichWarningsStep1.map((w, i) => (
                   <p key={i} className="text-[11px] font-medium text-warning-ink">⚠️ {w}</p>
                 ))}
@@ -398,7 +398,7 @@ const NewOfferPage: React.FC = () => {
               {CHIP_MARKETPLACES.map(mp => (
                 <span
                   key={mp.label}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-1 border border-line-strong text-xs font-semibold text-ink hover:border-white/20 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-1 border border-line-strong text-xs font-semibold text-ink hover:border-mint-500/40 transition-colors"
                 >
                   <MarketplaceLogo value={mp.value} size="w-3.5 h-3.5" /> {mp.label}
                 </span>
@@ -434,7 +434,7 @@ const NewOfferPage: React.FC = () => {
         <button
           onClick={() => setStep(1)}
           disabled={loading || imageUploading}
-          className="flex items-center gap-2 text-ink-secondary hover:text-ink-inverse transition-colors text-sm font-semibold group disabled:opacity-40"
+          className="flex items-center gap-2 text-ink-secondary hover:text-ink transition-colors text-sm font-semibold group disabled:opacity-40"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Voltar
@@ -451,7 +451,7 @@ const NewOfferPage: React.FC = () => {
 
       {/* Aviso se enrich parcial */}
       {(enrichWarnings.length > 0 || enrichWarningsStep1.length > 0) && (
-        <div className="relative z-10 bg-amber-950/20 border-b border-amber-900/30 px-6 py-2.5 flex items-center gap-2">
+        <div className="relative z-10 bg-warning-bg border-b border-warning/25 px-6 py-2.5 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-warning-ink flex-shrink-0" />
           <p className="text-xs font-semibold text-warning-ink">
             {enrichWarnings[0] || enrichWarningsStep1[0]} — Verifique e ajuste os dados abaixo.
@@ -462,7 +462,7 @@ const NewOfferPage: React.FC = () => {
       {/* Título da etapa */}
       <div className="relative z-10 px-6 py-6 border-b border-line">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-extrabold text-ink-inverse tracking-tight">Confira os dados</h1>
+          <h1 className="text-2xl font-extrabold text-ink tracking-tight">Confira os dados</h1>
           <p className="text-sm text-ink-secondary font-medium mt-0.5">Revise e edite os campos antes de publicar.</p>
         </div>
       </div>
@@ -483,7 +483,7 @@ const NewOfferPage: React.FC = () => {
 
           {/* Enrich success */}
           {enrichSuccess && (
-            <div className="flex items-center gap-2 p-3 bg-emerald-950/20 text-success-ink rounded-xl border border-emerald-900/30 text-xs font-semibold animate-fade-in">
+            <div className="flex items-center gap-2 p-3 bg-success-bg text-success-ink rounded-xl border border-success/25 text-xs font-semibold animate-fade-in">
               <Check className="w-4 h-4 flex-shrink-0" />
               Dados importados automaticamente! Revise antes de publicar.
             </div>
@@ -533,20 +533,20 @@ const NewOfferPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                      className="bg-surface-0/95 hover:bg-surface-1 text-ink-inverse border border-line-strong px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                      className="bg-surface-0/95 hover:bg-surface-1 text-ink border border-line-strong px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
                     >
                       <RefreshCw className="w-3 h-3" /> Trocar
                     </button>
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); handleRemoveImage(); setImageLoadError(false); }}
-                      className="bg-rose-950/90 hover:bg-rose-900 text-rose-350 border border-rose-500/20 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                      className="bg-danger hover:bg-danger/90 text-ink-inverse border border-danger/20 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
                     >
                       <X className="w-3 h-3" /> Remover
                     </button>
                   </div>
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <span className="bg-surface-0 px-3 py-1.5 rounded-full text-ink-inverse border border-line text-[10px] font-bold flex items-center gap-1.5">
+                    <span className="bg-surface-0 px-3 py-1.5 rounded-full text-ink border border-line text-[10px] font-bold flex items-center gap-1.5">
                       <Upload className="w-3.5 h-3.5" /> Trocar por arquivo local
                     </span>
                   </div>
@@ -583,7 +583,7 @@ const NewOfferPage: React.FC = () => {
                   ⚠️ {imageError || 'Não foi possível carregar essa imagem. Tente outra URL.'}
                 </p>
                 <button type="button" onClick={() => { handleRemoveImage(); setImageLoadError(false); }}
-                  className="text-[9px] text-ink-secondary hover:text-ink-inverse underline font-bold">
+                  className="text-[9px] text-ink-secondary hover:text-ink underline font-bold">
                   Remover
                 </button>
               </div>
@@ -656,7 +656,7 @@ const NewOfferPage: React.FC = () => {
             {/* Desconto calculado */}
             {discount > 0 && (
               <div className="flex items-center gap-2">
-                <span className="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-2 py-1 rounded-lg border border-orange-500/20">
+                <span className="bg-danger-bg text-danger-ink text-[10px] font-bold px-2 py-1 rounded-lg border border-danger/20">
                   💸 {discount}% OFF calculado automaticamente
                 </span>
               </div>
@@ -726,7 +726,7 @@ const NewOfferPage: React.FC = () => {
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
                         ? 'border-brand-500 bg-brand-500/10 text-brand-400 shadow-sm'
-                        : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-1 hover:text-slate-250'
+                        : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-2 hover:text-ink'
                     }`}
                     disabled={loading}
                   >
@@ -778,7 +778,7 @@ const NewOfferPage: React.FC = () => {
 
             {channelsLoading ? (
               <div className="flex items-center gap-2 py-3 text-xs text-ink-tertiary justify-center">
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-500" /> Carregando canais...
+                <Loader2 className="w-4 h-4 animate-spin text-mint-500" /> Carregando canais...
               </div>
             ) : connectedChannels.length === 0 ? (
               <div className="bg-surface-1 border border-line rounded-xl p-4 text-center">
@@ -848,7 +848,7 @@ const NewOfferPage: React.FC = () => {
                     </div>
                   )}
                   <p className="font-bold text-mint-700 text-[11px] mb-1">🔥 OFERTA ENCONTRADA</p>
-                  <p className="font-bold text-ink-inverse text-[11.5px] line-clamp-2 leading-tight mb-1.5">
+                  <p className="font-bold text-ink text-[11.5px] line-clamp-2 leading-tight mb-1.5">
                     {form.name || 'Nome do produto aparecerá aqui'}
                   </p>
                   {originalPriceCents > 0 && (
@@ -862,7 +862,7 @@ const NewOfferPage: React.FC = () => {
                     </p>
                   )}
                   {discount > 0 && (
-                    <span className="inline-block bg-orange-500/10 text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded mt-1">
+                    <span className="inline-block bg-danger-bg text-danger-ink text-[9px] font-bold px-1.5 py-0.5 rounded mt-1">
                       💸 {discount}% OFF
                     </span>
                   )}
@@ -888,7 +888,7 @@ const NewOfferPage: React.FC = () => {
 
             {/* Marketplace preview */}
             {form.marketplace && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-[#0D1525] rounded-xl border border-line">
+              <div className="flex items-center gap-2 px-3 py-2 bg-surface-1 rounded-xl border border-line">
                 <Store className="w-3.5 h-3.5 text-ink-tertiary" />
                 <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                   {(() => {
@@ -933,7 +933,7 @@ const NewOfferPage: React.FC = () => {
             <button
               onClick={() => handleSubmit(false)}
               disabled={loading || uploading || imageUploading}
-              className="btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center gap-1.5 shadow-lg shadow-indigo-950/40"
+              className="btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center gap-1.5 shadow-lg"
             >
               <Send className="w-3.5 h-3.5" />
               Salvar e Disparar
