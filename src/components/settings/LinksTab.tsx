@@ -26,10 +26,10 @@ export const LinksTab: React.FC<LinksTabProps> = ({ profile }) => {
             type="text"
             value={whatsappGroupUrl}
             onChange={e => { setWhatsappGroupUrl(e.target.value); setWhatsappError(false); }}
-            className={`input-modern text-xs ${whatsappError ? 'border-red-500 bg-red-950/10' : ''}`}
+            className={`input-modern text-xs ${whatsappError ? 'border-danger bg-danger-bg/40' : ''}`}
             placeholder="Ex: chat.whatsapp.com/ABC123xyz"
           />
-          {whatsappError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
+          {whatsappError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
         </Field>
 
         <Field label="Link do Canal/Grupo Telegram" hint="Insira o link público do seu canal ou grupo no Telegram (t.me/... ou telegram.me/...)">
@@ -37,10 +37,10 @@ export const LinksTab: React.FC<LinksTabProps> = ({ profile }) => {
             type="text"
             value={telegramGroupUrl}
             onChange={e => { setTelegramGroupUrl(e.target.value); setTelegramError(false); }}
-            className={`input-modern text-xs ${telegramError ? 'border-red-500 bg-red-950/10' : ''}`}
+            className={`input-modern text-xs ${telegramError ? 'border-danger bg-danger-bg/40' : ''}`}
             placeholder="Ex: t.me/meucanal"
           />
-          {telegramError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
+          {telegramError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
         </Field>
 
         <Field label="Link do Convite Discord" hint="Insira o link do convite do seu servidor do Discord (discord.gg/... ou discord.com/invite/...)">
@@ -48,10 +48,10 @@ export const LinksTab: React.FC<LinksTabProps> = ({ profile }) => {
             type="text"
             value={discordGroupUrl}
             onChange={e => { setDiscordGroupUrl(e.target.value); setDiscordError(false); }}
-            className={`input-modern text-xs ${discordError ? 'border-red-500 bg-red-950/10' : ''}`}
+            className={`input-modern text-xs ${discordError ? 'border-danger bg-danger-bg/40' : ''}`}
             placeholder="Ex: discord.gg/abcde"
           />
-          {discordError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
+          {discordError && <p className="text-xs text-danger-ink font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
         </Field>
       </SettingsSection>
     </div>

@@ -74,18 +74,18 @@ const RedirectPage: React.FC = () => {
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] text-[#F8FAFC] p-6 text-center animate-fade-in">
-        <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-red-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400 shadow-lg text-2xl font-bold">
+      <div className="relative min-h-screen flex flex-col items-center justify-center bg-surface-1 text-ink p-6 text-center animate-fade-in">
+        <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-danger-bg rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-danger/20 flex items-center justify-center mb-6 text-danger-ink shadow-lg text-2xl font-bold">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Oferta não encontrada</h2>
-        <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
+        <h2 className="text-xl font-bold text-ink tracking-tight font-display">Oferta não encontrada</h2>
+        <p className="text-sm text-ink-secondary mt-2 max-w-sm leading-relaxed">
           Esta oferta pode ter sido removida, pausada ou o link curto está incorreto.
         </p>
         <button
           onClick={() => navigate('/')}
-          className="mt-8 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all"
+          className="mt-8 px-6 py-2.5 bg-graphite hover:bg-graphite-800 text-ink-inverse rounded-xl font-bold text-sm transition-all"
         >
           Voltar para o início
         </button>
@@ -95,18 +95,18 @@ const RedirectPage: React.FC = () => {
 
   if (emptyLink) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] text-[#F8FAFC] p-6 text-center animate-fade-in">
-        <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-amber-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6 text-amber-400 shadow-lg text-2xl font-bold">
+      <div className="relative min-h-screen flex flex-col items-center justify-center bg-surface-1 text-ink p-6 text-center animate-fade-in">
+        <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-warning/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="w-16 h-16 rounded-2xl bg-warning-bg border border-warning/20 flex items-center justify-center mb-6 text-warning-ink shadow-lg text-2xl font-bold">
           🔗
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Link Indisponível</h2>
-        <p className="text-sm text-[#94A3B8] mt-2 max-w-sm leading-relaxed">
+        <h2 className="text-xl font-bold text-ink tracking-tight font-display">Link Indisponível</h2>
+        <p className="text-sm text-ink-secondary mt-2 max-w-sm leading-relaxed">
           O link de destino para esta oferta não está configurado corretamente.
         </p>
         <button
           onClick={() => navigate('/')}
-          className="mt-8 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all"
+          className="mt-8 px-6 py-2.5 bg-graphite hover:bg-graphite-800 text-ink-inverse rounded-xl font-bold text-sm transition-all"
         >
           Voltar para o início
         </button>
@@ -115,20 +115,20 @@ const RedirectPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#070A12] text-[#F8FAFC]">
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-surface-1 text-ink">
       {/* Background glow effects */}
-      <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-[#7C3AED]/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-mint-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-[#7C3AED]/20 blur-xl rounded-full" />
-        <div className="relative w-16 h-16 rounded-2xl bg-[#101827] border border-white/[0.08] flex items-center justify-center shadow-2xl">
-          <Zap className="w-6 h-6 text-indigo-400" fill="currentColor" />
+        <div className="absolute inset-0 bg-mint-400/20 blur-xl rounded-full" />
+        <div className="relative w-16 h-16 rounded-2xl bg-surface-0 border border-line flex items-center justify-center shadow-2xl">
+          <Zap className="w-6 h-6 text-mint-700" fill="currentColor" />
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2.5 z-10">
-        <div className="w-4 h-4 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-        <p className="text-xs font-bold text-[#94A3B8] tracking-tight animate-pulse">Redirecionando para a oferta segura...</p>
+        <div className="w-4 h-4 border-2 border-mint-200 border-t-mint-500 rounded-full animate-spin" />
+        <p className="text-xs font-bold text-ink-secondary tracking-tight animate-pulse">Redirecionando para a oferta segura...</p>
       </div>
     </div>
   );

@@ -8,44 +8,44 @@ const PoliticaPrivacidade: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-[#F8FAFC] py-16 px-4 sm:px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-1 text-ink py-16 px-4 sm:px-6 relative overflow-hidden">
       {/* Glow Effects */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#7C3AED]/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#6366F1]/5 rounded-full blur-3xl opacity-45 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-mint-400/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-graphite/5 rounded-full blur-3xl opacity-45 pointer-events-none" />
 
       <div className="max-w-3xl mx-auto relative z-10">
         {/* Navigation / Header */}
-        <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between mb-10 pb-6 border-b border-line">
           <button
             onClick={() => window.close()}
-            className="flex items-center gap-2 text-xs font-bold text-[#94A3B8] hover:text-white transition-colors"
+            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </button>
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm font-extrabold text-white tracking-tight">{APP_NAME}</span>
+            <Shield className="w-5 h-5 text-mint-700" />
+            <span className="text-sm font-extrabold text-ink tracking-tight">{APP_NAME}</span>
           </div>
         </div>
 
         {/* Content */}
-        <div className="bg-[#101827]/60 backdrop-blur-xl border border-white/[0.06] rounded-3xl p-8 sm:p-12 space-y-6 shadow-2xl">
+        <div className="bg-surface-0/60 backdrop-blur-xl border border-line rounded-3xl p-8 sm:p-12 space-y-6 shadow-2xl">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight mb-2">Política de Privacidade</h1>
-            <p className="text-xs text-[#64748B] font-semibold">Última atualização: 17 de junho de 2026</p>
+            <h1 className="text-3xl font-black text-ink tracking-tight mb-2">Política de Privacidade</h1>
+            <p className="text-xs text-ink-tertiary font-semibold">Última atualização: 17 de junho de 2026</p>
           </div>
 
-          <div className="space-y-6 text-sm text-[#94A3B8] leading-relaxed">
+          <div className="space-y-6 text-sm text-ink-secondary leading-relaxed">
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">1. Introdução e Escopo</h2>
+              <h2 className="text-base font-extrabold text-ink">1. Introdução e Escopo</h2>
               <p>
                 O <strong>{APP_NAME}</strong> tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">2. Dados que Coletamos</h2>
+              <h2 className="text-base font-extrabold text-ink">2. Dados que Coletamos</h2>
               <p>
                 Coletamos informações essenciais para o funcionamento e a segurança do serviço:
               </p>
@@ -57,7 +57,7 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">3. Finalidade do Uso dos Dados</h2>
+              <h2 className="text-base font-extrabold text-ink">3. Finalidade do Uso dos Dados</h2>
               <p>
                 Os seus dados são utilizados estritamente para as seguintes finalidades:
               </p>
@@ -71,7 +71,7 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">4. Provedores de Serviços Terceirizados</h2>
+              <h2 className="text-base font-extrabold text-ink">4. Provedores de Serviços Terceirizados</h2>
               <p>
                 Compartilhamos dados exclusivamente com serviços terceirizados essenciais que garantem a infraestrutura e segurança do {APP_NAME}:
               </p>
@@ -82,21 +82,21 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">5. Cookies</h2>
+              <h2 className="text-base font-extrabold text-ink">5. Cookies</h2>
               <p>
                 Utilizamos cookies de sessão essenciais para mantê-lo autenticado de forma segura no painel e salvar suas preferências de exibição de layout. O consentimento e gerenciamento de cookies podem ser definidos por meio do nosso banner de cookies. Detalhes estão disponíveis em nossa Política de Cookies.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">6. Retenção e Exclusão de Dados</h2>
+              <h2 className="text-base font-extrabold text-ink">6. Retenção e Exclusão de Dados</h2>
               <p>
                 Os dados são mantidos pelo tempo que sua conta estiver ativa na plataforma. Você pode solicitar a exclusão total de sua conta e dados pessoais diretamente pelo painel de configurações ou entrando em contato conosco pelo e-mail de suporte. Uma vez solicitada, a remoção do seu perfil e ofertas do banco de dados do Supabase é imediata e definitiva.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">7. Direitos do Titular (LGPD)</h2>
+              <h2 className="text-base font-extrabold text-ink">7. Direitos do Titular (LGPD)</h2>
               <p>
                 Nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/18 - LGPD), você possui o direito de:
               </p>
@@ -109,9 +109,9 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-white">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
+              <h2 className="text-base font-extrabold text-ink">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
               <p>
-                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo {APP_NAME}, envie um e-mail para <a href="mailto:privacidade@aflyo.com.br" className="text-indigo-400 font-bold hover:underline">privacidade@aflyo.com.br</a>.
+                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo {APP_NAME}, envie um e-mail para <a href="mailto:privacidade@aflyo.com.br" className="text-mint-700 font-bold hover:underline">privacidade@aflyo.com.br</a>.
               </p>
             </section>
           </div>

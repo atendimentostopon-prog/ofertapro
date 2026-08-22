@@ -12,17 +12,17 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyle = 'rounded-2xl border transition-all duration-200';
-  
+  const baseStyle = 'rounded-2xl border transition-all duration-220';
+
   const variants = {
-    default: 'bg-surface-2 border-white/[0.06] shadow-[0_2px_12px_rgba(0,0,0,0.2)]',
-    deeper: 'bg-surface-1 border-white/[0.04] shadow-[0_2px_16px_rgba(0,0,0,0.25)]',
-    glass: 'bg-surface-2/60 backdrop-blur-xl border-white/[0.06] shadow-md',
-    metric: 'bg-surface-2 border-white/[0.06] shadow-[0_2px_12px_rgba(0,0,0,0.2)] metric-card',
+    default: 'bg-surface-0 border-line shadow-xs',
+    deeper:  'bg-surface-1 border-line',
+    glass:   'bg-surface-0/80 backdrop-blur-md border-line shadow-sm',
+    metric:  'bg-surface-0 border-line shadow-xs metric-card',
   };
 
-  const hoverStyle = hoverable 
-    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-white/[0.1] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)]'
+  const hoverStyle = hoverable
+    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md'
     : '';
 
   return (

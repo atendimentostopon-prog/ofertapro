@@ -43,9 +43,9 @@ export const Toggle: React.FC<ToggleProps> = ({
       id={id}
       disabled={disabled}
       onClick={handleToggle}
-      className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0 ${
+      className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 focus:outline-none focus-visible:shadow-focus ${
         disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-      } ${isChecked ? 'bg-brand-600' : 'bg-surface-3'} ${className}`}
+      } ${isChecked ? 'bg-mint-500' : 'bg-surface-2'} ${className}`}
     >
       <span
         className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
@@ -66,13 +66,13 @@ export const Toggle: React.FC<ToggleProps> = ({
           <label
             htmlFor={id}
             onClick={handleToggle}
-            className={`text-sm font-medium text-slate-200 select-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            className={`text-sm font-medium text-ink select-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             {label}
           </label>
         )}
         {description && (
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <p className="text-xs text-ink-tertiary mt-0.5">{description}</p>
         )}
       </div>
       {button}

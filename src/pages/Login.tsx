@@ -69,7 +69,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const headerAction = (
     <Link
       to="/signup"
-      className="text-xs font-semibold text-brand-400 hover:text-brand-300 bg-brand-500/8 hover:bg-brand-500/12 px-3 py-1.5 rounded-lg transition-all border border-brand-500/15 cursor-pointer"
+      className="text-xs font-semibold text-ink bg-surface-1 hover:bg-surface-2 px-3 py-1.5 rounded-md transition-colors border border-line cursor-pointer"
     >
       Criar conta
     </Link>
@@ -82,9 +82,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       headerRightAction={headerAction}
     >
       {error && (
-        <div className="mb-5 p-3 bg-red-500/6 border border-red-500/12 rounded-lg flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-300/90 font-medium leading-relaxed">{error}</p>
+        <div className="mb-5 p-3 bg-danger-bg border border-danger/20 rounded-md flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-danger-ink mt-0.5 shrink-0" />
+          <p className="text-xs text-danger-ink font-medium leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -93,14 +93,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       </div>
 
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 h-px bg-white/[0.04]" />
-        <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider select-none">ou com e-mail</span>
-        <div className="flex-1 h-px bg-white/[0.04]" />
+        <div className="flex-1 h-px bg-line" />
+        <span className="text-[10px] text-ink-tertiary font-medium uppercase tracking-wider select-none">ou com e-mail</span>
+        <div className="flex-1 h-px bg-line" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-400" htmlFor="email">E-mail</label>
+          <label className="text-xs font-medium text-ink-secondary" htmlFor="email">E-mail</label>
           <input
             id="email"
             type="email"
@@ -115,8 +115,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-slate-400" htmlFor="password">Senha</label>
-            <Link to="/forgot" className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
+            <label className="text-xs font-medium text-ink-secondary" htmlFor="password">Senha</label>
+            <Link to="/forgot" className="text-xs text-mint-800 hover:text-mint-900 font-medium transition-colors">
               Esqueceu?
             </Link>
           </div>
@@ -133,7 +133,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink transition-colors cursor-pointer"
               aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -144,7 +144,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-35 disabled:pointer-events-none transition-all duration-200 cursor-pointer"
+          className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />

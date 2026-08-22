@@ -60,7 +60,7 @@ export const TabsList: React.FC<TabsListProps> = ({
   const list = (
     <div
       role="tablist"
-      className={`inline-flex items-center gap-1 bg-surface-1 border border-white/[0.04] rounded-xl p-1 ${
+      className={`inline-flex items-center gap-1 bg-surface-1 border border-line rounded-xl p-1 ${
         scrollable ? 'flex-nowrap min-w-max' : ''
       } ${className}`}
     >
@@ -102,12 +102,12 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
       aria-selected={isActive}
       disabled={disabled}
       onClick={() => setValue(value)}
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 ${
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 focus:outline-none focus-visible:shadow-focus ${
         disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
       } ${
         isActive
-          ? 'bg-surface-3 text-slate-100 shadow-sm'
-          : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'
+          ? 'bg-surface-0 text-ink shadow-sm'
+          : 'text-ink-tertiary hover:text-ink-secondary hover:bg-surface-0/60'
       } ${className}`}
     >
       {Icon && <Icon className="w-4 h-4" />}

@@ -35,7 +35,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   const headerAction = (
-    <Link to="/login" className="text-xs font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-colors">
+    <Link to="/login" className="text-xs font-semibold text-ink-secondary hover:text-ink flex items-center gap-1.5 transition-colors">
       <ArrowLeft className="w-3.5 h-3.5" />
       Voltar
     </Link>
@@ -46,34 +46,33 @@ const ForgotPassword: React.FC = () => {
       title="Esqueceu sua senha?"
       description="Digite o e-mail da sua conta e enviaremos um link para redefinir sua senha."
       headerRightAction={headerAction}
-      showFloatingDecor={false}
     >
       {error && (
-        <div className="mb-5 p-3 bg-red-500/6 border border-red-500/12 rounded-lg flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-300/90 font-medium leading-relaxed">{error}</p>
+        <div className="mb-5 p-3 bg-danger-bg border border-danger/20 rounded-md flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-danger-ink mt-0.5 shrink-0" />
+          <p className="text-xs text-danger-ink font-medium leading-relaxed">{error}</p>
         </div>
       )}
 
       {sent ? (
         <div className="text-center space-y-4 py-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-            <Mail className="w-7 h-7 text-emerald-400" />
+          <div className="w-16 h-16 rounded-2xl bg-success-bg border border-success/20 flex items-center justify-center mx-auto">
+            <Mail className="w-7 h-7 text-success-ink" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">Link enviado!</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Se o e-mail <span className="font-semibold text-slate-200">{email}</span> estiver cadastrado, você receberá o link de recuperação em instantes.
+            <h3 className="text-base font-bold text-ink font-display">Link enviado!</h3>
+            <p className="text-xs text-ink-secondary leading-relaxed">
+              Se o e-mail <span className="font-semibold text-ink">{email}</span> estiver cadastrado, você receberá o link de recuperação em instantes.
             </p>
           </div>
-          <Link to="/login" className="inline-block text-xs text-brand-400 hover:text-brand-300 font-semibold transition-colors">
+          <Link to="/login" className="inline-block text-xs text-mint-800 hover:text-mint-900 font-semibold transition-colors">
             Voltar ao login
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-400" htmlFor="email">E-mail cadastrado</label>
+            <label className="text-xs font-medium text-ink-secondary" htmlFor="email">E-mail cadastrado</label>
             <input
               id="email"
               type="email"
@@ -89,7 +88,7 @@ const ForgotPassword: React.FC = () => {
           <button
             type="submit"
             disabled={loading || !email.trim()}
-            className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-35 disabled:pointer-events-none transition-all duration-200 cursor-pointer"
+            className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />

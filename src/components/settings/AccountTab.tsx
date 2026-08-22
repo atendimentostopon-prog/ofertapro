@@ -31,7 +31,7 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
         description={`Suas informações internas e de contato no ${APP_NAME}`}
         icon={UserIcon}
       >
-        <div className="flex items-center gap-5 p-4 bg-[#0B1020]/50 rounded-2xl border border-white/5 mb-2">
+        <div className="flex items-center gap-5 p-4 bg-surface-1 rounded-2xl border border-line mb-2">
           <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
             <input
               type="file"
@@ -40,12 +40,12 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
               accept="image/*"
               className="hidden"
             />
-            <div className={`w-14 h-14 rounded-full overflow-hidden bg-[#101827] border border-white/10 flex-shrink-0 shadow-inner group-hover:border-indigo-500 transition-all ${
+            <div className={`w-14 h-14 rounded-full overflow-hidden bg-surface-0 border border-line-strong flex-shrink-0 shadow-inner group-hover:border-mint-500 transition-all ${
               uploadingAvatar ? 'opacity-50' : ''
             }`}>
               {uploadingAvatar ? (
-                <div className="w-full h-full flex items-center justify-center bg-slate-900/80">
-                  <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+                <div className="w-full h-full flex items-center justify-center bg-surface-1">
+                  <Loader2 className="w-4 h-4 text-mint-700 animate-spin" />
                 </div>
               ) : (
                 <Avatar
@@ -62,8 +62,8 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-white truncate">{preferredName || fullName || 'Usuário'}</p>
-            <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
+            <p className="text-sm font-bold text-ink truncate">{preferredName || fullName || 'Usuário'}</p>
+            <p className="text-xs text-ink-secondary truncate">{user.email}</p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
             type="email"
             value={user.email}
             disabled
-            className="input-modern bg-[#070A12]/50 text-slate-500 border-white/5 cursor-not-allowed text-xs"
+            className="input-modern bg-surface-1 text-ink-tertiary border-line cursor-not-allowed text-xs"
           />
         </Field>
 
@@ -110,11 +110,11 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
             type="text"
             value={user.id}
             disabled
-            className="input-modern bg-[#070A12]/50 text-slate-500 border-white/5 font-mono text-[10px] cursor-not-allowed"
+            className="input-modern bg-surface-1 text-ink-tertiary border-line font-mono text-[10px] cursor-not-allowed"
           />
         </Field>
 
-        <div className="pt-4 border-t border-white/5">
+        <div className="pt-4 border-t border-line">
           <button
             type="button"
             onClick={async () => {
@@ -123,7 +123,7 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
                 window.location.href = '/login';
               }
             }}
-            className="btn-secondary hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/50 transition-colors text-xs px-4 py-2 flex items-center gap-2"
+            className="btn-secondary hover:bg-danger-bg hover:text-danger-ink hover:border-danger/30 transition-colors text-xs px-4 py-2 flex items-center gap-2"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sair da Conta

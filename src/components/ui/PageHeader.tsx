@@ -25,7 +25,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     >
       <div className="space-y-1 min-w-0">
         <h1
-          className={`font-bold text-slate-100 tracking-tight truncate ${
+          className={`font-bold text-ink tracking-tight truncate font-display ${
             isCompact ? 'text-base md:text-lg' : 'text-xl md:text-2xl'
           }`}
         >
@@ -33,7 +33,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </h1>
         {description && (
           <p
-            className={`text-slate-400 leading-relaxed ${
+            className={`text-ink-secondary leading-relaxed ${
               isCompact ? 'text-xs' : 'text-sm'
             }`}
           >

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Filter, Search, MousePointerClick, Calendar,
+  Search, MousePointerClick, Calendar,
   CheckCircle2, AlertCircle, AlertTriangle, Clock,
   ChevronRight, Send, Loader2
 } from 'lucide-react';
-import { MARKETPLACE_LABELS } from '../lib/utils';
 import type { HistoryStatus } from '../types';
 import Badge from '../components/Badge';
 import { supabase } from '../lib/supabase';
@@ -17,20 +16,15 @@ import { useToast } from '../context/ToastContext';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
 
-// Mapeamento de status normalizados (success/partial/error)
-// Inclui aliases legados 'sent' e 'failed' apenas como fallback de compatibilidade
 const statusConfig: Record<string, {
   icon: React.ElementType; bg: string; iconColor: string; label: string;
 }> = {
-  success: { icon: CheckCircle2, bg: 'bg-emerald-500/10 border border-emerald-500/20', iconColor: 'text-emerald-400', label: 'Enviado' },
-  partial: { icon: AlertTriangle, bg: 'bg-amber-500/10 border border-amber-500/20', iconColor: 'text-amber-405', label: 'Parcial' },
-  error: { icon: AlertCircle, bg: 'bg-red-500/10 border border-red-500/20', iconColor: 'text-red-400', label: 'Erro' },
-  // aliases legados para compatibilidade com histórico antigo
-  sent: { icon: CheckCircle2, bg: 'bg-emerald-500/10 border border-emerald-500/20', iconColor: 'text-emerald-400', label: 'Enviado' },
-  failed: { icon: AlertCircle, bg: 'bg-red-500/10 border border-red-500/20', iconColor: 'text-red-400', label: 'Erro' },
+  success: { icon: CheckCircle2,  bg: 'bg-success-bg border border-success/20', iconColor: 'text-success-ink', label: 'Enviado' },
+  partial: { icon: AlertTriangle, bg: 'bg-warning-bg border border-warning/20', iconColor: 'text-warning-ink', label: 'Parcial' },
+  error:   { icon: AlertCircle,   bg: 'bg-danger-bg border border-danger/20',   iconColor: 'text-danger-ink',  label: 'Erro'    },
+  sent:    { icon: CheckCircle2,  bg: 'bg-success-bg border border-success/20', iconColor: 'text-success-ink', label: 'Enviado' },
+  failed:  { icon: AlertCircle,   bg: 'bg-danger-bg border border-danger/20',   iconColor: 'text-danger-ink',  label: 'Erro'    },
 };
-
-// Detecção de tipo de canal movida para ChannelLogo via lib/logos.ts
 
 const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: any) => Promise<void> }> = ({ entry, isLast, onResend }) => {
   const [expanded, setExpanded] = useState(false);
@@ -57,10 +51,10 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
     <div className="flex gap-4">
       {/* Timeline left */}
       <div className="flex flex-col items-center">
-        <div className={`w-9 h-9 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 z-10 shadow-lg`}>
+        <div className={`w-9 h-9 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 z-10`}>
           <Icon className={`w-4.5 h-4.5 ${cfg.iconColor}`} size={18} />
         </div>
-        {!isLast && <div className="w-px flex-1 bg-white/[0.06] mt-2" />}
+        {!isLast && <div className="w-px flex-1 bg-line mt-2" />}
       </div>
 
       {/* Content */}
@@ -76,25 +70,25 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
             <ProductImage
               src={entry.offer_image}
               alt={entry.offer_name}
-              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 bg-slate-950 border border-white/5"
+              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 bg-surface-1 border border-line"
             />
 
             {/* Main Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="text-[15px] font-bold text-[#F8FAFC] leading-snug line-clamp-1 tracking-tight">
+                <h3 className="text-[15px] font-bold text-ink leading-snug line-clamp-1 tracking-tight font-display">
                   {entry.offer_name}
                 </h3>
                 <ChevronRight
-                  className={`w-4 h-4 text-[#64748B] flex-shrink-0 transition-transform mt-0.5 ${expanded ? 'rotate-90' : ''}`}
+                  className={`w-4 h-4 text-ink-tertiary flex-shrink-0 transition-transform mt-0.5 ${expanded ? 'rotate-90' : ''}`}
                 />
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 {entry.marketplace && <Badge type="marketplace" value={entry.marketplace} />}
                 <Badge type="status" value={entry.status} />
-                <div className="flex items-center gap-1 text-xs text-[#94A3B8]">
-                  <Clock className="w-3.5 h-3.5 text-[#64748B]" />
+                <div className="flex items-center gap-1 text-xs text-ink-secondary">
+                  <Clock className="w-3.5 h-3.5 text-ink-tertiary" />
                   {dateStr} às {timeStr}
                 </div>
               </div>
@@ -102,14 +96,14 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
               {/* Stats row */}
               <div className="flex flex-wrap items-center gap-4 mt-2.5">
                 <div className="flex items-center gap-1.5 text-xs">
-                  <MousePointerClick className="w-3.5 h-3.5 text-indigo-400" />
-                  <span className="font-bold text-[#F8FAFC]">{(entry.clicks || 0).toLocaleString('pt-BR')}</span>
-                  <span className="text-[#64748B]">cliques</span>
+                  <MousePointerClick className="w-3.5 h-3.5 text-mint-700" />
+                  <span className="font-bold text-ink">{(entry.clicks || 0).toLocaleString('pt-BR')}</span>
+                  <span className="text-ink-tertiary">cliques</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
-                  <Send className="w-3.5 h-3.5 text-[#64748B]" />
-                  <span className="font-bold text-[#F8FAFC]">{entry.channel_count || 0}</span>
-                  <span className="text-[#64748B]">canal(is)</span>
+                  <Send className="w-3.5 h-3.5 text-ink-tertiary" />
+                  <span className="font-bold text-ink">{entry.channel_count || 0}</span>
+                  <span className="text-ink-tertiary">canal(is)</span>
                 </div>
               </div>
             </div>
@@ -117,60 +111,56 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
 
           {/* Expanded details */}
           {expanded && (
-            <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-3 animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="mt-4 pt-4 border-t border-line space-y-3 animate-fade-in" onClick={e => e.stopPropagation()}>
               {/* Channels */}
               <div>
-                <p className="text-xs font-bold text-[#94A3B8] mb-2">Canais utilizados:</p>
+                <p className="text-xs font-bold text-ink-secondary mb-2">Canais utilizados:</p>
                 <div className="flex flex-wrap gap-2">
-                  {/* Canais com sucesso */}
                   {Array.isArray(entry.successful_channels) && entry.successful_channels.map((ch: string) => (
                     <span
                       key={ch}
-                      className="flex items-center gap-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium animate-fade-in"
+                      className="flex items-center gap-1.5 text-xs bg-success-bg text-success-ink border border-success/20 px-2.5 py-1.5 rounded-md font-medium animate-fade-in"
                     >
                       <ChannelLogo name={ch} size="w-3.5 h-3.5" />
                       {ch} (Sucesso)
                     </span>
                   ))}
-                  
-                  {/* Canais com falha */}
+
                   {Array.isArray(entry.failed_channels) && entry.failed_channels.map((ch: string) => (
                     <span
                       key={ch}
-                      className="flex items-center gap-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-2.5 py-1.5 rounded-lg font-medium animate-fade-in"
+                      className="flex items-center gap-1.5 text-xs bg-danger-bg text-danger-ink border border-danger/20 px-2.5 py-1.5 rounded-md font-medium animate-fade-in"
                     >
                       <ChannelLogo name={ch} size="w-3.5 h-3.5" />
                       {ch} (Falhou)
                     </span>
                   ))}
 
-                  {/* Fallback para histórico antigo sem campos detalhados */}
                   {!Array.isArray(entry.successful_channels) && !Array.isArray(entry.failed_channels) && (entry.channels || []).map((ch: string) => (
                     <span
                       key={ch}
-                      className="flex items-center gap-1.5 text-xs bg-white/5 text-[#F8FAFC] border border-white/5 px-2.5 py-1.5 rounded-lg font-medium"
+                      className="flex items-center gap-1.5 text-xs bg-surface-1 text-ink border border-line px-2.5 py-1.5 rounded-md font-medium"
                     >
                       <ChannelLogo name={ch} size="w-3.5 h-3.5" />
                       {ch}
                     </span>
                   ))}
-                  
-                  {(!entry.channels || entry.channels.length === 0) && 
+
+                  {(!entry.channels || entry.channels.length === 0) &&
                    (!entry.successful_channels || entry.successful_channels.length === 0) &&
                    (!entry.failed_channels || entry.failed_channels.length === 0) && (
-                    <span className="text-xs text-[#64748B] italic">Nenhum canal registrado.</span>
+                    <span className="text-xs text-ink-tertiary italic">Nenhum canal registrado.</span>
                   )}
                 </div>
               </div>
 
-              {/* Detalhes de Erros por Canal */}
               {Array.isArray(entry.dispatch_results) && entry.dispatch_results.some((r: any) => !r.success) && (
                 <div className="space-y-1.5 mt-2">
-                  <p className="text-xs font-bold text-[#94A3B8]">Erros por canal:</p>
+                  <p className="text-xs font-bold text-ink-secondary">Erros por canal:</p>
                   <div className="space-y-1">
                     {entry.dispatch_results.filter((r: any) => !r.success).map((r: any) => (
-                      <div key={r.channelId} className="flex items-start gap-2 p-2.5 bg-red-500/5 rounded-xl border border-red-550/10 text-[11px] text-red-400">
-                        <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div key={r.channelId} className="flex items-start gap-2 p-2.5 bg-danger-bg rounded-md border border-danger/20 text-[11px] text-danger-ink">
+                        <AlertCircle className="w-3.5 h-3.5 text-danger-ink flex-shrink-0 mt-0.5" />
                         <div>
                           <span className="font-bold">{r.channelName}: </span>
                           <span>{r.message}</span>
@@ -181,23 +171,22 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
                 </div>
               )}
 
-              {/* Error message geral (para compatibilidade antiga) */}
               {!Array.isArray(entry.dispatch_results) && entry.error && (
-                <div className="flex items-start gap-2 p-3 bg-red-500/5 rounded-xl border border-red-500/10 text-red-450">
-                  <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 bg-danger-bg rounded-md border border-danger/20 text-danger-ink">
+                  <AlertCircle className="w-3.5 h-3.5 text-danger-ink flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-red-400">Erro no envio</p>
-                    <p className="text-xs text-red-300 mt-0.5">{entry.error}</p>
+                    <p className="text-xs font-bold text-danger-ink">Erro no envio</p>
+                    <p className="text-xs text-danger-ink mt-0.5">{entry.error}</p>
                   </div>
                 </div>
               )}
 
               {/* Action buttons */}
-              <div className="flex items-center gap-2 pt-2 border-t border-white/[0.04]">
-                <button 
+              <div className="flex items-center gap-2 pt-2 border-t border-line">
+                <button
                   onClick={handleResendClick}
                   disabled={resending}
-                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 px-3 py-1.5 rounded-lg transition-colors border border-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-ink-inverse bg-graphite hover:bg-graphite-800 px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {resending ? (
                     <>
@@ -212,12 +201,9 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
                   )}
                 </button>
                 {entry.error && (
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast(`Erro no disparo: ${entry.error}`, 'error');
-                    }}
-                    className="flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/15 px-3 py-1.5 rounded-lg transition-colors border border-amber-500/20"
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toast(`Erro no disparo: ${entry.error}`, 'error'); }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-warning-ink hover:bg-warning/15 bg-warning-bg px-3 py-1.5 rounded-md transition-colors border border-warning/20 cursor-pointer"
                   >
                     <AlertTriangle className="w-3 h-3" />
                     Ver erro
@@ -244,7 +230,7 @@ const History: React.FC = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
+
       const { HistoryService } = await import('../services/HistoryService');
       const data = await HistoryService.getHistory(user.id);
       if (data) setHistory(data);
@@ -322,7 +308,6 @@ const History: React.FC = () => {
   });
 
   const totalClicks = history.reduce((sum, h) => sum + (h.clicks || 0), 0);
-  // 'sent' é alias legado de 'success' — ambos contam como sucesso na taxa
   const successRate = history.length > 0 ? Math.round(
     (history.filter(h => h.status === 'success' || h.status === 'sent').length / history.length) * 100
   ) : 0;
@@ -342,19 +327,19 @@ const History: React.FC = () => {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Disparos', value: history.length, icon: Send, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border border-indigo-500/20' },
-          { label: 'Cliques Gerados', value: totalClicks.toLocaleString('pt-BR'), icon: MousePointerClick, color: 'text-purple-400', bg: 'bg-purple-500/10 border border-purple-500/20' },
-          { label: 'Taxa de Sucesso', value: `${successRate}%`, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border border-emerald-500/20' },
+          { label: 'Total Disparos',    value: history.length,                     icon: Send,              accent: 'text-ink',         accentBg: 'bg-surface-1',   border: 'border-line' },
+          { label: 'Cliques Gerados',   value: totalClicks.toLocaleString('pt-BR'), icon: MousePointerClick, accent: 'text-mint-700',    accentBg: 'bg-ice',         border: 'border-mint-200' },
+          { label: 'Taxa de Sucesso',   value: `${successRate}%`,                  icon: CheckCircle2,      accent: 'text-success-ink', accentBg: 'bg-success-bg',  border: 'border-success/20' },
         ].map(stat => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} variant="metric" hoverable className="p-5 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center shadow-lg`}>
-                <Icon className={`w-5.5 h-5.5 ${stat.color}`} />
+              <div className={`w-12 h-12 rounded-2xl ${stat.accentBg} flex items-center justify-center border ${stat.border}`}>
+                <Icon className={`w-5.5 h-5.5 ${stat.accent}`} />
               </div>
               <div>
-                <p className="text-2xl font-black text-[#F8FAFC] tracking-tight">{stat.value}</p>
-                <p className="text-[13px] font-bold text-[#64748B]">{stat.label}</p>
+                <p className="text-2xl font-black text-ink tracking-tight tabular-nums font-display">{stat.value}</p>
+                <p className="text-[13px] font-semibold text-ink-secondary">{stat.label}</p>
               </div>
             </Card>
           );
@@ -363,9 +348,8 @@ const History: React.FC = () => {
 
       {/* Filters */}
       <Card variant="default" className="p-5 flex flex-col md:flex-row items-center gap-4">
-        {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
           <input
             type="text"
             placeholder="Buscar por nome da oferta..."
@@ -376,7 +360,6 @@ const History: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Status filter */}
           <div className="tab-container">
             {(['all', 'success', 'partial', 'error'] as const).map(s => (
               <button
@@ -389,7 +372,6 @@ const History: React.FC = () => {
             ))}
           </div>
 
-          {/* Date filter */}
           <div className="tab-container">
             {(['all', 'today', 'week'] as const).map(d => (
               <button

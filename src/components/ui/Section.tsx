@@ -27,26 +27,26 @@ export const Section: React.FC<SectionProps> = ({
   const isCompact = variant === 'compact';
 
   return (
-    <div className={`rounded-2xl border border-white/[0.06] bg-surface-2 overflow-hidden ${className}`}>
+    <div className={`rounded-2xl border border-line bg-surface-0 overflow-hidden ${className}`}>
       {hasHeader && (
         <div
-          className={`flex items-center gap-3 border-b border-white/[0.04] bg-surface-3/30 ${
+          className={`flex items-center gap-3 border-b border-line bg-surface-1 ${
             isCompact ? 'px-4 py-3' : 'px-6 py-4'
           } ${headerClassName}`}
         >
           {Icon && (
             <div
-              className={`rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center flex-shrink-0 ${
+              className={`rounded-xl bg-ice border border-mint-200 flex items-center justify-center flex-shrink-0 ${
                 isCompact ? 'w-8 h-8' : 'w-9 h-9'
               }`}
             >
-              <Icon className="w-4 h-4 text-brand-400" />
+              <Icon className="w-4 h-4 text-mint-700" />
             </div>
           )}
           <div className="min-w-0 flex-1">
             {title && (
               <h3
-                className={`font-bold text-slate-100 tracking-tight ${
+                className={`font-bold text-ink tracking-tight font-display ${
                   isCompact ? 'text-sm' : 'text-base'
                 }`}
               >
@@ -54,7 +54,7 @@ export const Section: React.FC<SectionProps> = ({
               </h3>
             )}
             {description && (
-              <p className="text-xs font-medium text-slate-400 mt-0.5">
+              <p className="text-xs font-medium text-ink-secondary mt-0.5">
                 {description}
               </p>
             )}
@@ -65,7 +65,7 @@ export const Section: React.FC<SectionProps> = ({
         {children}
       </div>
       {footer && (
-        <div className="px-6 py-4 border-t border-white/[0.04] bg-surface-1/40">
+        <div className="px-6 py-4 border-t border-line bg-surface-1">
           {footer}
         </div>
       )}

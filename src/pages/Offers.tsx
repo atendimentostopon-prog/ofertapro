@@ -216,7 +216,7 @@ const Offers: React.FC = () => {
       {/* Filters */}
       <Card className="p-4 space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
           <input
             type="text"
             placeholder="Buscar ofertas por nome..."
@@ -238,7 +238,7 @@ const Offers: React.FC = () => {
                 >
                   {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-                    statusFilter === s ? 'bg-brand-500/15 text-brand-300' : 'bg-surface-3/50 text-slate-500'
+                    statusFilter === s ? 'bg-ice text-mint-800' : 'bg-surface-1 text-ink-tertiary'
                   }`}>{statusCounts[s]}</span>
                 </button>
               ))}
@@ -248,9 +248,9 @@ const Offers: React.FC = () => {
             <select
               value={marketplaceFilter}
               onChange={e => setMarketplaceFilter(e.target.value as Marketplace | 'all')}
-              className="text-xs font-medium border border-white/[0.04] rounded-lg px-2.5 py-2 bg-surface-1 text-slate-100 outline-none focus:border-brand-500 cursor-pointer appearance-none"
+              className="text-xs font-medium border border-line rounded-md px-2.5 py-2 bg-surface-0 text-ink outline-none focus:border-mint-500 focus:shadow-focus cursor-pointer appearance-none"
               style={{
-                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
                 backgroundPosition: 'right 0.5rem center',
                 backgroundSize: '1rem',
                 backgroundRepeat: 'no-repeat',
@@ -259,7 +259,7 @@ const Offers: React.FC = () => {
               aria-label="Filtrar por marketplace"
             >
               {marketplaces.map(m => (
-                <option key={m.value} value={m.value} className="bg-surface-2">
+                <option key={m.value} value={m.value} className="bg-surface-0 text-ink">
                   {m.label}
                 </option>
               ))}
@@ -272,10 +272,10 @@ const Offers: React.FC = () => {
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border cursor-pointer ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border cursor-pointer ${
                   categoryFilter === cat
-                    ? 'bg-brand-500 text-white border-transparent shadow-sm'
-                    : 'bg-surface-1 text-slate-400 border-white/[0.04] hover:text-slate-200'
+                    ? 'bg-graphite text-ink-inverse border-graphite'
+                    : 'bg-surface-0 text-ink-secondary border-line hover:text-ink hover:border-line-strong'
                 }`}
               >
                 {cat}
@@ -343,29 +343,29 @@ const Offers: React.FC = () => {
 
       {/* Modal de confirmação de exclusão individual */}
       {deletingOffer && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setDeletingOffer(null)}>
-          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-graphite/48 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setDeletingOffer(null)}>
+          <div className="bg-surface-0 rounded-2xl border border-line shadow-lg p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
+              <div className="w-10 h-10 rounded-xl bg-danger-bg border border-danger/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-danger-ink" />
               </div>
-              <h4 className="text-sm font-semibold text-white">Excluir oferta?</h4>
+              <h4 className="text-sm font-semibold text-ink font-display">Excluir oferta?</h4>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-ink-secondary leading-relaxed">
               Essa ação não poderá ser desfeita. A oferta "{deletingOffer.name}" será removida permanentemente.
             </p>
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setDeletingOffer(null)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-md border border-line bg-surface-0 hover:bg-surface-1 text-ink text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-md bg-danger hover:bg-danger-ink text-ink-inverse text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>
@@ -383,20 +383,20 @@ const Offers: React.FC = () => {
 
       {/* Modal de confirmação de exclusão em lote */}
       {showDeleteAllModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => { if (!isDeletingAll) setShowDeleteAllModal(false); }}>
-          <div className="bg-surface-2 rounded-2xl border border-white/[0.06] shadow-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-graphite/48 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => { if (!isDeletingAll) setShowDeleteAllModal(false); }}>
+          <div className="bg-surface-0 rounded-2xl border border-line shadow-lg p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/8 border border-red-500/15 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
+              <div className="w-10 h-10 rounded-xl bg-danger-bg border border-danger/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-danger-ink" />
               </div>
-              <h4 className="text-sm font-semibold text-white">Excluir TODAS as ofertas?</h4>
+              <h4 className="text-sm font-semibold text-ink font-display">Excluir TODAS as ofertas?</h4>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-ink-secondary leading-relaxed">
               Você está prestes a excluir permanentemente <strong>{filtered.length} ofertas</strong> e suas respectivas mídias do storage. Essa ação é irreversível.
             </p>
             <div className="space-y-2">
-              <p className="text-[11px] text-slate-500">
-                Digite <strong>excluir</strong> abaixo para confirmar:
+              <p className="text-[11px] text-ink-tertiary">
+                Digite <strong className="text-ink">excluir</strong> abaixo para confirmar:
               </p>
               <input
                 type="text"
@@ -412,14 +412,14 @@ const Offers: React.FC = () => {
               <button
                 onClick={() => { setShowDeleteAllModal(false); setConfirmText(''); }}
                 disabled={isDeletingAll}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.06] bg-surface-1 hover:bg-surface-3 text-slate-300 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-md border border-line bg-surface-0 hover:bg-surface-1 text-ink text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteAllConfirm}
                 disabled={isDeletingAll || confirmText.toLowerCase() !== 'excluir'}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-red-900/40 text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-md bg-danger hover:bg-danger-ink text-ink-inverse text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {isDeletingAll ? (
                   <>
