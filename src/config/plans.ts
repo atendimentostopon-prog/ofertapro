@@ -30,9 +30,9 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
   starter: {
     name: 'starter',
     label: 'Plano Starter',
-    maxOffers: 100,
-    maxWhatsappConnections: 1,
-    maxTelegramConnections: 0,
+    maxOffers: 20000,
+    maxWhatsappConnections: 3,
+    maxTelegramConnections: 2,
     maxSourceGroups: 5,
     removeBranding: false,
     advancedAnalytics: true,
