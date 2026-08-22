@@ -151,17 +151,17 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
           <div className="relative">
             {!isFinished ? (
               <>
-                <div className="w-14 h-14 border-4 border-zinc-800 border-t-indigo-500 rounded-full animate-spin" />
+                <div className="w-14 h-14 border-4 border-line border-t-mint-500 rounded-full animate-spin" />
                 <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-mint-700 animate-pulse" />
               </>
             ) : (
-              <div className="w-14 h-14 rounded-full bg-success-bg border border-emerald-500/30 flex items-center justify-center text-success-ink">
+              <div className="w-14 h-14 rounded-full bg-success-bg border border-success/30 flex items-center justify-center text-success-ink">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
             )}
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-ink-inverse">
+            <h3 className="text-base font-bold text-ink">
               {isFinished ? 'Operação Concluída' : 'Processando Operação'}
             </h3>
             <p className="text-xs text-ink-secondary font-semibold">{progressText || 'Processando...'}</p>
@@ -197,7 +197,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             <AlertTriangle className="w-6 h-6 animate-bounce" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-ink-inverse">Upgrade Necessário 🚀</h3>
+            <h3 className="text-lg font-bold text-ink">Upgrade Necessário 🚀</h3>
             <p className="text-xs text-ink-secondary font-medium leading-relaxed">
               {limitsText} Faça o upgrade para o plano **Starter** ou **PRO** para desfrutar de ofertas e canais ilimitados, agendamentos futuros e templates avançados.
             </p>
@@ -209,7 +209,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 onClose();
                 navigate('/settings'); // Ir para as configurações / faturamento
               }}
-              className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-lg transition-colors flex items-center justify-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
               Fazer Upgrade
@@ -241,11 +241,11 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
     if (totalFailed === 0) {
       statusTitle = 'Oferta enviada com sucesso.';
       statusSubtitle = `Enviada para todos os ${totalSuccess} canal(is) selecionados.`;
-      statusColorClass = 'bg-emerald-950/20 border border-emerald-900/40 text-success-ink';
+      statusColorClass = 'bg-success-bg border border-success/25 text-success-ink';
     } else if (totalSuccess > 0) {
       statusTitle = 'Oferta enviada parcialmente.';
       statusSubtitle = `Enviada com sucesso para ${totalSuccess} de ${totalChannels} canal(is).`;
-      statusColorClass = 'bg-amber-950/20 border border-amber-900/40 text-warning-ink';
+      statusColorClass = 'bg-warning-bg border border-warning/25 text-warning-ink';
     } else {
       statusTitle = 'Oferta salva, mas o envio falhou.';
       statusSubtitle = `Ocorreu um erro no disparo para todos os ${totalChannels} canal(is).`;
@@ -264,7 +264,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             <div
               key={res.channelId}
               className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
-                res.success ? 'bg-emerald-950/10 border border-emerald-900/20' : 'bg-danger-bg/10 border border-red-900/20'
+                res.success ? 'bg-success-bg/40 border border-success/20' : 'bg-danger-bg/40 border border-danger/20'
               }`}
             >
               <div className="w-8 h-8 rounded-lg bg-surface-1 border border-line flex items-center justify-center shadow-sm text-sm">
@@ -277,7 +277,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     {res.success ? 'Sucesso' : 'Falhou'}
                   </span>
                 </div>
-                <p className={`text-[11px] mt-1 font-medium leading-relaxed ${res.success ? 'text-ink-secondary' : 'text-red-405'}`}>
+                <p className={`text-[11px] mt-1 font-medium leading-relaxed ${res.success ? 'text-ink-secondary' : 'text-danger-ink'}`}>
                   {res.message || res.errorMessage || 'Erro de conexão ou envio.'}
                 </p>
               </div>
@@ -292,7 +292,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               if (onSuccess) onSuccess();
               navigate('/history');
             }}
-            className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-md shadow-indigo-950/40 transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 btn-gradient text-ink-inverse font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
           >
             <ShieldCheck className="w-4 h-4" />
             Ver no Histórico
@@ -325,7 +325,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface-1 rounded-t-2xl">
           <div>
-            <h2 className="text-lg font-bold text-ink-inverse tracking-tight">
+            <h2 className="text-lg font-bold text-ink tracking-tight">
               {offerToEdit ? 'Editar Oferta' : 'Nova Oferta'}
             </h2>
             <p className="text-[11px] font-medium text-ink-secondary mt-0.5">Configure, salve e envie em lote com um clique</p>
@@ -352,7 +352,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         </div>
 
         {/* Formulário Principal */}
-        <div className="flex flex-col md:flex-row flex-1 divide-y md:divide-y-0 md:divide-x divide-white/5 overflow-y-auto md:overflow-hidden min-h-0">
+        <div className="flex flex-col md:flex-row flex-1 divide-y md:divide-y-0 md:divide-x divide-line overflow-y-auto md:overflow-hidden min-h-0">
           {/* Lado Esquerdo: Formulário */}
           <div ref={formContainerRef} className="w-full md:flex-1 px-6 py-4 space-y-4 md:overflow-y-auto md:h-full">
             {error && (
@@ -417,7 +417,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                               e.stopPropagation();
                               fileInputRef.current?.click();
                             }}
-                            className="bg-surface-0/90 hover:bg-surface-0 text-ink-inverse border border-line-strong px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
+                            className="bg-surface-0/90 hover:bg-surface-0 text-ink border border-line-strong px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
                           >
                             <RefreshCw className="w-3 h-3" />
                             Trocar Imagem
@@ -429,7 +429,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                               handleRemoveImage();
                               setImageLoadError(false);
                             }}
-                            className="bg-red-900/90 hover:bg-red-855 text-ink-inverse border border-danger/20 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
+                            className="bg-danger hover:bg-danger/90 text-ink-inverse border border-danger/20 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 shadow-md"
                           >
                             <X className="w-3 h-3" />
                             Remover Imagem
@@ -437,7 +437,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                         </div>
                         
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                          <span className="bg-surface-0 px-3 py-1.5 rounded-full shadow-lg text-ink-inverse border border-line text-[10px] font-bold flex items-center gap-1.5">
+                          <span className="bg-surface-0 px-3 py-1.5 rounded-full shadow-lg text-ink border border-line text-[10px] font-bold flex items-center gap-1.5">
                             <Upload className="w-3.5 h-3.5" />
                             Trocar por Arquivo Local
                           </span>
@@ -466,7 +466,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="text-[9px] text-ink-secondary hover:text-ink-inverse underline font-bold mt-0.5 mx-auto"
+                    className="text-[9px] text-ink-secondary hover:text-ink underline font-bold mt-0.5 mx-auto"
                   >
                     Remover imagem e continuar
                   </button>
@@ -593,9 +593,9 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                   className="input-modern text-xs"
                   disabled={loading || uploading}
                 >
-                  <option value="" className="bg-surface-0 text-ink-inverse">Selecione...</option>
+                  <option value="" className="bg-surface-0 text-ink">Selecione...</option>
                   {CATEGORIES.filter(cat => cat !== 'Todos').map(cat => (
-                    <option key={cat} value={cat} className="bg-surface-0 text-ink-inverse">{cat}</option>
+                    <option key={cat} value={cat} className="bg-surface-0 text-ink">{cat}</option>
                   ))}
                 </select>
               </div>
@@ -682,7 +682,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               )}
 
               {enrichWarnings.length > 0 && (
-                <div className="space-y-0.5 mt-1 bg-amber-950/20 p-2 rounded-lg border border-amber-900/30 text-[10px] font-semibold text-warning-ink animate-fade-in">
+                <div className="space-y-0.5 mt-1 bg-warning-bg p-2 rounded-lg border border-warning/25 text-[10px] font-semibold text-warning-ink animate-fade-in">
                   {enrichWarnings.map((w, idx) => (
                     <div key={idx} className="flex items-start gap-1">
                       <span>•</span>
@@ -707,7 +707,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     onClick={() => setForm({ ...form, marketplace: mp.value })}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
-                        ? 'border-mint-500 bg-graphite/20 text-indigo-350 shadow-sm'
+                        ? 'border-mint-500 bg-graphite/20 text-mint-800 shadow-sm'
                         : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-0/50'
                     }`}
                     disabled={loading || uploading}
@@ -762,7 +762,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {channelsLoading ? (
                   <div className="col-span-full flex items-center gap-2 py-3 text-xs text-ink-tertiary justify-center">
-                    <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                    <Loader2 className="w-4 h-4 animate-spin text-mint-500" />
                     Carregando canais...
                   </div>
                 ) : connectedChannels.length === 0 ? (
@@ -777,7 +777,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                         onClose();
                         navigate('/channels');
                       }}
-                      className="inline-block mt-2 text-xs font-bold text-mint-700 hover:text-indigo-350 hover:underline"
+                      className="inline-block mt-2 text-xs font-bold text-mint-700 hover:text-mint-800 hover:underline"
                     >
                       Ir para Canais →
                     </a>
@@ -789,13 +789,13 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     onClick={() => toggleChannel(ch.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl border text-left cursor-pointer transition-all ${
                       selectedChannels.includes(ch.id)
-                        ? 'border-mint-500 bg-graphite/20 text-indigo-305 shadow-sm'
+                        ? 'border-mint-500 bg-graphite/20 text-mint-800 shadow-sm'
                         : 'border-line bg-surface-1 hover:bg-surface-0/50'
                     }`}
                     disabled={loading || uploading}
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                      selectedChannels.includes(ch.id) ? 'bg-graphite border-indigo-600' : 'border-line-strong'
+                      selectedChannels.includes(ch.id) ? 'bg-graphite border-mint-500' : 'border-line-strong'
                     }`}>
                       {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-ink-inverse" />}
                     </div>
@@ -837,7 +837,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     </div>
                   )}
                   <p className="font-bold text-mint-700 text-[11px] mb-1">🔥 OFERTA ENCONTRADA</p>
-                  <p className="font-bold text-ink-inverse text-[11.5px] line-clamp-2 leading-tight mb-1.5">
+                  <p className="font-bold text-ink text-[11.5px] line-clamp-2 leading-tight mb-1.5">
                     {form.name || 'Nome do produto aparecerá aqui'}
                   </p>
                   
@@ -852,7 +852,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     </p>
                   )}
                   {discount > 0 && (
-                    <span className="inline-block bg-orange-500/10 text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded mt-1">
+                    <span className="inline-block bg-danger-bg text-danger-ink text-[9px] font-bold px-1.5 py-0.5 rounded mt-1">
                       💸 {discount}% OFF
                     </span>
                   )}
@@ -898,7 +898,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             <button
               onClick={() => handleSaveClick(false)}
               disabled={loading || uploading}
-              className="btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center gap-1.5 shadow-lg shadow-indigo-950/40"
+              className="btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center gap-1.5 shadow-lg"
             >
               <Send className="w-3.5 h-3.5" />
               Salvar e Disparar
