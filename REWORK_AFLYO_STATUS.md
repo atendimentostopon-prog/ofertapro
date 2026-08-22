@@ -1,8 +1,39 @@
 # Rework UX/UI Aflyo — Handoff
 
-Última atualização: 2026-08-22. 30 commits à frente de `main`. Fases 1-11 completas
-(Fundação, Shell, Componentes base, Auth, Dashboard, Páginas principais). Restam
-Task #12 (responsividade/a11y/QA formal) e Task #13 (limpeza final).
+Última atualização: 2026-08-22. **Reconciliado com a main e PR #10 aberto**,
+aguardando revisão/merge do usuário. Branch de trabalho mudou de
+`feat/rework-aflyo` para `integration/aflyo-visual-on-main`.
+
+---
+
+## 0. O que aconteceu nesta sessão (leia isto primeiro)
+
+A `main` avançou **73 commits em paralelo** enquanto o rework rodava na
+`feat/rework-aflyo` (30 commits): sistema de billing/checkout Cakto completo,
+correções de segurança P0-P2 (escalonamento de plano, vazamento de PII,
+backdoor de teste, idempotência de webhook, security headers), migração da
+sessão Supabase (`sb-linkoferta-auth` → `sb-aflyo-auth`), domínio real
+`aflyo.com.br`, e um refactor arquitetural (Settings virou tabs separadas,
+Login/Signup viraram páginas dedicadas).
+
+Merge direto do rework na main reverteria segurança e quebraria sessões
+ativas. Solução: nova branch `integration/aflyo-visual-on-main` criada a
+partir de `origin/main`, com `feat/rework-aflyo` mergeado por cima
+(`--no-commit --no-ff`), 33 arquivos em conflito resolvidos mantendo 100% da
+lógica/segurança/billing da main e reaplicando o design system Aflyo por
+cima. Mais 7 arquivos de billing/pricing que só existiam na main (nunca
+tocados pelo rework) foram estilizados do zero na sequência.
+
+**PR aberto:** https://github.com/atendimentostopon-prog/ofertapro/pull/10
+(`integration/aflyo-visual-on-main` → `main`). **Não mergeado ainda** —
+mergear é o que efetivamente coloca no ar (Vercel deploya a main
+automaticamente). Não mergear sem confirmação explícita do usuário.
+
+`npx tsc -b --noEmit` e `npm run build` limpos. `/login` e `/signup`
+verificados visualmente no navegador (Chrome DevTools MCP): só Google (sem
+Facebook), campos nome/telefone/e-mail/senha/confirmar senha, medidor de
+força de senha ao vivo, mensagem de mismatch de senha, sem cards flutuantes,
+sem badge de afiliados — tudo conforme pedido do usuário.
 
 ---
 
@@ -10,26 +41,25 @@ Task #12 (responsividade/a11y/QA formal) e Task #13 (limpeza final).
 
 - **Produto:** rebrand `DisparoFlow` → `Aflyo` (light-first, novo design system)
 - **Stack real:** React 19 + Vite + TypeScript + Tailwind 3 + Supabase (React Router 7, Lucide, Recharts). Nada de WordPress.
-- **Branch:** `feat/rework-aflyo`
-- **Worktree:** `D:\ofertapro-rework` — isolado de `D:\ofertapro` (main / feat/checkout-cakto)
-- **Base:** `origin/main` (commit `35a7bd3`)
+- **Branch atual:** `integration/aflyo-visual-on-main` (substituiu `feat/rework-aflyo` como branch de trabalho)
+- **Worktree:** `D:\ofertapro-rework`
+- **Base:** `origin/main` atual (pós billing+segurança), não mais o `35a7bd3` antigo
 
 ### Decisões macro (usuário confirmou explicitamente)
 
 1. Rebrand total — APP_NAME "Aflyo"
 2. Light-only — dark theme antigo morre
-3. Nova branch a partir do main — checkout-cakto em paralelo
-4. React/Vite/Tailwind — instruções WordPress do prompt original ignoradas
-5. Aflyo sobrepõe o design system DisparoFlow anterior
+3. Reconciliar com a main atual em vez de mergear a branch antiga direto ("pegue a main atual como base e replique")
+4. Push da branch de integração + abrir PR (não merge direto) — usuário escolheu revisar antes de ir pro ar
 
 ### Regras vigentes (a-f — memória permanente)
 
-- **(a)** 1 commit = 1 tema, `feat(rework): tema` / `fix(rework): tema` / `chore(rework): tema`
+- **(a)** 1 commit = 1 tema, `feat(rework): tema` / `fix(rework): tema` / `chore(rework): tema` / `merge: tema`
 - **(b)** Não deletar classes CSS globais até componentes-base cobrirem 100% dos usos
 - **(c)** Não mexer em lógica de dados (fetch/mutation/auth/RLS/dispatch/bot) sem consultar
 - **(d)** Sem Storybook / preview
 - **(e)** Sem unit tests novos, preservar existentes
-- **(f)** Pausar entre FASES inteiras — modo autônomo ativo: decidir e executar em cascata sem ficar perguntando, só reportar o resultado ao final
+- **(f)** Pausar entre FASES inteiras — modo autônomo ativo pra decisões de implementação, mas push/merge pra main pede confirmação explícita (blast radius de produção)
 
 ---
 
@@ -48,51 +78,46 @@ Space Grotesk (headings/`font-display`) + Inter (body/UI). Tokens completos em `
 
 ## 3. O que está feito
 
-**Fase 1 — Fundação:** assets, fontes, design tokens, CSS base, rebrand de textos. ✅
-**Task #8 — Shell:** Layout, Sidebar, TopBar, Loader, Notifications, Avatar, App bootError, FeedbackButton. ✅
-**Task #7 — Componentes base:** Button, Input, Textarea, Select, Card, PageHeader, EmptyState, ErrorState, LoadingState, ChannelLogo, MarketplaceLogo, Badge, ToastContext, MetricCard. ✅
-**Task #9 — Auth:** Login (Google/Facebook OAuth, aside social proof). ✅
-**Task #10 — Dashboard:** KPIs, OnboardingChecklist. ✅
-**Task #11 — Páginas principais:** Offers, Channels, Settings (perfil/vitrine/templates/conta/billing), PublicPage (vitrine pública), History, Feedbacks, AdminDashboard, BotTab, ApiIntegrationsTab, ConnectChannelModal, NewOfferModal, NewOfferPage, OnboardingModal, PublicPageSetupModal, ShopeeAutomationPage, páginas legais (Termos/Privacidade/Cookies), RedirectPage, ProductImage, CookieBanner, DebugSupabase. ✅
+Todo o app na branch `integration/aflyo-visual-on-main` está no tema light Aflyo,
+incluindo os componentes que só existiam na main e nunca tinham sido tocados
+pelo rework: `AccountTab`, `BillingTab`, `LinksTab`, `PublicPageTab`,
+`TemplatesTab`, `PaywallModal`, `CheckoutRedirectDialog`,
+`CheckoutWaitingDialog`, `ClaimSubscriptionDialog`, `Pricing.tsx`,
+`OnboardingWizardModal`, `ui/Modal`, `ui/Section`, `ui/Tabs`, `ui/Toggle`,
+Login/Signup/ForgotPassword/ResetPassword/AuthCallback com
+AuthLayout/GoogleButton/PasswordStrengthMeter compartilhados.
 
-### Bugs reais encontrados e corrigidos nesta sessão (não são só "cor errada")
+### Bugs reais encontrados e corrigidos (não são só "cor errada")
 
-1. **`text-ink-inverse` (branco) usado como texto principal sobre fundos claros** — bug sistemático que tornava texto invisível. Apareceu em dezenas de lugares (AdminDashboard inteiro, ApiIntegrationsTab inteiro, títulos de páginas legais, títulos de modais, preview de celular do onboarding, PublicPage). Corrigido em todos os pontos encontrados — verificado visualmente no navegador.
-2. **Inversão semântica de `surface-2`/`bg-graphite/etc` não propagada** — ao inverter o design system de dark-first para light-first, alguns lugares que dependiam de "surface-2 = escuro" (bug antigo) ficaram claros sem querer: opção de tema "Escuro/Dark" da vitrine pública (Settings + PublicPageSetupModal + PublicPage), painéis do DebugSupabase. Corrigido usando tons `graphite-*` explícitos onde a intenção era realmente escura.
-3. **Classes Tailwind inválidas** (shades que não existem: `red-405`, `red-855`, `red-650`, `slate-350`, `slate-750`, `slate-650`, `slate-850`, `rose-450`) — resultavam em nenhum estilo aplicado. Substituídas por tokens válidos.
-4. **Cards de oferta na vitrine pública** eram glassmorphism escuro (`bg-[#0d1527]/40` + `backdrop-blur`) — violava tanto "sem glass" quanto "cards brancos" do design system. Convertidos para `bg-surface-0` sólido.
-5. Diversos glows/gradientes roxo-índigo genéricos (`#7C3AED`, `#6366F1`, `#4F46E5`) trocados por mint/graphite em páginas que não são customização do vendedor.
+1. **`text-ink-inverse` (branco) usado como texto principal sobre fundos claros** — bug sistemático, invisível. Apareceu em código nunca tocado pelo rework (billing components, AdminDashboard, ApiIntegrationsTab, páginas legais).
+2. **Classes Tailwind inválidas** — dois tipos: shades inventados (`red-405`, `slate-750`, `indigo-650` etc.) E classes semânticas que nunca existiram no projeto (`text-caption`, `text-display`, `text-body`, `text-h2`, encontradas em `Pricing.tsx`). Sempre grep pra confirmar se a classe existe antes de assumir que é só cor errada.
+3. **`Dashboard.tsx` usava `limits.maxChannels`** — campo que não existe em `plans.ts` (o real é `maxWhatsappConnections + maxTelegramConnections`). Corrigido durante resolução de conflito.
+4. **Inversão semântica de `surface-2/3`** não propagada em alguns temas "Dark" de customização — corrigido com `graphite-*` explícito.
 
 ### Preservado de propósito (não são bugs)
 
-- **4 temas de cor da vitrine pública** (Clássico/Índigo/Esmeralda/Dark) em `PublicPage.tsx` — feature de customização do vendedor, banners com gradientes vivos intencionais, não residuo de marca.
-- **Cores de marca por canal** (WhatsApp verde `#25D366`, Telegram azul `#0088cc`, Discord `#5865F2`, Facebook `#1877F2`) em ConnectChannelModal, PublicPage, Login — identidade real de terceiros.
-- **Chips de feedback por tipo** (bug=rose, sugestão=amber, dúvida=sky, elogio=pink) em FeedbackButton — semânticos.
-- **Bezels de mockup de celular** (`border-slate-800`, `bg-[#0b0c10]`) em NewOfferModal/NewOfferPage/PublicPageSetupModal — moldura de hardware, correta ficar escura independente do tema.
+- 4 temas de cor da vitrine pública (Clássico/Índigo/Esmeralda/Dark) em `PublicPage.tsx` — feature de customização do vendedor
+- Cores de marca por canal/serviço (WhatsApp, Telegram, Discord, Google, Cakto)
+- Bezels de mockup de celular escuros (moldura de hardware)
 
 ---
 
 ## 4. O que falta
 
-### Task #12 — Responsividade + Acessibilidade + QA visual formal
+### Antes ou depois do merge do PR #10
 
-Verificado ad-hoc via browser em 1440px (desktop). Falta passar formalmente por
+- Revisão visual de páginas que exigem login (Dashboard, Settings todas as abas, Pricing, Offers, Channels) — só `/login` e `/signup` foram verificados no navegador nesta sessão
+
+### Task #12 — Responsividade + Acessibilidade + QA visual formal (pendente, herdado da branch antiga)
+
+Verificado ad-hoc via browser em 1440/1920px (desktop). Falta passar formalmente por
 1280/1024/768/480/375, contraste WCAG AA sistemático, navegação por teclado/focus-visible
 em todos os interativos, e revisar mobile drawer/sidebar.
 
-### Task #13 — Limpeza final
+### Task #13 — Limpeza final (pendente, herdado da branch antiga)
 
-- Remover alias `brand.*` do `tailwind.config.js` se nenhuma page mais usar `bg-brand-*`/`text-brand-*` (ainda usado em alguns pontos de `NewOfferPage.tsx`/`NewOfferModal.tsx` como estado selecionado — funciona via alias, não é bug, mas fica pendente migrar para `mint-*` direto antes de remover o alias)
-- Grep final por `#0A0A0F`, `#080B14`, `#070A12` remanescentes (rota `/debug-boot`, `ProtectedRoute` e afins já limpos; phone bezels ficam de propósito)
-- Screenshot estático `/public/shopee-guide/step4.png` (tutorial Shopee, Passo 4) mostra a UI **antiga** e escura do BotTab — precisa ser recapturado da tela atual (não é código, é asset de imagem; requer sessão logada em `/settings` aba Bot para printar de novo)
-
-### Não verificado nesta sessão (requer login)
-
-Dashboard, Settings (todas as abas), Offers, Channels, History, Feedbacks, AdminDashboard
-foram revisados por código e já estavam corretos em sessões anteriores, mas não foram
-reabertos visualmente nesta sessão (só Login, páginas legais, Shopee tutorial e vitrine
-pública "não encontrada" foram confirmados no navegador, que são as rotas públicas
-acessíveis sem autenticação).
+- Remover alias `brand.*` do `tailwind.config.js` se nenhuma page mais usar `bg-brand-*`/`text-brand-*`
+- Screenshot estático `/public/shopee-guide/step4.png` mostra a UI **antiga** e escura do BotTab — precisa ser recapturado
 
 ---
 
@@ -100,14 +125,13 @@ acessíveis sem autenticação).
 
 ```bash
 cd /d/ofertapro-rework
-git status --short              # deve estar limpo
-git log --oneline main..HEAD | wc -l   # 30 commits
+gh pr view 10                    # checar se ainda está aberto ou já foi mergeado
+git status --short               # deve estar limpo
+git branch --show-current        # deve ser integration/aflyo-visual-on-main
 
 npm run dev
-# rotas publicas pra smoke test sem login: /login, /termos-de-uso,
-# /politica-de-privacidade, /politica-de-cookies, /automatizacao-shopee,
-# /u/qualquer-slug-inexistente, /debug-boot
 ```
 
-Próxima sessão: Task #12 (breakpoints formais + a11y) e Task #13 (cleanup do alias
-brand.* + recapturar screenshot do tutorial Shopee).
+Se o PR #10 já foi mergeado/fechado, este handoff está obsoleto — reescrever
+do zero a partir do estado real da `main`. Se ainda aberto, próxima sessão:
+revisão visual das páginas autenticadas, depois Task #12/#13.
