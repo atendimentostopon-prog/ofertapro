@@ -682,14 +682,14 @@ const Settings: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink-inverse tracking-tight">Configurações</h1>
-          <p className="text-[15px] font-medium text-[#94A3B8] mt-1">Gerencie seu perfil, planos e templates de disparo</p>
+          <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Configurações</h1>
+          <p className="text-[15px] font-medium text-ink-secondary mt-1">Gerencie seu perfil, planos e templates de disparo</p>
         </div>
         {['account', 'profile', 'links'].includes(activeTab) && (
           <button
             onClick={handleSave}
             disabled={saving}
-            className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg shadow-indigo-950/40 disabled:opacity-50"
+            className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg  disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -748,8 +748,8 @@ const Settings: React.FC = () => {
                 />
                 <div 
                   onClick={() => !uploadingPublicAvatar && publicAvatarInputRef.current?.click()}
-                  className={`w-20 h-20 rounded-2xl overflow-hidden bg-[#101827] border transition-all duration-300 cursor-pointer ${
-                    uploadingPublicAvatar ? 'border-mint-500' : 'border-white/10 shadow-md group-hover:border-mint-500'
+                  className={`w-20 h-20 rounded-2xl overflow-hidden bg-surface-0 border transition-all duration-300 cursor-pointer ${
+                    uploadingPublicAvatar ? 'border-mint-500' : 'border-line-strong shadow-md group-hover:border-mint-500'
                   }`}
                 >
                   {uploadingPublicAvatar ? (
@@ -773,7 +773,7 @@ const Settings: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <h4 className="text-[13px] font-bold text-ink">Foto da Vitrine</h4>
-                <p className="text-[11px] text-[#94A3B8] max-w-xs leading-normal">Carregue a foto que aparecerá no topo do seu catálogo público.</p>
+                <p className="text-[11px] text-ink-secondary max-w-xs leading-normal">Carregue a foto que aparecerá no topo do seu catálogo público.</p>
               </div>
             </div>
 
@@ -815,7 +815,7 @@ const Settings: React.FC = () => {
             </Field>
 
             {/* URL Actions */}
-            <div className="flex flex-wrap items-center gap-3 p-3 bg-[#0B1020]/50 rounded-xl border border-white/5">
+            <div className="flex flex-wrap items-center gap-3 p-3 bg-surface-1 rounded-xl border border-line">
               <Globe className="w-4 h-4 text-ink-tertiary" />
               <span className="text-xs text-mint-700 font-bold flex-1 truncate">{window.location.origin}/u/{username}</span>
               <button
@@ -838,7 +838,7 @@ const Settings: React.FC = () => {
             <Field label="Tema de Cores">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
+                  { id: 'default', name: 'Clássico', color: 'bg-graphite' },
                   { id: 'indigo', name: 'Índigo', color: 'bg-graphite' },
                   { id: 'emerald', name: 'Esmeralda', color: 'bg-mint-500' },
                   { id: 'dark', name: 'Escuro/Dark', color: 'bg-surface-2' }
@@ -850,7 +850,7 @@ const Settings: React.FC = () => {
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-center transition-all ${
                       publicTheme === t.id 
                         ? 'border-mint-500 bg-graphite/25 text-mint-800 shadow-sm' 
-                        : 'border-white/5 bg-[#0B1020]/50 text-ink-secondary hover:bg-[#101827]/50'
+                        : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-0/50'
                     }`}
                   >
                     <div className={`w-3.5 h-3.5 rounded-full ${t.color}`} />
@@ -861,10 +861,10 @@ const Settings: React.FC = () => {
             </Field>
 
             {/* Status Switch */}
-            <div className="flex items-center justify-between py-2 border-t border-white/5 mt-4 pt-4">
+            <div className="flex items-center justify-between py-2 border-t border-line mt-4 pt-4">
               <div>
                 <p className="text-xs font-bold text-ink">Status da Página Pública</p>
-                <p className="text-[11px] text-[#94A3B8] mt-0.5">Disponibilizar vitrine na internet.</p>
+                <p className="text-[11px] text-ink-secondary mt-0.5">Disponibilizar vitrine na internet.</p>
               </div>
               <button
                 type="button"
@@ -889,7 +889,7 @@ const Settings: React.FC = () => {
                 type="text"
                 value={whatsappGroupUrl}
                 onChange={e => { setWhatsappGroupUrl(e.target.value); setWhatsappError(false); }}
-                className={`input-modern text-xs ${whatsappError ? 'border-red-500 bg-danger-bg/10' : ''}`}
+                className={`input-modern text-xs ${whatsappError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: chat.whatsapp.com/ABC123xyz"
               />
               {whatsappError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de grupo ou conversa do WhatsApp válido.</p>}
@@ -900,7 +900,7 @@ const Settings: React.FC = () => {
                 type="text"
                 value={telegramGroupUrl}
                 onChange={e => { setTelegramGroupUrl(e.target.value); setTelegramError(false); }}
-                className={`input-modern text-xs ${telegramError ? 'border-red-500 bg-danger-bg/10' : ''}`}
+                className={`input-modern text-xs ${telegramError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: t.me/meucanal"
               />
               {telegramError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite ou grupo do Telegram válido.</p>}
@@ -911,7 +911,7 @@ const Settings: React.FC = () => {
                 type="text"
                 value={discordGroupUrl}
                 onChange={e => { setDiscordGroupUrl(e.target.value); setDiscordError(false); }}
-                className={`input-modern text-xs ${discordError ? 'border-red-500 bg-danger-bg/10' : ''}`}
+                className={`input-modern text-xs ${discordError ? 'border-danger bg-danger-bg/40' : ''}`}
                 placeholder="Ex: discord.gg/abcde"
               />
               {discordError && <p className="text-xs text-rose-500 font-bold mt-1">O link inserido deve ser um link de convite do Discord válido.</p>}
@@ -929,16 +929,16 @@ const Settings: React.FC = () => {
             {/* Limit Check: Planos Free não suportam custom templates */}
             {!limits.customTemplates && (
               <div className="p-4 bg-surface-1/20 border border-mint-200/40 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-mint-700 flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-surface-0 border border-line flex items-center justify-center text-mint-700 flex-shrink-0">
                   <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="flex-1 space-y-1">
                   <h4 className="text-xs font-bold text-ink">Customização disponível no plano Starter! 🚀</h4>
-                  <p className="text-[11px] text-[#94A3B8] font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
+                  <p className="text-[11px] text-ink-secondary font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
                 </div>
                 <button
                   onClick={() => setActiveTab('billing')}
-                  className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors shadow-md shadow-indigo-900/40 flex-shrink-0"
+                  className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors shadow-sm flex-shrink-0"
                 >
                   Fazer Upgrade
                 </button>
@@ -946,7 +946,7 @@ const Settings: React.FC = () => {
             )}
 
             {/* Documentação na UI */}
-            <div className="p-4 bg-[#0B1020]/45 rounded-2xl border border-white/5 space-y-2 mb-2">
+            <div className="p-4 bg-surface-1 rounded-2xl border border-line space-y-2 mb-2">
               <p className="text-[11.5px] text-ink-secondary font-medium leading-relaxed">
                 ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-white/5 px-1 py-0.5 rounded text-mint-800 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-white/5 px-1 py-0.5 rounded text-mint-800 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-white/5 px-1 py-0.5 rounded text-mint-800 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-white/5 px-1 py-0.5 rounded text-mint-800 font-mono text-[10px]">{`{cupom_linha}`}</code>.
               </p>
@@ -1000,7 +1000,7 @@ const Settings: React.FC = () => {
                       }}
                       disabled={!limits.customTemplates || loadingTemplates}
                       rows={10}
-                      className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-[#070A12]/50 cursor-not-allowed text-ink-tertiary border-white/5' : ''}`}
+                      className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-surface-1 cursor-not-allowed text-ink-tertiary border-line' : ''}`}
                     />
                   </div>
                 </Field>
@@ -1093,7 +1093,7 @@ const Settings: React.FC = () => {
                     type="button"
                     disabled={!limits.customTemplates || loadingTemplates || restoringTemplate || savingTemplates}
                     onClick={handleRestoreDefaultTemplate}
-                    className="px-3.5 py-2 border border-white/5 hover:border-white/10 hover:bg-white/5 rounded-xl text-[11px] font-bold text-ink bg-[#101827] transition-all disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-3.5 py-2 border border-line hover:border-line-strong hover:bg-surface-1 rounded-xl text-[11px] font-bold text-ink bg-surface-0 transition-all disabled:opacity-50 flex items-center gap-1.5"
                   >
                     {restoringTemplate ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                     Restaurar Padrão
@@ -1117,7 +1117,7 @@ const Settings: React.FC = () => {
                     type="button"
                     disabled={!limits.customTemplates || loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
                     onClick={handleSaveTemplates}
-                    className="ml-auto px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-900/40"
+                    className="ml-auto px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                   >
                     {savingTemplates ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1132,12 +1132,12 @@ const Settings: React.FC = () => {
               </div>
 
               {/* Lado Direito: Preview da Mensagem */}
-              <div className="md:col-span-4 space-y-3 bg-[#0B1020]/30 rounded-xl p-4 border border-white/5 flex flex-col justify-between">
+              <div className="md:col-span-4 space-y-3 bg-surface-1 rounded-xl p-4 border border-line flex flex-col justify-between">
                 <div>
                   <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider mb-2.5">Preview no Canal</p>
                   
                   {/* Bubble Preview */}
-                  <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-[#070A12]/80 border border-white/5 p-3.5 shadow-sm rounded-xl text-ink ${
+                  <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-surface-1/80 border border-line p-3.5 shadow-sm rounded-xl text-ink ${
                     currentEditingTemplateTab === 'discord' ? 'border-l-4 border-l-indigo-500' : ''
                   }`}>
                     {currentEditingTemplateTab === 'discord' && (
@@ -1209,12 +1209,12 @@ const Settings: React.FC = () => {
         <div className="space-y-6">
           <SettingsSection title="Planos & Cobrança" description="Status do seu plano de faturamento no Aflyo" icon={CreditCard}>
             <div className="p-6 bg-surface-1/20 border border-mint-200/40 rounded-2xl flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#101827] border border-white/5 flex items-center justify-center text-mint-700 flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-0 border border-line flex items-center justify-center text-mint-700 flex-shrink-0">
                 <Sparkles className="w-5 h-5 animate-pulse" />
               </div>
               <div className="space-y-1.5 font-medium">
-                <h4 className="text-sm font-bold text-ink-inverse">Plano Beta Gratuito Ativo 🚀</h4>
-                <p className="text-xs text-[#94A3B8] leading-relaxed">
+                <h4 className="text-sm font-bold text-ink font-display">Plano Beta Gratuito Ativo 🚀</h4>
+                <p className="text-xs text-ink-secondary leading-relaxed">
                   O Aflyo está atualmente em fase de testes beta pública e é 100% gratuito. Todos os recursos PRO estão liberados por padrão para a sua conta, sem bloqueios de uso, limites de ofertas cadastradas ou restrições nos canais conectados.
                 </p>
                 <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-ice border border-mint-200 text-[11px] font-bold text-mint-700 rounded-xl">
@@ -1231,7 +1231,7 @@ const Settings: React.FC = () => {
       {activeTab === 'account' && (
         <div className="space-y-6">
           <SettingsSection title="Configurações da Conta" description="Suas informações internas e de contato no Aflyo" icon={UserIcon}>
-            <div className="flex items-center gap-5 p-4 bg-[#0B1020]/50 rounded-2xl border border-white/5 mb-2">
+            <div className="flex items-center gap-5 p-4 bg-surface-1 rounded-2xl border border-line mb-2">
               <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
                 <input
                   type="file"
@@ -1240,7 +1240,7 @@ const Settings: React.FC = () => {
                   accept="image/*"
                   className="hidden"
                 />
-                <div className={`w-14 h-14 rounded-full overflow-hidden bg-[#101827] border border-white/10 flex-shrink-0 shadow-inner group-hover:border-mint-500 transition-all ${
+                <div className={`w-14 h-14 rounded-full overflow-hidden bg-surface-0 border border-line-strong flex-shrink-0 shadow-inner group-hover:border-mint-500 transition-all ${
                   uploadingAvatar ? 'opacity-50' : ''
                 }`}>
                   {uploadingAvatar ? (
@@ -1262,8 +1262,8 @@ const Settings: React.FC = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-ink-inverse truncate">{preferredName || fullName || 'Usuário'}</p>
-                <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
+                <p className="text-sm font-bold text-ink truncate">{preferredName || fullName || 'Usuário'}</p>
+                <p className="text-xs text-ink-secondary truncate">{user.email}</p>
               </div>
             </div>
 
@@ -1301,7 +1301,7 @@ const Settings: React.FC = () => {
                 type="email"
                 value={user.email}
                 disabled
-                className="input-modern bg-[#070A12]/50 text-ink-tertiary border-white/5 cursor-not-allowed text-xs"
+                className="input-modern bg-surface-1 text-ink-tertiary border-line cursor-not-allowed text-xs"
               />
             </Field>
 
@@ -1310,12 +1310,12 @@ const Settings: React.FC = () => {
                 type="text"
                 value={user.id}
                 disabled
-                className="input-modern bg-[#070A12]/50 text-ink-tertiary border-white/5 font-mono text-[10px] cursor-not-allowed"
+                className="input-modern bg-surface-1 text-ink-tertiary border-line font-mono text-[10px] cursor-not-allowed"
               />
             </Field>
 
             {/* Logout button */}
-            <div className="pt-4 border-t border-white/5">
+            <div className="pt-4 border-t border-line">
               <button
                 type="button"
                 onClick={async () => {

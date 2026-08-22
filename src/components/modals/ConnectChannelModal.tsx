@@ -235,7 +235,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-content w-full max-w-md border border-white/5 bg-[#101827]"
+        className="modal-content w-full max-w-md border border-line bg-surface-0"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -259,22 +259,22 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
         <div className="p-6">
           {step === 'connected' ? (
             <div className="flex flex-col items-center py-8 gap-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Check className="w-8 h-8 text-emerald-400" />
+              <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center">
+                <Check className="w-8 h-8 text-success-ink" />
               </div>
-              <p className="text-lg font-bold text-white">Canal Conectado!</p>
-              <p className="text-sm text-slate-400 text-center">O canal foi adicionado com sucesso ao Aflyo.</p>
+              <p className="text-lg font-bold text-ink font-display">Canal Conectado!</p>
+              <p className="text-sm text-ink-secondary text-center">O canal foi adicionado com sucesso ao Aflyo.</p>
             </div>
           ) : step === 'connecting' ? (
             <div className="flex flex-col items-center py-8 gap-4">
-              <div className="w-12 h-12 rounded-full border-4 border-zinc-800 border-t-indigo-500 animate-spin" />
-              <p className="text-sm font-medium text-slate-400">Validando conexão...</p>
+              <div className="w-12 h-12 rounded-full border-4 border-line border-t-mint-500 animate-spin" />
+              <p className="text-sm font-medium text-ink-secondary">Validando conexão...</p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Common Name Field */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200">Nome do Canal</label>
+                <label className="text-sm font-medium text-ink">Nome do Canal</label>
                 <input
                   type="text"
                   placeholder="Ex: Canal de Ofertas VIP"
@@ -282,13 +282,13 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                   onChange={e => setName(e.target.value)}
                   className="input-modern text-sm"
                 />
-                <p className="text-xs text-slate-500">Dê um nome para identificar este canal</p>
+                <p className="text-xs text-ink-tertiary">Dê um nome para identificar este canal</p>
               </div>
 
               {/* WhatsApp Config Warning */}
               {type === 'whatsapp' && step === 'form' && !isEvolutionConfigured && (
-                <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-4 text-xs text-amber-400 space-y-1.5 leading-relaxed">
-                  <p className="font-bold flex items-center gap-1.5 text-amber-300">
+                <div className="bg-warning-bg border border-warning/30 rounded-xl p-4 text-xs text-warning-ink space-y-1.5 leading-relaxed">
+                  <p className="font-bold flex items-center gap-1.5">
                     ⚠️ Evolution API não configurada
                   </p>
                   <p>Adicione as variáveis <strong>VITE_EVOLUTION_URL</strong> e <strong>VITE_EVOLUTION_API_KEY</strong> no seu arquivo <strong>.env</strong> para habilitar conexões via QR Code.</p>
@@ -300,31 +300,31 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                 <div className="space-y-5">
                   <div className="flex flex-col items-center gap-3">
                     <div className="relative">
-                      <div className={`w-40 h-40 rounded-2xl border border-white/5 bg-[#0B1020]/50 p-3 flex items-center justify-center ${loading ? 'opacity-50' : ''}`}>
+                      <div className={`w-40 h-40 rounded-2xl border border-line bg-surface-1 p-3 flex items-center justify-center ${loading ? 'opacity-50' : ''}`}>
                         {qrCode ? (
                           <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full" />
                         ) : (
-                          <div className="w-8 h-8 border-2 border-slate-700 border-t-white rounded-full animate-spin" />
+                          <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
                         )}
                       </div>
                       {loading && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-mint-500 border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
                     </div>
                     <button
                       onClick={handleRefreshQR}
-                      className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-ink-tertiary hover:text-ink-secondary transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Atualizar QR Code
                     </button>
                   </div>
 
-                  <div className="bg-green-950/15 border border-green-900/35 rounded-xl p-4 space-y-2">
-                    <p className="text-sm font-semibold text-green-400">Como conectar:</p>
-                    <ol className="text-xs text-green-500 space-y-1.5 leading-relaxed">
+                  <div className="bg-success-bg border border-success/25 rounded-xl p-4 space-y-2">
+                    <p className="text-sm font-semibold text-success-ink">Como conectar:</p>
+                    <ol className="text-xs text-success-ink/85 space-y-1.5 leading-relaxed">
                       <li>1. Abra o WhatsApp no seu celular</li>
                       <li>2. Vá em Configurações → Dispositivos Conectados</li>
                       <li>3. Toque em "Conectar um dispositivo"</li>
@@ -339,7 +339,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                 <div className="space-y-4">
                   {/* Bot Token com mostrar/ocultar */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200">Bot Token</label>
+                    <label className="text-sm font-medium text-ink">Bot Token</label>
                     <div className="relative">
                       <input
                         type={showToken ? 'text' : 'password'}
@@ -351,18 +351,18 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                       <button
                         type="button"
                         onClick={() => setShowToken(!showToken)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-350 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink transition-colors"
                         title={showToken ? 'Ocultar token' : 'Mostrar token'}
                       >
                         {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-500">Gerado pelo @BotFather no Telegram</p>
+                    <p className="text-xs text-ink-tertiary">Gerado pelo @BotFather no Telegram</p>
                   </div>
 
                   {/* Chat ID */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200">Chat ID ou @username do canal</label>
+                    <label className="text-sm font-medium text-ink">Chat ID ou @username do canal</label>
                     <input
                       type="text"
                       placeholder="Ex: -100123456789 ou @meucanal"
@@ -370,13 +370,13 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                       onChange={e => { setIdentifier(e.target.value); setValidationError(null); }}
                       className="input-modern font-mono text-xs"
                     />
-                    <p className="text-xs text-slate-500">ID numérico do grupo/canal ou @username público</p>
+                    <p className="text-xs text-ink-tertiary">ID numérico do grupo/canal ou @username público</p>
                   </div>
 
                   {/* Instruções passo a passo */}
-                  <div className="bg-sky-950/15 border border-sky-900/35 rounded-xl p-4 text-xs text-sky-400 leading-relaxed">
-                    <p className="font-bold mb-2 text-sky-300">📋 Como configurar:</p>
-                    <ol className="space-y-1.5 list-decimal list-inside">
+                  <div className="bg-info-bg border border-info/25 rounded-xl p-4 text-xs text-info-ink leading-relaxed">
+                    <p className="font-bold mb-2">📋 Como configurar:</p>
+                    <ol className="space-y-1.5 list-decimal list-inside text-info-ink/85">
                       <li>Crie um bot no Telegram usando <strong>@BotFather</strong></li>
                       <li>Copie o <strong>Bot Token</strong> gerado</li>
                       <li>Adicione o bot como <strong>administrador</strong> do canal ou grupo</li>
@@ -388,8 +388,8 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
 
                   {/* Erro de validação */}
                   {validationError && (
-                    <div className="flex items-start gap-2 bg-red-950/20 border border-red-900/40 rounded-xl p-3 text-xs text-red-400">
-                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 bg-danger-bg border border-danger/25 rounded-xl p-3 text-xs text-danger-ink">
+                      <AlertCircle className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
                       <span>{validationError}</span>
                     </div>
                   )}
@@ -399,7 +399,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
               {/* ===== DISCORD — Webhook URL ===== */}
               {type === 'discord' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">{cfg.label}</label>
+                  <label className="text-sm font-medium text-ink">{cfg.label}</label>
                   <input
                     type="text"
                     placeholder={cfg.placeholder}
@@ -407,11 +407,11 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                     onChange={e => { setIdentifier(e.target.value); setValidationError(null); }}
                     className="input-modern font-mono text-xs"
                   />
-                  <p className="text-xs text-slate-500">{cfg.helper}</p>
+                  <p className="text-xs text-ink-tertiary">{cfg.helper}</p>
 
-                  <div className="bg-indigo-950/15 border border-indigo-900/35 rounded-xl p-4 text-xs text-indigo-400 leading-relaxed">
-                    <p className="font-bold mb-1 text-indigo-300">Passo a passo:</p>
-                    <ol className="space-y-1 list-decimal list-inside">
+                  <div className="bg-info-bg border border-info/25 rounded-xl p-4 text-xs text-info-ink leading-relaxed">
+                    <p className="font-bold mb-1">Passo a passo:</p>
+                    <ol className="space-y-1 list-decimal list-inside text-info-ink/85">
                       <li>Vá em Configurações do Canal → Integrações</li>
                       <li>Crie um novo Webhook</li>
                       <li>Copie a URL e cole no campo acima</li>
@@ -419,8 +419,8 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                   </div>
 
                   {validationError && (
-                    <div className="flex items-start gap-2 bg-red-950/20 border border-red-900/40 rounded-xl p-3 text-xs text-red-400">
-                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 bg-danger-bg border border-danger/25 rounded-xl p-3 text-xs text-danger-ink">
+                      <AlertCircle className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
                       <span>{validationError}</span>
                     </div>
                   )}
@@ -437,7 +437,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                     (type === 'discord' && !identifier) ||
                     loading
                   }
-                  className="w-full btn-gradient text-sm py-3.5 mt-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-950/40"
+                  className="w-full btn-gradient text-sm py-3.5 mt-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
