@@ -59,6 +59,20 @@ serve(async (req: Request) => {
       console.error("[cancel] Cakto retornou erro:", cancelRes.status, body);
       return new Response(`Cakto: ${cancelRes.status}`, { status: 502 });
     }
+
+    // Grava o cancelamento no nosso banco já aqui, sem esperar o webhook
+    // subscription_canceled voltar da Cakto — evita a tela de billing mostrar
+    // "próxima cobrança" por vários segundos/minutos depois do usuário confirmar.
+    // O webhook, quando chegar, só reaplica o mesmo estado (idempotente).
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    await admin.from("subscriptions").update({
+      cancel_at_period_end: true,
+      canceled_at: new Date().toISOString(),
+    }).eq("cakto_subscription_id", subscription_id);
+
     return new Response("OK", { status: 200 });
   } catch (e) {
     console.error("[cancel] erro:", e);
