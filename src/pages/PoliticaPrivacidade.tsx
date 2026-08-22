@@ -17,34 +17,34 @@ const PoliticaPrivacidade: React.FC = () => {
         <div className="flex items-center justify-between mb-10 pb-6 border-b border-line">
           <button
             onClick={() => window.close()}
-            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink-inverse transition-colors"
+            className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </button>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-mint-700" />
-            <span className="text-sm font-extrabold text-ink-inverse tracking-tight">Aflyo</span>
+            <span className="text-sm font-extrabold text-ink tracking-tight">Aflyo</span>
           </div>
         </div>
 
         {/* Content */}
         <div className="bg-surface-0/60 backdrop-blur-xl border border-line rounded-3xl p-8 sm:p-12 space-y-6 shadow-2xl">
           <div>
-            <h1 className="text-3xl font-black text-ink-inverse tracking-tight mb-2">Política de Privacidade</h1>
+            <h1 className="text-3xl font-black text-ink tracking-tight mb-2">Política de Privacidade</h1>
             <p className="text-xs text-ink-tertiary font-semibold">Última atualização: 17 de junho de 2026</p>
           </div>
 
           <div className="space-y-6 text-sm text-ink-secondary leading-relaxed">
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">1. Introdução e Escopo</h2>
+              <h2 className="text-base font-extrabold text-ink">1. Introdução e Escopo</h2>
               <p>
                 O <strong>Aflyo</strong> tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">2. Dados que Coletamos</h2>
+              <h2 className="text-base font-extrabold text-ink">2. Dados que Coletamos</h2>
               <p>
                 Coletamos informações essenciais para o funcionamento e a segurança do serviço:
               </p>
@@ -56,7 +56,7 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">3. Finalidade do Uso dos Dados</h2>
+              <h2 className="text-base font-extrabold text-ink">3. Finalidade do Uso dos Dados</h2>
               <p>
                 Os seus dados são utilizados estritamente para as seguintes finalidades:
               </p>
@@ -70,7 +70,7 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">4. Provedores de Serviços Terceirizados</h2>
+              <h2 className="text-base font-extrabold text-ink">4. Provedores de Serviços Terceirizados</h2>
               <p>
                 Compartilhamos dados exclusivamente com serviços terceirizados essenciais que garantem a infraestrutura e segurança do Aflyo:
               </p>
@@ -81,21 +81,21 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">5. Cookies</h2>
+              <h2 className="text-base font-extrabold text-ink">5. Cookies</h2>
               <p>
                 Utilizamos cookies de sessão essenciais para mantê-lo autenticado de forma segura no painel e salvar suas preferências de exibição de layout. O consentimento e gerenciamento de cookies podem ser definidos por meio do nosso banner de cookies. Detalhes estão disponíveis em nossa Política de Cookies.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">6. Retenção e Exclusão de Dados</h2>
+              <h2 className="text-base font-extrabold text-ink">6. Retenção e Exclusão de Dados</h2>
               <p>
                 Os dados são mantidos pelo tempo que sua conta estiver ativa na plataforma. Você pode solicitar a exclusão total de sua conta e dados pessoais diretamente pelo painel de configurações ou entrando em contato conosco pelo e-mail de suporte. Uma vez solicitada, a remoção do seu perfil e ofertas do banco de dados do Supabase é imediata e definitiva.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">7. Direitos do Titular (LGPD)</h2>
+              <h2 className="text-base font-extrabold text-ink">7. Direitos do Titular (LGPD)</h2>
               <p>
                 Nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/18 - LGPD), você possui o direito de:
               </p>
@@ -108,7 +108,7 @@ const PoliticaPrivacidade: React.FC = () => {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-base font-extrabold text-ink-inverse">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
+              <h2 className="text-base font-extrabold text-ink">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
               <p>
                 Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo Aflyo, envie um e-mail para <a href="mailto:privacidade@linkoferta.com" className="text-mint-700 font-bold hover:underline">privacidade@linkoferta.com</a>.
               </p>
