@@ -6,6 +6,7 @@ import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useSubscription } from "../../hooks/useSubscription";
 import { useCheckoutIntent } from "../../hooks/useCheckoutIntent";
 import { useUser } from "../../context/UserContext";
+import { PLAN_LABELS } from "../../config/planCatalog";
 
 interface Props {
   open: boolean;
@@ -50,7 +51,7 @@ export const CheckoutWaitingDialog: React.FC<Props> = ({ open, onClose, onNeedsC
         <div className="flex flex-col items-center gap-3 py-4">
           <CheckCircle className="w-12 h-12 text-mint-500" />
           <p className="text-sm text-ink-secondary text-center">
-            Seu plano <strong className="text-ink">{subscription?.plan_code}</strong> está ativo.
+            Seu plano <strong className="text-ink">{subscription ? PLAN_LABELS[subscription.plan_code] : ""}</strong> está ativo.
           </p>
           <Button onClick={onClose}>Fechar</Button>
         </div>
