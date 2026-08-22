@@ -139,21 +139,21 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-graphite/50 backdrop-blur-md p-4 overflow-y-auto">
       <div className="bg-surface-0 w-full max-w-lg rounded-3xl shadow-2xl border border-line overflow-hidden animate-slide-up my-auto">
         
         {/* Banner Decorativo */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-ink-inverse text-center">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-surface-2 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-surface-2 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-          
+        <div className="relative overflow-hidden bg-gradient-to-br from-graphite to-graphite-700 p-8 text-ink-inverse text-center">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-mint-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-mint-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase mb-1">
               <Sparkles className="w-3.5 h-3.5" />
               Seja Bem-vindo ao Aflyo
             </div>
-            <h2 className="text-2xl font-bold tracking-tight">Configure sua conta em segundos</h2>
-            <p className="text-sm text-indigo-100 max-w-sm mx-auto">
+            <h2 className="text-2xl font-bold tracking-tight font-display">Configure sua conta em segundos</h2>
+            <p className="text-sm text-ink-inverse/75 max-w-sm mx-auto">
               Defina como seus clientes verão sua vitrine de ofertas públicas na internet.
             </p>
           </div>
@@ -180,7 +180,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
           ) : (
             <>
               {/* Upload de Avatar */}
-              <div className="flex items-center gap-4 bg-[#162033] p-4 rounded-2xl border border-line">
+              <div className="flex items-center gap-4 bg-surface-1 p-4 rounded-2xl border border-line">
                 <div className="relative w-16 h-16 rounded-2xl bg-surface-0 border border-line-strong flex items-center justify-center overflow-hidden flex-shrink-0 group shadow-inner">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -196,7 +196,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
                 <div className="flex-1">
                   <p className="text-xs font-bold text-ink">Foto de Perfil</p>
                   <p className="text-[10px] text-ink-secondary mt-0.5">Clique para carregar uma imagem quadrada</p>
-                  <label className="inline-block mt-2 text-[11px] font-bold text-ink hover:text-ink-inverse cursor-pointer bg-surface-1 hover:bg-surface-2 px-3 py-1.5 rounded-xl border border-line-strong shadow-sm transition-all">
+                  <label className="inline-block mt-2 text-[11px] font-bold text-ink hover:text-mint-700 cursor-pointer bg-surface-0 hover:bg-surface-2 px-3 py-1.5 rounded-xl border border-line-strong shadow-sm transition-all">
                     Carregar Foto
                     <input
                       type="file"
