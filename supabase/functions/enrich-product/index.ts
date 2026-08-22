@@ -1,5 +1,6 @@
 // Deno Edge Function: supabase/functions/enrich-product/index.ts
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,6 +83,24 @@ function normalizeProductTitle(
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Sem isso, qualquer um na internet usa este endpoint como proxy anônimo
+  // de scraping (custo/DoS) e como vetor de SSRF gratuito. Só usuários
+  // logados chamam isso hoje (fluxo de criar oferta, atrás de /offers no
+  // ProtectedRoute), então exigir sessão real não quebra nada.
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  )
+  const { data: { user } } = await supabaseClient.auth.getUser()
+  if (!user) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Não autorizado.' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
 
   try {
@@ -185,9 +204,14 @@ serve(async (req) => {
         if (
           hostname === 'localhost' ||
           hostname === '127.0.0.1' ||
+          hostname === '0.0.0.0' ||
+          hostname === '::1' ||
           hostname.startsWith('192.168.') ||
           hostname.startsWith('10.') ||
-          hostname.startsWith('172.')
+          hostname.startsWith('172.') ||
+          hostname.startsWith('169.254.') || // link-local -- inclui metadata de cloud (AWS/GCP/Azure)
+          hostname.startsWith('fe80:') ||
+          hostname.startsWith('fd') // IPv6 unique local address (fc00::/7)
         ) {
           throw new Error('Acesso a IPs locais ou internos não é permitido.')
         }
