@@ -35,13 +35,31 @@ const safeLocalStorage = {
   },
 };
 
+const AUTH_STORAGE_KEY = 'sb-aflyo-auth';
+const LEGACY_AUTH_STORAGE_KEY = 'sb-linkoferta-auth';
+
+// Migração one-shot da chave antiga (rebrand LinkOferta -> Aflyo): copia a
+// sessão persistida pra chave nova antes do client inicializar, senão todo
+// mundo com sessão ativa seria deslogado na próxima visita.
+try {
+  if (!localStorage.getItem(AUTH_STORAGE_KEY)) {
+    const legacy = localStorage.getItem(LEGACY_AUTH_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(AUTH_STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
+    }
+  }
+} catch {
+  // Silently fail (ex: quota exceeded, incognito restritivo)
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     storage: safeLocalStorage,
-    storageKey: 'sb-linkoferta-auth',
+    storageKey: AUTH_STORAGE_KEY,
     flowType: 'pkce',
   },
 });

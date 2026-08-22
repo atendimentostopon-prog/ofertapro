@@ -1,4 +1,4 @@
-export const APP_NAME = 'DisparoFlow';
+export const APP_NAME = 'Aflyo';
 
 export const getAppUrl = (): string => {
   // Se VITE_PUBLIC_APP_URL estiver definido no ambiente (ex: build/Vercel)
@@ -6,12 +6,12 @@ export const getAppUrl = (): string => {
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim();
   }
-  
+
   // Se estiver rodando no navegador, usar o origin atual (localhost ou Vercel)
   if (typeof window !== 'undefined' && window.location) {
     return window.location.origin;
   }
-  
+
   // Fallback seguro em produção
-  return 'https://linkoferta.vercel.app';
+  return 'https://www.aflyo.com.br';
 };

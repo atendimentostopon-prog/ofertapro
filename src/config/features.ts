@@ -1,4 +1,4 @@
-// Flags de features globais para o DisparoFlow
+// Flags de features globais para o Aflyo
 // Permite desativar ou ocultar temporariamente recursos em desenvolvimento ou em fases específicas de teste.
 export const FEATURES = {
   billing: true,       // Task 15 flip 2026-08-18: aflyo Starter mensal/anual ativo via Cakto
