@@ -839,9 +839,9 @@ const Settings: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { id: 'default', name: 'Clássico', color: 'bg-graphite' },
-                  { id: 'indigo', name: 'Índigo', color: 'bg-graphite' },
+                  { id: 'indigo', name: 'Índigo', color: 'bg-graphite-700' },
                   { id: 'emerald', name: 'Esmeralda', color: 'bg-mint-500' },
-                  { id: 'dark', name: 'Escuro/Dark', color: 'bg-surface-2' }
+                  { id: 'dark', name: 'Escuro/Dark', color: 'bg-graphite-800' }
                 ].map(t => (
                   <button
                     key={t.id}
