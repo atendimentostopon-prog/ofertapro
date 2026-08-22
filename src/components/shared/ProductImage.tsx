@@ -30,9 +30,9 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className = '' })
       .join(' ');
 
     return (
-      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0f1d] to-[#171b30] border border-white/[0.05] text-ink-tertiary select-none text-center gap-1.5 p-3 rounded-2xl ${cleanClasses}`}>
-        <Package className="w-7 h-7 text-mint-700/70 animate-pulse" />
-        <span className="text-[10px] font-black text-mint-800/80 uppercase tracking-widest">Sem Foto</span>
+      <div className={`flex flex-col items-center justify-center bg-surface-1 border border-line text-ink-tertiary select-none text-center gap-1.5 p-3 rounded-2xl ${cleanClasses}`}>
+        <Package className="w-7 h-7 text-ink-tertiary animate-pulse" />
+        <span className="text-[10px] font-black text-ink-tertiary uppercase tracking-widest">Sem Foto</span>
       </div>
     );
   };

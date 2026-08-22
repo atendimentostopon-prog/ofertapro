@@ -9,8 +9,8 @@ const TermosUso: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-1 text-ink py-16 px-4 sm:px-6 relative overflow-hidden">
       {/* Glow Effects */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#7C3AED]/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#6366F1]/5 rounded-full blur-3xl opacity-45 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-mint-400/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-graphite/5 rounded-full blur-3xl opacity-45 pointer-events-none" />
 
       <div className="max-w-3xl mx-auto relative z-10">
         {/* Navigation / Header */}
