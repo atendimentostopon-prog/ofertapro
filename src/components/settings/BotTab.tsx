@@ -487,15 +487,15 @@ export const BotTab: React.FC = () => {
         <>
           {/* Status Alert se estiver em Erro ou Pausado */}
           {!showConnectionForm && config && config.status === 'paused' && (
-            <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-zinc-400 flex-shrink-0" />
+            <div className="p-4 bg-surface-2 border border-line-strong rounded-xl flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-ink-tertiary flex-shrink-0" />
               <div className="flex-1">
                 <h5 className="text-xs font-bold text-ink">Bot Pausado</h5>
                 <p className="text-[11px] text-ink-secondary mt-0.5">O robô de monitoramento está inativo no momento.</p>
               </div>
               <button 
                 onClick={() => setIsReconnecting(true)} 
-                className="px-3 py-1.5 bg-graphite hover:bg-indigo-750 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
               >
                 Reconectar
               </button>
@@ -503,17 +503,17 @@ export const BotTab: React.FC = () => {
           )}
 
           {!showConnectionForm && config && config.status === 'error' && (
-            <div className="p-4 bg-rose-950/20 border border-rose-900/30 rounded-xl flex items-center gap-3">
-              <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0" />
+            <div className="p-4 bg-danger-bg border border-danger/25 rounded-xl flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 text-danger-ink flex-shrink-0" />
               <div className="flex-1">
-                <h5 className="text-xs font-bold text-rose-400">Falha na Conexão do Bot</h5>
+                <h5 className="text-xs font-bold text-danger-ink">Falha na Conexão do Bot</h5>
                 <p className="text-[11px] text-ink-secondary mt-0.5">
                   {config.error_message || 'Houve um problema de autenticação na sessão do Telegram.'}
                 </p>
               </div>
               <button 
                 onClick={() => setIsReconnecting(true)} 
-                className="px-3 py-1.5 bg-graphite hover:bg-indigo-750 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
               >
                 Reconectar
               </button>
@@ -538,7 +538,7 @@ export const BotTab: React.FC = () => {
                 
                 <button
                   onClick={handleDisconnectBot}
-                  className="px-3 py-1.5 bg-rose-950/25 hover:bg-rose-950/45 border border-rose-900/40 hover:border-rose-900/60 text-rose-400 font-bold text-[11px] rounded-xl transition-all cursor-pointer"
+                  className="px-3 py-1.5 bg-danger-bg hover:bg-danger/15 border border-danger/20 hover:border-danger/30 text-danger-ink font-bold text-[11px] rounded-xl transition-all cursor-pointer"
                 >
                   Desconectar Bot
                 </button>
@@ -548,7 +548,7 @@ export const BotTab: React.FC = () => {
                   <div className="p-3 bg-surface-1 border border-line rounded-xl space-y-1">
                     <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider">Status</p>
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-success" />
                       <span className="text-xs font-bold text-ink">Conectado</span>
                     </div>
                   </div>
@@ -616,7 +616,7 @@ export const BotTab: React.FC = () => {
                 </div>
 
                 {errorMessage && (
-                  <div className="flex items-start gap-2.5 p-3.5 bg-rose-950/20 border border-rose-900/30 rounded-xl text-rose-400 text-xs leading-normal">
+                  <div className="flex items-start gap-2.5 p-3.5 bg-danger-bg border border-danger/25 rounded-xl text-danger-ink text-xs leading-normal">
                     <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 font-medium">
                       <strong>Erro no processo:</strong> {errorMessage}
@@ -631,7 +631,7 @@ export const BotTab: React.FC = () => {
                       <p className="text-[11px] text-ink-secondary leading-relaxed font-medium">
                         ℹ️ <strong>Como obter API ID e API Hash:</strong>
                         <br />
-                        Acesse <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-mint-700 underline hover:text-indigo-350">my.telegram.org</a>, faça login com seu telefone, vá em "API development tools" e crie uma aplicação para copiar suas credenciais de desenvolvedor.
+                        Acesse <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-mint-700 underline hover:text-mint-800">my.telegram.org</a>, faça login com seu telefone, vá em "API development tools" e crie uma aplicação para copiar suas credenciais de desenvolvedor.
                       </p>
                     </div>
 
@@ -680,7 +680,7 @@ export const BotTab: React.FC = () => {
                       )}
                       <button
                         type="submit"
-                        className="btn-gradient ml-auto px-4 py-2 flex items-center gap-2 text-[11px] font-bold shadow-lg shadow-indigo-950/40 cursor-pointer"
+                        className="btn-gradient ml-auto px-4 py-2 flex items-center gap-2 text-[11px] font-bold shadow-lg cursor-pointer"
                       >
                         Enviar código
                       </button>
@@ -702,7 +702,7 @@ export const BotTab: React.FC = () => {
                         onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
                         placeholder="12345"
                         maxLength={5}
-                        className="w-36 text-center text-xl font-bold tracking-[8px] py-2 px-3 border border-mint-200 bg-graphite text-ink-inverse rounded-xl focus:border-mint-500 focus:ring-1 focus:ring-indigo-500/50 outline-none"
+                        className="w-36 text-center text-xl font-bold tracking-[8px] py-2 px-3 border border-mint-200 bg-graphite text-ink-inverse rounded-xl focus:border-mint-500 focus:ring-1 focus:ring-mint-500/50 outline-none"
                         required
                       />
                     </div>
@@ -710,7 +710,7 @@ export const BotTab: React.FC = () => {
                     <div className="flex flex-col items-center gap-3 pt-3">
                       <button
                         type="submit"
-                        className="w-full btn-gradient py-2 flex items-center justify-center gap-2 text-[11px] font-bold shadow-lg shadow-indigo-950/40 cursor-pointer"
+                        className="w-full btn-gradient py-2 flex items-center justify-center gap-2 text-[11px] font-bold shadow-lg cursor-pointer"
                       >
                         Verificar código
                       </button>
@@ -718,7 +718,7 @@ export const BotTab: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleStartLogin} // Reenvia o código
-                        className="text-[11px] font-bold text-mint-700 hover:text-indigo-350 transition-colors bg-transparent border-none outline-none mt-1 cursor-pointer"
+                        className="text-[11px] font-bold text-mint-700 hover:text-mint-800 transition-colors bg-transparent border-none outline-none mt-1 cursor-pointer"
                       >
                         Reenviar código
                       </button>
@@ -729,7 +729,7 @@ export const BotTab: React.FC = () => {
                 {/* ETAPA 3: SUCESSO */}
                 {loginStep === 3 && (
                   <div className="max-w-xs mx-auto text-center py-6 space-y-3">
-                    <div className="w-12 h-12 bg-success-bg border border-emerald-500/25 rounded-full flex items-center justify-center mx-auto text-success-ink">
+                    <div className="w-12 h-12 bg-success-bg border border-success/25 rounded-full flex items-center justify-center mx-auto text-success-ink">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <h4 className="text-sm font-bold text-ink">✅ Bot conectado com sucesso!</h4>
@@ -777,7 +777,7 @@ export const BotTab: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => removeGroupLocally(group)}
-                              className="text-ink-secondary hover:text-rose-450 p-1 hover:bg-rose-950/15 rounded-lg transition-colors cursor-pointer"
+                              className="text-ink-secondary hover:text-danger p-1 hover:bg-danger-bg rounded-lg transition-colors cursor-pointer"
                               title="Remover"
                             >
                               <X className="w-4 h-4" />
@@ -813,7 +813,7 @@ export const BotTab: React.FC = () => {
                     type="button"
                     onClick={handleSaveGroups}
                     disabled={savingGroups}
-                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg shadow-indigo-950/40 disabled:opacity-50 cursor-pointer"
+                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg disabled:opacity-50 cursor-pointer"
                   >
                     {savingGroups ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -870,7 +870,7 @@ export const BotTab: React.FC = () => {
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={() => toggleChannel(channel.id)}
-                                className="w-4 h-4 rounded text-indigo-600 bg-graphite border-line-strong focus:ring-indigo-500 focus:ring-opacity-25"
+                                className="w-4 h-4 rounded text-mint-600 bg-surface-0 border-line-strong focus:ring-mint-500 focus:ring-opacity-25"
                               />
                               <div className="flex items-center gap-2">
                                 <span className="text-base select-none">{logo.emoji}</span>
@@ -892,7 +892,7 @@ export const BotTab: React.FC = () => {
                     type="button"
                     onClick={handleSaveChannels}
                     disabled={savingChannels}
-                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg shadow-indigo-950/40 disabled:opacity-50 cursor-pointer"
+                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg disabled:opacity-50 cursor-pointer"
                   >
                     {savingChannels ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -988,7 +988,7 @@ export const BotTab: React.FC = () => {
                   <button
                     type="submit"
                     disabled={savingConfigAdicionais}
-                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg shadow-indigo-950/40 disabled:opacity-50 cursor-pointer"
+                    className="btn-gradient flex items-center gap-1.5 text-[11px] px-3.5 py-2 font-bold shadow-lg disabled:opacity-50 cursor-pointer"
                   >
                     {savingConfigAdicionais ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
