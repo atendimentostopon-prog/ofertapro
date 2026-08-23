@@ -40,12 +40,18 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         </div>
       )}
 
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10">
+      {/* min-w-0 nos dois níveis flex-1 abaixo -- sem isso, um filho largo
+          (ex: barra de abas com min-w-max) empurra esses containers pra
+          além da largura disponível em vez de ativar o scroll interno,
+          porque flex items têm min-width:auto por padrão (não encolhem
+          menos que o conteúdo). overflow-x-hidden aqui só escondia o
+          sintoma (cortava o conteúdo), não corrigia a largura de verdade. */}
+      <div className="flex-1 min-w-0 lg:ml-64 flex flex-col min-h-screen relative z-10">
         <TopBar
           onNewOffer={() => setShowNewOffer(true)}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}
