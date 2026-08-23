@@ -486,11 +486,11 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
   };
 
   return (
-    <div className="fixed inset-0 bg-graphite/55 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-surface-0 rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[660px] border border-line animate-scale-up">
-        
+    <div className="fixed inset-0 bg-surface-1 z-50 overflow-y-auto">
+      <div className="min-h-screen w-full flex flex-col md:flex-row">
+
         {/* Lado Esquerdo: Formulários e Passos */}
-        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between overflow-y-auto border-b md:border-b-0 md:border-r border-line">
+        <div className="flex-1 bg-surface-0 flex flex-col justify-center overflow-y-auto px-6 sm:px-10 md:px-16 py-10 md:py-16 max-w-2xl mx-auto w-full">
           <div>
             {/* Header com indicador de progresso */}
             <div className="flex items-center justify-between mb-4">
@@ -848,7 +848,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
         </div>
 
         {/* Lado Direito: Live Preview (Celular Mockup) */}
-        <div className="hidden md:flex w-[380px] bg-surface-1 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-line">
+        <div className="hidden md:flex md:w-[420px] lg:w-[480px] bg-surface-1 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-line">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 right-0 w-64 h-64 bg-surface-1 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-mint-400/10 rounded-full blur-3xl" />
