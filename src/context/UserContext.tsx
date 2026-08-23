@@ -39,7 +39,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
   };
 
   const createMinimalProfile = async (userId: string, email: string): Promise<User | null> => {
-    const defaultUsername = email.split('@')[0] || 'usuario';
+    // Remove pontos/sinais de e-mail (nome.sobrenome+tag@...) antes de virar
+    // sugestão de slug público -- "joao.silva" vira "joaosilva", não fica com
+    // cara de endereço de e-mail truncado na vitrine pública.
+    const defaultUsername = (email.split('@')[0] || 'usuario').replace(/[.+]/g, '');
     const uniqueUsername = `${defaultUsername}_${userId.substring(0, 4)}`;
     const minimalPayload = {
       id: userId,

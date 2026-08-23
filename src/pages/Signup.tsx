@@ -163,11 +163,10 @@ const Signup: React.FC = () => {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-ink-secondary" htmlFor="phone">Telefone</label>
+          <label className="text-xs font-medium text-ink-secondary" htmlFor="phone">Telefone <span className="text-ink-tertiary font-normal">(opcional)</span></label>
           <input
             id="phone"
             type="tel"
-            required
             value={phone}
             onChange={e => setPhone(e.target.value)}
             placeholder="(11) 99999-9999"

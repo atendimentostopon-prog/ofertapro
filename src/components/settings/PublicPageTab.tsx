@@ -133,9 +133,9 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
         <Field label="Tema de Cores">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { id: 'default', name: 'Clássico', color: 'bg-graphite' },
-              { id: 'indigo', name: 'Índigo', color: 'bg-graphite-700' },
-              { id: 'emerald', name: 'Esmeralda', color: 'bg-mint-500' },
+              { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
+              { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
+              { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
               { id: 'dark', name: 'Escuro/Dark', color: 'bg-graphite-800' },
             ].map(t => (
               <button

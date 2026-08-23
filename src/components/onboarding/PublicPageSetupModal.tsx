@@ -5,7 +5,7 @@ import { compressImage } from '../../lib/image-utils';
 import { withTimeout } from '../../lib/utils';
 import { 
   Globe, User as UserIcon, AlignLeft, Palette, Camera, 
-  Loader2, CheckCircle2, AlertCircle, Eye, Star, Zap, Phone, Mail, Link as LinkIcon, ChevronRight, ChevronLeft, Check, Sparkles
+  Loader2, CheckCircle2, AlertCircle, Eye, Star, Phone, Mail, Link as LinkIcon, ChevronRight, ChevronLeft, Check, Sparkles
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { APP_NAME } from '../../config/app';
@@ -486,16 +486,16 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
   };
 
   return (
-    <div className="fixed inset-0 bg-graphite/55 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-surface-0 rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[660px] border border-line animate-scale-up">
-        
+    <div className="fixed inset-0 bg-surface-1 z-50 overflow-y-auto">
+      <div className="min-h-screen w-full flex flex-col md:flex-row">
+
         {/* Lado Esquerdo: Formulários e Passos */}
-        <div className="flex-1 p-6 md:p-10 flex flex-col justify-between overflow-y-auto border-b md:border-b-0 md:border-r border-line">
+        <div className="flex-1 bg-surface-0 flex flex-col justify-center overflow-y-auto px-6 sm:px-10 md:px-16 py-10 md:py-16 max-w-2xl mx-auto w-full">
           <div>
             {/* Header com indicador de progresso */}
             <div className="flex items-center justify-between mb-4">
-              <span className="bg-ice text-mint-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 fill-current animate-pulse" /> Onboarding Beta
+              <span className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">
+                Configuração inicial
               </span>
               <span className="text-xs font-bold text-ink-secondary">
                 Etapa {step} de 2 — {step === 1 ? 'Minha Conta' : 'Minha Vitrine'}
@@ -512,8 +512,8 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
               {step === 1 ? 'Configure sua Conta Pessoal' : 'Configure sua Vitrine Pública'}
             </h2>
             <p className="text-xs text-ink-secondary mt-1 mb-6 leading-relaxed">
-              {step === 1 
-                ? 'Preencha seus dados internos da conta. Essas informações são confidenciais e usadas no seu painel.' 
+              {step === 1
+                ? 'Essas informações aparecem só pra você, no seu painel — nada disso vai pra sua vitrine pública.'
                 : 'Defina o link, nome e grupos sociais que aparecerão na sua vitrine para a sua audiência.'}
             </p>
 
@@ -780,9 +780,9 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                   <label className="text-xs font-bold text-ink-secondary">Tema de Cores da Vitrine</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { id: 'default', name: 'Clássico', color: 'bg-graphite' },
-                      { id: 'indigo', name: 'Índigo', color: 'bg-graphite-700' },
-                      { id: 'emerald', name: 'Esmeralda', color: 'bg-mint-500' },
+                      { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
+                      { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
+                      { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
                       { id: 'dark', name: 'Dark/Escuro', color: 'bg-graphite-800' },
                     ].map(t => (
                       <button
@@ -848,7 +848,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
         </div>
 
         {/* Lado Direito: Live Preview (Celular Mockup) */}
-        <div className="hidden md:flex w-[380px] bg-surface-1 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-line">
+        <div className="hidden md:flex md:w-[420px] lg:w-[480px] bg-surface-1 p-6 flex-col justify-center items-center relative overflow-hidden border-l border-line">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 right-0 w-64 h-64 bg-surface-1 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-mint-400/10 rounded-full blur-3xl" />
