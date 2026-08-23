@@ -389,6 +389,33 @@ const PublicPage: React.FC = () => {
       accentBorder: 'border-purple-500/20',
       tagActive: 'bg-[#7C3AED] text-ink-inverse shadow-md shadow-[#7C3AED]/20',
       shareBtn: 'bg-surface-1 hover:bg-surface-2 text-ink-inverse border border-line-strong',
+    },
+    blue: {
+      banner: 'bg-gradient-to-r from-[#0c1e3d] via-[#1e3a5f] to-[#1d4ed8]',
+      primaryBtn: 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-ink-inverse',
+      accentText: 'text-[#60A5FA]',
+      accentBg: 'bg-info-bg',
+      accentBorder: 'border-info/20',
+      tagActive: 'bg-[#2563EB] text-ink-inverse shadow-md shadow-blue-950/20',
+      shareBtn: 'bg-surface-1 hover:bg-surface-2 text-ink-inverse border border-line-strong',
+    },
+    rose: {
+      banner: 'bg-gradient-to-r from-[#500724] via-[#831843] to-[#9d174d]',
+      primaryBtn: 'bg-gradient-to-r from-[#db2777] to-[#ec4899] hover:from-[#be185d] hover:to-[#db2777] text-ink-inverse',
+      accentText: 'text-[#F472B6]',
+      accentBg: 'bg-[#DB2777]/10',
+      accentBorder: 'border-[#DB2777]/20',
+      tagActive: 'bg-[#DB2777] text-ink-inverse shadow-md shadow-rose-950/20',
+      shareBtn: 'bg-surface-1 hover:bg-surface-2 text-ink-inverse border border-line-strong',
+    },
+    orange: {
+      banner: 'bg-gradient-to-r from-[#431407] via-[#7c2d12] to-[#c2410c]',
+      primaryBtn: 'bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#c2410c] hover:to-[#ea580c] text-ink-inverse',
+      accentText: 'text-[#FB923C]',
+      accentBg: 'bg-[#EA580C]/10',
+      accentBorder: 'border-[#EA580C]/20',
+      tagActive: 'bg-[#EA580C] text-ink-inverse shadow-md shadow-orange-950/20',
+      shareBtn: 'bg-surface-1 hover:bg-surface-2 text-ink-inverse border border-line-strong',
     }
   };
 

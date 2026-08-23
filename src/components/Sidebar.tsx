@@ -110,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
               toast('Por favor, conclua a configuração da sua página pública.', 'warning');
               return;
             }
-            window.open(`/u/${user.username}`, '_blank');
+            window.open(`/${user.username}`, '_blank');
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors duration-160 group cursor-pointer"
         >

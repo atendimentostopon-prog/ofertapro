@@ -97,15 +97,15 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
         </Field>
 
         <Field label="Link de Acesso (URL Personalizada)">
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary font-mono select-none">
-              {window.location.origin}/u/
+          <div className="flex items-stretch rounded-xl border border-line bg-surface-0 overflow-hidden focus-within:border-mint-400 focus-within:shadow-[0_0_0_3px_rgba(94,231,165,0.28)] transition-colors">
+            <span className="flex items-center pl-3.5 pr-1.5 text-xs text-ink-tertiary font-mono select-none whitespace-nowrap">
+              {window.location.origin}/
             </span>
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-              className="input-modern pl-40 text-xs font-mono"
+              className="flex-1 min-w-0 text-xs font-mono py-2.5 pr-3.5 bg-transparent outline-none border-0"
               required
             />
           </div>
@@ -113,7 +113,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
 
         <div className="flex flex-wrap items-center gap-3 p-3 bg-surface-1 rounded-xl border border-line">
           <Globe className="w-4 h-4 text-ink-tertiary" />
-          <span className="text-xs text-mint-700 font-bold flex-1 truncate">{window.location.origin}/u/{username}</span>
+          <span className="text-xs text-mint-700 font-bold flex-1 truncate">{window.location.origin}/{username}</span>
           <button
             onClick={copyUrl}
             className="flex items-center gap-1 text-[11px] font-bold text-ink-secondary hover:text-mint-700 transition-colors"
@@ -121,7 +121,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
             {copied ? 'Copiado!' : 'Copiar Link'}
           </button>
           <a
-            href={`/u/${username}`}
+            href={`/${username}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-[11px] font-bold text-ink-secondary hover:text-mint-700 transition-colors"
@@ -135,7 +135,10 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
             {[
               { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
               { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
+              { id: 'blue', name: 'Azul', color: 'bg-[#2563EB]' },
               { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
+              { id: 'rose', name: 'Rosa', color: 'bg-[#DB2777]' },
+              { id: 'orange', name: 'Laranja', color: 'bg-[#EA580C]' },
               { id: 'dark', name: 'Escuro/Dark', color: 'bg-graphite-800' },
             ].map(t => (
               <button
