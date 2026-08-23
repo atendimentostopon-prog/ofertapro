@@ -144,9 +144,12 @@ export const useSettingsProfile = () => {
       toast('Slug da vitrine é obrigatório e deve ter pelo menos 3 caracteres.', 'warning');
       return;
     }
+    // Autocorrige em vez de bloquear o save inteiro por causa do slug -- um
+    // slug antigo com ponto (de contas criadas antes da limpeza de e-mail
+    // no cadastro) não pode impedir o usuário de salvar bio/nome/links.
     const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
-    if (cleanUsername !== username) {
-      toast('Slug inválido. Não use espaços ou caracteres especiais.', 'error');
+    if (!cleanUsername || cleanUsername.length < 3) {
+      toast('Slug da vitrine é obrigatório e deve ter pelo menos 3 caracteres.', 'warning');
       return;
     }
 
@@ -224,7 +227,7 @@ export const useSettingsProfile = () => {
   };
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/u/${username}`);
+    navigator.clipboard.writeText(`${window.location.origin}/${username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

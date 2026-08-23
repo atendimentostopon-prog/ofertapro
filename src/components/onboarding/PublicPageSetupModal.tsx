@@ -86,8 +86,15 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
       }
       setPublicName(initialPublicName);
       
-      // Limpa nomes temporários sugerindo username limpo
-      const cleanUsername = (user.username || '').replace(/_temp$/, '').replace(/_[a-f0-9]{4}$/, '');
+      // Limpa nomes temporários sugerindo username limpo -- tira também pontos
+      // (ex: "joao.silva_a1b2" -> "joaosilva"). Defesa em profundidade: mesmo
+      // que user.username já venha com ponto por algum caminho fora do nosso
+      // controle (ex: perfil criado antes desse fix, ou outra rota de criação),
+      // a sugestão mostrada aqui sempre sai limpa.
+      const cleanUsername = (user.username || '')
+        .replace(/_temp$/, '')
+        .replace(/_[a-f0-9]{4}$/, '')
+        .replace(/\./g, '');
       setUsername(cleanUsername.toLowerCase().replace(/[^a-z0-9._-]/g, ''));
       setBio(user.bio || '');
       setTheme(user.public_theme || 'default');
@@ -470,18 +477,24 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
     }
   };
 
-  // Cores de preview do tema
+  // Cores de preview do tema -- espelham themeStyles de PublicPage.tsx
   const themePreviewStyles: Record<string, string> = {
-    default: 'bg-graphite',
-    indigo: 'bg-graphite-700',
-    emerald: 'bg-mint-500',
+    default: 'bg-[#7C3AED]',
+    indigo: 'bg-[#4F46E5]',
+    blue: 'bg-[#2563EB]',
+    emerald: 'bg-[#10B981]',
+    rose: 'bg-[#DB2777]',
+    orange: 'bg-[#EA580C]',
     dark: 'bg-graphite-800',
   };
 
   const themeAccentColors: Record<string, string> = {
-    default: 'bg-graphite hover:bg-graphite-800',
-    indigo: 'bg-graphite-700 hover:bg-graphite-800',
-    emerald: 'bg-mint-500 hover:bg-mint-600',
+    default: 'bg-[#7C3AED] hover:bg-[#6D28D9]',
+    indigo: 'bg-[#4F46E5] hover:bg-[#4338CA]',
+    blue: 'bg-[#2563EB] hover:bg-[#1D4ED8]',
+    emerald: 'bg-[#10B981] hover:bg-[#059669]',
+    rose: 'bg-[#DB2777] hover:bg-[#BE185D]',
+    orange: 'bg-[#EA580C] hover:bg-[#C2410C]',
     dark: 'bg-graphite-800 hover:bg-graphite-900 border border-line-strong',
   };
 
@@ -782,7 +795,10 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     {[
                       { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
                       { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
+                      { id: 'blue', name: 'Azul', color: 'bg-[#2563EB]' },
                       { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
+                      { id: 'rose', name: 'Rosa', color: 'bg-[#DB2777]' },
+                      { id: 'orange', name: 'Laranja', color: 'bg-[#EA580C]' },
                       { id: 'dark', name: 'Dark/Escuro', color: 'bg-graphite-800' },
                     ].map(t => (
                       <button
@@ -882,7 +898,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     <Star className="w-2 h-2 fill-current mr-0.5" /> Verificado
                   </span>
                 </div>
-                <p className="text-[8px] text-ink-tertiary font-mono">aflyo.com.br/u/{username || 'slug'}</p>
+                <p className="text-[8px] text-ink-tertiary font-mono">aflyo.com.br/{username || 'slug'}</p>
                 
                 <p className="text-[10px] text-ink-secondary mt-2 line-clamp-2 leading-relaxed">
                   {bio || 'Sua descrição aparecerá aqui. Adicione uma bio informativa para seus visitantes.'}
