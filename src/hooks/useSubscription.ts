@@ -6,7 +6,7 @@ import { useUser } from "../context/UserContext";
 export interface Subscription {
   id: string;
   user_id: string;
-  cakto_subscription_id: string;
+  provider_subscription_id: string;
   plan_code: 'starter' | 'pro' | 'enterprise';
   billing_cycle: 'monthly' | 'yearly';
   status: 'active' | 'past_due' | 'canceled' | 'expired';
