@@ -6,6 +6,7 @@ import { SettingsSection } from "./shared";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { useSubscription } from "../../hooks/useSubscription";
+import { PLAN_LABELS } from "../../config/planCatalog";
 import { supabase } from "../../lib/supabase";
 import { FEATURES } from "../../config/features";
 import { useNavigate } from "react-router-dom";
@@ -80,8 +81,8 @@ export const BillingTab: React.FC = () => {
         ) : (
           <div className="p-6 bg-surface-1 border border-line rounded-2xl space-y-4">
             <div>
-              <h4 className="text-sm font-bold text-ink capitalize font-display">
-                Plano {subscription.plan_code} ({subscription.billing_cycle === "monthly" ? "mensal" : "anual"})
+              <h4 className="text-sm font-bold text-ink font-display">
+                Plano {PLAN_LABELS[subscription.plan_code]} ({subscription.billing_cycle === "monthly" ? "mensal" : "anual"})
               </h4>
               <p className="text-xs text-ink-secondary mt-1">
                 R$ {subscription.amount.toFixed(2).replace(".", ",")}/{subscription.billing_cycle === "monthly" ? "mês" : "ano"}

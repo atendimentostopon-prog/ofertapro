@@ -1,30 +1,45 @@
 // src/pages/Pricing.tsx
 import React, { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/Button";
-import { PLAN_CATALOG, type PlanCode, type BillingCycle } from "../config/planCatalog";
+import { PLAN_CATALOG, PLAN_LABELS, type PlanCode, type BillingCycle } from "../config/planCatalog";
 import { CheckoutRedirectDialog } from "../components/billing/CheckoutRedirectDialog";
 import { CheckoutWaitingDialog } from "../components/billing/CheckoutWaitingDialog";
 import { ClaimSubscriptionDialog } from "../components/billing/ClaimSubscriptionDialog";
 import { useSubscription } from "../hooks/useSubscription";
 import { useUser } from "../context/UserContext";
 
-// MVP: mostra apenas starter — pro/enterprise viram quando os produtos existirem na Cakto.
-const PLAN_ORDER: PlanCode[] = ["starter"];
+const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
+
+const PLAN_HIGHLIGHT: PlanCode = "pro";
 
 const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
   starter: [
-    "Monitora 1 grupo",
-    "5 grupos de disparo",
-    "1 conexão WhatsApp",
-    "Disparo em massa",
-    "Agendamento de horários",
-    "Rodízio de links inteligentes",
+    "Monitora até 5 grupos de origem",
+    "Até 3 conexões WhatsApp",
+    "Até 2 conexões Telegram",
+    "Até 20.000 ofertas ativas",
+    "Disparo em massa + agendamento",
+    "Analytics avançado",
     "Shopee, Amazon, Mercado Livre",
-    "Suporte 24/7 + aulas em vídeo",
   ],
-  pro: ["Ofertas ilimitadas", "5 WhatsApp + 3 Telegram", "30 grupos de origem", "Analytics avançado", "Agendamento futuro", "Templates custom", "Sem branding"],
-  enterprise: ["Ofertas ilimitadas", "WhatsApp e Telegram sem limite", "Grupos ilimitados", "Prioridade no suporte", "Tudo do PRO"],
+  pro: [
+    "Monitora até 30 grupos de origem",
+    "Até 5 conexões WhatsApp",
+    "Até 3 conexões Telegram",
+    "Ofertas ilimitadas",
+    "Templates de mensagem customizados",
+    "Remove a marca Aflyo da vitrine",
+    "Tudo do Starter",
+  ],
+  enterprise: [
+    "Grupos de origem ilimitados",
+    "WhatsApp e Telegram ilimitados",
+    "Ofertas ilimitadas",
+    "Templates de mensagem customizados",
+    "Remove a marca Aflyo da vitrine",
+    "Tudo do Profissional",
+  ],
 };
 
 export default function Pricing() {
@@ -67,17 +82,38 @@ export default function Pricing() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 items-stretch">
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan][cycle];
+          const isHighlighted = plan === PLAN_HIGHLIGHT;
+          const isAvailable = !sku.caktoOfferId.startsWith("TBD-");
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           return (
-            <div key={plan} className="bg-surface-0 border border-line rounded-2xl p-6 flex flex-col shadow-card">
-              <h3 className="text-lg font-bold text-ink capitalize font-display">{plan}</h3>
+            <div
+              key={plan}
+              className={`relative rounded-2xl p-6 flex flex-col ${
+                isHighlighted
+                  ? "bg-surface-0 border-2 border-mint-400 shadow-lg"
+                  : "bg-surface-0 border border-line shadow-card"
+              }`}
+            >
+              {isHighlighted && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-mint-500 text-graphite text-[10px] font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-sm">
+                  <Sparkles className="w-3 h-3" />
+                  Mais popular
+                </span>
+              )}
+              <h3 className="text-lg font-bold text-ink font-display">{PLAN_LABELS[plan]}</h3>
               <div className="mt-4">
-                <span className="text-3xl font-bold text-ink font-display">R$ {sku.price.toFixed(2).replace(".", ",")}</span>
-                <span className="text-xs text-ink-tertiary ml-1">/{cycle === "monthly" ? "mês" : "ano"}</span>
+                {isAvailable ? (
+                  <>
+                    <span className="text-3xl font-bold text-ink font-display">R$ {sku.price.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-xs text-ink-tertiary ml-1">/{cycle === "monthly" ? "mês" : "ano"}</span>
+                  </>
+                ) : (
+                  <span className="text-sm font-semibold text-ink-tertiary">Em breve</span>
+                )}
               </div>
               <ul className="mt-6 space-y-2 flex-1">
                 {FEATURES_BY_PLAN[plan].map(f => (
@@ -89,10 +125,11 @@ export default function Pricing() {
               </ul>
               <Button
                 className="mt-6 w-full"
+                variant={isHighlighted ? "primary" : "secondary"}
                 onClick={() => handleAssinar(plan)}
-                disabled={isCurrent || isGrandfathered}
+                disabled={!isAvailable || isCurrent || isGrandfathered}
               >
-                {isCurrent ? "Plano atual" : isGrandfathered ? "Já ativo (cortesia)" : "Assinar"}
+                {!isAvailable ? "Em breve" : isCurrent ? "Plano atual" : isGrandfathered ? "Já ativo (cortesia)" : "Assinar"}
               </Button>
             </div>
           );

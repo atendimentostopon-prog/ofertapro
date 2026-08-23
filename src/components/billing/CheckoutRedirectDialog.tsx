@@ -3,7 +3,7 @@ import React from "react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { ExternalLink } from "lucide-react";
-import { getSku, type PlanCode, type BillingCycle } from "../../config/planCatalog";
+import { getSku, PLAN_LABELS, type PlanCode, type BillingCycle } from "../../config/planCatalog";
 import { useCheckoutIntent } from "../../hooks/useCheckoutIntent";
 import { useUser } from "../../context/UserContext";
 
@@ -45,7 +45,7 @@ export const CheckoutRedirectDialog: React.FC<Props> = ({ open, plan, cycle, onC
       }
     >
       <div className="text-sm text-ink-secondary">
-        Plano <strong className="text-ink">{plan}</strong> — cobrança {cycle === "monthly" ? "mensal" : "anual"} de <strong className="text-ink">R$ {sku.price.toFixed(2).replace(".", ",")}</strong>.
+        Plano <strong className="text-ink">{PLAN_LABELS[plan]}</strong> — cobrança {cycle === "monthly" ? "mensal" : "anual"} de <strong className="text-ink">R$ {sku.price.toFixed(2).replace(".", ",")}</strong>.
       </div>
     </Modal>
   );

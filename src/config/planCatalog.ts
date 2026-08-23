@@ -1,6 +1,14 @@
 export type PlanCode = 'starter' | 'pro' | 'enterprise';
 export type BillingCycle = 'monthly' | 'yearly';
 
+// Rótulo exibido pro usuário -- plan_code interno (starter/pro/enterprise)
+// continua igual no banco/triggers/RLS, só o nome de mercado muda.
+export const PLAN_LABELS: Record<PlanCode, string> = {
+  starter: 'Starter',
+  pro: 'Profissional',
+  enterprise: 'Business',
+};
+
 export interface PlanSKU {
   caktoOfferId: string;
   price: number;                // BRL
