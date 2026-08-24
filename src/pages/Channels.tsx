@@ -289,11 +289,11 @@ const AddChannelCard: React.FC<{
             }}
           />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className={`font-bold text-[15px] tracking-tight ${cfg.accent} font-display`}>Conectar {cfg.label}</p>
           <p className="text-[13px] font-medium text-ink-secondary mt-0.5">{cfg.desc}</p>
         </div>
-        <Plus className={`w-5 h-5 ${cfg.accent} opacity-60 group-hover:opacity-100 transition-opacity`} />
+        <Plus className={`w-5 h-5 ${cfg.accent} opacity-60 group-hover:opacity-100 transition-opacity flex-shrink-0`} />
       </div>
     </button>
   );
@@ -625,9 +625,9 @@ const Channels: React.FC = () => {
 
       {/* WhatsApp Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-ink flex items-center gap-2 font-display">
-            <MessageSquare className="w-5 h-5 text-mint-700" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 className="text-base font-bold text-ink flex items-center gap-2 flex-wrap font-display">
+            <MessageSquare className="w-5 h-5 text-mint-700 flex-shrink-0" />
             WhatsApp (Evolution API)
             <span className="text-xs font-semibold text-ink-tertiary bg-surface-1 border border-line px-2 py-0.5 rounded-full">
               {instances.length}/3 Conectados
@@ -636,7 +636,7 @@ const Channels: React.FC = () => {
           {instances.length < 3 && (
             <button
               onClick={() => setShowConnectWhatsappModal(true)}
-              className="px-3.5 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" /> Conectar WhatsApp
             </button>
@@ -762,12 +762,12 @@ const Channels: React.FC = () => {
       {/* WhatsApp Groups Selection Section */}
       {activeInstanceGroupsId && (
         <Card className="p-5 space-y-4 animate-slide-up">
-          <div className="flex items-center justify-between border-b border-line pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
             <div>
               <h3 className="font-bold text-base text-ink font-display">Grupos Disponíveis para Disparo</h3>
               <p className="text-xs text-ink-secondary">Selecione quais grupos atuarão como canais do WhatsApp para envio</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => setActiveInstanceGroupsId(null)}
                 className="px-3.5 py-1.5 bg-surface-0 hover:bg-surface-1 text-ink text-xs font-semibold rounded-md border border-line transition-colors cursor-pointer"

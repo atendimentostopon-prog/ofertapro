@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        // Breakpoint "phablet" -- usado no grid de métricas do Dashboard
+        // (grid-cols-2 antes do sm: padrão de 640px). Nunca tinha sido
+        // definido, então `xs:` no código não gerava CSS nenhum.
+        xs: '480px',
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
