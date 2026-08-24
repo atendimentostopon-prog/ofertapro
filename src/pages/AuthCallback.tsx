@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AuthLayout } from '../components/auth/AuthLayout';
-import { useUser } from '../context/UserContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
-  const { refreshProfile } = useUser();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
