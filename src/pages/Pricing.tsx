@@ -82,7 +82,7 @@ export default function Pricing() {
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan][cycle];
           const isHighlighted = plan === PLAN_HIGHLIGHT;
-          const isAvailable = true; // Todos os planos têm stripePriceId válido
+          const isAvailable = Boolean(sku.stripePriceId?.trim());
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           return (
