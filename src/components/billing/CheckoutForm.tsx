@@ -30,26 +30,30 @@ const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void; onSu
     onSubmittingChange(true);
     setError(null);
 
-    const { error: confirmError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: `${window.location.origin}/settings` },
-      redirect: 'if_required',
-    });
+    try {
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: `${window.location.origin}/settings` },
+        redirect: 'if_required',
+      });
 
-    if (confirmError) {
-      setError(confirmError.message || 'Não foi possível confirmar o pagamento.');
+      if (confirmError) {
+        setError(confirmError.message || 'Não foi possível confirmar o pagamento.');
+        return;
+      }
+
+      // Sucesso ou pendente (Pix aguardando pagamento) -- os dois casos vão pro
+      // step de espera, que casa pelo subscriptionId via Realtime. Não dá pra
+      // confiar em "sucesso imediato = já pode fechar": mesmo cartão aprovado
+      // na hora ainda depende do webhook invoice.paid criar a linha em
+      // subscriptions antes do resto do app reconhecer o plano novo.
+      onConfirmed();
+    } catch (err: any) {
+      setError(err?.message || 'Erro inesperado ao processar o pagamento. Tente novamente.');
+    } finally {
       setSubmitting(false);
       onSubmittingChange(false);
-      return;
     }
-
-    // Sucesso ou pendente (Pix aguardando pagamento) -- os dois casos vão pro
-    // step de espera, que casa pelo subscriptionId via Realtime. Não dá pra
-    // confiar em "sucesso imediato = já pode fechar": mesmo cartão aprovado
-    // na hora ainda depende do webhook invoice.paid criar a linha em
-    // subscriptions antes do resto do app reconhecer o plano novo.
-    onSubmittingChange(false);
-    onConfirmed();
   };
 
   return (
