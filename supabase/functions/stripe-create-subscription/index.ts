@@ -42,18 +42,18 @@ serve(async (req) => {
     .eq("id", user.id)
     .maybeSingle();
 
-  let customerId = profile?.stripe_customer_id as string | null;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: profile?.email ?? user.email ?? undefined,
-      name: profile?.full_name ?? undefined,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-    await admin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
-  }
-
   try {
+    let customerId = profile?.stripe_customer_id as string | null;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: profile?.email ?? user.email ?? undefined,
+        name: profile?.full_name ?? undefined,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+      await admin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
+    }
+
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: price_id }],
