@@ -85,7 +85,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-slide-up">
-      <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Configurações</h1>
           <p className="text-[15px] font-medium text-ink-secondary mt-1">Gerencie seu perfil, planos e templates de disparo</p>
@@ -94,7 +94,7 @@ const Settings: React.FC = () => {
           <button
             onClick={profile.handleSave}
             disabled={profile.saving}
-            className="btn-gradient flex items-center gap-2 text-sm px-4 py-2.5 shadow-lg disabled:opacity-50"
+            className="btn-gradient flex items-center justify-center gap-2 text-sm px-4 py-2.5 shadow-lg disabled:opacity-50 w-full sm:w-auto flex-shrink-0"
           >
             {profile.saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />

@@ -296,14 +296,14 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         {renderSummaryScreen()}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface-1 rounded-t-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-line bg-surface-1 rounded-t-2xl">
           <div>
             <h2 className="text-lg font-bold text-ink tracking-tight">
               {offerToEdit ? 'Editar Oferta' : 'Nova Oferta'}
             </h2>
             <p className="text-[11px] font-medium text-ink-secondary mt-0.5">Configure, salve e envie em lote com um clique</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => {
                 const nextSection = step === 'form' ? 'preview' : 'form';
@@ -496,7 +496,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
             </div>
 
             {/* Valores */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
                   <span className="w-5 h-5 rounded-md bg-ice text-mint-700 border border-mint-200 text-[9px] font-extrabold flex items-center justify-center">3</span>
@@ -535,7 +535,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Cupom */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
@@ -854,24 +854,24 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-line bg-surface-1 rounded-b-2xl">
-          <div className="text-xs font-semibold text-ink-secondary">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-t border-line bg-surface-1 rounded-b-2xl">
+          <div className="text-xs font-semibold text-ink-secondary text-center sm:text-left order-2 sm:order-1">
             {selectedChannels.length > 0
               ? `${selectedChannels.length} canal(is) selecionado(s)`
               : 'Nenhum canal selecionado'}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 order-1 sm:order-2">
             <button
               onClick={() => handleSaveClick(true)}
               disabled={loading || uploading}
-              className="btn-secondary text-xs font-bold py-2 px-4 rounded-xl disabled:opacity-50"
+              className="flex-1 sm:flex-initial btn-secondary text-xs font-bold py-2 px-4 rounded-xl disabled:opacity-50"
             >
               Salvar Rascunho
             </button>
             <button
               onClick={() => handleSaveClick(false)}
               disabled={loading || uploading}
-              className="btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center gap-1.5 shadow-lg"
+              className="flex-1 sm:flex-initial btn-gradient text-xs font-bold py-2.5 px-5 rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-lg"
             >
               <Send className="w-3.5 h-3.5" />
               Salvar e Disparar

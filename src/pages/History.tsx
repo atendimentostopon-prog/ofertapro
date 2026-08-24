@@ -360,24 +360,24 @@ const History: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="tab-container">
+          <div className="tab-container overflow-x-auto scrollbar-none max-w-full">
             {(['all', 'success', 'partial', 'error'] as const).map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`tab-item ${statusFilter === s ? 'active' : ''}`}
+                className={`tab-item flex-shrink-0 ${statusFilter === s ? 'active' : ''}`}
               >
                 {{ all: 'Todos', success: 'Sucesso', partial: 'Parcial', error: 'Erro' }[s]}
               </button>
             ))}
           </div>
 
-          <div className="tab-container">
+          <div className="tab-container overflow-x-auto scrollbar-none max-w-full">
             {(['all', 'today', 'week'] as const).map(d => (
               <button
                 key={d}
                 onClick={() => setDateFilter(d)}
-                className={`tab-item ${dateFilter === d ? 'active' : ''}`}
+                className={`tab-item flex-shrink-0 ${dateFilter === d ? 'active' : ''}`}
               >
                 {{ all: 'Todos', today: 'Hoje', week: '7 dias' }[d]}
               </button>
