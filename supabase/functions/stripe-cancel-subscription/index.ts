@@ -34,9 +34,15 @@ serve(async (req: Request) => {
 
   try {
     await stripe.subscriptions.update(subscription_id, { cancel_at_period_end: true });
-    return new Response("OK", { status: 200 });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (e: any) {
     console.error("[stripe-cancel-subscription] erro:", e.message);
-    return new Response(`Stripe: ${e.message}`, { status: 502 });
+    return new Response(JSON.stringify({ error: e.message || "Erro ao cancelar assinatura." }), {
+      status: 502,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });
