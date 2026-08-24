@@ -94,22 +94,6 @@ export default {
           bg: '#DBEAFE',
           ink: '#1E40AF',
         },
-
-        // ── Legacy alias — brand.* redirecionado para mint ────────────
-        // Mantém pages/componentes existentes funcionando com a cor Aflyo
-        // até migração completa. Remover em cleanup final (Task #13).
-        brand: {
-          50:  '#F0FDF7',
-          100: '#DFF8EE',
-          200: '#B4EFD3',
-          300: '#88E5B8',
-          400: '#5EE7A5',
-          500: '#5EE7A5',
-          600: '#3DD98F',
-          700: '#22C078',
-          800: '#199A5F',
-          900: '#127046',
-        },
       },
       borderRadius: {
         'xs': '4px',
