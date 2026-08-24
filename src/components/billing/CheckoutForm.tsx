@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { stripePromise } from '../../lib/stripe';
@@ -17,7 +17,7 @@ interface CheckoutFormProps {
   onSuccess: () => void;
 }
 
-const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void }> = ({ onConfirmed, onClose }) => {
+const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void; onSubmittingChange: (v: boolean) => void }> = ({ onConfirmed, onClose, onSubmittingChange }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -27,6 +27,7 @@ const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void }> = 
     e.preventDefault();
     if (!stripe || !elements) return;
     setSubmitting(true);
+    onSubmittingChange(true);
     setError(null);
 
     const { error: confirmError } = await stripe.confirmPayment({
@@ -38,6 +39,7 @@ const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void }> = 
     if (confirmError) {
       setError(confirmError.message || 'Não foi possível confirmar o pagamento.');
       setSubmitting(false);
+      onSubmittingChange(false);
       return;
     }
 
@@ -46,6 +48,7 @@ const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void }> = 
     // confiar em "sucesso imediato = já pode fechar": mesmo cartão aprovado
     // na hora ainda depende do webhook invoice.paid criar a linha em
     // subscriptions antes do resto do app reconhecer o plano novo.
+    onSubmittingChange(false);
     onConfirmed();
   };
 
@@ -71,6 +74,7 @@ const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode; onSuccess:
   const { data: subscription } = useSubscription();
   const { refreshProfile } = useUser();
   const [timedOut, setTimedOut] = useState(false);
+  const refreshedRef = useRef(false);
 
   const success = !!(subscription && subscription.provider_subscription_id === subscriptionId && subscription.status === 'active');
 
@@ -81,7 +85,8 @@ const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode; onSuccess:
   }, [success]);
 
   useEffect(() => {
-    if (!success) return;
+    if (!success || refreshedRef.current) return;
+    refreshedRef.current = true;
     // profiles.plan já foi atualizado pelo webhook no banco, mas o UserContext
     // só recarrega no login/onAuthStateChange -- sem isso o resto do app
     // (Dashboard, limites de oferta/canal) continua achando que o user é free.
@@ -128,6 +133,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -135,6 +141,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
       setSubscriptionId(null);
       setConfirmed(false);
       setError(null);
+      setSubmitting(false);
       return;
     }
     const sku = getSku(plan, cycle);
@@ -159,6 +166,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
       title={`Assinar ${PLAN_LABELS[plan]}`}
       description="Pagamento por cartão ou Pix."
       size="md"
+      closeOnBackdrop={!submitting}
+      closeOnEsc={!submitting}
+      showCloseButton={!submitting}
     >
       {error && <p className="text-xs text-danger-ink font-medium mb-3">{error}</p>}
       {confirmed && subscriptionId ? (
@@ -169,7 +179,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
         </div>
       ) : (
         <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <PaymentStep onConfirmed={() => setConfirmed(true)} onClose={onClose} />
+          <PaymentStep onConfirmed={() => setConfirmed(true)} onClose={onClose} onSubmittingChange={setSubmitting} />
         </Elements>
       )}
     </Modal>
