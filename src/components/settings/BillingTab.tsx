@@ -43,14 +43,14 @@ export const BillingTab: React.FC = () => {
     try {
       const session = (await supabase.auth.getSession()).data.session;
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-cancel-subscription`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-cancel-subscription`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
-          body: JSON.stringify({ subscription_id: subscription.cakto_subscription_id }),
+          body: JSON.stringify({ subscription_id: subscription.provider_subscription_id }),
         }
       );
       if (!res.ok) {
