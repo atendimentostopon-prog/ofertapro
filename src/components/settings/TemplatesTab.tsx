@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2,
+  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Toggle } from '../ui/Toggle';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { APP_NAME } from '../../config/app';
@@ -44,6 +45,8 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   const [templatesSaved, setTemplatesSaved] = useState(false);
   const [restoringTemplate, setRestoringTemplate] = useState(false);
   const [testingTemplate, setTestingTemplate] = useState(false);
+  const [useOwnShortener, setUseOwnShortener] = useState(true);
+  const [savingShortener, setSavingShortener] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadTemplates = async () => {
@@ -69,6 +72,45 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
       loadTemplates();
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('user_settings')
+      .select('use_own_shortener')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao carregar preferência de encurtador:', error);
+          return;
+        }
+        // Sem linha em user_settings (usuário nunca salvou nada ali) ou
+        // coluna null -> mantém o default true, igual à Edge Function.
+        if (data && data.use_own_shortener === false) {
+          setUseOwnShortener(false);
+        }
+      });
+  }, [user?.id]);
+
+  const handleToggleShortener = async (next: boolean) => {
+    if (!user) return;
+    setUseOwnShortener(next);
+    setSavingShortener(true);
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({ user_id: user.id, use_own_shortener: next }, { onConflict: 'user_id' });
+      if (error) throw error;
+      toast(next ? 'Encurtador próprio ativado.' : 'Encurtador próprio desativado.', 'success');
+    } catch (err: any) {
+      console.error('Erro ao salvar preferência de encurtador:', err);
+      setUseOwnShortener(!next);
+      toast('Não foi possível salvar essa preferência. Tente novamente.', 'error');
+    } finally {
+      setSavingShortener(false);
+    }
+  };
 
   const getActiveTemplateContent = () => {
     if (currentEditingTemplateTab === 'whatsapp') return whatsappTemplate;
@@ -563,6 +605,25 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
             <p className="text-[9.5px] text-ink-tertiary font-medium text-center leading-normal">As variáveis serão preenchidas com dados da oferta em runtime.</p>
           </div>
         </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Link de Afiliado"
+        description="Escolha qual link é enviado nos disparos automáticos das suas ofertas"
+        icon={Link2}
+      >
+        <Toggle
+          id="use-own-shortener"
+          label="Usar encurtador próprio (aflyo.com.br/o/...)"
+          description={
+            useOwnShortener
+              ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
+              : 'Os links são encurtados por um serviço externo (is.gd) e não contam clique no seu painel.'
+          }
+          checked={useOwnShortener}
+          onChange={handleToggleShortener}
+          disabled={savingShortener}
+        />
       </SettingsSection>
     </div>
   );
