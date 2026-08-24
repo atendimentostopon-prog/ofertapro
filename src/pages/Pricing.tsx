@@ -3,9 +3,7 @@ import React, { useState } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { PLAN_CATALOG, PLAN_LABELS, type PlanCode, type BillingCycle } from "../config/planCatalog";
-import { CheckoutRedirectDialog } from "../components/billing/CheckoutRedirectDialog";
-import { CheckoutWaitingDialog } from "../components/billing/CheckoutWaitingDialog";
-import { ClaimSubscriptionDialog } from "../components/billing/ClaimSubscriptionDialog";
+import { CheckoutForm } from "../components/billing/CheckoutForm";
 import { useSubscription } from "../hooks/useSubscription";
 import { useUser } from "../context/UserContext";
 
@@ -44,15 +42,13 @@ const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
 
 export default function Pricing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
-  const [selectedPlan, setSelectedPlan] = useState<PlanCode | null>(null);
-  const [showWaiting, setShowWaiting] = useState(false);
-  const [showClaim, setShowClaim] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanCode | null>(null);
   const { data: currentSub } = useSubscription();
   const { user } = useUser();
 
-  const handleAssinar = (plan: PlanCode) => setSelectedPlan(plan);
-  const closeRedirect = () => setSelectedPlan(null);
-  const onRedirected = () => { closeRedirect(); setShowWaiting(true); };
+  const handleAssinar = (plan: PlanCode) => {
+    setCheckoutPlan(plan);
+  };
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
@@ -86,7 +82,7 @@ export default function Pricing() {
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan][cycle];
           const isHighlighted = plan === PLAN_HIGHLIGHT;
-          const isAvailable = !sku.caktoOfferId.startsWith("TBD-");
+          const isAvailable = true; // Todos os planos têm stripePriceId válido
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           return (
@@ -136,21 +132,18 @@ export default function Pricing() {
         })}
       </div>
 
-      {selectedPlan && (
-        <CheckoutRedirectDialog
-          open
-          plan={selectedPlan}
+      {checkoutPlan && (
+        <CheckoutForm
+          plan={checkoutPlan}
           cycle={cycle}
-          onClose={closeRedirect}
-          onOpened={onRedirected}
+          open={!!checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          onSuccess={() => {
+            setCheckoutPlan(null);
+            // useSubscription via Realtime detecta a mudança quando o webhook confirmar
+          }}
         />
       )}
-      <CheckoutWaitingDialog
-        open={showWaiting}
-        onClose={() => setShowWaiting(false)}
-        onNeedsClaim={() => { setShowWaiting(false); setShowClaim(true); }}
-      />
-      <ClaimSubscriptionDialog open={showClaim} onClose={() => setShowClaim(false)} />
     </div>
   );
 }
