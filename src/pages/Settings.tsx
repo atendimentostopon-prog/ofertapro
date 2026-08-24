@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   User as UserIcon, Link2, MessageSquare, Save, Check, Loader2,
@@ -38,6 +38,31 @@ const Settings: React.FC = () => {
   const initialTab: TabId = isValidTab(searchParams.get('tab')) ? (searchParams.get('tab') as TabId) : 'account';
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
 
+  // Fade nas bordas da barra de abas -- só aparece quando dá pra rolar
+  // naquela direção, pra não deixar a rolagem invisível em telas estreitas.
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateTabsScrollState = () => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateTabsScrollState();
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateTabsScrollState);
+    window.addEventListener('resize', updateTabsScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateTabsScrollState);
+      window.removeEventListener('resize', updateTabsScrollState);
+    };
+  }, []);
+
   useEffect(() => {
     const paramTab = searchParams.get('tab');
     if (isValidTab(paramTab) && paramTab !== activeTab) {
@@ -59,8 +84,8 @@ const Settings: React.FC = () => {
   const showSaveButton = SAVE_BUTTON_TABS.includes(activeTab);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-slide-up">
+      <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Configurações</h1>
           <p className="text-[15px] font-medium text-ink-secondary mt-1">Gerencie seu perfil, planos e templates de disparo</p>
@@ -82,35 +107,54 @@ const Settings: React.FC = () => {
         )}
       </div>
 
-      <div className="w-full overflow-x-auto scrollbar-none py-1.5">
-        <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
-          {TABS.map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`tab-item flex items-center gap-2 font-bold text-xs flex-shrink-0 ${
-                  activeTab === tab.id ? 'active' : ''
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
+      {/* Barra de abas usa a largura inteira disponível (sem max-w-4xl) --
+          7 abas não cabem em 896px, e o container ficava sempre com scroll
+          horizontal escondido (scrollbar-none, sem indicação visual nenhuma
+          de que dava pra rolar), cortando abas nas duas pontas mesmo em
+          telas largas. Com a largura cheia, cabe tudo sem precisar rolar
+          a partir de ~1024px de viewport. */}
+      <div className="relative">
+        {canScrollLeft && (
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-surface-1 to-transparent z-10" />
+        )}
+        <div
+          ref={tabsScrollRef}
+          className="w-full overflow-x-auto scrollbar-none py-1.5"
+        >
+          <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1">
+            {TABS.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`tab-item flex items-center gap-2 font-bold text-xs flex-shrink-0 ${
+                    activeTab === tab.id ? 'active' : ''
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        {canScrollRight && (
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-surface-1 to-transparent z-10" />
+        )}
       </div>
 
-      {activeTab === 'account' && <AccountTab profile={profile} />}
-      {activeTab === 'profile' && <PublicPageTab profile={profile} />}
-      {activeTab === 'links' && <LinksTab profile={profile} />}
-      {activeTab === 'templates' && (
-        <TemplatesTab onUpgradeClick={() => handleTabChange('billing')} />
-      )}
-      {activeTab === 'integrations' && <ApiIntegrationsTab />}
-      {activeTab === 'bot' && <BotTab />}
-      {activeTab === 'billing' && <BillingTab />}
+      <div className="max-w-4xl mx-auto">
+        {activeTab === 'account' && <AccountTab profile={profile} />}
+        {activeTab === 'profile' && <PublicPageTab profile={profile} />}
+        {activeTab === 'links' && <LinksTab profile={profile} />}
+        {activeTab === 'templates' && (
+          <TemplatesTab onUpgradeClick={() => handleTabChange('billing')} />
+        )}
+        {activeTab === 'integrations' && <ApiIntegrationsTab />}
+        {activeTab === 'bot' && <BotTab />}
+        {activeTab === 'billing' && <BillingTab />}
+      </div>
     </div>
   );
 };
