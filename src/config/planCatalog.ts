@@ -1,8 +1,7 @@
 export type PlanCode = 'starter' | 'pro' | 'enterprise';
 export type BillingCycle = 'monthly' | 'yearly';
 
-// Rótulo exibido pro usuário -- plan_code interno (starter/pro/enterprise)
-// continua igual no banco/triggers/RLS, só o nome de mercado muda.
+// Rótulo exibido pro usuário -- plan_code interno continua igual no banco/triggers/RLS
 export const PLAN_LABELS: Record<PlanCode, string> = {
   starter: 'Starter',
   pro: 'Profissional',
@@ -10,26 +9,23 @@ export const PLAN_LABELS: Record<PlanCode, string> = {
 };
 
 export interface PlanSKU {
-  caktoOfferId: string;
-  price: number;                // BRL
-  checkoutUrl: string;          // https://pay.cakto.com.br/{offerId}
+  stripePriceId: string;
+  price: number; // BRL
 }
 
-// IDs reais são preenchidos após criar os produtos no dashboard Cakto (Task 15).
-// Enquanto placeholder, valores ficam "TBD" — feature flag billing:false garante que
-// nada disso é acessado em runtime até Task 15.
+// Price IDs de TESTE (Task 2). Task 14 troca pelos IDs de produção.
 export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
   starter: {
-    monthly: { caktoOfferId: 'oy56ftb', price: 47.9, checkoutUrl: 'https://pay.cakto.com.br/oy56ftb' },
-    yearly:  { caktoOfferId: '5523xh7', price: 479,  checkoutUrl: 'https://pay.cakto.com.br/5523xh7' },
+    monthly: { stripePriceId: 'price_1U822CRQHW3NT5U63pCkCLt3', price: 47.9 },
+    yearly:  { stripePriceId: 'price_1U822DRQHW3NT5U6s3BBZvl8',  price: 479 },
   },
   pro: {
-    monthly: { caktoOfferId: 'TBD-pro-monthly',     price: 167,  checkoutUrl: 'https://pay.cakto.com.br/TBD-pro-monthly'     },
-    yearly:  { caktoOfferId: 'TBD-pro-yearly',      price: 1670, checkoutUrl: 'https://pay.cakto.com.br/TBD-pro-yearly'      },
+    monthly: { stripePriceId: 'price_1U822DRQHW3NT5U6CWheyBrr', price: 167 },
+    yearly:  { stripePriceId: 'price_1U822ERQHW3NT5U6KBEFjUbm',  price: 1670 },
   },
   enterprise: {
-    monthly: { caktoOfferId: 'TBD-enterprise-monthly', price: 247,  checkoutUrl: 'https://pay.cakto.com.br/TBD-enterprise-monthly' },
-    yearly:  { caktoOfferId: 'TBD-enterprise-yearly',  price: 2470, checkoutUrl: 'https://pay.cakto.com.br/TBD-enterprise-yearly'  },
+    monthly: { stripePriceId: 'price_1U822FRQHW3NT5U6Abq23jIU', price: 247 },
+    yearly:  { stripePriceId: 'price_1U822FRQHW3NT5U6hxwo4NWa',  price: 2470 },
   },
 };
 
@@ -37,11 +33,11 @@ export function getSku(plan: PlanCode, cycle: BillingCycle): PlanSKU {
   return PLAN_CATALOG[plan][cycle];
 }
 
-// Helper inverso: usado pelo webhook handler pra mapear offerId → (plan, cycle)
-export function findPlanByOfferId(offerId: string): { plan: PlanCode; cycle: BillingCycle } | null {
+// Helper inverso: usado pelo webhook handler pra mapear stripePriceId -> (plan, cycle)
+export function findPlanByPriceId(priceId: string): { plan: PlanCode; cycle: BillingCycle } | null {
   for (const plan of Object.keys(PLAN_CATALOG) as PlanCode[]) {
     for (const cycle of ['monthly', 'yearly'] as BillingCycle[]) {
-      if (PLAN_CATALOG[plan][cycle].caktoOfferId === offerId) {
+      if (PLAN_CATALOG[plan][cycle].stripePriceId === priceId) {
         return { plan, cycle };
       }
     }
