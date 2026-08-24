@@ -1,0 +1,9 @@
+{
+  "event": "connection.update",
+  "instance": "lo_ab1620e3_001",
+  "data": {
+    "status": "open",
+    "phone": "5511999999999@s.whatsapp.net",
+    "profileName": "Givaldo Teste"
+  }
+}

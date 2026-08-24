@@ -1,0 +1,12 @@
+{
+  "channel_ids": ["acffac20-93e3-413a-b79b-0616e1cb6c24"],
+  "offer": {
+    "title": "Oferta Disparada via API Publica",
+    "description": "Nova oferta incrivel disparada via integracao API externa!",
+    "affiliate_link": "https://www.amazon.com.br/dp/B08PC5C7Y5",
+    "marketplace": "amazon",
+    "sale_price": "89.90",
+    "original_price": "129.90",
+    "coupon": "APIOFERTA"
+  }
+}
