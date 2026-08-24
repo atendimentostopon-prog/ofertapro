@@ -6,7 +6,14 @@ export async function subscriptionUpdated(subscription: any, supabase: any): Pro
     canceled: "canceled",
     unpaid: "past_due",
   };
-  const status = statusMap[subscription.status] ?? "active";
+  // Fail-closed: qualquer status da Stripe não mapeado explicitamente
+  // (trialing, incomplete, incomplete_expired, paused, etc.) cai em
+  // past_due em vez de active -- não queremos que um status desconhecido
+  // vire "usuário tem acesso" por omissão.
+  const status = statusMap[subscription.status] ?? "past_due";
+  if (!(subscription.status in statusMap)) {
+    console.warn(`[subscriptionUpdated] status da Stripe não mapeado: ${subscription.status} -- usando past_due como fallback seguro`);
+  }
 
   await supabase.from("subscriptions").update({
     status,
