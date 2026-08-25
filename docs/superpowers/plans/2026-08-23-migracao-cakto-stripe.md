@@ -1217,9 +1217,11 @@ git commit -m "chore(billing): remove código Cakto (functions, dialogs, checkou
 
 **Interfaces:** nenhuma nova.
 
-- [ ] **Step 1: Criar o endpoint de webhook no dashboard Stripe (modo teste)**
+- [x] **Step 1: Criar o endpoint de webhook no dashboard Stripe (modo teste)** -- feito pelo controller via API
 
-Dashboard Stripe -> Developers -> Webhooks -> Add endpoint. URL: `https://zuqaccivowbzdfrpgekz.supabase.co/functions/v1/stripe-webhook`. Eventos: `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`. Copiar o **Signing secret** (`whsec_...`) gerado.
+**⚠️ CRÍTICO -- descoberto durante a execução, não estava no plano original:** o endpoint PRECISA ser criado com `api_version=2024-06-20` explícito. Sem isso, a Stripe entrega o payload do webhook no formato PADRÃO DA CONTA (que em contas novas é uma versão bem mais recente onde `invoice.subscription` foi REMOVIDO -- vem `null`; o valor real mudou pra `invoice.parent.subscription_details.subscription`). O código dos handlers (`invoicePaid.ts` etc, Task 5) foi escrito pro formato antigo/documentado oficialmente. Fixar `apiVersion: "2024-06-20"` no client Stripe DENTRO das edge functions (já feito, Tasks 6/7/8) só afeta chamadas que O CÓDIGO faz PRA Stripe -- não afeta o formato do que a Stripe MANDA pro webhook, que é controlado por essa opção na criação do endpoint. Confirmado ao vivo: sem isso, `invoice.paid` chega, passa pela validação de assinatura, grava em `webhook_events`, mas o handler silenciosamente não faz nada (return antecipado por `invoice.subscription` ser `null`) -- nenhum erro, nenhum log óbvio, só o plano nunca ativa. Se isso acontecer de novo (ex: numa Stripe API mudar de novo no futuro), o diagnóstico é: `SELECT payload->'data'->'object'->>'subscription' FROM webhook_events WHERE event_type='invoice.paid' ORDER BY processed_at DESC LIMIT 1;` -- se vier `null`, é isso.
+
+Dashboard Stripe -> Developers -> Webhooks -> Add endpoint (ou via API, `-d api_version="2024-06-20"` no `POST /v1/webhook_endpoints`). URL: `https://zuqaccivowbzdfrpgekz.supabase.co/functions/v1/stripe-webhook`. Eventos: `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`. Copiar o **Signing secret** (`whsec_...`) gerado. Não dá pra corrigir a `api_version` de um endpoint já criado via update -- se errar, deletar e recriar.
 
 - [ ] **Step 2: Atualizar `STRIPE_WEBHOOK_SECRET` nos secrets do Supabase com o valor real**
 
@@ -1227,32 +1229,32 @@ Dashboard Stripe -> Developers -> Webhooks -> Add endpoint. URL: `https://zuqacc
 SUPABASE_ACCESS_TOKEN="<PAT>" npx supabase secrets set STRIPE_WEBHOOK_SECRET="whsec_..." --project-ref zuqaccivowbzdfrpgekz
 ```
 
-- [ ] **Step 3: E2E -- assinar com cartão de teste**
+- [x] **Step 3 (variante): E2E do backend -- ativação via webhook real** -- feito pelo controller via API Stripe direta (sem UI, controller não tem credencial de login pra testar o Payment Element de verdade)
 
-No app rodando localmente (ou preview), `/pricing` -> Assinar Starter. Usar cartão de teste `4242 4242 4242 4242`, validade futura, CVC qualquer. Confirmar:
+Criado customer de teste na Stripe, vinculado a `profiles.stripe_customer_id` de um perfil de teste existente, criada uma subscription real (Starter mensal) com o cartão de teste `pm_card_visa` (equivalente ao `4242...`) via API. Confirmado: `invoice.paid` chegou no webhook, ativou `subscriptions` (status=active, plan_code=starter, amount=47.90, período de 30 dias correto) e `profiles.plan=starter`. Isso valida o CAMINHO INTEIRO server-side (criação de subscription, PaymentIntent, webhook, handler, ativação) -- só não testa visualmente o Payment Element renderizando no navegador.
+
+**Pendente de verdade (precisa de humano com login real):** abrir `/pricing` logado, clicar Assinar, ver o formulário embutido carregar e conseguir de fato digitar um cartão de teste nele. O backend está confirmado correto; a UI (`CheckoutForm`, Task 10) passou por review de código rigoroso mas nunca foi vista rodando num navegador real.
+
+- [ ] **Step 4: E2E -- assinar com Pix de teste** (pendente, precisa de humano -- ver Step 3)
+
+No app rodando localmente (ou preview), `/pricing` -> Assinar Starter, escolher Pix no Payment Element. A Stripe em modo teste tem um botão "Simular pagamento" no QR code de teste. Confirmar no banco:
 ```sql
 SELECT status, plan_code, provider_subscription_id FROM public.subscriptions ORDER BY created_at DESC LIMIT 1;
 SELECT plan FROM public.profiles WHERE id = '<seu_user_id>';
 ```
 Esperado: `status=active`, `plan_code=starter`, `profiles.plan=starter`.
 
-- [ ] **Step 4: E2E -- assinar com Pix de teste**
+- [x] **Step 5 (variante): E2E do backend -- cancelamento agendado e imediato** -- feito pelo controller via API Stripe direta
 
-Repetir o Step 3 escolhendo Pix no Payment Element. A Stripe em modo teste tem um botão "Simular pagamento" no QR code de teste. Confirmar o mesmo resultado no banco.
+Testados os dois caminhos direto via API (equivalente ao que `stripe-cancel-subscription` faz, e ao que a Stripe manda quando uma assinatura é cancelada de outra forma): `cancel_at_period_end=true` -> `subscriptions.cancel_at_period_end` vira `true` corretamente, `status` continua `active` (usuário mantém acesso até o fim do período, como esperado). Cancelamento imediato (DELETE da subscription) -> `subscriptions.status='canceled'` e `profiles.plan` volta pra `free` corretamente.
 
-- [ ] **Step 5: E2E -- cancelamento**
+**Pendente de verdade:** clicar no botão de cancelar dentro da `BillingTab` de verdade (testa a function `stripe-cancel-subscription`, que exige JWT de usuário real -- controller não tem credencial pra isso).
 
-Na `BillingTab`, cancelar a assinatura ativa. Confirmar:
-```sql
-SELECT cancel_at_period_end FROM public.subscriptions WHERE provider_subscription_id = '<id>';
-```
-Esperado: `true`. Plano continua ativo até `current_period_end` (comportamento correto, igual ao que a Cakto tinha).
+- [ ] **Step 6: E2E -- pagamento recusado** (não testado -- nem via API nem via UI)
 
-- [ ] **Step 6: E2E -- pagamento recusado**
+Repetir o Step 3 com o cartão de teste de recusa `4000 0000 0000 0002`. Confirmar que o Payment Element mostra o erro inline e nenhuma linha é criada em `subscriptions` (só é criada em `invoice.paid`, que nunca dispara nesse caso). O handler `paymentFailed.ts` (marca `past_due` + grace period) não foi exercitado ao vivo -- só validado por review de código.
 
-Repetir o Step 3 com o cartão de teste de recusa `4000 0000 0000 0002`. Confirmar que o Payment Element mostra o erro inline e nenhuma linha é criada em `subscriptions` (só é criada em `invoice.paid`, que nunca dispara nesse caso).
-
-- [ ] **Step 7: Limpar dados de teste**
+- [x] **Step 7: Limpar dados de teste** -- feito pelo controller
 
 ```sql
 DELETE FROM public.subscriptions WHERE provider_subscription_id LIKE 'sub_%' AND created_at > now() - interval '1 hour';
@@ -1265,7 +1267,7 @@ Ajustar o filtro pra pegar só as linhas geradas nesse teste.
 Isso o agente NÃO faz sozinho, fica registrado aqui pro usuário executar quando decidir:
 1. Ativar a conta Stripe pra modo produção (dados bancários, verificação de identidade -- processo da própria Stripe).
 2. Repetir a Task 2 com a chave `sk_live_...` (criar os 6 products/prices reais).
-3. Repetir a Task 14 Step 1 com um webhook endpoint apontando pro mesmo URL, mas em modo produção (a Stripe trata teste/produção como ambientes separados, precisa de webhook próprio).
+3. Repetir a Task 14 Step 1 com um webhook endpoint apontando pro mesmo URL, mas em modo produção (a Stripe trata teste/produção como ambientes separados, precisa de webhook próprio). **NÃO ESQUECER `api_version=2024-06-20` na criação -- ver nota crítica no Step 1. Sem isso, ativação de plano fica quebrada em produção com dinheiro real, silenciosamente.**
 4. Trocar `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` nos secrets do Supabase pros valores de produção.
 5. Trocar `VITE_STRIPE_PUBLISHABLE_KEY` na Vercel pra `pk_live_...`.
 6. Atualizar `planCatalog.ts` e `stripe-webhook/lib/planMapping.ts` com os 6 price IDs de produção (mesmo processo da Task 3/4, valores diferentes).
