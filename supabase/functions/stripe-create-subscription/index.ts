@@ -60,7 +60,27 @@ serve(async (req) => {
         metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;
-      await admin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
+      // Filtro condicional .is("stripe_customer_id", null) evita que duas chamadas
+      // concorrentes (ex: React StrictMode double-invocando efeitos em dev) pisem
+      // uma na outra: só grava se ninguém já tiver salvo um customer_id antes.
+      await admin
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", user.id)
+        .is("stripe_customer_id", null);
+
+      // Relê o profile pra usar o customer_id que de fato ficou salvo -- se esta
+      // chamada perdeu a corrida, usamos o customer_id da chamada vencedora em vez
+      // do que acabamos de criar aqui, evitando um pagamento órfão num Customer que
+      // nenhum profile referencia.
+      const { data: refreshedProfile } = await admin
+        .from("profiles")
+        .select("stripe_customer_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (refreshedProfile?.stripe_customer_id) {
+        customerId = refreshedProfile.stripe_customer_id;
+      }
     }
 
     const subscription = await stripe.subscriptions.create({
