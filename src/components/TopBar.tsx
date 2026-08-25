@@ -120,10 +120,10 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
       {/* Search */}
       <form
         onSubmit={handleSearchSubmit}
-        className={`flex-1 max-w-md relative transition-all duration-220 ${searchFocused ? 'max-w-lg' : ''}`}
+        className={`flex-1 min-w-0 max-w-md relative transition-all duration-220 ${searchFocused ? 'max-w-lg' : ''}`}
       >
         <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-all duration-160 cursor-text ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-all duration-160 cursor-text min-w-0 ${
             searchFocused
               ? 'border-mint-500 bg-surface-0 shadow-focus'
               : 'border-line bg-surface-1 hover:border-line-strong'
