@@ -132,16 +132,16 @@ const ApiIntegrationsTab: React.FC = () => {
       {/* 1. Header do Status da API */}
       <div className="glass-card overflow-hidden border-line shadow-sm p-6 bg-surface-1">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 min-w-0">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-              activeKey 
-                ? 'bg-success-bg border border-success/20 text-success-ink' 
+              activeKey
+                ? 'bg-success-bg border border-success/20 text-success-ink'
                 : 'bg-surface-2 border border-line text-ink-secondary'
             }`}>
               {activeKey ? <ShieldCheck className="w-6 h-6" /> : <Key className="w-6 h-6" />}
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2.5">
+            <div className="space-y-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <h3 className="text-[15px] font-bold text-ink tracking-tight">Status da API e Integrações</h3>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
                   activeKey 
