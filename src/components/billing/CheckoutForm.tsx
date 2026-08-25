@@ -153,9 +153,23 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
       .invoke('stripe-create-subscription', {
         body: { plan_code: plan, billing_cycle: cycle, price_id: sku.stripePriceId },
       })
-      .then(({ data, error: invokeError }) => {
+      .then(async ({ data, error: invokeError }) => {
         if (invokeError || !data?.clientSecret || !data?.subscriptionId) {
-          setError('Não foi possível iniciar o checkout. Tente novamente.');
+          // supabase.functions.invoke só popula `data` em respostas 2xx -- num erro
+          // (400/401/500), `data` vem null e `invokeError.message` é sempre o texto
+          // genérico da lib ("Edge Function returned a non-2xx status code"). A
+          // mensagem específica que a edge function manda em {error: "..."} só dá
+          // pra ler no corpo bruto da resposta em invokeError.context.
+          let message: string | undefined = data?.error;
+          if (!message && invokeError && typeof (invokeError as any)?.context?.json === 'function') {
+            try {
+              const body = await (invokeError as any).context.json();
+              message = body?.error;
+            } catch {
+              // resposta de erro não veio como JSON -- ignora e cai no fallback genérico
+            }
+          }
+          setError(message || invokeError?.message || 'Não foi possível iniciar o checkout. Tente novamente.');
           return;
         }
         setClientSecret(data.clientSecret);
@@ -174,8 +188,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
       closeOnEsc={!submitting}
       showCloseButton={!submitting}
     >
-      {error && <p className="text-xs text-danger-ink font-medium mb-3">{error}</p>}
-      {confirmed && subscriptionId ? (
+      {error ? (
+        <p className="text-xs text-danger-ink font-medium py-4">{error}</p>
+      ) : confirmed && subscriptionId ? (
         <WaitingStep subscriptionId={subscriptionId} plan={plan} onSuccess={onSuccess} onClose={onClose} />
       ) : !clientSecret ? (
         <div className="flex items-center justify-center py-8">
