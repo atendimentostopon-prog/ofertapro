@@ -6,8 +6,17 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
   apiVersion: "2024-06-20",
 });
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
 
   const authHeader = req.headers.get("Authorization") ?? "";
   const supabase = createClient(
@@ -19,7 +28,7 @@ serve(async (req) => {
   if (!user) {
     return new Response(JSON.stringify({ error: "Não autorizado." }), {
       status: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -27,7 +36,7 @@ serve(async (req) => {
   if (!plan_code || !billing_cycle || !price_id) {
     return new Response(JSON.stringify({ error: "plan_code, billing_cycle e price_id são obrigatórios." }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -74,13 +83,13 @@ serve(async (req) => {
         subscriptionId: subscription.id,
         clientSecret: paymentIntent.client_secret,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {
     console.error("[stripe-create-subscription] erro:", e.message);
     return new Response(JSON.stringify({ error: e.message || "Erro ao criar assinatura." }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
