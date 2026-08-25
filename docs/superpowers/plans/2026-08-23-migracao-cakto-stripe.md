@@ -1270,12 +1270,16 @@ Isso o agente NÃO faz sozinho, fica registrado aqui pro usuário executar quand
 3. Repetir a Task 14 Step 1 com um webhook endpoint apontando pro mesmo URL, mas em modo produção (a Stripe trata teste/produção como ambientes separados, precisa de webhook próprio). **NÃO ESQUECER `api_version=2024-06-20` na criação -- ver nota crítica no Step 1. Sem isso, ativação de plano fica quebrada em produção com dinheiro real, silenciosamente.**
 4. Trocar `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` nos secrets do Supabase pros valores de produção.
 5. Trocar `VITE_STRIPE_PUBLISHABLE_KEY` na Vercel pra `pk_live_...`.
-6. Atualizar `planCatalog.ts` e `stripe-webhook/lib/planMapping.ts` com os 6 price IDs de produção (mesmo processo da Task 3/4, valores diferentes).
-7. Fazer 1 assinatura real (Starter, R$47,90) pra validar ponta a ponta em produção, cancelar/reembolsar depois se for só teste.
+6. Atualizar `planCatalog.ts` e `stripe-webhook/lib/planMapping.ts` com os 6 price IDs de produção (mesmo processo da Task 3/4, valores diferentes). **⚠️ Achado na revisão final: commitar isso NÃO basta -- `planMapping.ts` fica embutido dentro da edge function já deployada. É obrigatório rodar `supabase functions deploy stripe-webhook` depois de trocar os price IDs, senão o servidor continua rodando os price IDs de TESTE mesmo com o código de produção commitado -- mesmo modo de falha silenciosa do bug de api_version (webhook responde 200, não ativa nada).**
+7. **Desativar o checkout antigo da Cakto** -- os links `https://pay.cakto.com.br/oy56ftb` (Starter mensal) e `/5523xh7` (anual) continuam ativos e cobrando dinheiro real; `cakto-webhook` (que processava a confirmação deles) já foi deletado nesta migração (Task 13). Sem desativar, qualquer pessoa com um link antigo (email salvo, favorito, etc) paga e ninguém processa -- nem ativa plano, nem alguém percebe o pagamento chegando. Desativar/arquivar as ofertas no painel Cakto antes ou junto do go-live.
+8. Fazer 1 assinatura real (Starter, R$47,90) pra validar ponta a ponta em produção, cancelar/reembolsar depois se for só teste.
+
+**⚠️ Risco de sequenciamento (achado na revisão final):** nada no código impede a Pricing.tsx de rodar em produção com os price IDs/chaves de TESTE atuais. Se essa branch mergear em `main` (que deploya direto em produção) ANTES deste Step 8 estar completo, o checkout em produção passa a aceitar cartões de teste conhecidos da Stripe (ex: `4242 4242 4242 4242`) como pagamento válido -- qualquer um ganha acesso ao plano de graça. Ou o Step 8 inteiro é completado ANTES do merge, ou entra algum gate (feature flag, branch de preview) garantindo que produção só vê isso depois das chaves reais estarem no lugar. Decisão de sequenciamento fica com o usuário, não é algo que o agente resolve sozinho.
 
 - [ ] **Step 9: Commit final (se algum arquivo mudou nos steps anteriores, ex: planMapping com IDs reais)**
 
 ```bash
-git add -A
+git add src/config/planCatalog.ts supabase/functions/stripe-webhook/lib/planMapping.ts
 git commit -m "feat(billing): Stripe em produção -- price IDs reais + webhook configurado"
 ```
+(Usar os caminhos exatos dos arquivos tocados, nunca `git add -A`/`git add .` -- esta mesma migração teve um incidente de 77 arquivos apagados acidentalmente por um `git add` amplo demais, ver histórico da Task 10.)
