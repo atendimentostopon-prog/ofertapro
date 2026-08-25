@@ -97,7 +97,7 @@ export const BillingTab: React.FC = () => {
             </div>
             {subscription.status === "past_due" && (
               <div className="p-3 bg-warning-bg border border-warning/20 rounded-lg text-xs text-warning-ink">
-                Pagamento em atraso. Cakto está retentando. Se não recuperar até {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}, seu plano cai pra free.
+                Pagamento em atraso. Estamos tentando novamente automaticamente. Se não recuperar até {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}, seu plano cai pra free.
               </div>
             )}
             <div className="flex gap-2 pt-2">
