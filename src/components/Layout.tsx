@@ -4,6 +4,7 @@ import TopBar from './TopBar';
 import NewOfferModal from './modals/NewOfferModal';
 import FeedbackButton from './feedback/FeedbackButton';
 import { useUser } from '../context/UserContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
@@ -15,10 +16,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const { user } = useUser();
+  const { data: subscription } = useSubscription();
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const needsSetup = needsPublicPageSetup(user);
-  const needsWizard = !!user && !needsSetup && user.onboarded !== true;
+  // Tutorial guiado só faz sentido pra quem já é assinante -- sem essa
+  // checagem, o modal aparecia até em cima da tela de Planos pra quem
+  // ainda nem pagou, pedindo pra conectar bot/canal que ele não pode usar.
+  const isPaying = !!user && (user.plan !== 'free' || !!subscription);
+  const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
     <div className="min-h-screen bg-surface-1 flex text-ink relative overflow-x-hidden">

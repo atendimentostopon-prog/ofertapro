@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Bot, Radar, Send, Package } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
-export type OnboardingStepId = 'telegram_bot' | 'grupo_origem' | 'canal_destino';
+export type OnboardingStepId = 'telegram_bot' | 'grupo_origem' | 'canal_destino' | 'primeira_oferta';
 
 export interface OnboardingStep {
   id: OnboardingStepId;
   title: string;
   description: string;
   route: string;
+  icon: React.ElementType;
   done: boolean;
 }
 
@@ -27,6 +29,7 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
   const [botActive, setBotActive] = useState(false);
   const [gruposCount, setGruposCount] = useState(0);
   const [hasConnectedChannel, setHasConnectedChannel] = useState(false);
+  const [hasOffer, setHasOffer] = useState(false);
   const activeRef = useRef(true);
 
   const load = useCallback(async () => {
@@ -37,7 +40,7 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
 
     setLoading(true);
     try {
-      const [botRes, channelsRes] = await Promise.all([
+      const [botRes, channelsRes, offersRes] = await Promise.all([
         supabase
           .from('bot_configs')
           .select('status, grupos_origem')
@@ -46,6 +49,10 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
         supabase
           .from('channels')
           .select('status')
+          .eq('user_id', user.id),
+        supabase
+          .from('offers')
+          .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id),
       ]);
 
@@ -57,6 +64,8 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
 
       const channels = (channelsRes.data || []) as Array<{ status?: string | null }>;
       setHasConnectedChannel(channels.some(c => c.status && CONNECTED_CHANNEL_STATUSES.has(c.status)));
+
+      setHasOffer((offersRes.count ?? 0) > 0);
     } catch (err) {
       console.error('[useOnboardingStatus] erro ao carregar status:', err);
     } finally {
@@ -78,6 +87,7 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
       title: 'Conectar o bot do Telegram',
       description: 'Faça login com seu número no Telegram para o bot monitorar suas fontes.',
       route: '/integrations',
+      icon: Bot,
       done: botActive,
     },
     {
@@ -85,6 +95,7 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
       title: 'Adicionar um grupo de origem',
       description: 'Informe pelo menos um grupo do Telegram para o bot monitorar em busca de ofertas.',
       route: '/integrations',
+      icon: Radar,
       done: gruposCount >= 1,
     },
     {
@@ -92,7 +103,16 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
       title: 'Conectar um canal de destino',
       description: 'Conecte ao menos um canal (Telegram, WhatsApp ou Discord) que vai receber os disparos.',
       route: '/channels',
+      icon: Send,
       done: hasConnectedChannel,
+    },
+    {
+      id: 'primeira_oferta',
+      title: 'Criar sua primeira oferta',
+      description: 'Cadastre um produto com link de afiliado pra começar a disparar.',
+      route: '/offers/new',
+      icon: Package,
+      done: hasOffer,
     },
   ];
 
