@@ -26,6 +26,7 @@ import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
 import Pricing from './pages/Pricing';
+import Checkout from './pages/Checkout';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
 import { APP_NAME } from './config/app';
@@ -270,6 +271,11 @@ const App: React.FC = () => {
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+
+          {/* Checkout -- página cheia própria, sem o Layout/Sidebar do dashboard
+              (mais parecido com um checkout dedicado do que com uma tela interna).
+              Faz o próprio gate de autenticação dentro do componente. */}
+          <Route path="/checkout" element={<Checkout />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>

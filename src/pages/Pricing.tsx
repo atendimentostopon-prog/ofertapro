@@ -3,8 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/Button";
-import { PLAN_CATALOG, PLAN_LABELS, type PlanCode, type BillingCycle } from "../config/planCatalog";
-import { CheckoutForm } from "../components/billing/CheckoutForm";
+import { PLAN_CATALOG, PLAN_LABELS, FEATURES_BY_PLAN, type PlanCode, type BillingCycle } from "../config/planCatalog";
 import { useSubscription } from "../hooks/useSubscription";
 import { useUser } from "../context/UserContext";
 
@@ -12,44 +11,14 @@ const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
 
 const PLAN_HIGHLIGHT: PlanCode = "pro";
 
-const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
-  starter: [
-    "Monitora até 5 grupos de origem",
-    "Até 3 conexões WhatsApp",
-    "Até 2 conexões Telegram",
-    "Até 20.000 ofertas ativas",
-    "Disparo em massa + agendamento",
-    "Analytics avançado",
-    "Shopee, Amazon, Mercado Livre",
-  ],
-  pro: [
-    "Monitora até 30 grupos de origem",
-    "Até 5 conexões WhatsApp",
-    "Até 3 conexões Telegram",
-    "Ofertas ilimitadas",
-    "Templates de mensagem customizados",
-    "Remove a marca Aflyo da vitrine",
-    "Tudo do Starter",
-  ],
-  enterprise: [
-    "Grupos de origem ilimitados",
-    "WhatsApp e Telegram ilimitados",
-    "Ofertas ilimitadas",
-    "Templates de mensagem customizados",
-    "Remove a marca Aflyo da vitrine",
-    "Tudo do Profissional",
-  ],
-};
-
 export default function Pricing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
-  const [checkoutPlan, setCheckoutPlan] = useState<PlanCode | null>(null);
   const { data: currentSub } = useSubscription();
   const { user } = useUser();
   const nav = useNavigate();
 
   const handleAssinar = (plan: PlanCode) => {
-    setCheckoutPlan(plan);
+    nav(`/checkout?plan=${plan}&cycle=${cycle}`);
   };
 
   return (
@@ -146,19 +115,6 @@ export default function Pricing() {
           );
         })}
       </div>
-
-      {checkoutPlan && (
-        <CheckoutForm
-          plan={checkoutPlan}
-          cycle={cycle}
-          open={!!checkoutPlan}
-          onClose={() => setCheckoutPlan(null)}
-          onSuccess={() => {
-            setCheckoutPlan(null);
-            // useSubscription via Realtime detecta a mudança quando o webhook confirmar
-          }}
-        />
-      )}
     </div>
   );
 }

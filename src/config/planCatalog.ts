@@ -37,3 +37,33 @@ export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
 export function getSku(plan: PlanCode, cycle: BillingCycle): PlanSKU {
   return PLAN_CATALOG[plan][cycle];
 }
+
+// Compartilhado entre Pricing.tsx (lista de planos) e Checkout.tsx (resumo do pedido)
+export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
+  starter: [
+    'Monitora até 5 grupos de origem',
+    'Até 3 conexões WhatsApp',
+    'Até 2 conexões Telegram',
+    'Até 20.000 ofertas ativas',
+    'Disparo em massa + agendamento',
+    'Analytics avançado',
+    'Shopee, Amazon, Mercado Livre',
+  ],
+  pro: [
+    'Monitora até 30 grupos de origem',
+    'Até 5 conexões WhatsApp',
+    'Até 3 conexões Telegram',
+    'Ofertas ilimitadas',
+    'Templates de mensagem customizados',
+    'Remove a marca Aflyo da vitrine',
+    'Tudo do Starter',
+  ],
+  enterprise: [
+    'Grupos de origem ilimitados',
+    'WhatsApp e Telegram ilimitados',
+    'Ofertas ilimitadas',
+    'Templates de mensagem customizados',
+    'Remove a marca Aflyo da vitrine',
+    'Tudo do Profissional',
+  ],
+};
