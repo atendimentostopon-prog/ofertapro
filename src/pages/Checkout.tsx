@@ -7,7 +7,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { Check, CheckCircle, AlertCircle, Shield, Lock, RefreshCw } from 'lucide-react';
+import { Check, CheckCircle, AlertCircle, Shield, Lock, RefreshCw, CreditCard, Sparkles, ShieldCheck } from 'lucide-react';
 import { stripePromise } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
 import {
@@ -165,7 +165,7 @@ const PaymentPanel: React.FC<{ onConfirmed: () => void }> = ({ onConfirmed }) =>
         <button
           type="submit"
           disabled={!stripe || submitting}
-          className="w-full btn-gradient flex items-center justify-center gap-2 py-3 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+          className="w-full btn-gradient flex items-center justify-center gap-2 py-3.5 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
           {submitting ? (
             <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />
@@ -173,6 +173,11 @@ const PaymentPanel: React.FC<{ onConfirmed: () => void }> = ({ onConfirmed }) =>
             <span className="font-semibold tracking-tight">Confirmar assinatura</span>
           )}
         </button>
+
+        <p className="flex items-center justify-center gap-1.5 text-[11px] text-ink-tertiary mt-1">
+          <Lock className="w-3 h-3" />
+          Pagamento processado com segurança pela Stripe
+        </p>
       </form>
     </>
   );
@@ -236,70 +241,121 @@ export default function Checkout() {
 
   const sku = getSku(plan, cycleParam);
 
+  const nextBillingLabel = (() => {
+    const d = new Date();
+    if (cycleParam === 'monthly') d.setMonth(d.getMonth() + 1);
+    else d.setFullYear(d.getFullYear() + 1);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  })();
+
   return (
-    <div className="min-h-screen bg-surface-1 text-ink">
-      <header className="border-b border-line bg-surface-0">
+    <div className="min-h-screen bg-gradient-to-b from-mint-50 via-surface-1 to-surface-1 text-ink">
+      <header className="border-b border-line bg-surface-0/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <img src="/brand/logo-primary.png" alt={APP_NAME} className="h-7 w-auto select-none" draggable={false} />
-          <button
-            onClick={() => nav('/pricing')}
-            className="text-xs font-medium text-ink-tertiary hover:text-ink-secondary transition-colors cursor-pointer"
-          >
-            Voltar aos planos
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-mint-800 bg-mint-100 px-2.5 py-1 rounded-full">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Ambiente seguro
+            </span>
+            <button
+              onClick={() => nav('/pricing')}
+              className="text-xs font-medium text-ink-tertiary hover:text-ink-secondary transition-colors cursor-pointer"
+            >
+              Voltar aos planos
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-8 items-start">
-        <div className="bg-surface-0 border border-line rounded-2xl p-6 shadow-card">
-          <p className="text-xs font-semibold text-ink-tertiary uppercase tracking-wide">Resumo do pedido</p>
-          <h2 className="text-xl font-bold text-ink font-display mt-1">Plano {PLAN_LABELS[plan]}</h2>
-          <div className="mt-3 flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-ink font-display">R$ {sku.price.toFixed(2).replace('.', ',')}</span>
-            <span className="text-xs text-ink-tertiary">/{cycleParam === 'monthly' ? 'mês' : 'ano'}</span>
-          </div>
-
-          <ul className="mt-6 space-y-2.5">
-            {FEATURES_BY_PLAN[plan].map(f => (
-              <li key={f} className="flex items-start gap-2 text-sm text-ink-secondary">
-                <Check className="w-4 h-4 text-mint-500 mt-0.5 flex-shrink-0" />
-                {f}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 pt-6 border-t border-line flex items-center justify-center gap-6">
-            {[
-              { icon: <Shield className="w-3.5 h-3.5" />, text: 'Pagamento seguro' },
-              { icon: <Lock className="w-3.5 h-3.5" />, text: 'Dados criptografados' },
-              { icon: <RefreshCw className="w-3.5 h-3.5" />, text: 'Cancele quando quiser' },
-            ].map(f => (
-              <div key={f.text} className="flex flex-col items-center gap-1 text-ink-tertiary text-center">
-                <span className="text-mint-700">{f.icon}</span>
-                <span className="text-[10px] font-medium">{f.text}</span>
-              </div>
-            ))}
-          </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="text-center mb-10 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">Só mais um passo</h1>
+          <p className="text-sm text-ink-secondary mt-1.5">Finalize sua assinatura e desbloqueie o {PLAN_LABELS[plan]} agora mesmo.</p>
         </div>
 
-        <div className="bg-surface-0 border border-line rounded-2xl p-6 shadow-card">
-          <h2 className="text-lg font-bold text-ink font-display">Pagamento</h2>
-          <p className="text-sm text-ink-secondary mt-1">Cartão, Apple Pay ou Google Pay.</p>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.15fr] gap-6 items-start">
+          <div className="relative bg-surface-0 border border-line rounded-2xl p-6 shadow-lg overflow-hidden animate-slide-up">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-mint-400 via-mint-500 to-mint-600" />
 
-          <div className="mt-6">
-            {error ? (
-              <p className="text-xs text-danger-ink font-medium">{error}</p>
-            ) : confirmed && subscriptionId ? (
-              <WaitingStep subscriptionId={subscriptionId} plan={plan} />
-            ) : !clientSecret ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-6 h-6 border-2 border-mint-200 border-t-mint-500 rounded-full animate-spin" />
+            <div className="flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-mint-100 text-mint-700 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </span>
+              <div>
+                <p className="text-[11px] font-semibold text-ink-tertiary uppercase tracking-wide">Resumo do pedido</p>
+                <h2 className="text-lg font-bold text-ink font-display leading-tight">Plano {PLAN_LABELS[plan]}</h2>
               </div>
-            ) : (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <PaymentPanel onConfirmed={() => setConfirmed(true)} />
-              </Elements>
-            )}
+            </div>
+
+            <div className="mt-5 flex items-baseline gap-1">
+              <span className="text-4xl font-bold gradient-text-brand font-display">R$ {sku.price.toFixed(2).replace('.', ',')}</span>
+              <span className="text-xs text-ink-tertiary">/{cycleParam === 'monthly' ? 'mês' : 'ano'}</span>
+            </div>
+
+            <ul className="mt-6 space-y-2.5">
+              {FEATURES_BY_PLAN[plan].map(f => (
+                <li key={f} className="flex items-start gap-2 text-sm text-ink-secondary">
+                  <Check className="w-4 h-4 text-mint-500 mt-0.5 flex-shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 pt-5 border-t border-line space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-ink-secondary">Cobrado hoje</span>
+                <span className="font-semibold text-ink">R$ {sku.price.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-ink-tertiary">
+                <span>Próxima cobrança</span>
+                <span>{nextBillingLabel}</span>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-line flex items-center justify-center gap-5">
+              {[
+                { icon: <Shield className="w-3.5 h-3.5" />, text: 'Pagamento seguro' },
+                { icon: <Lock className="w-3.5 h-3.5" />, text: 'Dados criptografados' },
+                { icon: <RefreshCw className="w-3.5 h-3.5" />, text: 'Cancele quando quiser' },
+              ].map(f => (
+                <div key={f.text} className="flex flex-col items-center gap-1.5 text-center">
+                  <span className="w-8 h-8 rounded-full bg-mint-50 text-mint-700 flex items-center justify-center">{f.icon}</span>
+                  <span className="text-[10px] font-medium text-ink-tertiary max-w-[64px] leading-tight">{f.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="bg-surface-0 border border-line rounded-2xl p-6 shadow-lg animate-slide-up"
+            style={{ animationDelay: '80ms', animationFillMode: 'backwards' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-graphite text-ink-inverse flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-4 h-4" />
+              </span>
+              <div>
+                <h2 className="text-lg font-bold text-ink font-display leading-tight">Pagamento</h2>
+                <p className="text-xs text-ink-secondary">Cartão, Apple Pay ou Google Pay</p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              {error ? (
+                <p className="text-xs text-danger-ink font-medium">{error}</p>
+              ) : confirmed && subscriptionId ? (
+                <WaitingStep subscriptionId={subscriptionId} plan={plan} />
+              ) : !clientSecret ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-6 h-6 border-2 border-mint-200 border-t-mint-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <PaymentPanel onConfirmed={() => setConfirmed(true)} />
+                </Elements>
+              )}
+            </div>
           </div>
         </div>
       </div>
