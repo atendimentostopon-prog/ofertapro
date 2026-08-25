@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Bot, AlertCircle, Loader2, CheckCircle2,
   Plus, Save, Check, X, ShieldAlert, AlertTriangle, Key, HelpCircle,
+  Radar, Send,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -698,7 +699,7 @@ export const BotTab: React.FC = () => {
               <Section
                 title="Grupos de Origem"
                 description="IDs dos grupos do Telegram que o bot monitora."
-                icon={Bot}
+                icon={Radar}
                 footer={
                   <div className="flex justify-end">
                     <Button
@@ -755,7 +756,7 @@ export const BotTab: React.FC = () => {
               <Section
                 title="Canais de Destino"
                 description="Selecione quais canais recebem as ofertas do bot."
-                icon={Bot}
+                icon={Send}
                 footer={
                   <div className="flex justify-end">
                     <Button
