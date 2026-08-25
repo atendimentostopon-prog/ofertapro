@@ -1,7 +1,6 @@
 // supabase/functions/stripe-webhook/lib/planMapping.ts
 // Price IDs DUPLICADOS do frontend (src/config/planCatalog.ts)
 // Deno não importa TS do frontend, então mantemos aqui por segurança.
-// Mesmo padrão: cakto-webhook/lib/planMapping.ts
 
 const PRICE_MAP: Record<string, { plan: string; cycle: string }> = {
   "price_1U822CRQHW3NT5U63pCkCLt3":    { plan: "starter",    cycle: "monthly" },

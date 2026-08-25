@@ -1,11 +1,12 @@
 -- Garante que a tabela subscriptions está na publicação supabase_realtime.
 --
 -- src/hooks/useSubscription.ts escuta postgres_changes na tabela subscriptions
--- pra detectar em tempo real quando o webhook da Cakto libera o plano do
--- usuário (CheckoutWaitingDialog usa isso pra sair do "aguardando..." sozinho,
--- sem precisar do timeout de 60s). Sem a tabela na publicação, esse evento
--- nunca chega no front e todo pagamento aprovado cai no fallback de
--- "reivindicar manualmente" mesmo quando o webhook funcionou perfeitamente.
+-- pra detectar em tempo real quando o webhook de billing libera o plano do
+-- usuário (o step de espera do CheckoutForm usa isso pra sair do
+-- "aguardando..." sozinho, sem precisar do timeout de 60s). Sem a tabela na
+-- publicação, esse evento nunca chega no front e todo pagamento aprovado cai
+-- no fallback de "reivindicar manualmente" mesmo quando o webhook funcionou
+-- perfeitamente.
 --
 -- Nenhuma migration anterior adicionava isso explicitamente (pode ter sido
 -- feito manualmente pelo Dashboard em algum momento, ou não) -- este bloco é

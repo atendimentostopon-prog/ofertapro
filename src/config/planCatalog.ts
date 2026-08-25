@@ -32,15 +32,3 @@ export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
 export function getSku(plan: PlanCode, cycle: BillingCycle): PlanSKU {
   return PLAN_CATALOG[plan][cycle];
 }
-
-// Helper inverso: usado pelo webhook handler pra mapear stripePriceId -> (plan, cycle)
-export function findPlanByPriceId(priceId: string): { plan: PlanCode; cycle: BillingCycle } | null {
-  for (const plan of Object.keys(PLAN_CATALOG) as PlanCode[]) {
-    for (const cycle of ['monthly', 'yearly'] as BillingCycle[]) {
-      if (PLAN_CATALOG[plan][cycle].stripePriceId === priceId) {
-        return { plan, cycle };
-      }
-    }
-  }
-  return null;
-}

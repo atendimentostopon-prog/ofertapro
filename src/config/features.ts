@@ -1,7 +1,7 @@
 // Flags de features globais para o Aflyo
 // Permite desativar ou ocultar temporariamente recursos em desenvolvimento ou em fases específicas de teste.
 export const FEATURES = {
-  billing: true,       // Task 15 flip 2026-08-18: aflyo Starter mensal/anual ativo via Cakto
+  billing: true,       // Task 15 flip 2026-08-18: aflyo Starter mensal/anual ativo via billing
   whatsapp: true,     // Ativa Evolution API/WhatsApp no frontend
   telegram: true,      // Habilita canal Telegram Bot API
   discord: true,       // Habilita canal Discord Webhooks
