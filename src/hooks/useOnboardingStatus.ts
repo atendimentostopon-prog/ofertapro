@@ -77,14 +77,14 @@ export const useOnboardingStatus = (): OnboardingStatusState => {
       id: 'telegram_bot',
       title: 'Conectar o bot do Telegram',
       description: 'Faça login com seu número no Telegram para o bot monitorar suas fontes.',
-      route: '/settings?tab=bot',
+      route: '/integrations',
       done: botActive,
     },
     {
       id: 'grupo_origem',
       title: 'Adicionar um grupo de origem',
       description: 'Informe pelo menos um grupo do Telegram para o bot monitorar em busca de ofertas.',
-      route: '/settings?tab=bot',
+      route: '/integrations',
       done: gruposCount >= 1,
     },
     {

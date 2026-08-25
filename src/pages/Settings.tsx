@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   User as UserIcon, Link2, MessageSquare, Save, Check, Loader2,
-  Globe, Shield, CreditCard, Bot,
+  Globe, CreditCard,
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useSettingsProfile } from '../hooks/useSettingsProfile';
@@ -11,18 +11,14 @@ import { PublicPageTab } from '../components/settings/PublicPageTab';
 import { LinksTab } from '../components/settings/LinksTab';
 import { TemplatesTab } from '../components/settings/TemplatesTab';
 import { BillingTab } from '../components/settings/BillingTab';
-import ApiIntegrationsTab from '../components/settings/ApiIntegrationsTab';
-import { BotTab } from '../components/settings/BotTab';
 
-type TabId = 'account' | 'profile' | 'links' | 'templates' | 'integrations' | 'bot' | 'billing';
+type TabId = 'account' | 'profile' | 'links' | 'templates' | 'billing';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'account', label: 'Minha Conta', icon: UserIcon },
   { id: 'profile', label: 'Minha Vitrine Pública', icon: Globe },
   { id: 'links', label: 'Links da Vitrine', icon: Link2 },
   { id: 'templates', label: 'Templates de Mensagem', icon: MessageSquare },
-  { id: 'integrations', label: 'API & Integrações', icon: Shield },
-  { id: 'bot', label: 'Bot', icon: Bot },
   { id: 'billing', label: 'Planos & Cobrança', icon: CreditCard },
 ];
 
@@ -151,8 +147,6 @@ const Settings: React.FC = () => {
         {activeTab === 'templates' && (
           <TemplatesTab onUpgradeClick={() => handleTabChange('billing')} />
         )}
-        {activeTab === 'integrations' && <ApiIntegrationsTab />}
-        {activeTab === 'bot' && <BotTab />}
         {activeTab === 'billing' && <BillingTab />}
       </div>
     </div>

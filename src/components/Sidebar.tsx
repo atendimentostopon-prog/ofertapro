@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck, CreditCard
+  ChevronRight, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck, CreditCard, Plug
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/offers', icon: Package, label: 'Ofertas' },
   { to: '/channels', icon: Radio, label: 'Canais' },
+  { to: '/integrations', icon: Plug, label: 'Integrações' },
   { to: '/history', icon: History, label: 'Histórico' },
   { to: '/settings', icon: Settings, label: 'Configurações' },
   ...(FEATURES.feedback ? [{ to: '/feedbacks', icon: MessageSquare, label: 'Feedbacks' }] : []),
