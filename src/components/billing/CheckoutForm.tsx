@@ -42,11 +42,10 @@ const PaymentStep: React.FC<{ onConfirmed: () => void; onClose: () => void; onSu
         return;
       }
 
-      // Sucesso ou pendente (Pix aguardando pagamento) -- os dois casos vão pro
-      // step de espera, que casa pelo subscriptionId via Realtime. Não dá pra
-      // confiar em "sucesso imediato = já pode fechar": mesmo cartão aprovado
-      // na hora ainda depende do webhook invoice.paid criar a linha em
-      // subscriptions antes do resto do app reconhecer o plano novo.
+      // Vai pro step de espera mesmo em sucesso imediato -- não dá pra confiar
+      // em "sucesso imediato = já pode fechar": o cartão aprovado na hora ainda
+      // depende do webhook invoice.paid criar a linha em subscriptions antes
+      // do resto do app reconhecer o plano novo.
       onConfirmed();
     } catch (err: any) {
       setError(err?.message || 'Erro inesperado ao processar o pagamento. Tente novamente.');
@@ -114,7 +113,7 @@ const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode; onSuccess:
       <div className="flex flex-col items-center gap-3 py-4">
         <AlertCircle className="w-12 h-12 text-warning" />
         <p className="text-sm text-ink-secondary text-center">
-          Isso está demorando mais que o esperado. Se você concluiu o pagamento (inclusive via Pix), aguarde mais um pouco ou fale com o suporte -- ele não vai duplicar a cobrança.
+          Isso está demorando mais que o esperado. Se você concluiu o pagamento, aguarde mais um pouco ou fale com o suporte -- ele não vai duplicar a cobrança.
         </p>
         <Button variant="ghost" onClick={onClose}>Fechar</Button>
       </div>
@@ -126,7 +125,7 @@ const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode; onSuccess:
       <Loader2 className="w-10 h-10 text-mint-500 animate-spin" />
       <p className="text-sm text-ink-secondary text-center">
         Confirmando seu pagamento…<br />
-        Se escolheu Pix, finalize no seu banco -- a atualização acontece automaticamente aqui.
+        A atualização acontece automaticamente aqui.
       </p>
     </div>
   );
@@ -182,7 +181,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan, cycle, open, o
       open={open}
       onClose={onClose}
       title={`Assinar ${PLAN_LABELS[plan]}`}
-      description="Pagamento por cartão ou Pix."
+      description="Pagamento por cartão."
       size="md"
       closeOnBackdrop={!submitting}
       closeOnEsc={!submitting}

@@ -88,7 +88,11 @@ serve(async (req) => {
       items: [{ price: price_id }],
       payment_behavior: "default_incomplete",
       payment_settings: {
-        payment_method_types: ["card", "pix"],
+        // Só cartão por enquanto -- Pix não tem forma de pagamento reutilizável,
+        // então a cobrança de renovação (mês 2+) sempre falharia sem uma lógica
+        // extra de lembrete/renovação manual que ainda não existe. Reavaliar
+        // quando essa lógica for construída.
+        payment_method_types: ["card"],
         save_default_payment_method: "on_subscription",
       },
       expand: ["latest_invoice.payment_intent"],
