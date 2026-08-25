@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   }
 
   // 3. Gate de paywall: free sem subscription e sem admin → /pricing
-  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/auth/callback'];
+  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/integrations', '/auth/callback'];
   const isAllowedRoute = ALLOWED_WHEN_UNPAID.some(r => location.pathname.startsWith(r));
 
   if (

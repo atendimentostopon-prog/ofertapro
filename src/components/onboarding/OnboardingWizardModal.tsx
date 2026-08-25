@@ -11,7 +11,7 @@ interface OnboardingWizardModalProps {
   isOpen: boolean;
 }
 
-const HIDE_ON_PATHS = ['/settings', '/channels'];
+const HIDE_ON_PATHS = ['/settings', '/channels', '/integrations'];
 
 export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ isOpen }) => {
   const navigate = useNavigate();
