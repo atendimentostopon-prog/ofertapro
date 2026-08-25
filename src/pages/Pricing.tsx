@@ -1,5 +1,6 @@
 // src/pages/Pricing.tsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { PLAN_CATALOG, PLAN_LABELS, type PlanCode, type BillingCycle } from "../config/planCatalog";
@@ -45,6 +46,7 @@ export default function Pricing() {
   const [checkoutPlan, setCheckoutPlan] = useState<PlanCode | null>(null);
   const { data: currentSub } = useSubscription();
   const { user } = useUser();
+  const nav = useNavigate();
 
   const handleAssinar = (plan: PlanCode) => {
     setCheckoutPlan(plan);
@@ -85,6 +87,11 @@ export default function Pricing() {
           const isAvailable = Boolean(sku.stripePriceId?.trim());
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
+          // Ainda não existe fluxo de troca de plano com proração -- enquanto isso,
+          // qualquer assinatura ativa (em QUALQUER plano/ciclo) bloqueia a criação de
+          // uma segunda assinatura na Stripe. Sem isso, "Assinar" em outro plano/ciclo
+          // criava uma subscription paralela e cobrava o cliente duas vezes.
+          const blockedByActiveSub = Boolean(currentSub) && !isCurrent;
           return (
             <div
               key={plan}
@@ -122,10 +129,18 @@ export default function Pricing() {
               <Button
                 className="mt-6 w-full"
                 variant={isHighlighted ? "primary" : "secondary"}
-                onClick={() => handleAssinar(plan)}
+                onClick={() => (blockedByActiveSub ? nav("/settings?tab=billing") : handleAssinar(plan))}
                 disabled={!isAvailable || isCurrent || isGrandfathered}
               >
-                {!isAvailable ? "Em breve" : isCurrent ? "Plano atual" : isGrandfathered ? "Já ativo (cortesia)" : "Assinar"}
+                {!isAvailable
+                  ? "Em breve"
+                  : isCurrent
+                  ? "Plano atual"
+                  : isGrandfathered
+                  ? "Já ativo (cortesia)"
+                  : blockedByActiveSub
+                  ? "Gerencie em Configurações"
+                  : "Assinar"}
               </Button>
             </div>
           );
