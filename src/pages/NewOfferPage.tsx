@@ -510,9 +510,9 @@ const NewOfferPage: React.FC = () => {
               onDragEnter={handleDrag} onDragLeave={handleDrag}
               onDragOver={handleDrag} onDrop={handleDrop}
               className={`relative group cursor-pointer border border-dashed rounded-xl transition-all duration-300 min-h-[140px] flex flex-col items-center justify-center overflow-hidden ${
-                dragActive ? 'border-brand-500 bg-brand-500/10'
+                dragActive ? 'border-mint-400 bg-mint-400/10'
                 : previewImage ? 'border-line bg-surface-1'
-                : 'border-line bg-surface-1 hover:border-brand-500/30 hover:bg-surface-1'
+                : 'border-line bg-surface-1 hover:border-mint-400/30 hover:bg-surface-1'
               }`}
             >
               {imageUploading && (
@@ -725,7 +725,7 @@ const NewOfferPage: React.FC = () => {
                     onClick={() => setForm({ ...form, marketplace: mp.value })}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                       form.marketplace === mp.value
-                        ? 'border-brand-500 bg-brand-500/10 text-brand-400 shadow-sm'
+                        ? 'border-mint-400 bg-mint-400/10 text-mint-400 shadow-sm'
                         : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-2 hover:text-ink'
                     }`}
                     disabled={loading}
@@ -798,13 +798,13 @@ const NewOfferPage: React.FC = () => {
                     onClick={() => toggleChannel(ch.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
                       selectedChannels.includes(ch.id)
-                        ? 'border-brand-500 bg-brand-500/10 text-brand-400 shadow-sm'
+                        ? 'border-mint-400 bg-mint-400/10 text-mint-400 shadow-sm'
                         : 'border-line bg-surface-1 hover:bg-surface-1'
                     }`}
                     disabled={loading}
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                      selectedChannels.includes(ch.id) ? 'bg-brand-500 border-brand-500' : 'border-line-strong'
+                      selectedChannels.includes(ch.id) ? 'bg-mint-400 border-mint-400' : 'border-line-strong'
                     }`}>
                       {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-ink-inverse" />}
                     </div>

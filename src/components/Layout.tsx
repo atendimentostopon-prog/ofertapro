@@ -4,6 +4,7 @@ import TopBar from './TopBar';
 import NewOfferModal from './modals/NewOfferModal';
 import FeedbackButton from './feedback/FeedbackButton';
 import { useUser } from '../context/UserContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
@@ -15,10 +16,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const { user } = useUser();
+  const { data: subscription } = useSubscription();
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const needsSetup = needsPublicPageSetup(user);
-  const needsWizard = !!user && !needsSetup && user.onboarded !== true;
+  // Tutorial guiado só faz sentido pra quem já é assinante -- sem essa
+  // checagem, o modal aparecia até em cima da tela de Planos pra quem
+  // ainda nem pagou, pedindo pra conectar bot/canal que ele não pode usar.
+  const isPaying = !!user && (user.plan !== 'free' || !!subscription);
+  const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
     <div className="min-h-screen bg-surface-1 flex text-ink relative overflow-x-hidden">
@@ -40,12 +46,18 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         </div>
       )}
 
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10">
+      {/* min-w-0 nos dois níveis flex-1 abaixo -- sem isso, um filho largo
+          (ex: barra de abas com min-w-max) empurra esses containers pra
+          além da largura disponível em vez de ativar o scroll interno,
+          porque flex items têm min-width:auto por padrão (não encolhem
+          menos que o conteúdo). overflow-x-hidden aqui só escondia o
+          sintoma (cortava o conteúdo), não corrigia a largura de verdade. */}
+      <div className="flex-1 min-w-0 lg:ml-64 flex flex-col min-h-screen relative z-10">
         <TopBar
           onNewOffer={() => setShowNewOffer(true)}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}

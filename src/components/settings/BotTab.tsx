@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Bot, AlertCircle, Loader2, CheckCircle2,
   Plus, Save, Check, X, ShieldAlert, AlertTriangle, Key, HelpCircle,
+  Radar, Send,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -39,15 +40,15 @@ const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
     { step: 3, label: 'Sucesso' },
   ];
   return (
-    <div className="flex items-center justify-center gap-3 pb-2">
+    <div className="flex items-center justify-center gap-1.5 sm:gap-3 pb-2">
       {items.map((item, i) => {
         const isActive = current === item.step;
         const isDone = current > item.step;
         return (
           <React.Fragment key={item.step}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-colors flex-shrink-0 ${
                   isActive
                     ? 'bg-graphite text-ink-inverse border-graphite'
                     : isDone
@@ -57,11 +58,11 @@ const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
               >
                 {isDone ? <Check className="w-3.5 h-3.5" /> : item.step}
               </div>
-              <span className={`text-xs font-bold ${isActive ? 'text-ink' : 'text-ink-tertiary'}`}>
+              <span className={`hidden sm:inline text-xs font-bold ${isActive ? 'text-ink' : 'text-ink-tertiary'}`}>
                 {item.label}
               </span>
             </div>
-            {i < items.length - 1 && <div className="w-8 h-px bg-line" />}
+            {i < items.length - 1 && <div className="w-4 sm:w-8 h-px bg-line flex-shrink-0" />}
           </React.Fragment>
         );
       })}
@@ -698,7 +699,7 @@ export const BotTab: React.FC = () => {
               <Section
                 title="Grupos de Origem"
                 description="IDs dos grupos do Telegram que o bot monitora."
-                icon={Bot}
+                icon={Radar}
                 footer={
                   <div className="flex justify-end">
                     <Button
@@ -755,7 +756,7 @@ export const BotTab: React.FC = () => {
               <Section
                 title="Canais de Destino"
                 description="Selecione quais canais recebem as ofertas do bot."
-                icon={Bot}
+                icon={Send}
                 footer={
                   <div className="flex justify-end">
                     <Button

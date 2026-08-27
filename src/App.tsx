@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Offers from './pages/Offers';
 import NewOfferPage from './pages/NewOfferPage';
 import Channels from './pages/Channels';
+import Integrations from './pages/Integrations';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Feedbacks from './pages/Feedbacks';
@@ -33,7 +34,7 @@ import { APP_NAME } from './config/app';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
-  const privatePaths = ['/dashboard', '/offers', '/channels', '/history', '/settings', '/feedbacks'];
+  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/feedbacks'];
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
 };
 
@@ -283,6 +284,7 @@ const App: React.FC = () => {
             <Route path="/offers" element={<Offers />} />
             <Route path="/offers/new" element={<NewOfferPage />} />
             <Route path="/channels" element={<Channels />} />
+            <Route path="/integrations" element={<Integrations />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/feedbacks" element={<Feedbacks />} />

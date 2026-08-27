@@ -1000,7 +1000,7 @@ serve(async (req) => {
       const [profileRes, msgTemplatesRes, settingsRes] = await Promise.all([
         supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle(),
         supabaseAdmin.from('message_templates').select('channel_type, template_text').eq('user_id', userId),
-        supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template').eq('user_id', userId).maybeSingle()
+        supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template, shortener_marketplaces').eq('user_id', userId).maybeSingle()
       ])
       const profile = profileRes.data
       const settings = settingsRes.data
@@ -1020,33 +1020,61 @@ serve(async (req) => {
       if (!templateMap.discord && settings?.discord_template) templateMap.discord = settings.discord_template
       if (!templateMap.whatsapp && settings?.whatsapp_template) templateMap.whatsapp = settings.whatsapp_template
 
-      // Tentar obter ou gerar o link encurtado para a oferta em cache
-      let finalAffiliateUrl = targetOffer.short_affiliate_url
-      if (!finalAffiliateUrl && targetOffer.affiliate_link) {
-        try {
-          const shortened = await shortenLink(targetOffer.affiliate_link, 'isgd')
-          if (shortened && shortened !== targetOffer.affiliate_link) {
-            finalAffiliateUrl = shortened
-            // Atualizar no banco de dados em background
-            supabaseAdmin
-              .from('offers')
-              .update({
-                short_affiliate_url: shortened,
-                short_affiliate_provider: 'isgd',
-                short_affiliate_created_at: new Date().toISOString()
-              })
-              .eq('id', targetOffer.id)
-              .then(({ error }) => {
-                if (error) console.error('[PUBLIC_API] Erro ao atualizar cache de link curto em background:', error.message)
-              })
-          }
-        } catch (err) {
-          console.warn('[PUBLIC_API] Falha ao gerar link encurtado em runtime, usando original:', err)
-          finalAffiliateUrl = targetOffer.affiliate_link
+      // Resolver o link que vai de fato pro canal. Por padrão usa o encurtador
+      // próprio (aflyo.com.br/o/<short_code>), que já conta clique pro
+      // usuário dono da oferta (offers.user_id -> clicks.user_id). Controle é
+      // por marketplace: user_settings.shortener_marketplaces[marketplace] === false
+      // desliga só pra aquele marketplace (chave ausente = default true, então
+      // marketplaces novos herdam o comportamento recomendado sem precisar de migration).
+      const offerMarketplace = (targetOffer.marketplace || '').toLowerCase()
+      const shortenerMarketplaces = settings?.shortener_marketplaces || {}
+      const useOwnShortener = shortenerMarketplaces[offerMarketplace] !== false
+
+      let finalAffiliateUrl: string
+      if (useOwnShortener) {
+        let shortCode = targetOffer.short_code
+        if (!shortCode) {
+          // Oferta criada antes desta feature (ou via Opção A sem short_code prévio) -- gera agora
+          const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+          shortCode = Array.from({ length: 6 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('')
+          supabaseAdmin
+            .from('offers')
+            .update({ short_code: shortCode })
+            .eq('id', targetOffer.id)
+            .then(({ error }) => {
+              if (error) console.error('[PUBLIC_API] Erro ao salvar short_code gerado em background:', error.message)
+            })
         }
-      }
-      if (!finalAffiliateUrl) {
-        finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
+        finalAffiliateUrl = `${appUrl}/o/${shortCode}`
+      } else {
+        // Encurtador próprio desligado pelo usuário -- comportamento antigo (is.gd)
+        finalAffiliateUrl = targetOffer.short_affiliate_url
+        if (!finalAffiliateUrl && targetOffer.affiliate_link) {
+          try {
+            const shortened = await shortenLink(targetOffer.affiliate_link, 'isgd')
+            if (shortened && shortened !== targetOffer.affiliate_link) {
+              finalAffiliateUrl = shortened
+              // Atualizar no banco de dados em background
+              supabaseAdmin
+                .from('offers')
+                .update({
+                  short_affiliate_url: shortened,
+                  short_affiliate_provider: 'isgd',
+                  short_affiliate_created_at: new Date().toISOString()
+                })
+                .eq('id', targetOffer.id)
+                .then(({ error }) => {
+                  if (error) console.error('[PUBLIC_API] Erro ao atualizar cache de link curto em background:', error.message)
+                })
+            }
+          } catch (err) {
+            console.warn('[PUBLIC_API] Falha ao gerar link encurtado em runtime, usando original:', err)
+            finalAffiliateUrl = targetOffer.affiliate_link
+          }
+        }
+        if (!finalAffiliateUrl) {
+          finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
+        }
       }
 
       let lastWhatsAppTime = 0

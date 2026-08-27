@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        // Breakpoint "phablet" -- usado no grid de métricas do Dashboard
+        // (grid-cols-2 antes do sm: padrão de 640px). Nunca tinha sido
+        // definido, então `xs:` no código não gerava CSS nenhum.
+        xs: '480px',
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
@@ -87,22 +93,6 @@ export default {
           DEFAULT: '#3B82F6',
           bg: '#DBEAFE',
           ink: '#1E40AF',
-        },
-
-        // ── Legacy alias — brand.* redirecionado para mint ────────────
-        // Mantém pages/componentes existentes funcionando com a cor Aflyo
-        // até migração completa. Remover em cleanup final (Task #13).
-        brand: {
-          50:  '#F0FDF7',
-          100: '#DFF8EE',
-          200: '#B4EFD3',
-          300: '#88E5B8',
-          400: '#5EE7A5',
-          500: '#5EE7A5',
-          600: '#3DD98F',
-          700: '#22C078',
-          800: '#199A5F',
-          900: '#127046',
         },
       },
       borderRadius: {
