@@ -83,30 +83,34 @@ serve(async (req) => {
       }
     }
 
-    const subscription = await stripe.subscriptions.create({
+    // Deriva do header Origin em vez de um secret fixo -- assim funciona tanto
+    // em localhost (teste local contra este mesmo projeto Supabase) quanto em
+    // produção, sem precisar manter os dois em sincronia. `PUBLIC_APP_URL` já
+    // existe como secret mas nenhuma function realmente lê ele hoje; o
+    // fallback cobre o caso raro de chamada sem Origin (ex: curl direto).
+    const appUrl = req.headers.get("origin") || Deno.env.get("PUBLIC_APP_URL") || "https://www.aflyo.com.br";
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
       customer: customerId,
-      items: [{ price: price_id }],
-      payment_behavior: "default_incomplete",
-      payment_settings: {
-        // Só cartão por enquanto -- Pix não tem forma de pagamento reutilizável,
-        // então a cobrança de renovação (mês 2+) sempre falharia sem uma lógica
-        // extra de lembrete/renovação manual que ainda não existe. Reavaliar
-        // quando essa lógica for construída.
-        payment_method_types: ["card"],
-        save_default_payment_method: "on_subscription",
+      line_items: [{ price: price_id, quantity: 1 }],
+      // Só cartão por enquanto -- Pix não tem forma de pagamento reutilizável,
+      // então a cobrança de renovação (mês 2+) sempre falharia sem uma lógica
+      // extra de lembrete/renovação manual que ainda não existe. Reavaliar
+      // quando essa lógica for construída. Apple Pay/Google Pay aparecem
+      // automaticamente em cima do "card" quando habilitados no dashboard --
+      // não precisam de payment_method_types próprio.
+      payment_method_types: ["card"],
+      success_url: `${appUrl}/checkout?plan=${plan_code}&success=1`,
+      cancel_url: `${appUrl}/pricing`,
+      subscription_data: {
+        metadata: { supabase_user_id: user.id, plan_code, billing_cycle },
       },
-      expand: ["latest_invoice.payment_intent"],
       metadata: { supabase_user_id: user.id, plan_code, billing_cycle },
     });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-
     return new Response(
-      JSON.stringify({
-        subscriptionId: subscription.id,
-        clientSecret: paymentIntent.client_secret,
-      }),
+      JSON.stringify({ url: session.url }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {

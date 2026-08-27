@@ -1,14 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  Elements,
-  PaymentElement,
-  ExpressCheckoutElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
 import { Check, CheckCircle, AlertCircle, Shield, Lock, RefreshCw, CreditCard, Sparkles, ShieldCheck } from 'lucide-react';
-import { stripePromise } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
 import {
   getSku,
@@ -23,14 +15,19 @@ import { APP_NAME } from '../config/app';
 
 const VALID_PLANS: PlanCode[] = ['starter', 'pro', 'enterprise'];
 
-const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode }> = ({ subscriptionId, plan }) => {
+const WaitingStep: React.FC<{ plan: PlanCode }> = ({ plan }) => {
   const { data: subscription } = useSubscription();
   const { refreshProfile } = useUser();
   const nav = useNavigate();
   const [timedOut, setTimedOut] = useState(false);
   const refreshedRef = useRef(false);
 
-  const success = !!(subscription && subscription.provider_subscription_id === subscriptionId && subscription.status === 'active');
+  // Não dá pra casar por subscriptionId aqui -- no fluxo hospedado a Stripe só
+  // cria a subscription depois que o usuário paga na página dela, então nunca
+  // temos o ID de antemão. useSubscription() já busca a assinatura
+  // active/past_due mais recente do usuário, então plan_code + status já
+  // identifica com segurança que é a assinatura que acabou de ser criada.
+  const success = !!(subscription && subscription.plan_code === plan && subscription.status === 'active');
 
   useEffect(() => {
     if (success) return;
@@ -86,103 +83,6 @@ const WaitingStep: React.FC<{ subscriptionId: string; plan: PlanCode }> = ({ sub
   );
 };
 
-const PaymentPanel: React.FC<{ onConfirmed: () => void }> = ({ onConfirmed }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [name, setName] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const confirm = async (billingName?: string) => {
-    if (!stripe || !elements) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const { error: confirmError } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/settings`,
-          ...(billingName ? { payment_method_data: { billing_details: { name: billingName } } } : {}),
-        },
-        redirect: 'if_required',
-      });
-
-      if (confirmError) {
-        setError(confirmError.message || 'Não foi possível confirmar o pagamento.');
-        return;
-      }
-
-      // Vai pro step de espera mesmo em sucesso imediato -- não dá pra confiar
-      // em "sucesso imediato = já pode fechar": o cartão aprovado na hora ainda
-      // depende do webhook invoice.paid criar a linha em subscriptions antes
-      // do resto do app reconhecer o plano novo.
-      onConfirmed();
-    } catch (err: any) {
-      setError(err?.message || 'Erro inesperado ao processar o pagamento. Tente novamente.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <>
-      <ExpressCheckoutElement
-        onConfirm={() => confirm()}
-        options={{ buttonType: { applePay: 'buy', googlePay: 'buy' }, layout: { maxColumns: 2 } }}
-      />
-
-      <div className="flex items-center gap-3 my-5">
-        <div className="flex-1 h-px bg-line" />
-        <span className="text-[10px] text-ink-tertiary font-medium uppercase tracking-wider select-none">ou com cartão</span>
-        <div className="flex-1 h-px bg-line" />
-      </div>
-
-      <form
-        onSubmit={e => {
-          e.preventDefault();
-          confirm(name);
-        }}
-        className="space-y-4"
-      >
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-ink-secondary" htmlFor="cc-name">Nome no cartão</label>
-          <input
-            id="cc-name"
-            type="text"
-            required
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Como está impresso no cartão"
-            className="input-modern"
-            autoComplete="cc-name"
-          />
-        </div>
-
-        <PaymentElement options={{ fields: { billingDetails: { name: 'never' } } }} />
-
-        {error && <p className="text-xs text-danger-ink font-medium">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={!stripe || submitting}
-          className="w-full btn-gradient flex items-center justify-center gap-2 py-3.5 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-        >
-          {submitting ? (
-            <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />
-          ) : (
-            <span className="font-semibold tracking-tight">Confirmar assinatura</span>
-          )}
-        </button>
-
-        <p className="flex items-center justify-center gap-1.5 text-[11px] text-ink-tertiary mt-1">
-          <Lock className="w-3 h-3" />
-          Pagamento processado com segurança pela Stripe
-        </p>
-      </form>
-    </>
-  );
-};
-
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const nav = useNavigate();
@@ -191,10 +91,8 @@ export default function Checkout() {
   const planParam = searchParams.get('plan');
   const cycleParam = (searchParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly') as BillingCycle;
   const plan = VALID_PLANS.includes(planParam as PlanCode) ? (planParam as PlanCode) : null;
+  const returningFromStripe = searchParams.get('success') === '1';
 
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -207,6 +105,9 @@ export default function Checkout() {
       nav('/pricing', { replace: true });
       return;
     }
+    // Voltando do Stripe Checkout depois do pagamento -- não cria uma sessão
+    // nova, só mostra o step de espera até o webhook confirmar.
+    if (returningFromStripe) return;
 
     const sku = getSku(plan, cycleParam);
     supabase.functions
@@ -214,7 +115,7 @@ export default function Checkout() {
         body: { plan_code: plan, billing_cycle: cycleParam, price_id: sku.stripePriceId },
       })
       .then(async ({ data, error: invokeError }) => {
-        if (invokeError || !data?.clientSecret || !data?.subscriptionId) {
+        if (invokeError || !data?.url) {
           // supabase.functions.invoke só popula `data` em respostas 2xx -- num erro
           // (400/401/500), `data` vem null e `invokeError.message` é sempre o texto
           // genérico da lib. A mensagem específica da edge function só dá pra ler
@@ -231,11 +132,10 @@ export default function Checkout() {
           setError(message || invokeError?.message || 'Não foi possível iniciar o checkout. Tente novamente.');
           return;
         }
-        setClientSecret(data.clientSecret);
-        setSubscriptionId(data.subscriptionId);
+        window.location.href = data.url;
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoading, user, plan, cycleParam]);
+  }, [userLoading, user, plan, cycleParam, returningFromStripe]);
 
   if (!plan) return null;
 
@@ -344,16 +244,13 @@ export default function Checkout() {
             <div className="mt-6">
               {error ? (
                 <p className="text-xs text-danger-ink font-medium">{error}</p>
-              ) : confirmed && subscriptionId ? (
-                <WaitingStep subscriptionId={subscriptionId} plan={plan} />
-              ) : !clientSecret ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-6 h-6 border-2 border-mint-200 border-t-mint-500 rounded-full animate-spin" />
-                </div>
+              ) : returningFromStripe ? (
+                <WaitingStep plan={plan} />
               ) : (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <PaymentPanel onConfirmed={() => setConfirmed(true)} />
-                </Elements>
+                <div className="flex flex-col items-center justify-center gap-3 py-12">
+                  <div className="w-6 h-6 border-2 border-mint-200 border-t-mint-500 rounded-full animate-spin" />
+                  <p className="text-xs text-ink-tertiary">Preparando pagamento seguro…</p>
+                </div>
               )}
             </div>
           </div>
