@@ -16,6 +16,18 @@ import { SettingsSection, Field } from './shared';
 
 type ChannelKind = 'whatsapp' | 'telegram' | 'discord';
 
+// Mesma lista de marketplaces válidos do backend (src/lib/marketplace.ts /
+// supabase/functions/public-api). Adicionar um marketplace novo ao sistema
+// é só incluir aqui -- chave ausente em shortener_marketplaces já é tratada
+// como "ligado" tanto aqui quanto na Edge Function.
+const SHORTENER_MARKETPLACES: { id: string; label: string }[] = [
+  { id: 'amazon', label: 'Amazon' },
+  { id: 'shopee', label: 'Shopee' },
+  { id: 'mercadolivre', label: 'Mercado Livre' },
+  { id: 'magalu', label: 'Magalu' },
+  { id: 'aliexpress', label: 'AliExpress' },
+];
+
 interface TemplatesTabProps {
   onUpgradeClick?: () => void;
 }
@@ -45,8 +57,8 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   const [templatesSaved, setTemplatesSaved] = useState(false);
   const [restoringTemplate, setRestoringTemplate] = useState(false);
   const [testingTemplate, setTestingTemplate] = useState(false);
-  const [useOwnShortener, setUseOwnShortener] = useState(true);
-  const [savingShortener, setSavingShortener] = useState(false);
+  const [shortenerMap, setShortenerMap] = useState<Record<string, boolean>>({});
+  const [savingShortenerId, setSavingShortenerId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadTemplates = async () => {
@@ -77,38 +89,42 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
     if (!user) return;
     supabase
       .from('user_settings')
-      .select('use_own_shortener')
+      .select('shortener_marketplaces')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) {
-          console.error('Erro ao carregar preferência de encurtador:', error);
+          console.error('Erro ao carregar preferências de encurtador:', error);
           return;
         }
-        // Sem linha em user_settings (usuário nunca salvou nada ali) ou
-        // coluna null -> mantém o default true, igual à Edge Function.
-        if (data && data.use_own_shortener === false) {
-          setUseOwnShortener(false);
-        }
+        // Sem linha em user_settings ou coluna vazia -> mapa fica {}, e cada
+        // marketplace é tratado como ligado por padrão (mesma regra da Edge Function).
+        setShortenerMap(data?.shortener_marketplaces || {});
       });
   }, [user?.id]);
 
-  const handleToggleShortener = async (next: boolean) => {
+  const handleToggleShortener = async (marketplaceId: string, next: boolean) => {
     if (!user) return;
-    setUseOwnShortener(next);
-    setSavingShortener(true);
+    const previous = shortenerMap;
+    const updated = { ...shortenerMap, [marketplaceId]: next };
+    setShortenerMap(updated);
+    setSavingShortenerId(marketplaceId);
     try {
       const { error } = await supabase
         .from('user_settings')
-        .upsert({ user_id: user.id, use_own_shortener: next }, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, shortener_marketplaces: updated }, { onConflict: 'user_id' });
       if (error) throw error;
-      toast(next ? 'Encurtador próprio ativado.' : 'Encurtador próprio desativado.', 'success');
+      const marketplaceLabel = SHORTENER_MARKETPLACES.find(m => m.id === marketplaceId)?.label || marketplaceId;
+      toast(
+        next ? `Encurtador próprio ativado para ${marketplaceLabel}.` : `Encurtador próprio desativado para ${marketplaceLabel}.`,
+        'success'
+      );
     } catch (err: any) {
       console.error('Erro ao salvar preferência de encurtador:', err);
-      setUseOwnShortener(!next);
+      setShortenerMap(previous);
       toast('Não foi possível salvar essa preferência. Tente novamente.', 'error');
     } finally {
-      setSavingShortener(false);
+      setSavingShortenerId(null);
     }
   };
 
@@ -609,21 +625,30 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
       <SettingsSection
         title="Link de Afiliado"
-        description="Escolha qual link é enviado nos disparos automáticos das suas ofertas"
+        description="Escolha, por marketplace, qual link é enviado nos disparos automáticos das suas ofertas"
         icon={Link2}
       >
-        <Toggle
-          id="use-own-shortener"
-          label="Usar encurtador próprio (aflyo.com.br/o/...)"
-          description={
-            useOwnShortener
-              ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
-              : 'Os links são encurtados por um serviço externo (is.gd) e não contam clique no seu painel.'
-          }
-          checked={useOwnShortener}
-          onChange={handleToggleShortener}
-          disabled={savingShortener}
-        />
+        <div className="divide-y divide-line">
+          {SHORTENER_MARKETPLACES.map(({ id, label }) => {
+            const checked = shortenerMap[id] !== false;
+            return (
+              <div key={id} className="py-3 first:pt-0 last:pb-0">
+                <Toggle
+                  id={`use-own-shortener-${id}`}
+                  label={`Usar encurtador próprio para ${label} (aflyo.com.br/o/...)`}
+                  description={
+                    checked
+                      ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
+                      : 'Os links são encurtados por um serviço externo (is.gd) e não contam clique no seu painel.'
+                  }
+                  checked={checked}
+                  onChange={(next) => handleToggleShortener(id, next)}
+                  disabled={savingShortenerId === id}
+                />
+              </div>
+            );
+          })}
+        </div>
       </SettingsSection>
     </div>
   );
