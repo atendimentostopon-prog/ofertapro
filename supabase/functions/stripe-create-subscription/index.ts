@@ -104,16 +104,16 @@ serve(async (req) => {
       // diferente do Pix avulso antigo, esse SIM cobra a renovação sozinho:
       // o cliente autoriza no banco, e a Stripe cobra nos ciclos seguintes
       // (com aviso de 3 dias antes de cada cobrança, exigência do BC, não da
-      // Stripe). amount_type "fixed" porque nossos planos são valor fechado,
-      // não uma faixa. Apple Pay/Google Pay aparecem automaticamente em cima
-      // do "card" quando habilitados no dashboard -- não precisam de entrada
-      // própria em payment_method_types.
+      // Stripe). `amount_type` não é aceito em modo subscription (só em
+      // payment/setup) -- API rejeita com erro claro se mandado aqui, o
+      // amount sozinho já define o valor fixo cobrado. Apple Pay/Google Pay
+      // aparecem automaticamente em cima do "card" quando habilitados no
+      // dashboard -- não precisam de entrada própria em payment_method_types.
       payment_method_types: ["card", "pix"],
       payment_method_options: {
         pix: {
           mandate_options: {
             amount: mandateAmount,
-            amount_type: "fixed",
             payment_schedule: billing_cycle === "yearly" ? "yearly" : "monthly",
             reference: `Aflyo - ${plan_code}`,
           },
