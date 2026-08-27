@@ -237,7 +237,7 @@ export default function Checkout() {
               </span>
               <div>
                 <h2 className="text-lg font-bold text-ink font-display leading-tight">Pagamento</h2>
-                <p className="text-xs text-ink-secondary">Cartão, Apple Pay ou Google Pay</p>
+                <p className="text-xs text-ink-secondary">Cartão, Pix, Apple Pay ou Google Pay</p>
               </div>
             </div>
 

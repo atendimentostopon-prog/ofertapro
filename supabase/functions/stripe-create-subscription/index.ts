@@ -90,17 +90,35 @@ serve(async (req) => {
     // fallback cobre o caso raro de chamada sem Origin (ex: curl direto).
     const appUrl = req.headers.get("origin") || Deno.env.get("PUBLIC_APP_URL") || "https://www.aflyo.com.br";
 
+    // unit_amount vem direto do Price da Stripe (fonte única de verdade) em vez
+    // de duplicar os valores em centavos aqui -- evita divergir de planCatalog.ts
+    // se o preço mudar de novo.
+    const price = await stripe.prices.retrieve(price_id);
+    const mandateAmount = price.unit_amount ?? 0;
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: price_id, quantity: 1 }],
-      // Só cartão por enquanto -- Pix não tem forma de pagamento reutilizável,
-      // então a cobrança de renovação (mês 2+) sempre falharia sem uma lógica
-      // extra de lembrete/renovação manual que ainda não existe. Reavaliar
-      // quando essa lógica for construída. Apple Pay/Google Pay aparecem
-      // automaticamente em cima do "card" quando habilitados no dashboard --
-      // não precisam de payment_method_types próprio.
-      payment_method_types: ["card"],
+      // Cartão sempre disponível. Pix via Pix Automático (mandato bancário) --
+      // diferente do Pix avulso antigo, esse SIM cobra a renovação sozinho:
+      // o cliente autoriza no banco, e a Stripe cobra nos ciclos seguintes
+      // (com aviso de 3 dias antes de cada cobrança, exigência do BC, não da
+      // Stripe). amount_type "fixed" porque nossos planos são valor fechado,
+      // não uma faixa. Apple Pay/Google Pay aparecem automaticamente em cima
+      // do "card" quando habilitados no dashboard -- não precisam de entrada
+      // própria em payment_method_types.
+      payment_method_types: ["card", "pix"],
+      payment_method_options: {
+        pix: {
+          mandate_options: {
+            amount: mandateAmount,
+            amount_type: "fixed",
+            payment_schedule: billing_cycle === "yearly" ? "yearly" : "monthly",
+            reference: `Aflyo - ${plan_code}`,
+          },
+        },
+      },
       success_url: `${appUrl}/checkout?plan=${plan_code}&success=1`,
       cancel_url: `${appUrl}/pricing`,
       subscription_data: {
