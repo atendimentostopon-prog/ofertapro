@@ -1000,7 +1000,7 @@ serve(async (req) => {
       const [profileRes, msgTemplatesRes, settingsRes] = await Promise.all([
         supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle(),
         supabaseAdmin.from('message_templates').select('channel_type, template_text').eq('user_id', userId),
-        supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template, use_own_shortener').eq('user_id', userId).maybeSingle()
+        supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template, shortener_marketplaces').eq('user_id', userId).maybeSingle()
       ])
       const profile = profileRes.data
       const settings = settingsRes.data
@@ -1022,9 +1022,13 @@ serve(async (req) => {
 
       // Resolver o link que vai de fato pro canal. Por padrão usa o encurtador
       // próprio (aflyo.com.br/o/<short_code>), que já conta clique pro
-      // usuário dono da oferta (offers.user_id -> clicks.user_id). Usuário
-      // pode optar por is.gd em user_settings.use_own_shortener = false.
-      const useOwnShortener = settings?.use_own_shortener !== false
+      // usuário dono da oferta (offers.user_id -> clicks.user_id). Controle é
+      // por marketplace: user_settings.shortener_marketplaces[marketplace] === false
+      // desliga só pra aquele marketplace (chave ausente = default true, então
+      // marketplaces novos herdam o comportamento recomendado sem precisar de migration).
+      const offerMarketplace = (targetOffer.marketplace || '').toLowerCase()
+      const shortenerMarketplaces = settings?.shortener_marketplaces || {}
+      const useOwnShortener = shortenerMarketplaces[offerMarketplace] !== false
 
       let finalAffiliateUrl: string
       if (useOwnShortener) {
