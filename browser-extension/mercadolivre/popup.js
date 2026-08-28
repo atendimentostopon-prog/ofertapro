@@ -1,23 +1,37 @@
+const connectForm = document.getElementById('connectForm');
 const apiKeyInput = document.getElementById('apiKey');
 const connectBtn = document.getElementById('connectBtn');
 const statusDiv = document.getElementById('status');
+const cookieCountDiv = document.getElementById('cookieCount');
+const actionsDiv = document.getElementById('actions');
+const syncBtn = document.getElementById('syncBtn');
+const disconnectBtn = document.getElementById('disconnectBtn');
 
-function renderStatus({ lastSync, lastStatus }) {
+function renderStatus({ apiKey, lastSync, lastStatus, lastCookieCount }) {
+  const isConnected = Boolean(apiKey && lastStatus === 'Conectado');
+
+  connectForm.style.display = isConnected ? 'none' : 'block';
+  actionsDiv.classList.toggle('visible', isConnected);
+
   if (!lastSync) {
     statusDiv.textContent = 'Ainda não conectado. Cole sua API key e clique em Conectar.';
     statusDiv.className = '';
+    cookieCountDiv.textContent = '';
     return;
   }
+
   const formatted = new Date(lastSync).toLocaleString('pt-BR');
-  const isOk = lastStatus === 'Conectado';
   statusDiv.textContent = `${lastStatus} — última sincronização: ${formatted}`;
-  statusDiv.className = isOk ? 'ok' : 'error';
+  statusDiv.className = isConnected ? 'ok' : 'error';
+  cookieCountDiv.textContent = isConnected && lastCookieCount
+    ? `${lastCookieCount} cookies sincronizados`
+    : '';
 }
 
-async function init() {
-  const { apiKey, lastSync, lastStatus } = await chrome.storage.local.get(['apiKey', 'lastSync', 'lastStatus']);
-  if (apiKey) apiKeyInput.value = apiKey;
-  renderStatus({ lastSync, lastStatus });
+async function refreshUI() {
+  const state = await chrome.storage.local.get(['apiKey', 'lastSync', 'lastStatus', 'lastCookieCount']);
+  if (state.apiKey) apiKeyInput.value = state.apiKey;
+  renderStatus(state);
 }
 
 connectBtn.addEventListener('click', async () => {
@@ -39,10 +53,32 @@ connectBtn.addEventListener('click', async () => {
   connectBtn.disabled = false;
   connectBtn.textContent = 'Conectar';
 
-  const { lastSync, lastStatus } = await chrome.storage.local.get(['lastSync', 'lastStatus']);
-  renderStatus({ lastSync, lastStatus });
-
+  await refreshUI();
   if (!result?.ok) console.error('Falha ao sincronizar:', result?.error);
 });
 
-init();
+syncBtn.addEventListener('click', async () => {
+  syncBtn.disabled = true;
+  syncBtn.textContent = 'Sincronizando...';
+  statusDiv.textContent = 'Sincronizando...';
+  statusDiv.className = '';
+
+  const result = await chrome.runtime.sendMessage({ type: 'SYNC_NOW' });
+
+  syncBtn.disabled = false;
+  syncBtn.textContent = 'Sincronizar agora';
+
+  await refreshUI();
+  if (!result?.ok) console.error('Falha ao sincronizar:', result?.error);
+});
+
+disconnectBtn.addEventListener('click', async () => {
+  if (!confirm('Desconectar a extensão? O Mercado Livre volta a exigir revisão manual até você conectar de novo.')) {
+    return;
+  }
+  await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
+  apiKeyInput.value = '';
+  await refreshUI();
+});
+
+refreshUI();

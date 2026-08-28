@@ -894,7 +894,16 @@ export const BotTab: React.FC = () => {
               </div>
 
               <div className="border-t border-line pt-4 space-y-4">
-                <h4 className="text-sm font-bold text-ink">Mercado Livre (opcional)</h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h4 className="text-sm font-bold text-ink">Mercado Livre (opcional)</h4>
+                  <Link
+                    to="/automatizacao-mercadolivre"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ice hover:bg-mint-200 border border-mint-200 hover:border-mint-500 text-mint-700 text-xs font-bold rounded-md transition-colors w-fit self-start sm:self-auto"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Como funciona / instruções
+                  </Link>
+                </div>
 
                 <Input
                   label="Tag de afiliado Mercado Livre"

@@ -26,6 +26,7 @@ import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
+import MercadoLivreAutomationPage from './pages/MercadoLivreAutomationPage';
 import Pricing from './pages/Pricing';
 import Checkout from './pages/Checkout';
 import CookieBanner from './components/CookieBanner';
@@ -258,6 +259,7 @@ const App: React.FC = () => {
           <Route path="/termos-de-uso" element={<TermosUso />} />
           <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
           <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
+          <Route path="/automatizacao-mercadolivre" element={<MercadoLivreAutomationPage />} />
 
           {/* Public links */}
           <Route path="/o/:shortCode" element={<RedirectPage />} />
