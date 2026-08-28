@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft, BookOpen, AlertTriangle,
-  ChevronDown, ChevronUp, Info, HelpCircle, CheckCircle2, Settings, Chrome, Key, Link2,
+  ChevronDown, ChevronUp, Info, HelpCircle, CheckCircle2, Settings, Puzzle, Key, Link2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_NAME } from '../config/app';
@@ -210,7 +210,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
 
           <div className="space-y-3 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
             <div className="flex items-start gap-2.5">
-              <Chrome className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
+              <Puzzle className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
               <p>A extensão roda em segundo plano no seu Chrome, capturando sua sessão do Mercado Livre a cada ~25 minutos.</p>
             </div>
             <div className="flex items-start gap-2.5">
