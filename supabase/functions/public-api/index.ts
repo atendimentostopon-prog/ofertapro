@@ -802,6 +802,59 @@ serve(async (req) => {
     }
 
     // ------------------------------------------
+    // ENDPOINT 2.5: Sincronizar sessão Mercado Livre (POST /ml-session)
+    // ------------------------------------------
+    // Chamado pela extensão Chrome do Aflyo, que captura os cookies da sessão
+    // logada do usuário no Mercado Livre (renovados periodicamente, pois a
+    // sessão expira). O bot usa esses cookies pra gerar link de afiliado
+    // automático via endpoint privado do painel de afiliados do ML.
+    else if (pathname.endsWith('/ml-session') && req.method === 'POST') {
+      if (!scopes.includes('dispatch:write')) {
+        return new Response(
+          JSON.stringify({ error: 'Permissão negada. Escopo dispatch:write é obrigatório.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const body = await req.json()
+      const { cookies } = body
+
+      if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Campo cookies é obrigatório e deve ser um array não vazio.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const validCookies = cookies.filter((c: any) => c && typeof c.name === 'string' && typeof c.value === 'string')
+      if (validCookies.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Nenhum cookie válido recebido (esperado {name, value}).' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const { error: upsertError } = await supabaseAdmin
+        .from('bot_configs')
+        .upsert({
+          user_id: userId,
+          ml_session: { cookies: validCookies, updated_at: new Date().toISOString() }
+        }, { onConflict: 'user_id' })
+
+      if (upsertError) {
+        return new Response(
+          JSON.stringify({ error: `Erro ao salvar sessão do Mercado Livre: ${upsertError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // ------------------------------------------
     // ENDPOINT 3: Disparar Oferta (POST /dispatch)
     // ------------------------------------------
     else if (pathname.endsWith('/dispatch') && req.method === 'POST') {
