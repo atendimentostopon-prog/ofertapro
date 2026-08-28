@@ -12,6 +12,13 @@ export async function subscriptionDeleted(subscription: any, supabase: any): Pro
   }).eq("provider_subscription_id", subscription.id);
 
   if (sub) {
-    await supabase.from("profiles").update({ plan: "free" }).eq("id", sub.user_id);
+    await supabase.from("profiles")
+      .update({ plan: "free", account_status: "canceled" })
+      .eq("id", sub.user_id);
+
+    await supabase.from("bot_configs")
+      .update({ status: "paused", paused_reason: "access_revoked" })
+      .eq("user_id", sub.user_id)
+      .eq("status", "active");
   }
 }

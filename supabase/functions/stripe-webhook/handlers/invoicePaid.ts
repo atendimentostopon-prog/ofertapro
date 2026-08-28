@@ -39,5 +39,13 @@ export async function invoicePaid(invoice: any, supabase: any): Promise<void> {
     current_period_end: periodEnd,
   }, { onConflict: "provider_subscription_id" });
 
-  await supabase.from("profiles").update({ plan: mapping.plan }).eq("id", profile.id);
+  await supabase.from("profiles")
+    .update({ plan: mapping.plan, account_status: "active" })
+    .eq("id", profile.id);
+
+  await supabase.from("bot_configs")
+    .update({ status: "active", paused_reason: null })
+    .eq("user_id", profile.id)
+    .eq("status", "paused")
+    .eq("paused_reason", "access_revoked");
 }
