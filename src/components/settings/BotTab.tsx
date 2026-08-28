@@ -14,6 +14,7 @@ import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
+import { Toggle } from '../ui/Toggle';
 import { canAddSourceGroup } from '../../config/plans';
 import { PaywallModal } from '../billing/PaywallModal';
 
@@ -31,6 +32,9 @@ interface BotConfig {
   shopee_app_secret: string | null;
   mercadolivre_tag: string | null;
   ml_session: { cookies: { name: string; value: string }[]; updated_at: string } | null;
+  ativo: boolean;
+  horario_inicio: string | null;
+  horario_fim: string | null;
   error_message?: string | null;
   updated_at?: string;
 }
@@ -104,6 +108,11 @@ export const BotTab: React.FC = () => {
   const [shopeeAppId, setShopeeAppId] = useState('');
   const [shopeeAppSecret, setShopeeAppSecret] = useState('');
   const [mercadolivreTag, setMercadolivreTag] = useState('');
+  const [botAtivo, setBotAtivo] = useState(true);
+  const [savingAtivo, setSavingAtivo] = useState(false);
+  const [horarioInicio, setHorarioInicio] = useState('');
+  const [horarioFim, setHorarioFim] = useState('');
+  const [savingHorario, setSavingHorario] = useState(false);
 
   // Paywall state
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -136,6 +145,9 @@ export const BotTab: React.FC = () => {
         setShopeeAppId(data.shopee_app_id || '');
         setShopeeAppSecret(data.shopee_app_secret || '');
         setMercadolivreTag(data.mercadolivre_tag || '');
+        setBotAtivo(data.ativo !== false);
+        setHorarioInicio(data.horario_inicio || '');
+        setHorarioFim(data.horario_fim || '');
 
         setTelegramApiId(data.telegram_api_id ? String(data.telegram_api_id) : '');
         setTelegramApiHash(data.telegram_api_hash || '');
@@ -459,6 +471,53 @@ export const BotTab: React.FC = () => {
     }
   };
 
+  const handleToggleAtivo = async (next: boolean) => {
+    if (!user) return;
+    const previous = botAtivo;
+    setBotAtivo(next);
+    setSavingAtivo(true);
+    try {
+      const { error } = await supabase
+        .from('bot_configs')
+        .update({ ativo: next })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast(next ? 'Bot reativado.' : 'Bot pausado — pare de receber novas ofertas até reativar.', 'success');
+    } catch (err: any) {
+      console.error(err);
+      setBotAtivo(previous);
+      toast(err.message || 'Erro ao atualizar status do bot.', 'error');
+    } finally {
+      setSavingAtivo(false);
+    }
+  };
+
+  const handleSaveHorario = async () => {
+    if (!user) return;
+    if ((horarioInicio && !horarioFim) || (!horarioInicio && horarioFim)) {
+      toast('Preencha os dois horários (início e fim), ou deixe ambos vazios para rodar o dia todo.', 'error');
+      return;
+    }
+    setSavingHorario(true);
+    try {
+      const { error } = await supabase
+        .from('bot_configs')
+        .update({
+          horario_inicio: horarioInicio || null,
+          horario_fim: horarioFim || null,
+        })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast(horarioInicio ? 'Horário de funcionamento salvo!' : 'Horário removido — bot roda o dia todo.', 'success');
+      await loadConfig();
+    } catch (err: any) {
+      console.error(err);
+      toast(err.message || 'Erro ao salvar horário de funcionamento.', 'error');
+    } finally {
+      setSavingHorario(false);
+    }
+  };
+
   const formatRelativeTime = (dateString?: string) => {
     if (!dateString) return 'nunca';
     try {
@@ -569,6 +628,47 @@ export const BotTab: React.FC = () => {
                 <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
                   <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Última atividade</p>
                   <p className="text-sm font-bold text-ink truncate">{formatRelativeTime(config.updated_at)}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-line pt-4">
+                <Toggle
+                  id="bot-ativo"
+                  label={botAtivo ? 'Bot ativo' : 'Bot pausado'}
+                  description={
+                    botAtivo
+                      ? 'Processando novas ofertas dos grupos monitorados normalmente.'
+                      : 'Continua conectado no Telegram, mas ignora novas ofertas até você reativar.'
+                  }
+                  checked={botAtivo}
+                  onChange={handleToggleAtivo}
+                  disabled={savingAtivo}
+                />
+              </div>
+
+              <div className="border-t border-line pt-4 space-y-4">
+                <h4 className="text-sm font-bold text-ink">Horário de funcionamento (opcional)</h4>
+                <p className="text-xs text-ink-secondary">
+                  Defina uma janela em que o bot deve processar ofertas (horário de Brasília). Deixe em branco pra rodar o dia todo.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Começar às"
+                    type="time"
+                    value={horarioInicio}
+                    onChange={e => setHorarioInicio(e.target.value)}
+                  />
+                  <Input
+                    label="Parar às"
+                    type="time"
+                    value={horarioFim}
+                    onChange={e => setHorarioFim(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" icon={Save} isLoading={savingHorario} onClick={handleSaveHorario}>
+                    Salvar horário
+                  </Button>
                 </div>
               </div>
             </Section>

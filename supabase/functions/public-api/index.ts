@@ -1100,34 +1100,11 @@ serve(async (req) => {
         }
         finalAffiliateUrl = `${appUrl}/o/${shortCode}`
       } else {
-        // Encurtador próprio desligado pelo usuário -- comportamento antigo (is.gd)
-        finalAffiliateUrl = targetOffer.short_affiliate_url
-        if (!finalAffiliateUrl && targetOffer.affiliate_link) {
-          try {
-            const shortened = await shortenLink(targetOffer.affiliate_link, 'isgd')
-            if (shortened && shortened !== targetOffer.affiliate_link) {
-              finalAffiliateUrl = shortened
-              // Atualizar no banco de dados em background
-              supabaseAdmin
-                .from('offers')
-                .update({
-                  short_affiliate_url: shortened,
-                  short_affiliate_provider: 'isgd',
-                  short_affiliate_created_at: new Date().toISOString()
-                })
-                .eq('id', targetOffer.id)
-                .then(({ error }) => {
-                  if (error) console.error('[PUBLIC_API] Erro ao atualizar cache de link curto em background:', error.message)
-                })
-            }
-          } catch (err) {
-            console.warn('[PUBLIC_API] Falha ao gerar link encurtado em runtime, usando original:', err)
-            finalAffiliateUrl = targetOffer.affiliate_link
-          }
-        }
-        if (!finalAffiliateUrl) {
-          finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
-        }
+        // Encurtador próprio desligado pelo usuário para este marketplace --
+        // manda o link real, direto, sem nenhum encurtador de terceiro.
+        // (Antes caía no short_affiliate_url/is.gd, que é pré-calculado sem
+        // olhar esse toggle -- por isso "desligar" parecia não fazer nada.)
+        finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
       }
 
       let lastWhatsAppTime = 0
