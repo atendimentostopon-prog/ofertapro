@@ -66,9 +66,28 @@ export function normalizeHistoryStatus(status: any): 'success' | 'partial' | 'er
   return 'error';
 }
 
-export const dispatchOffer = async (params: DispatchParams) => {
+type DispatchOutcome = {
+  status: 'success' | 'partial' | 'error';
+  results: DispatchResult[];
+  blocked?: boolean;
+};
+
+export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOutcome> => {
   console.log("[DISPATCH] start");
   const { channelIds, userId, offerId, offerName, offerImage, marketplace, onChannelStart, onStepChange } = params;
+
+  // Gate de acesso: trial expirado / assinatura inativa bloqueia qualquer disparo.
+  try {
+    const { data: hasAccess } = await supabase.rpc('has_active_access', { uid: userId });
+    if (hasAccess === false) {
+      console.log('[DISPATCH] bloqueado: conta sem acesso ativo');
+      return { status: 'error' as const, results: [] as DispatchResult[], blocked: true };
+    }
+  } catch (e) {
+    // Se a checagem falhar, nao trava o disparo (fail-open no cliente; o
+    // servidor via public-api ainda barra o WhatsApp).
+    console.warn('[DISPATCH] has_active_access falhou, seguindo:', e);
+  }
 
   if (channelIds.length === 0) {
     console.log("[DISPATCH] finished", { status: 'success', results: [] });
