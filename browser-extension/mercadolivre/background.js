@@ -5,7 +5,7 @@ const SYNC_INTERVAL_MINUTES = 25;
 async function syncSession() {
   const { apiKey } = await chrome.storage.local.get('apiKey');
   if (!apiKey) {
-    return { ok: false, error: 'Sem API key configurada.' };
+    return { ok: false, errorType: 'no_key', error: 'Sem API key configurada.' };
   }
 
   const cookies = await chrome.cookies.getAll({ domain: 'mercadolivre.com.br' });
@@ -13,8 +13,9 @@ async function syncSession() {
     await chrome.storage.local.set({
       lastSync: new Date().toISOString(),
       lastStatus: 'Nenhum cookie encontrado. Faça login no Mercado Livre.',
+      lastErrorType: 'no_cookies',
     });
-    return { ok: false, error: 'Sem cookies. Faça login no mercadolivre.com.br primeiro.' };
+    return { ok: false, errorType: 'no_cookies', error: 'Sem cookies. Faça login no mercadolivre.com.br primeiro.' };
   }
 
   const payload = { cookies: cookies.map(c => ({ name: c.name, value: c.value })) };
@@ -28,16 +29,30 @@ async function syncSession() {
     const data = await resp.json().catch(() => ({}));
 
     if (!resp.ok) {
-      await chrome.storage.local.set({ lastSync: new Date().toISOString(), lastStatus: `Erro: ${data.error || resp.statusText}` });
-      return { ok: false, error: data.error || resp.statusText };
+      const errorType = resp.status === 401 || resp.status === 403 ? 'unauthorized' : 'server';
+      const message = errorType === 'unauthorized'
+        ? 'API key inválida ou sem permissão. Confira se copiou certo no painel.'
+        : (data.error || resp.statusText);
+      await chrome.storage.local.set({ lastSync: new Date().toISOString(), lastStatus: `Erro: ${message}`, lastErrorType: errorType });
+      return { ok: false, errorType, error: message };
     }
 
-    await chrome.storage.local.set({ lastSync: new Date().toISOString(), lastStatus: 'Conectado' });
+    await chrome.storage.local.set({
+      lastSync: new Date().toISOString(),
+      lastStatus: 'Conectado',
+      lastErrorType: null,
+      lastCookieCount: payload.cookies.length,
+    });
     return { ok: true };
   } catch (err) {
-    await chrome.storage.local.set({ lastSync: new Date().toISOString(), lastStatus: `Erro de conexão: ${err.message}` });
-    return { ok: false, error: err.message };
+    await chrome.storage.local.set({ lastSync: new Date().toISOString(), lastStatus: `Erro de conexão: ${err.message}`, lastErrorType: 'network' });
+    return { ok: false, errorType: 'network', error: err.message };
   }
+}
+
+async function disconnect() {
+  await chrome.storage.local.remove(['apiKey', 'lastSync', 'lastStatus', 'lastErrorType', 'lastCookieCount']);
+  await chrome.alarms.clear(ALARM_NAME);
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -56,6 +71,10 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'SYNC_NOW') {
     syncSession().then(sendResponse);
+    return true;
+  }
+  if (message?.type === 'DISCONNECT') {
+    disconnect().then(() => sendResponse({ ok: true }));
     return true;
   }
 });
