@@ -29,6 +29,8 @@ interface BotConfig {
   amazon_tag: string | null;
   shopee_app_id: string | null;
   shopee_app_secret: string | null;
+  mercadolivre_tag: string | null;
+  ml_session: { cookies: { name: string; value: string }[]; updated_at: string } | null;
   error_message?: string | null;
   updated_at?: string;
 }
@@ -101,6 +103,7 @@ export const BotTab: React.FC = () => {
   const [amazonTag, setAmazonTag] = useState('');
   const [shopeeAppId, setShopeeAppId] = useState('');
   const [shopeeAppSecret, setShopeeAppSecret] = useState('');
+  const [mercadolivreTag, setMercadolivreTag] = useState('');
 
   // Paywall state
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -132,6 +135,7 @@ export const BotTab: React.FC = () => {
         setAmazonTag(data.amazon_tag || '');
         setShopeeAppId(data.shopee_app_id || '');
         setShopeeAppSecret(data.shopee_app_secret || '');
+        setMercadolivreTag(data.mercadolivre_tag || '');
 
         setTelegramApiId(data.telegram_api_id ? String(data.telegram_api_id) : '');
         setTelegramApiHash(data.telegram_api_hash || '');
@@ -440,6 +444,7 @@ export const BotTab: React.FC = () => {
           amazon_tag: amazonTag.trim() || null,
           shopee_app_id: shopeeAppId.trim() || null,
           shopee_app_secret: shopeeAppSecret.trim() || null,
+          mercadolivre_tag: mercadolivreTag.trim() || null,
         })
         .eq('user_id', user.id);
 
@@ -885,6 +890,46 @@ export const BotTab: React.FC = () => {
                     placeholder="••••••••••••••••••••••••••••••••"
                     className="font-mono"
                   />
+                </div>
+              </div>
+
+              <div className="border-t border-line pt-4 space-y-4">
+                <h4 className="text-sm font-bold text-ink">Mercado Livre (opcional)</h4>
+
+                <Input
+                  label="Tag de afiliado Mercado Livre"
+                  type="text"
+                  value={mercadolivreTag}
+                  onChange={e => setMercadolivreTag(e.target.value)}
+                  placeholder="Ex: minhaloja"
+                  hint="A mesma tag que você usa no painel de afiliados do Mercado Livre"
+                />
+
+                <div className={`p-4 border rounded-2xl flex items-start gap-3 ${
+                  config?.ml_session ? 'bg-mint-50 border-mint-200' : 'bg-surface-1 border-line'
+                }`}>
+                  {config?.ml_session ? (
+                    <CheckCircle2 className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-ink-tertiary mt-0.5 flex-shrink-0" />
+                  )}
+                  <div className="text-xs leading-relaxed font-medium flex-1">
+                    {config?.ml_session ? (
+                      <>
+                        <strong className="text-ink">Extensão conectada.</strong>{' '}
+                        <span className="text-ink-secondary">
+                          Última sincronização: {formatRelativeTime(config.ml_session.updated_at)}. Links do Mercado Livre gerados automaticamente.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-ink">Extensão não conectada.</strong>{' '}
+                        <span className="text-ink-secondary">
+                          Sem ela, ofertas do Mercado Livre continuam indo pra revisão manual (você recebe o aviso e cola o link de afiliado). Instale a extensão Aflyo no Chrome e faça login no Mercado Livre pra automatizar.
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </Section>
