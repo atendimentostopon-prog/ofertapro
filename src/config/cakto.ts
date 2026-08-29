@@ -16,6 +16,13 @@ let instance: CaktoSdk | null = null;
 export async function getCaktoSdk(): Promise<CaktoSdk> {
   if (instance) return instance;
   if (!CLIENT_ID) throw new Error('VITE_CAKTO_CLIENT_ID nao configurada.');
+  const SDK_SRC = 'https://cakto-sdk.pages.dev/cakto-sdk.min.js';
+  if (!window.Cakto && !document.querySelector(`script[src="${SDK_SRC}"]`)) {
+    const s = document.createElement('script');
+    s.src = SDK_SRC;
+    s.async = true;
+    document.head.appendChild(s);
+  }
   const start = Date.now();
   while (!window.Cakto) {
     if (Date.now() - start > 10_000) throw new Error('SDK da Cakto nao carregou.');

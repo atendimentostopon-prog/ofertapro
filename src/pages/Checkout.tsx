@@ -12,6 +12,7 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useUser } from '../context/UserContext';
 import { APP_NAME } from '../config/app';
 import CaktoPaymentPanel from '../components/checkout/CaktoPaymentPanel';
+import { money } from '../lib/format';
 
 const VALID_PLANS: PlanCode[] = ['starter', 'pro', 'enterprise'];
 
@@ -33,11 +34,7 @@ const PLAN_COPY: Record<PlanCode, { eyebrow: string; headline: string; subline: 
   },
 };
 
-function money(v: number): string {
-  return 'R$ ' + v.toFixed(2).replace('.', ',');
-}
-
-const WaitingStep: React.FC<{ plan: PlanCode }> = ({ plan }) => {
+const WaitingStep: React.FC<{ plan: PlanCode; cycle: BillingCycle }> = ({ plan, cycle }) => {
   const { data: subscription } = useSubscription();
   const { refreshProfile } = useUser();
   const nav = useNavigate();
@@ -49,7 +46,7 @@ const WaitingStep: React.FC<{ plan: PlanCode }> = ({ plan }) => {
   // segundos), então nunca temos o ID de antemão. useSubscription() retorna a
   // assinatura active/past_due mais recente do usuário, então plan_code +
   // status já identifica com segurança a que acabou de ser criada.
-  const success = !!(subscription && subscription.plan_code === plan && subscription.status === 'active');
+  const success = !!(subscription && subscription.plan_code === plan && subscription.billing_cycle === cycle && subscription.status === 'active');
 
   useEffect(() => {
     if (success) return;
@@ -118,6 +115,7 @@ export default function Checkout() {
   const plan = VALID_PLANS.includes(planParam as PlanCode) ? (planParam as PlanCode) : null;
 
   const [confirmedLocally, setConfirmedLocally] = useState(false);
+  const [installments, setInstallments] = useState(cycle === 'yearly' ? 12 : 1);
 
   useEffect(() => {
     if (userLoading) return;
@@ -215,8 +213,10 @@ export default function Checkout() {
               ))}
             </ul>
             <div className="flex items-baseline justify-between pt-[18px] border-t border-mint-400/15">
-              <span className="text-[0.8125rem] text-white/70">Total hoje</span>
-              <span className="font-display text-[1.375rem] font-semibold">{money(sku.price)}</span>
+              <span className="text-[0.8125rem] text-white/70">{cycle === 'yearly' ? 'Parcelas' : 'Total hoje'}</span>
+              <span className="font-display text-[1.375rem] font-semibold">
+                {cycle === 'yearly' ? `${installments}x de ${money(sku.price / installments)}` : money(sku.price)}
+              </span>
             </div>
             <div className="mt-2 text-xs text-white/40">
               Renova dia {nextBillingLabel}. Cancela quando quiser, sem pegadinha.
@@ -238,7 +238,7 @@ export default function Checkout() {
                 </div>
               </div>
               <div className="mt-6">
-                <WaitingStep plan={plan} />
+                <WaitingStep plan={plan} cycle={cycle} />
               </div>
             </>
           ) : (
@@ -246,6 +246,8 @@ export default function Checkout() {
               plan={plan}
               cycle={cycle}
               price={sku.price}
+              installments={installments}
+              onInstallmentsChange={setInstallments}
               onSuccess={() => setConfirmedLocally(true)}
             />
           )}

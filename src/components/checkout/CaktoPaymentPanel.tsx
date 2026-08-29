@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Shield, ShieldCheck, Loader2 } from 'lucide-react';
+import { Shield, ShieldCheck, Loader2, ChevronDown } from 'lucide-react';
 import { getCaktoSdk } from '../../config/cakto';
 import { supabase } from '../../lib/supabase';
+import { money } from '../../lib/format';
 import type { PlanCode, BillingCycle } from '../../config/planCatalog';
 
 // Checkout transparente da Cakto: os campos sao inputs controlados nossos
@@ -11,11 +12,9 @@ interface CaktoPaymentPanelProps {
   plan: PlanCode;
   cycle: BillingCycle;
   price: number;
+  installments: number;
+  onInstallmentsChange: (n: number) => void;
   onSuccess: () => void;
-}
-
-function money(v: number): string {
-  return 'R$ ' + v.toFixed(2).replace('.', ',');
 }
 
 const onlyDigits = (s: string): string => s.replace(/\D/g, '');
@@ -51,14 +50,13 @@ const INPUT_CLASS =
   'w-full px-3.5 py-2.5 text-sm text-ink bg-surface-0 rounded-[11px] border-[1.5px] border-[rgba(16,20,24,0.09)] outline-none transition-shadow placeholder:text-ink-tertiary focus:border-mint-500 focus:shadow-[0_0_0_3px_rgba(94,231,165,0.28)] disabled:opacity-60 disabled:pointer-events-none';
 const LABEL_CLASS = 'block text-xs font-semibold text-ink-secondary mb-1.5';
 
-export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: CaktoPaymentPanelProps) {
+export default function CaktoPaymentPanel({ plan, cycle, price, installments, onInstallmentsChange, onSuccess }: CaktoPaymentPanelProps) {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
-  const [installments, setInstallments] = useState(cycle === 'yearly' ? 12 : 1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +73,7 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
   const cardDigits = onlyDigits(cardNumber);
   const cpfDigits = onlyDigits(cpf);
   const phoneDigits = onlyDigits(phone);
+  const phoneE164 = phoneDigits.length <= 11 && phoneDigits.length > 0 ? '55' + phoneDigits : phoneDigits;
   const expMonth = expiry.slice(0, 2);
   const expYear = expiry.slice(3, 5);
 
@@ -90,16 +89,16 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
     phoneDigits.length <= 11;
 
   function validate(): string | null {
-    if (cardDigits.length < 13 || cardDigits.length > 19) return 'Confira o numero do cartao.';
+    if (cardDigits.length < 13 || cardDigits.length > 19) return 'Confira o número do cartão.';
     const mm = Number(expMonth);
-    if (!/^\d{2}\/\d{2}$/.test(expiry) || mm < 1 || mm > 12) return 'Confira a validade do cartao.';
+    if (!/^\d{2}\/\d{2}$/.test(expiry) || mm < 1 || mm > 12) return 'Confira a validade do cartão.';
     const now = new Date();
     const curYY = now.getFullYear() % 100;
     const curMM = now.getMonth() + 1;
     const yy = Number(expYear);
-    if (yy < curYY || (yy === curYY && mm < curMM)) return 'O cartao esta vencido.';
-    if (cvc.length < 3 || cvc.length > 4) return 'Confira o codigo de seguranca (CVC).';
-    if (!name.trim()) return 'Informe o nome impresso no cartao.';
+    if (yy < curYY || (yy === curYY && mm < curMM)) return 'O cartão está vencido.';
+    if (cvc.length < 3 || cvc.length > 4) return 'Confira o código de segurança (CVC).';
+    if (!name.trim()) return 'Informe o nome impresso no cartão.';
     if (cpfDigits.length !== 11) return 'Confira o CPF.';
     if (phoneDigits.length < 10 || phoneDigits.length > 11) return 'Confira o telefone.';
     return null;
@@ -119,6 +118,15 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
     setError(null);
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (!session?.access_token) {
+        setError('Sua sessão expirou. Recarregue a página e entre de novo para concluir o pagamento.');
+        setSubmitting(false);
+        return;
+      }
+      const email = session?.user?.email ?? '';
+
       const sdk = await getCaktoSdk();
 
       // expYear: o exemplo do SDK aceita 2 ou 4 digitos. Mandamos o "AA" de 2
@@ -133,10 +141,6 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
 
       const { cardToken } = await sdk.createToken(card);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-      const email = session?.user?.email ?? '';
-
       // 3DS e best-effort: se estourar ou vier success=false, seguimos sem os
       // dados de autenticacao e o backend cai pro paymentMethod credit_card.
       let threeDS:
@@ -150,7 +154,7 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
             currency: 'BRL',
             email,
             name: name.trim(),
-            phone: phoneDigits,
+            phone: phoneE164,
             paymentMethod: 'credit',
             address: {},
           },
@@ -173,7 +177,12 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
       await sdk.completeAntifraudProfile().catch(() => {
         /* best-effort */
       });
-      const antifraud_ref = sdk.getAntifraudReference();
+      let antifraud_ref = '';
+      try {
+        antifraud_ref = sdk.getAntifraudReference() ?? '';
+      } catch {
+        /* best-effort: backend cai pro user.id */
+      }
 
       const res = await fetch(
         import.meta.env.VITE_SUPABASE_URL + '/functions/v1/cakto-create-payment',
@@ -190,7 +199,7 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
             card_token: cardToken,
             three_d_secure: threeDS,
             antifraud_ref,
-            customer: { name: name.trim(), cpf: cpfDigits, phone: phoneDigits },
+            customer: { name: name.trim(), cpf: cpfDigits, phone: phoneE164 },
           }),
         },
       );
@@ -214,17 +223,18 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
       setError(
         out.error ||
           out.message ||
-          'Pagamento recusado. Confira os dados do cartao ou tente outro.',
+          'Pagamento recusado. Confira os dados do cartão ou tente outro.',
       );
       setSubmitting(false);
     } catch (err) {
       console.error('[cakto] falha no checkout', err);
-      setError('Nao foi possivel concluir o pagamento. Confira os dados do cartao e tente de novo.');
+      setError('Não foi possível concluir o pagamento. Confira os dados do cartão e tente de novo.');
       setSubmitting(false);
     }
   }
 
-  const ctaLabel = cycle === 'yearly' ? `Pagar em ${installments}x` : `Pagar ${money(price)}`;
+  const ctaLabel =
+    cycle === 'yearly' && installments > 1 ? `Pagar em ${installments}x` : `Pagar ${money(price)}`;
 
   return (
     <div>
@@ -233,15 +243,15 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
           <ShieldCheck className="w-4 h-4" />
         </span>
         <div>
-          <h2 className="text-lg font-bold text-ink font-display leading-tight">Como voce quer pagar?</h2>
-          <p className="text-xs text-ink-secondary">So cartao por enquanto. Pix e boleto em breve.</p>
+          <h2 className="text-lg font-bold text-ink font-display leading-tight">Como você quer pagar?</h2>
+          <p className="text-xs text-ink-secondary">Só cartão por enquanto. Pix e boleto em breve.</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6">
         <div className="space-y-3.5">
           <div>
-            <label htmlFor="cakto-card" className={LABEL_CLASS}>Numero do cartao</label>
+            <label htmlFor="cakto-card" className={LABEL_CLASS}>Número do cartão</label>
             <input
               id="cakto-card"
               inputMode="numeric"
@@ -284,11 +294,11 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
           </div>
 
           <div>
-            <label htmlFor="cakto-name" className={LABEL_CLASS}>Nome no cartao</label>
+            <label htmlFor="cakto-name" className={LABEL_CLASS}>Nome no cartão</label>
             <input
               id="cakto-name"
               autoComplete="cc-name"
-              placeholder="Igual esta impresso no cartao"
+              placeholder="Igual está impresso no cartão"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={submitting}
@@ -327,17 +337,20 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
           {cycle === 'yearly' && (
             <div>
               <label htmlFor="cakto-installments" className={LABEL_CLASS}>Parcelas</label>
-              <select
-                id="cakto-installments"
-                value={installments}
-                onChange={(e) => setInstallments(Number(e.target.value))}
-                disabled={submitting}
-                className={INPUT_CLASS + ' appearance-none cursor-pointer'}
-              >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>{`${n}x de ${money(price / n)} sem juros`}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="cakto-installments"
+                  value={installments}
+                  onChange={(e) => onInstallmentsChange(Number(e.target.value))}
+                  disabled={submitting}
+                  className={INPUT_CLASS + ' appearance-none cursor-pointer pr-9'}
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{`${n}x de ${money(price / n)} sem juros`}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
+              </div>
             </div>
           )}
         </div>
@@ -355,12 +368,12 @@ export default function CaktoPaymentPanel({ plan, cycle, price, onSuccess }: Cak
 
         <div className="mt-[18px] flex items-center justify-center gap-2 text-xs text-ink-secondary text-center">
           <Shield className="w-[15px] h-[15px] text-mint-700 flex-shrink-0" />
-          Seus dados passam direto pela <b className="text-ink font-semibold">Cakto</b>, a gente nem ve seu cartao
+          Seus dados passam direto pela <b className="text-ink font-semibold">Cakto</b>, a gente nem vê seu cartão
         </div>
 
         <p className="mt-3.5 text-[11px] leading-relaxed text-ink-tertiary text-center">
-          Ao confirmar, voce topa com nossos <a href="/terms" className="underline text-ink-secondary">Termos de Uso</a> e{' '}
-          <a href="/privacy" className="underline text-ink-secondary">Politica de Privacidade</a>. A assinatura renova sozinha ate voce cancelar.
+          Ao confirmar, você concorda com nossos <a href="/terms" className="underline text-ink-secondary">Termos de Uso</a> e{' '}
+          <a href="/privacy" className="underline text-ink-secondary">Política de Privacidade</a>. A assinatura renova sozinha até você cancelar.
         </p>
       </form>
     </div>
