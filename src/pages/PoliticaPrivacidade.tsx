@@ -78,6 +78,7 @@ const PoliticaPrivacidade: React.FC = () => {
               <ul className="list-disc pl-5 space-y-1.5">
                 <li><strong>Supabase:</strong> Infraestrutura de banco de dados, armazenamento de perfis e serviço de autenticação com segurança de dados de ponta a ponta.</li>
                 <li><strong>Vercel / Cloudflare:</strong> Hospedagem web e entrega de conteúdo segura e otimizada globalmente.</li>
+                <li><strong>Cakto:</strong> Processamento de pagamentos e gestão de assinaturas. Recebe nome, CPF, telefone e dados do cartão para autorizar a cobrança; o {APP_NAME} não armazena dados de cartão.</li>
               </ul>
             </section>
 

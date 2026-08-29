@@ -4,11 +4,9 @@ import { getCaktoSdk } from '../../config/cakto';
 import { supabase } from '../../lib/supabase';
 import type { PlanCode, BillingCycle } from '../../config/planCatalog';
 
-// Checkout transparente da Cakto. Diferente do CheckoutPaymentPanel da Stripe,
-// aqui os campos sao inputs controlados nossos (sem iframe): o SDK da Cakto no
-// browser tokeniza o cartao e roda o 3DS + antifraude, e a gente so manda o
-// token pro backend. O visual (cabecalho, selo de confianca, botao gradiente
-// mint) reaproveita o CheckoutPaymentPanel.
+// Checkout transparente da Cakto: os campos sao inputs controlados nossos
+// (sem iframe). O SDK da Cakto no browser tokeniza o cartao e roda o 3DS +
+// antifraude; a gente so manda o token pro backend.
 interface CaktoPaymentPanelProps {
   plan: PlanCode;
   cycle: BillingCycle;
@@ -47,8 +45,8 @@ function maskPhone(v: string): string {
   return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
 }
 
-// Espelha o ".Input" do STRIPE_APPEARANCE do CheckoutPaymentPanel: borda de
-// 1.5px em rgba(16,20,24,0.09), raio 11px, foco mint.
+// Input no mesmo estilo do resto do app: borda de 1.5px em
+// rgba(16,20,24,0.09), raio 11px, foco mint.
 const INPUT_CLASS =
   'w-full px-3.5 py-2.5 text-sm text-ink bg-surface-0 rounded-[11px] border-[1.5px] border-[rgba(16,20,24,0.09)] outline-none transition-shadow placeholder:text-ink-tertiary focus:border-mint-500 focus:shadow-[0_0_0_3px_rgba(94,231,165,0.28)] disabled:opacity-60 disabled:pointer-events-none';
 const LABEL_CLASS = 'block text-xs font-semibold text-ink-secondary mb-1.5';
