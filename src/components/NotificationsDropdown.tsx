@@ -91,7 +91,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
           }}
           className="text-[11px] font-semibold text-mint-700 hover:text-mint-800 transition-colors"
         >
-          Ver todo o histórico →
+          Ver todo o histórico
         </a>
       </div>
     </div>

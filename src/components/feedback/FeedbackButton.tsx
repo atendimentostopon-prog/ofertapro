@@ -126,7 +126,7 @@ const FeedbackButton: React.FC = () => {
                 <>
                   {error && (
                     <div className="p-3.5 bg-danger-bg border border-danger/20 rounded-xl text-xs text-danger-ink font-medium">
-                      ⚠️ {error}
+                      {error}
                     </div>
                   )}
 

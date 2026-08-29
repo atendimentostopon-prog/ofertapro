@@ -802,6 +802,59 @@ serve(async (req) => {
     }
 
     // ------------------------------------------
+    // ENDPOINT 2.5: Sincronizar sessão Mercado Livre (POST /ml-session)
+    // ------------------------------------------
+    // Chamado pela extensão Chrome do Aflyo, que captura os cookies da sessão
+    // logada do usuário no Mercado Livre (renovados periodicamente, pois a
+    // sessão expira). O bot usa esses cookies pra gerar link de afiliado
+    // automático via endpoint privado do painel de afiliados do ML.
+    else if (pathname.endsWith('/ml-session') && req.method === 'POST') {
+      if (!scopes.includes('dispatch:write')) {
+        return new Response(
+          JSON.stringify({ error: 'Permissão negada. Escopo dispatch:write é obrigatório.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const body = await req.json()
+      const { cookies } = body
+
+      if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Campo cookies é obrigatório e deve ser um array não vazio.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const validCookies = cookies.filter((c: any) => c && typeof c.name === 'string' && typeof c.value === 'string')
+      if (validCookies.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Nenhum cookie válido recebido (esperado {name, value}).' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const { error: upsertError } = await supabaseAdmin
+        .from('bot_configs')
+        .upsert({
+          user_id: userId,
+          ml_session: { cookies: validCookies, updated_at: new Date().toISOString() }
+        }, { onConflict: 'user_id' })
+
+      if (upsertError) {
+        return new Response(
+          JSON.stringify({ error: `Erro ao salvar sessão do Mercado Livre: ${upsertError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // ------------------------------------------
     // ENDPOINT 3: Disparar Oferta (POST /dispatch)
     // ------------------------------------------
     else if (pathname.endsWith('/dispatch') && req.method === 'POST') {
@@ -1064,34 +1117,11 @@ serve(async (req) => {
         }
         finalAffiliateUrl = `${appUrl}/o/${shortCode}`
       } else {
-        // Encurtador próprio desligado pelo usuário -- comportamento antigo (is.gd)
-        finalAffiliateUrl = targetOffer.short_affiliate_url
-        if (!finalAffiliateUrl && targetOffer.affiliate_link) {
-          try {
-            const shortened = await shortenLink(targetOffer.affiliate_link, 'isgd')
-            if (shortened && shortened !== targetOffer.affiliate_link) {
-              finalAffiliateUrl = shortened
-              // Atualizar no banco de dados em background
-              supabaseAdmin
-                .from('offers')
-                .update({
-                  short_affiliate_url: shortened,
-                  short_affiliate_provider: 'isgd',
-                  short_affiliate_created_at: new Date().toISOString()
-                })
-                .eq('id', targetOffer.id)
-                .then(({ error }) => {
-                  if (error) console.error('[PUBLIC_API] Erro ao atualizar cache de link curto em background:', error.message)
-                })
-            }
-          } catch (err) {
-            console.warn('[PUBLIC_API] Falha ao gerar link encurtado em runtime, usando original:', err)
-            finalAffiliateUrl = targetOffer.affiliate_link
-          }
-        }
-        if (!finalAffiliateUrl) {
-          finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
-        }
+        // Encurtador próprio desligado pelo usuário para este marketplace --
+        // manda o link real, direto, sem nenhum encurtador de terceiro.
+        // (Antes caía no short_affiliate_url/is.gd, que é pré-calculado sem
+        // olhar esse toggle -- por isso "desligar" parecia não fazer nada.)
+        finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
       }
 
       let lastWhatsAppTime = 0

@@ -14,6 +14,7 @@ import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
+import { Toggle } from '../ui/Toggle';
 import { canAddSourceGroup } from '../../config/plans';
 import { PaywallModal } from '../billing/PaywallModal';
 
@@ -29,6 +30,11 @@ interface BotConfig {
   amazon_tag: string | null;
   shopee_app_id: string | null;
   shopee_app_secret: string | null;
+  mercadolivre_tag: string | null;
+  ml_session: { cookies: { name: string; value: string }[]; updated_at: string } | null;
+  ativo: boolean;
+  horario_inicio: string | null;
+  horario_fim: string | null;
   error_message?: string | null;
   updated_at?: string;
   paused_reason?: string | null;
@@ -103,6 +109,12 @@ export const BotTab: React.FC = () => {
   const [amazonTag, setAmazonTag] = useState('');
   const [shopeeAppId, setShopeeAppId] = useState('');
   const [shopeeAppSecret, setShopeeAppSecret] = useState('');
+  const [mercadolivreTag, setMercadolivreTag] = useState('');
+  const [botAtivo, setBotAtivo] = useState(true);
+  const [savingAtivo, setSavingAtivo] = useState(false);
+  const [horarioInicio, setHorarioInicio] = useState('');
+  const [horarioFim, setHorarioFim] = useState('');
+  const [savingHorario, setSavingHorario] = useState(false);
 
   // Paywall state
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -134,6 +146,10 @@ export const BotTab: React.FC = () => {
         setAmazonTag(data.amazon_tag || '');
         setShopeeAppId(data.shopee_app_id || '');
         setShopeeAppSecret(data.shopee_app_secret || '');
+        setMercadolivreTag(data.mercadolivre_tag || '');
+        setBotAtivo(data.ativo !== false);
+        setHorarioInicio(data.horario_inicio || '');
+        setHorarioFim(data.horario_fim || '');
 
         setTelegramApiId(data.telegram_api_id ? String(data.telegram_api_id) : '');
         setTelegramApiHash(data.telegram_api_hash || '');
@@ -442,6 +458,7 @@ export const BotTab: React.FC = () => {
           amazon_tag: amazonTag.trim() || null,
           shopee_app_id: shopeeAppId.trim() || null,
           shopee_app_secret: shopeeAppSecret.trim() || null,
+          mercadolivre_tag: mercadolivreTag.trim() || null,
         })
         .eq('user_id', user.id);
 
@@ -453,6 +470,53 @@ export const BotTab: React.FC = () => {
       toast(err.message || 'Erro ao salvar configurações adicionais.', 'error');
     } finally {
       setSavingConfigAdicionais(false);
+    }
+  };
+
+  const handleToggleAtivo = async (next: boolean) => {
+    if (!user) return;
+    const previous = botAtivo;
+    setBotAtivo(next);
+    setSavingAtivo(true);
+    try {
+      const { error } = await supabase
+        .from('bot_configs')
+        .update({ ativo: next })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast(next ? 'Bot reativado.' : 'Bot pausado. Você para de receber novas ofertas até reativar.', 'success');
+    } catch (err: any) {
+      console.error(err);
+      setBotAtivo(previous);
+      toast(err.message || 'Erro ao atualizar status do bot.', 'error');
+    } finally {
+      setSavingAtivo(false);
+    }
+  };
+
+  const handleSaveHorario = async () => {
+    if (!user) return;
+    if ((horarioInicio && !horarioFim) || (!horarioInicio && horarioFim)) {
+      toast('Preencha os dois horários (início e fim), ou deixe ambos vazios para rodar o dia todo.', 'error');
+      return;
+    }
+    setSavingHorario(true);
+    try {
+      const { error } = await supabase
+        .from('bot_configs')
+        .update({
+          horario_inicio: horarioInicio || null,
+          horario_fim: horarioFim || null,
+        })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast(horarioInicio ? 'Horário de funcionamento salvo!' : 'Horário removido. O bot roda o dia todo.', 'success');
+      await loadConfig();
+    } catch (err: any) {
+      console.error(err);
+      toast(err.message || 'Erro ao salvar horário de funcionamento.', 'error');
+    } finally {
+      setSavingHorario(false);
     }
   };
 
@@ -576,6 +640,47 @@ export const BotTab: React.FC = () => {
                 <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
                   <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Última atividade</p>
                   <p className="text-sm font-bold text-ink truncate">{formatRelativeTime(config.updated_at)}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-line pt-4">
+                <Toggle
+                  id="bot-ativo"
+                  label={botAtivo ? 'Bot ativo' : 'Bot pausado'}
+                  description={
+                    botAtivo
+                      ? 'Processando novas ofertas dos grupos monitorados normalmente.'
+                      : 'Continua conectado no Telegram, mas ignora novas ofertas até você reativar.'
+                  }
+                  checked={botAtivo}
+                  onChange={handleToggleAtivo}
+                  disabled={savingAtivo}
+                />
+              </div>
+
+              <div className="border-t border-line pt-4 space-y-4">
+                <h4 className="text-sm font-bold text-ink">Horário de funcionamento (opcional)</h4>
+                <p className="text-xs text-ink-secondary">
+                  Defina uma janela em que o bot deve processar ofertas (horário de Brasília). Deixe em branco pra rodar o dia todo.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Começar às"
+                    type="time"
+                    value={horarioInicio}
+                    onChange={e => setHorarioInicio(e.target.value)}
+                  />
+                  <Input
+                    label="Parar às"
+                    type="time"
+                    value={horarioFim}
+                    onChange={e => setHorarioFim(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" icon={Save} isLoading={savingHorario} onClick={handleSaveHorario}>
+                    Salvar horário
+                  </Button>
                 </div>
               </div>
             </Section>
@@ -791,7 +896,7 @@ export const BotTab: React.FC = () => {
                   <div className="space-y-2 py-2">
                     <p className="text-xs text-ink-tertiary italic">Nenhum canal ativo cadastrado.</p>
                     <p className="text-xs text-ink-secondary">
-                      Conecte canais nas configurações gerais ou no painel para usá-los como destino.
+                      Conecte canais na aba "Canais" do menu lateral para usá-los como destino.
                     </p>
                   </div>
                 ) : (
@@ -897,6 +1002,55 @@ export const BotTab: React.FC = () => {
                     placeholder="••••••••••••••••••••••••••••••••"
                     className="font-mono"
                   />
+                </div>
+              </div>
+
+              <div className="border-t border-line pt-4 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h4 className="text-sm font-bold text-ink">Mercado Livre (opcional)</h4>
+                  <Link
+                    to="/automatizacao-mercadolivre"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ice hover:bg-mint-200 border border-mint-200 hover:border-mint-500 text-mint-700 text-xs font-bold rounded-md transition-colors w-fit self-start sm:self-auto"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Como funciona / instruções
+                  </Link>
+                </div>
+
+                <Input
+                  label="Tag de afiliado Mercado Livre"
+                  type="text"
+                  value={mercadolivreTag}
+                  onChange={e => setMercadolivreTag(e.target.value)}
+                  placeholder="Ex: minhaloja"
+                  hint="A mesma tag que você usa no painel de afiliados do Mercado Livre"
+                />
+
+                <div className={`p-4 border rounded-2xl flex items-start gap-3 ${
+                  config?.ml_session ? 'bg-mint-50 border-mint-200' : 'bg-surface-1 border-line'
+                }`}>
+                  {config?.ml_session ? (
+                    <CheckCircle2 className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-ink-tertiary mt-0.5 flex-shrink-0" />
+                  )}
+                  <div className="text-xs leading-relaxed font-medium flex-1">
+                    {config?.ml_session ? (
+                      <>
+                        <strong className="text-ink">Extensão conectada.</strong>{' '}
+                        <span className="text-ink-secondary">
+                          Última sincronização: {formatRelativeTime(config.ml_session.updated_at)}. Links do Mercado Livre gerados automaticamente.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-ink">Extensão não conectada.</strong>{' '}
+                        <span className="text-ink-secondary">
+                          Sem ela, ofertas do Mercado Livre continuam indo pra revisão manual (você recebe o aviso e cola o link de afiliado). Instale a extensão Aflyo no Chrome e faça login no Mercado Livre pra automatizar.
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </Section>

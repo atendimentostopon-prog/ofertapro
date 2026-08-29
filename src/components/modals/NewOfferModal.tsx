@@ -434,7 +434,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
               {(imageError || imageLoadError) && (
                 <div className="flex flex-col gap-1 mt-1 text-center">
                   <p className="text-[10px] text-warning-ink font-bold">
-                    ⚠️ {imageError || 'Não foi possível carregar essa imagem. Tente outra URL ou faça upload manual.'}
+                    {imageError || 'Não foi possível carregar essa imagem. Tente outra URL ou faça upload manual.'}
                   </p>
                   <button
                     type="button"
@@ -633,13 +633,13 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                       };
                       return (
                         <span className="text-mint-700">
-                          ✨ Marketplace detectado: <strong>{labels[detected] || detected}</strong>
+                          Marketplace detectado: <strong>{labels[detected] || detected}</strong>
                         </span>
                       );
                     } else {
                       return (
                         <span className="text-ink-secondary">
-                          ℹ️ Não foi possível detectar automaticamente. Selecione manualmente.
+                          Não foi possível detectar automaticamente. Selecione manualmente.
                         </span>
                       );
                     }
@@ -752,7 +752,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                       }}
                       className="inline-block mt-2 text-xs font-bold text-mint-700 hover:text-mint-800 hover:underline"
                     >
-                      Ir para Canais →
+                      Ir para Canais
                     </a>
                   </div>
                 ) : connectedChannels.map(ch => (
