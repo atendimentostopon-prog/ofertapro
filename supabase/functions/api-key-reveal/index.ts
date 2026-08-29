@@ -7,8 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+/**
+ * Revela a chave de API ATIVA do usuário em texto puro, sem precisar
+ * revogar/regenerar.
+ *
+ * Importante: api_keys guarda apenas o hash SHA-256 — a chave pura NÃO
+ * é recuperável de lá. A única cópia em texto puro fica em
+ * bot_configs.link_oferta_api_key, gravada no momento da geração pela
+ * função api-key-generate (necessária para o bot multi-tenant disparar).
+ *
+ * Consequência: só é possível revelar chaves geradas/regeneradas DEPOIS
+ * que a sincronização com bot_configs entrou no ar. Para chaves antigas,
+ * o retorno é { apiKey: null, reason: 'not_synced' } e o usuário precisa
+ * regenerar uma vez.
+ */
 serve(async (req) => {
-  // CORS Preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -22,14 +35,12 @@ serve(async (req) => {
       )
     }
 
-    // 1. Inicializar cliente Supabase com o token do usuário para autenticação
+    // Autentica pelo JWT do usuário logado
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     )
-
-    // Obter dados do usuário logado
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) {
       return new Response(
@@ -38,71 +49,56 @@ serve(async (req) => {
       )
     }
 
-    // 2. Extrair dados da requisição
-    const { id } = await req.json()
-    if (!id) {
-      return new Response(
-        JSON.stringify({ error: 'ID da chave de API é obrigatório.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // 3. Inicializar cliente Admin com a service_role para desativação no banco de dados
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Revogar a chave correspondente de forma segura
-    const { error: dbError } = await supabaseAdmin
+    // Precisa existir uma chave ativa de fato
+    const { data: activeKey } = await supabaseAdmin
       .from('api_keys')
-      .update({
-        status: 'revoked',
-        revoked_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .eq('user_id', user.id) // Garante propriedade da chave
+      .select('id, key_hash, key_last4')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle()
 
-    if (dbError) {
-      throw new Error(`Erro ao revogar chave de API no banco: ${dbError.message}`)
+    if (!activeKey) {
+      return new Response(
+        JSON.stringify({ apiKey: null, reason: 'no_active_key' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    // Se o bot multi-tenant estava usando exatamente esta chave, limpa a cópia
-    // em bot_configs para ele parar de tentar disparar com uma chave morta
-    // (evita spam de 401). O usuário gera uma nova chave para religar o disparo.
     const { data: botCfg } = await supabaseAdmin
       .from('bot_configs')
-      .select('id, link_oferta_api_key')
+      .select('link_oferta_api_key')
       .eq('user_id', user.id)
       .maybeSingle()
 
-    if (botCfg?.link_oferta_api_key) {
-      const encoder = new TextEncoder()
-      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(botCfg.link_oferta_api_key))
+    const stored = botCfg?.link_oferta_api_key || null
+
+    // Confere que a cópia em texto puro corresponde MESMO à chave ativa
+    // (evita devolver uma chave defasada de bot_configs).
+    let matches = false
+    if (stored) {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(stored))
       const storedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+      matches = storedHash === activeKey.key_hash
+    }
 
-      const { data: revokedKey } = await supabaseAdmin
-        .from('api_keys')
-        .select('key_hash')
-        .eq('id', id)
-        .maybeSingle()
-
-      if (revokedKey?.key_hash === storedHash) {
-        await supabaseAdmin
-          .from('bot_configs')
-          .update({ link_oferta_api_key: null, updated_at: new Date().toISOString() })
-          .eq('id', botCfg.id)
-      }
+    if (!stored || !matches) {
+      return new Response(
+        JSON.stringify({ apiKey: null, reason: 'not_synced', key_last4: activeKey.key_last4 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Chave de API revogada com sucesso.' }),
+      JSON.stringify({ apiKey: stored, key_last4: activeKey.key_last4 }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-
   } catch (err: any) {
-    console.error('[API_KEY_REVOKE] Erro crítico:', err.message)
+    console.error('[API_KEY_REVEAL] Erro crítico:', err.message)
     return new Response(
       JSON.stringify({ error: err.message || 'Erro interno do servidor.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

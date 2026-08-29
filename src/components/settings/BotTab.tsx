@@ -482,7 +482,7 @@ export const BotTab: React.FC = () => {
         .update({ ativo: next })
         .eq('user_id', user.id);
       if (error) throw error;
-      toast(next ? 'Bot reativado.' : 'Bot pausado — pare de receber novas ofertas até reativar.', 'success');
+      toast(next ? 'Bot reativado.' : 'Bot pausado. Você para de receber novas ofertas até reativar.', 'success');
     } catch (err: any) {
       console.error(err);
       setBotAtivo(previous);
@@ -508,7 +508,7 @@ export const BotTab: React.FC = () => {
         })
         .eq('user_id', user.id);
       if (error) throw error;
-      toast(horarioInicio ? 'Horário de funcionamento salvo!' : 'Horário removido — bot roda o dia todo.', 'success');
+      toast(horarioInicio ? 'Horário de funcionamento salvo!' : 'Horário removido. O bot roda o dia todo.', 'success');
       await loadConfig();
     } catch (err: any) {
       console.error(err);
@@ -884,7 +884,7 @@ export const BotTab: React.FC = () => {
                   <div className="space-y-2 py-2">
                     <p className="text-xs text-ink-tertiary italic">Nenhum canal ativo cadastrado.</p>
                     <p className="text-xs text-ink-secondary">
-                      Conecte canais nas configurações gerais ou no painel para usá-los como destino.
+                      Conecte canais na aba "Canais" do menu lateral para usá-los como destino.
                     </p>
                   </div>
                 ) : (

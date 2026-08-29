@@ -46,6 +46,23 @@ export const ApiKeyService = {
   },
 
   /**
+   * Revela a chave ativa em texto puro (sem revogar/regenerar).
+   * Só funciona para chaves geradas após a sincronização com o bot;
+   * para chaves antigas retorna { apiKey: null, reason: 'not_synced' }.
+   */
+  async revealApiKey(): Promise<{ apiKey: string | null; reason?: string; key_last4?: string }> {
+    const { data, error } = await supabase.functions.invoke('api-key-reveal', {
+      method: 'POST'
+    });
+
+    if (error) {
+      console.error('[ApiKeyService] Erro ao invocar api-key-reveal:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  /**
    * Invoca a Edge Function para revogar uma API Key existente
    */
   async revokeApiKey(id: string): Promise<{ success: boolean; message: string }> {

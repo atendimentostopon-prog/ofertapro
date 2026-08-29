@@ -87,9 +87,9 @@ export const ShopeeAutomationPage: React.FC = () => {
       title: `Cadastrar as credenciais no ${APP_NAME}`,
       desc: `Depois de copiar suas credenciais do console da Shopee, conclua a configuração dentro da sua conta do ${APP_NAME}:`,
       bullets: [
-        `Acesse o painel administrativo do ${APP_NAME}.`,
-        'Vá em Configurações > Configurações Adicionais (aba Bot).',
-        'Localize a seção "Credenciais Shopee Affiliate (opcional)".',
+        `No menu lateral do ${APP_NAME}, abra "Integrações" e fique na aba "Bot".`,
+        'Desça até a seção "Configurações Adicionais".',
+        'Localize "Credenciais Shopee Affiliate (opcional)".',
         'Insira o seu App ID e a Secret Key nos respectivos campos.',
         'Clique no botão "Salvar configurações".'
       ],
@@ -120,7 +120,7 @@ export const ShopeeAutomationPage: React.FC = () => {
     },
     {
       q: `Onde cadastro o App ID e a Secret Key no ${APP_NAME}?`,
-      a: 'No menu principal, acesse Configurações > vá na aba "Bot" > desça até a seção "Configurações Adicionais" > preencha os campos sob "Credenciais Shopee Affiliate (opcional)" e salve.'
+      a: 'No menu lateral, abra "Integrações" > aba "Bot" > desça até a seção "Configurações Adicionais" > preencha os campos sob "Credenciais Shopee Affiliate (opcional)" e salve.'
     },
     {
       q: 'Posso usar essa integração sem aprovação da Shopee?',
@@ -139,11 +139,11 @@ export const ShopeeAutomationPage: React.FC = () => {
         {/* Navigation Bar / Header */}
         <div className="flex items-center justify-between pb-6 border-b border-line select-none">
           <Link
-            to="/settings"
+            to="/integrations?tab=bot"
             className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-            Voltar para Configurações
+            Voltar para Integrações
           </Link>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
@@ -156,7 +156,7 @@ export const ShopeeAutomationPage: React.FC = () => {
         {/* 1. Hero Principal */}
         <section className="text-center space-y-6 py-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 text-[11px] font-bold text-orange-400 rounded-full select-none">
-            🍊 Integração Shopee Affiliate
+            Integração Shopee Affiliate
           </div>
           <h1 className="text-3xl sm:text-4.5xl font-black text-ink tracking-tight leading-tight max-w-2xl mx-auto">
             Como pegar suas credenciais da Shopee
@@ -346,15 +346,15 @@ export const ShopeeAutomationPage: React.FC = () => {
             Pronto para configurar sua integração?
           </h3>
           <p className="text-xs sm:text-sm text-ink-inverse/70 max-w-lg mx-auto leading-relaxed font-medium">
-            Retorne às configurações do painel administrativo do {APP_NAME} para colar o seu App ID e Secret Key salvos.
+            Abra "Integrações" no menu lateral do {APP_NAME}, aba "Bot", seção "Configurações Adicionais", para colar o seu App ID e Secret Key.
           </p>
           <div className="flex justify-center pt-2">
             <Link
-              to="/settings"
+              to="/integrations?tab=bot"
               className="w-full sm:w-auto btn-gradient text-xs font-bold px-6 py-3 rounded-lg flex items-center justify-center gap-1.5 shadow-md"
             >
               <Settings className="w-4 h-4" />
-              Voltar para as configurações
+              Ir para Integrações
             </Link>
           </div>
         </section>

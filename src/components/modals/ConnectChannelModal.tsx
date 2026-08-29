@@ -292,7 +292,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
               {type === 'whatsapp' && step === 'form' && !isEvolutionConfigured && (
                 <div className="bg-warning-bg border border-warning/30 rounded-xl p-4 text-xs text-warning-ink space-y-1.5 leading-relaxed">
                   <p className="font-bold flex items-center gap-1.5">
-                    ⚠️ Evolution API não configurada
+                    Evolution API não configurada
                   </p>
                   <p>Adicione as variáveis <strong>VITE_EVOLUTION_URL</strong> e <strong>VITE_EVOLUTION_API_KEY</strong> no seu arquivo <strong>.env</strong> para habilitar conexões via QR Code.</p>
                 </div>
@@ -329,7 +329,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                     <p className="text-sm font-semibold text-success-ink">Como conectar:</p>
                     <ol className="text-xs text-success-ink/85 space-y-1.5 leading-relaxed">
                       <li>1. Abra o WhatsApp no seu celular</li>
-                      <li>2. Vá em Configurações → Dispositivos Conectados</li>
+                      <li>2. Vá em Configurações {'>'} Dispositivos Conectados</li>
                       <li>3. Toque em "Conectar um dispositivo"</li>
                       <li>4. Escaneie o QR Code acima</li>
                     </ol>
@@ -378,7 +378,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
 
                   {/* Instruções passo a passo */}
                   <div className="bg-info-bg border border-info/25 rounded-xl p-4 text-xs text-info-ink leading-relaxed">
-                    <p className="font-bold mb-2">📋 Como configurar:</p>
+                    <p className="font-bold mb-2">Como configurar:</p>
                     <ol className="space-y-1.5 list-decimal list-inside text-info-ink/85">
                       <li>Crie um bot no Telegram usando <strong>@BotFather</strong></li>
                       <li>Copie o <strong>Bot Token</strong> gerado</li>
@@ -415,7 +415,7 @@ const ConnectChannelModal: React.FC<ConnectChannelModalProps> = ({ type, onClose
                   <div className="bg-info-bg border border-info/25 rounded-xl p-4 text-xs text-info-ink leading-relaxed">
                     <p className="font-bold mb-1">Passo a passo:</p>
                     <ol className="space-y-1 list-decimal list-inside text-info-ink/85">
-                      <li>Vá em Configurações do Canal → Integrações</li>
+                      <li>Vá em Configurações do Canal {'>'} Integrações</li>
                       <li>Crie um novo Webhook</li>
                       <li>Copie a URL e cole no campo acima</li>
                     </ol>

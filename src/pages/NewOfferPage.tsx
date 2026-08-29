@@ -383,7 +383,7 @@ const NewOfferPage: React.FC = () => {
             {enrichWarningsStep1.length > 0 && (
               <div className="bg-warning-bg border border-warning/25 rounded-xl p-3 space-y-1 animate-fade-in">
                 {enrichWarningsStep1.map((w, i) => (
-                  <p key={i} className="text-[11px] font-medium text-warning-ink">⚠️ {w}</p>
+                  <p key={i} className="text-[11px] font-medium text-warning-ink">{w}</p>
                 ))}
               </div>
             )}
@@ -454,7 +454,7 @@ const NewOfferPage: React.FC = () => {
         <div className="relative z-10 bg-warning-bg border-b border-warning/25 px-6 py-2.5 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-warning-ink flex-shrink-0" />
           <p className="text-xs font-semibold text-warning-ink">
-            {enrichWarnings[0] || enrichWarningsStep1[0]} — Verifique e ajuste os dados abaixo.
+            {enrichWarnings[0] || enrichWarningsStep1[0]}. Verifique e ajuste os dados abaixo.
           </p>
         </div>
       )}
@@ -580,7 +580,7 @@ const NewOfferPage: React.FC = () => {
             {(imageError || imageLoadError) && (
               <div className="flex items-center gap-2">
                 <p className="text-[10px] text-warning-ink font-bold">
-                  ⚠️ {imageError || 'Não foi possível carregar essa imagem. Tente outra URL.'}
+                  {imageError || 'Não foi possível carregar essa imagem. Tente outra URL.'}
                 </p>
                 <button type="button" onClick={() => { handleRemoveImage(); setImageLoadError(false); }}
                   className="text-[9px] text-ink-secondary hover:text-ink underline font-bold">
@@ -657,7 +657,7 @@ const NewOfferPage: React.FC = () => {
             {discount > 0 && (
               <div className="flex items-center gap-2">
                 <span className="bg-danger-bg text-danger-ink text-[10px] font-bold px-2 py-1 rounded-lg border border-danger/20">
-                  💸 {discount}% OFF calculado automaticamente
+                  {discount}% OFF calculado automaticamente
                 </span>
               </div>
             )}
@@ -920,7 +920,7 @@ const NewOfferPage: React.FC = () => {
           <div className="text-xs font-semibold text-ink-tertiary">
             {selectedChannels.length > 0
               ? `${selectedChannels.length} canal(is) selecionado(s)`
-              : 'Nenhum canal selecionado — rascunho apenas'}
+              : 'Nenhum canal selecionado, rascunho apenas'}
           </div>
           <div className="flex items-center gap-3">
             <button

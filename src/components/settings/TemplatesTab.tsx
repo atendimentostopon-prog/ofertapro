@@ -308,7 +308,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         }
       }
 
-      toast(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"! 🚀`, 'success');
+      toast(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"!`, 'success');
     } catch (err: any) {
       console.error('[TEST_TEMPLATE_ERROR_DEBUG]:', err);
       toast('Não foi possível enviar o teste. Verifique os dados do template e tente novamente.', 'error');
@@ -426,7 +426,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex-1 space-y-1">
-              <h4 className="text-xs font-bold text-ink">Customização disponível no plano Starter! 🚀</h4>
+              <h4 className="text-xs font-bold text-ink">Customização disponível no plano Starter!</h4>
               <p className="text-[11px] text-ink-secondary font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
             </div>
             <button
@@ -440,13 +440,13 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
         <div className="p-4 bg-surface-1 rounded-2xl border border-line space-y-2 mb-2">
           <p className="text-[11.5px] text-ink-secondary font-medium leading-relaxed">
-            ℹ️ <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{cupom_linha}`}</code>.
+            <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{cupom_linha}`}</code>.
           </p>
           <p className="text-[11.5px] text-warning-ink font-medium">
-            ⚠️ <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O {APP_NAME} converte automaticamente para Telegram, Discord e WhatsApp.
+            <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O {APP_NAME} converte automaticamente para Telegram, Discord e WhatsApp.
           </p>
           <p className="text-[11.5px] text-warning-ink font-medium">
-            ⚠️ A variável <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
+            A variável <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
           </p>
         </div>
 
