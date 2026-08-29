@@ -53,7 +53,7 @@ export default function Pricing() {
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan][cycle];
           const isHighlighted = plan === PLAN_HIGHLIGHT;
-          const isAvailable = Boolean(sku.stripePriceId?.trim());
+          const isAvailable = Boolean(sku.caktoOfferId?.trim());
           const isCurrent = currentSub?.plan_code === plan && currentSub?.billing_cycle === cycle;
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           // Ainda não existe fluxo de troca de plano com proração -- enquanto isso,

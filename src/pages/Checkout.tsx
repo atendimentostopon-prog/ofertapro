@@ -112,7 +112,7 @@ export default function Checkout() {
     const sku = getSku(plan, cycleParam);
     supabase.functions
       .invoke('stripe-create-subscription', {
-        body: { plan_code: plan, billing_cycle: cycleParam, price_id: sku.stripePriceId },
+        body: { plan_code: plan, billing_cycle: cycleParam, price_id: sku.caktoOfferId },
       })
       .then(async ({ data, error: invokeError }) => {
         if (invokeError || !data?.url) {
