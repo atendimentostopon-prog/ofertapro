@@ -1,19 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Shield, ShieldCheck, Loader2, ChevronDown } from 'lucide-react';
+import { Shield, ShieldCheck, Loader2 } from 'lucide-react';
 import { getCaktoSdk } from '../../config/cakto';
 import { supabase } from '../../lib/supabase';
 import { money } from '../../lib/format';
-import type { PlanCode, BillingCycle } from '../../config/planCatalog';
+import type { PlanCode } from '../../config/planCatalog';
 
 // Checkout transparente da Cakto: os campos sao inputs controlados nossos
 // (sem iframe). O SDK da Cakto no browser tokeniza o cartao e roda o 3DS +
-// antifraude; a gente so manda o token pro backend.
+// antifraude; a gente so manda o token pro backend. So plano mensal (1x) por
+// enquanto -- anual/parcelamento saiu do produto em 2026-08-29.
 interface CaktoPaymentPanelProps {
   plan: PlanCode;
-  cycle: BillingCycle;
   price: number;
-  installments: number;
-  onInstallmentsChange: (n: number) => void;
   onSuccess: () => void;
 }
 
@@ -50,7 +48,7 @@ const INPUT_CLASS =
   'w-full px-3.5 py-2.5 text-sm text-ink bg-surface-0 rounded-[11px] border-[1.5px] border-[rgba(16,20,24,0.09)] outline-none transition-shadow placeholder:text-ink-tertiary focus:border-mint-500 focus:shadow-[0_0_0_3px_rgba(94,231,165,0.28)] disabled:opacity-60 disabled:pointer-events-none';
 const LABEL_CLASS = 'block text-xs font-semibold text-ink-secondary mb-1.5';
 
-export default function CaktoPaymentPanel({ plan, cycle, price, installments, onInstallmentsChange, onSuccess }: CaktoPaymentPanelProps) {
+export default function CaktoPaymentPanel({ plan, price, onSuccess }: CaktoPaymentPanelProps) {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
@@ -194,8 +192,7 @@ export default function CaktoPaymentPanel({ plan, cycle, price, installments, on
           },
           body: JSON.stringify({
             plan_code: plan,
-            billing_cycle: cycle,
-            installments,
+            billing_cycle: 'monthly',
             card_token: cardToken,
             three_d_secure: threeDS,
             antifraud_ref,
@@ -233,8 +230,7 @@ export default function CaktoPaymentPanel({ plan, cycle, price, installments, on
     }
   }
 
-  const ctaLabel =
-    cycle === 'yearly' && installments > 1 ? `Pagar em ${installments}x` : `Pagar ${money(price)}`;
+  const ctaLabel = `Pagar ${money(price)}`;
 
   return (
     <div>
@@ -334,25 +330,6 @@ export default function CaktoPaymentPanel({ plan, cycle, price, installments, on
             />
           </div>
 
-          {cycle === 'yearly' && (
-            <div>
-              <label htmlFor="cakto-installments" className={LABEL_CLASS}>Parcelas</label>
-              <div className="relative">
-                <select
-                  id="cakto-installments"
-                  value={installments}
-                  onChange={(e) => onInstallmentsChange(Number(e.target.value))}
-                  disabled={submitting}
-                  className={INPUT_CLASS + ' appearance-none cursor-pointer pr-9'}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>{`${n}x de ${money(price / n)} sem juros`}</option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
-              </div>
-            </div>
-          )}
         </div>
 
         {error && <p className="mt-3 text-danger-ink text-xs font-medium">{error}</p>}

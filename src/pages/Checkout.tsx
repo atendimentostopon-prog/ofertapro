@@ -6,7 +6,6 @@ import {
   PLAN_LABELS,
   FEATURES_BY_PLAN,
   type PlanCode,
-  type BillingCycle,
 } from '../config/planCatalog';
 import { useSubscription } from '../hooks/useSubscription';
 import { useUser } from '../context/UserContext';
@@ -34,7 +33,7 @@ const PLAN_COPY: Record<PlanCode, { eyebrow: string; headline: string; subline: 
   },
 };
 
-const WaitingStep: React.FC<{ plan: PlanCode; cycle: BillingCycle }> = ({ plan, cycle }) => {
+const WaitingStep: React.FC<{ plan: PlanCode }> = ({ plan }) => {
   const { data: subscription } = useSubscription();
   const { refreshProfile } = useUser();
   const nav = useNavigate();
@@ -46,7 +45,7 @@ const WaitingStep: React.FC<{ plan: PlanCode; cycle: BillingCycle }> = ({ plan, 
   // segundos), então nunca temos o ID de antemão. useSubscription() retorna a
   // assinatura active/past_due mais recente do usuário, então plan_code +
   // status já identifica com segurança a que acabou de ser criada.
-  const success = !!(subscription && subscription.plan_code === plan && subscription.billing_cycle === cycle && subscription.status === 'active');
+  const success = !!(subscription && subscription.plan_code === plan && subscription.status === 'active');
 
   useEffect(() => {
     if (success) return;
@@ -108,14 +107,9 @@ export default function Checkout() {
   const { user, loading: userLoading } = useUser();
 
   const planParam = searchParams.get('plan');
-  // O ciclo vem da tela de Planos (query param). Nao ha toggle no checkout: pra
-  // trocar mensal/anual o usuario volta pra /pricing. Isso mantem o
-  // CaktoPaymentPanel montado uma vez so, com as parcelas ja certas pro ciclo.
-  const cycle = (searchParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly') as BillingCycle;
   const plan = VALID_PLANS.includes(planParam as PlanCode) ? (planParam as PlanCode) : null;
 
   const [confirmedLocally, setConfirmedLocally] = useState(false);
-  const [installments, setInstallments] = useState(cycle === 'yearly' ? 12 : 1);
 
   useEffect(() => {
     if (userLoading) return;
@@ -131,13 +125,12 @@ export default function Checkout() {
 
   if (!plan) return null;
 
-  const sku = getSku(plan, cycle);
+  const sku = getSku(plan);
   const copy = PLAN_COPY[plan];
 
   const nextBillingLabel = (() => {
     const d = new Date();
-    if (cycle === 'monthly') d.setMonth(d.getMonth() + 1);
-    else d.setFullYear(d.getFullYear() + 1);
+    d.setMonth(d.getMonth() + 1);
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   })();
 
@@ -192,14 +185,8 @@ export default function Checkout() {
               <span className="font-display text-[clamp(3rem,5vw+1rem,4.25rem)] font-bold tracking-tight leading-[0.95] bg-gradient-to-b from-white to-ice bg-clip-text text-transparent">
                 {Number.isInteger(sku.price) ? sku.price : sku.price.toFixed(2).replace('.', ',')}
               </span>
-              <span className="text-[0.9375rem] text-white/70 pb-3.5">/{cycle === 'monthly' ? 'mês' : 'ano'}</span>
+              <span className="text-[0.9375rem] text-white/70 pb-3.5">/mês</span>
             </div>
-            {cycle === 'yearly' && (
-              <span className="mt-3 inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-mint-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-mint-400" />
-                Plano anual com 17% de desconto
-              </span>
-            )}
           </div>
 
           <div className="relative z-10 mt-7 sm:mt-10 max-w-[340px] w-full border-t border-mint-400/15 pt-[22px] text-left">
@@ -213,10 +200,8 @@ export default function Checkout() {
               ))}
             </ul>
             <div className="flex items-baseline justify-between pt-[18px] border-t border-mint-400/15">
-              <span className="text-[0.8125rem] text-white/70">{cycle === 'yearly' ? 'Parcelas' : 'Total hoje'}</span>
-              <span className="font-display text-[1.375rem] font-semibold">
-                {cycle === 'yearly' ? `${installments}x de ${money(sku.price / installments)}` : money(sku.price)}
-              </span>
+              <span className="text-[0.8125rem] text-white/70">Total hoje</span>
+              <span className="font-display text-[1.375rem] font-semibold">{money(sku.price)}</span>
             </div>
             <div className="mt-2 text-xs text-white/40">
               Renova dia {nextBillingLabel}. Cancela quando quiser, sem pegadinha.
@@ -238,16 +223,13 @@ export default function Checkout() {
                 </div>
               </div>
               <div className="mt-6">
-                <WaitingStep plan={plan} cycle={cycle} />
+                <WaitingStep plan={plan} />
               </div>
             </>
           ) : (
             <CaktoPaymentPanel
               plan={plan}
-              cycle={cycle}
               price={sku.price}
-              installments={installments}
-              onInstallmentsChange={setInstallments}
               onSuccess={() => setConfirmedLocally(true)}
             />
           )}

@@ -88,9 +88,11 @@ export async function deleteEventRecord(eventId: string): Promise<void> {
 // planMapping
 // ---------------------------------------------------------------------------
 
-// offerIds reais de producao, criados na Task 1. Precisa bater com
-// src/config/planCatalog.ts (Task 7) e com o mapa OFFER de cakto-create-payment
-// (Task 5). Deno nao importa TS do frontend, entao duplicar aqui.
+// offerIds reais de producao. As mensais batem com src/config/planCatalog.ts e
+// com o mapa OFFER de cakto-create-payment. As 3 anuais (5523xh7/3uikgc2/ig6ciuy)
+// nao sao mais vendidas pelo produto desde 2026-08-29, mas ficam aqui como rede:
+// se um pagamento anual antigo/avulso chegar pelo link hospedado, ainda concede
+// acesso em vez de deixar o cliente pagando sem plano.
 const OFFER_MAP: Record<string, { plan: string; cycle: string }> = {
   "oy56ftb": { plan: "starter",    cycle: "monthly" },
   "5523xh7": { plan: "starter",    cycle: "yearly"  },

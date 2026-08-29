@@ -82,12 +82,10 @@ export const BillingTab: React.FC = () => {
           <div className="p-6 bg-surface-1 border border-line rounded-2xl space-y-4">
             <div>
               <h4 className="text-sm font-bold text-ink font-display">
-                Plano {PLAN_LABELS[subscription.plan_code]} ({subscription.billing_cycle === "monthly" ? "mensal" : "anual"})
+                Plano {PLAN_LABELS[subscription.plan_code]}
               </h4>
               <p className="text-xs text-ink-secondary mt-1">
-                {subscription.billing_cycle === "yearly" && typeof subscription.installments === "number" && subscription.installments > 0
-                  ? `${subscription.installments}x de R$ ${(subscription.amount / subscription.installments).toFixed(2).replace(".", ",")}`
-                  : `R$ ${subscription.amount.toFixed(2).replace(".", ",")}/${subscription.billing_cycle === "monthly" ? "mês" : "ano"}`}
+                R$ {subscription.amount.toFixed(2).replace(".", ",")}/mês
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs text-ink-secondary">

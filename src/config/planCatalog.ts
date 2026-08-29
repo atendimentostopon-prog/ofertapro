@@ -1,4 +1,6 @@
 export type PlanCode = 'starter' | 'pro' | 'enterprise';
+// Só mensal por enquanto. O tipo mantém 'yearly' pra não quebrar as colunas do
+// banco / assinaturas antigas, mas nada no produto oferece anual (2026-08-29).
 export type BillingCycle = 'monthly' | 'yearly';
 
 // Rótulo exibido pro usuário -- plan_code interno continua igual no banco/triggers/RLS
@@ -13,26 +15,22 @@ export interface PlanSKU {
   price: number; // BRL
 }
 
-// Offer IDs de PRODUÇÃO da Cakto (as 2 do Starter já existiam, Pro e Business
-// criados em 2026-08-29). O parcelamento em até 12x é passado por cobrança na
-// edge function cakto-create-payment, não fica preso na oferta.
-export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
+// Offer IDs mensais de PRODUÇÃO da Cakto. As ofertas anuais (5523xh7 / 3uikgc2 /
+// ig6ciuy) foram tiradas do produto em 2026-08-29 -- anual volta mais pra frente.
+export const PLAN_CATALOG: Record<PlanCode, { monthly: PlanSKU }> = {
   starter: {
     monthly: { caktoOfferId: 'oy56ftb', price: 47.9 },
-    yearly:  { caktoOfferId: '5523xh7', price: 479 },
   },
   pro: {
     monthly: { caktoOfferId: '38r43o4', price: 97 },
-    yearly:  { caktoOfferId: '3uikgc2', price: 970 },
   },
   enterprise: {
     monthly: { caktoOfferId: '3chkywe', price: 197 },
-    yearly:  { caktoOfferId: 'ig6ciuy', price: 1970 },
   },
 };
 
-export function getSku(plan: PlanCode, cycle: BillingCycle): PlanSKU {
-  return PLAN_CATALOG[plan][cycle];
+export function getSku(plan: PlanCode): PlanSKU {
+  return PLAN_CATALOG[plan].monthly;
 }
 
 // Compartilhado entre Pricing.tsx (lista de planos) e Checkout.tsx (resumo do pedido)
