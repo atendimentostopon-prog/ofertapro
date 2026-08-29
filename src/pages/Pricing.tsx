@@ -58,7 +58,7 @@ export default function Pricing() {
           const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
           // Ainda não existe fluxo de troca de plano com proração -- enquanto isso,
           // qualquer assinatura ativa (em QUALQUER plano/ciclo) bloqueia a criação de
-          // uma segunda assinatura na Stripe. Sem isso, "Assinar" em outro plano/ciclo
+          // uma segunda assinatura na Cakto. Sem isso, "Assinar" em outro plano/ciclo
           // criava uma subscription paralela e cobrava o cliente duas vezes.
           const blockedByActiveSub = Boolean(currentSub) && !isCurrent;
           return (

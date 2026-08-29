@@ -11,6 +11,7 @@ export interface Subscription {
   billing_cycle: 'monthly' | 'yearly';
   status: 'active' | 'past_due' | 'canceled' | 'expired';
   amount: number;
+  installments: number | null;
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;

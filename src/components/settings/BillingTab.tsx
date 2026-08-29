@@ -43,7 +43,7 @@ export const BillingTab: React.FC = () => {
     try {
       const session = (await supabase.auth.getSession()).data.session;
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-cancel-subscription`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cakto-cancel-subscription`,
         {
           method: "POST",
           headers: {
@@ -85,7 +85,9 @@ export const BillingTab: React.FC = () => {
                 Plano {PLAN_LABELS[subscription.plan_code]} ({subscription.billing_cycle === "monthly" ? "mensal" : "anual"})
               </h4>
               <p className="text-xs text-ink-secondary mt-1">
-                R$ {subscription.amount.toFixed(2).replace(".", ",")}/{subscription.billing_cycle === "monthly" ? "mês" : "ano"}
+                {subscription.billing_cycle === "yearly" && typeof subscription.installments === "number" && subscription.installments > 0
+                  ? `${subscription.installments}x de R$ ${(subscription.amount / subscription.installments).toFixed(2).replace(".", ",")}`
+                  : `R$ ${subscription.amount.toFixed(2).replace(".", ",")}/${subscription.billing_cycle === "monthly" ? "mês" : "ano"}`}
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs text-ink-secondary">
