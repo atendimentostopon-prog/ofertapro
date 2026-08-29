@@ -4,7 +4,7 @@ import {
   Plus, Save, Check, X, ShieldAlert, AlertTriangle, Key, HelpCircle,
   Radar, Send,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
@@ -37,6 +37,7 @@ interface BotConfig {
   horario_fim: string | null;
   error_message?: string | null;
   updated_at?: string;
+  paused_reason?: string | null;
 }
 
 const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
@@ -79,6 +80,7 @@ const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
 export const BotTab: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<BotConfig | null>(null);
@@ -570,11 +572,21 @@ export const BotTab: React.FC = () => {
               <AlertTriangle className="w-5 h-5 text-ink-tertiary flex-shrink-0" />
               <div className="flex-1">
                 <h5 className="text-xs font-bold text-ink">Bot Pausado</h5>
-                <p className="text-xs text-ink-secondary mt-1">O robô de monitoramento está inativo no momento.</p>
+                <p className="text-xs text-ink-secondary mt-1">
+                  {config.paused_reason === 'access_revoked'
+                    ? 'Bot pausado porque seu teste acabou. Ele volta a monitorar assim que você assinar um plano. Seus grupos e canais continuam salvos.'
+                    : 'O robô de monitoramento está inativo no momento.'}
+                </p>
               </div>
-              <Button size="sm" onClick={() => setIsReconnecting(true)}>
-                Reconectar
-              </Button>
+              {config.paused_reason === 'access_revoked' ? (
+                <Button size="sm" onClick={() => navigate('/pricing')}>
+                  Assinar plano
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => setIsReconnecting(true)}>
+                  Reconectar
+                </Button>
+              )}
             </div>
           )}
 

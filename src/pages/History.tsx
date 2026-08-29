@@ -13,6 +13,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../context/ToastContext';
+import { useNavigate } from 'react-router-dom';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
 
@@ -225,6 +226,7 @@ const History: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | HistoryStatus>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week'>('all');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const loadHistory = async () => {
     try {
@@ -266,7 +268,7 @@ const History: React.FC = () => {
         return;
       }
 
-      await dispatchOffer({
+      const result = await dispatchOffer({
         userId: user.id,
         offerId: offer.id,
         offerName: offer.name,
@@ -281,6 +283,12 @@ const History: React.FC = () => {
         channelIds: offer.channels,
         shortCode: offer.short_code
       });
+
+      if (result.blocked) {
+        toast('Seu acesso expirou. Assine um plano para voltar a disparar ofertas.', 'error');
+        navigate('/pricing');
+        return;
+      }
 
       loadHistory();
       toast('Oferta reenviada com sucesso!', 'success');

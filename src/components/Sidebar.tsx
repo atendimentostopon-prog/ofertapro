@@ -9,6 +9,7 @@ import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
 import { APP_NAME } from '../config/app';
 import { Avatar } from './ui/Avatar';
+import { useAccountAccess } from '../hooks/useAccountAccess';
 
 interface SidebarProps {
   onLogout: () => void;
@@ -30,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
   const { toast } = useToast();
+  const access = useAccountAccess();
 
   if (!user) return null;
 
@@ -145,6 +147,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-ink truncate">{user.preferred_name || user.full_name || 'Usuário'}</p>
             <p className="text-[11px] text-ink-tertiary truncate">{user.email}</p>
+            {access.isTrialing && (
+              <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-semibold text-mint-800 bg-ice px-1.5 py-0.5 rounded-full">
+                Teste grátis
+                {access.daysLeft > 0 && ` · ${access.daysLeft} ${access.daysLeft === 1 ? 'dia' : 'dias'}`}
+              </span>
+            )}
           </div>
         </div>
         <button

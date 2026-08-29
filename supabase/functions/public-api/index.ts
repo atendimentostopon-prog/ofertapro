@@ -865,6 +865,23 @@ serve(async (req) => {
         )
       }
 
+      // Requer a migration 20260828120000 (has_active_access) aplicada. Deploy desta function so depois dela.
+      const { data: hasAccess, error: accessError } = await supabaseAdmin
+        .rpc('has_active_access', { uid: userId })
+      if (accessError) {
+        console.error('[PUBLIC_API] erro ao checar has_active_access:', accessError.message)
+        return new Response(
+          JSON.stringify({ error: 'Não foi possível validar seu acesso agora. Tente de novo em instantes.' }),
+          { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      if (!hasAccess) {
+        return new Response(
+          JSON.stringify({ error: 'Seu acesso expirou. Assine um plano para voltar a disparar ofertas.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       const body = await req.json()
       const { offer_id, channel_ids, offer: rawOffer } = body
 

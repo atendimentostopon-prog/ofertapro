@@ -33,15 +33,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   }
 
   // 3. Gate de paywall: free sem subscription e sem admin → /pricing
-  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/integrations', '/auth/callback'];
+  // /integrations ficava liberada aqui antes -- deixava o Bot (WhatsApp/
+  // Telegram) e as chaves de API acessíveis pra qualquer conta sem plano,
+  // sem nenhum enforcement por trás (bug real reportado em 2026-08-27: conta
+  // nova sem assinatura conseguia ver e usar a aba de conectar bot).
+  //
+  // Exceção: contas com trial expirado/cancelado (accountStatus 'expired' ou
+  // 'canceled') NÃO são redirecionadas. O sistema de trial agora é o dono da
+  // mensagem de estado expirado dentro do app (card no Dashboard, barra no
+  // Layout) e os dados continuam visíveis e editáveis; um redirect duro pra
+  // /pricing deixaria essa UI inalcançável.
+  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/auth/callback'];
   const isAllowedRoute = ALLOWED_WHEN_UNPAID.some(r => location.pathname.startsWith(r));
+  const trialExpired = user?.accountStatus === 'expired' || user?.accountStatus === 'canceled';
 
   if (
     !subLoading &&
     !isAdmin &&
     user?.plan === 'free' &&
     !subscription &&
-    !isAllowedRoute
+    !isAllowedRoute &&
+    !trialExpired
   ) {
     return <Navigate to="/pricing" replace />;
   }
