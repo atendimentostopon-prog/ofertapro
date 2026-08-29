@@ -328,7 +328,28 @@ export async function subscriptionRenewalRefused(data: any): Promise<void> {
   if (error) console.error("[cakto-webhook] subscription_renewal_refused: falha no update subscriptions:", error.message);
 }
 
-// subscription_canceled / refund / chargeback: mesmo efeito - cancela a
+// subscription_canceled: cliente cancelou de proposito. NAO revoga agora - o
+// acesso segue ate current_period_end (a BillingTab promete isso). Quem rebaixa
+// e o cron expire_subscriptions (diario: casa cancel_at_period_end AND
+// current_period_end < now()), e o sweep horario do expire_trials pausa o bot
+// logo depois (ele ja pausa qualquer bot de quem NOT has_active_access). A row
+// fica status='active' pra continuar aparecendo na BillingTab e pro cron
+// conseguir vira-la pra 'expired' no vencimento.
+export async function subscriptionCanceled(data: any): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const subId = providerSubId(data);
+  if (!subId) {
+    console.error("[cakto-webhook] subscription_canceled: sem provider_subscription_id");
+    return;
+  }
+  const { error } = await supabase
+    .from("subscriptions")
+    .update({ cancel_at_period_end: true, canceled_at: nowIso() })
+    .eq("provider_subscription_id", subId);
+  if (error) console.error("[cakto-webhook] subscription_canceled: falha no update subscriptions:", error.message);
+}
+
+// refund / chargeback: dinheiro devolvido = acesso vai embora na hora. Cancela a
 // subscription e revoga o acesso (plan free, account_status canceled, bot pausado).
 async function cancelAndRevoke(data: any, tag: string): Promise<void> {
   const supabase = getSupabaseAdmin();
@@ -358,10 +379,6 @@ async function cancelAndRevoke(data: any, tag: string): Promise<void> {
     return;
   }
   await revokeEntitlement(supabase, userId, tag);
-}
-
-export function subscriptionCanceled(data: any): Promise<void> {
-  return cancelAndRevoke(data, "subscription_canceled");
 }
 
 export function refund(data: any): Promise<void> {

@@ -4,9 +4,11 @@
 // POST /public_api/subscriptions/{id}/cancel/ e grava um cancelamento local
 // imediato pra BillingTab nao mostrar "proxima cobranca" ate o webhook chegar.
 //
-// O revoke completo (plan=free, account_status=canceled, bot pausado) fica a
-// cargo do cakto-webhook (evento subscription_canceled). Aqui so o cancel_at_
-// period_end/canceled_at pro feedback instantaneo.
+// Cancelamento voluntario NAO revoga o acesso na hora: o cliente usa ate
+// current_period_end. Aqui so grava cancel_at_period_end/canceled_at. O webhook
+// subscription_canceled reafirma esse mesmo estado; o rebaixamento real (plan=
+// free, account_status=canceled, bot pausado) fica com o cron expire_subscriptions
+// no vencimento. (refund/chargeback, esses sim, revogam na hora pelo webhook.)
 //
 // Auth e CORS espelham cakto-create-payment/index.ts (JWT do usuario via
 // SUPABASE_ANON_KEY client + auth.getUser).
