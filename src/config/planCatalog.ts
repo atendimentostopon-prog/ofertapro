@@ -33,11 +33,12 @@ export function getSku(plan: PlanCode): PlanSKU {
   return PLAN_CATALOG[plan].monthly;
 }
 
-// Taxa de processamento repassada ao cliente no checkout transparente.
-// CONFIRMADO no QA (pedido efe93fe8, 2026-08-29): a Cakto NAO adiciona taxa no
-// fluxo via API -- baseAmount == amount == preco do plano, fees == 0. O "R$ 0,99"
-// so aparece no checkout HOSPEDADO da Cakto. Fica em 0 (a linha some sozinha).
-export const CAKTO_CARD_FEE = 0;
+// Taxa de processamento que a Cakto repassa ao cliente no cartao.
+// CONFIRMADO no QA com compra PAGA (pedido a7bc710b, 2026-08-29): amount R$ 48,89
+// = baseAmount R$ 47,90 + R$ 0,99. Vale tambem no checkout transparente, nao so
+// no hospedado. (O pedido recusado antes mostrava fees=0 so porque nada foi
+// cobrado -- me confundiu.)
+export const CAKTO_CARD_FEE = 0.99;
 
 // Compartilhado entre Pricing.tsx (lista de planos) e Checkout.tsx (resumo do pedido)
 export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
