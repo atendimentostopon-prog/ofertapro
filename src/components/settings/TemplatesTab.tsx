@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2,
+  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2, Clock,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Toggle } from '../ui/Toggle';
@@ -59,6 +59,9 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   const [testingTemplate, setTestingTemplate] = useState(false);
   const [shortenerMap, setShortenerMap] = useState<Record<string, boolean>>({});
   const [savingShortenerId, setSavingShortenerId] = useState<string | null>(null);
+  // null = ofertas nunca expiram (padrão). Caso contrário, horas até o hard delete.
+  const [offerTtlHours, setOfferTtlHours] = useState<number | null>(null);
+  const [savingTtl, setSavingTtl] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadTemplates = async () => {
@@ -89,7 +92,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
     if (!user) return;
     supabase
       .from('user_settings')
-      .select('shortener_marketplaces')
+      .select('shortener_marketplaces, offer_ttl_hours')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -100,6 +103,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         // Sem linha em user_settings ou coluna vazia -> mapa fica {}, e cada
         // marketplace é tratado como ligado por padrão (mesma regra da Edge Function).
         setShortenerMap(data?.shortener_marketplaces || {});
+        setOfferTtlHours(data?.offer_ttl_hours ?? null);
       });
   }, [user?.id]);
 
@@ -125,6 +129,43 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
       toast('Não foi possível salvar essa preferência. Tente novamente.', 'error');
     } finally {
       setSavingShortenerId(null);
+    }
+  };
+
+  // Grade de opções -- os valores em horas batem com o CHECK da coluna
+  // user_settings.offer_ttl_hours (migration offer_ttl_and_maintenance).
+  const TTL_OPTIONS: { value: number | null; label: string }[] = [
+    { value: null, label: 'Desligado' },
+    { value: 6, label: '6 horas' },
+    { value: 12, label: '12 horas' },
+    { value: 24, label: '24 horas' },
+    { value: 48, label: '2 dias' },
+    { value: 72, label: '3 dias' },
+    { value: 168, label: '7 dias' },
+  ];
+
+  const handleSetTtl = async (next: number | null) => {
+    if (!user || next === offerTtlHours) return;
+    const previous = offerTtlHours;
+    setOfferTtlHours(next);
+    setSavingTtl(true);
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({ user_id: user.id, offer_ttl_hours: next }, { onConflict: 'user_id' });
+      if (error) throw error;
+      toast(
+        next === null
+          ? 'As ofertas não expiram mais automaticamente.'
+          : `Ofertas passam a ser apagadas ${TTL_OPTIONS.find(o => o.value === next)?.label.toLowerCase()} após a postagem.`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Erro ao salvar duração das ofertas:', err);
+      setOfferTtlHours(previous);
+      toast('Não foi possível salvar essa preferência. Tente novamente.', 'error');
+    } finally {
+      setSavingTtl(false);
     }
   };
 
@@ -649,6 +690,38 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
             );
           })}
         </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Duração das ofertas na vitrine"
+        description="Depois desse tempo, a oferta postada é apagada da sua vitrine e do banco de dados (não é arquivada)"
+        icon={Clock}
+      >
+        <div className="flex flex-wrap gap-2">
+          {TTL_OPTIONS.map(({ value, label }) => {
+            const selected = value === offerTtlHours;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => handleSetTtl(value)}
+                disabled={savingTtl}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all disabled:opacity-50 ${
+                  selected
+                    ? 'bg-mint-500 border-mint-500 text-white shadow-sm'
+                    : 'bg-surface-0 border-line text-ink-secondary hover:border-mint-300'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-ink-tertiary">
+          {offerTtlHours === null
+            ? 'As ofertas ficam na vitrine até você removê-las manualmente.'
+            : `Uma oferta postada agora seria apagada automaticamente ${TTL_OPTIONS.find(o => o.value === offerTtlHours)?.label.toLowerCase()} depois. A limpeza roda a cada 15 minutos.`}
+        </p>
       </SettingsSection>
     </div>
   );
