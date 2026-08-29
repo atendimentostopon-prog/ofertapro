@@ -3,7 +3,7 @@ import { Shield, ShieldCheck, Loader2 } from 'lucide-react';
 import { getCaktoSdk } from '../../config/cakto';
 import { supabase } from '../../lib/supabase';
 import { money } from '../../lib/format';
-import type { PlanCode } from '../../config/planCatalog';
+import { CAKTO_CARD_FEE, type PlanCode } from '../../config/planCatalog';
 
 // Checkout transparente da Cakto: os campos sao inputs controlados nossos
 // (sem iframe). O SDK da Cakto no browser tokeniza o cartao e roda o 3DS +
@@ -49,6 +49,8 @@ const INPUT_CLASS =
 const LABEL_CLASS = 'block text-xs font-semibold text-ink-secondary mb-1.5';
 
 export default function CaktoPaymentPanel({ plan, price, onSuccess }: CaktoPaymentPanelProps) {
+  // Total cobrado = preco do plano + taxa fixa que a Cakto repassa no cartao.
+  const total = price + CAKTO_CARD_FEE;
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
@@ -148,7 +150,7 @@ export default function CaktoPaymentPanel({ plan, price, onSuccess }: CaktoPayme
         const auth = await sdk.authenticate3DS({
           card,
           customer: {
-            amount: Math.round(price * 100),
+            amount: Math.round(total * 100),
             currency: 'BRL',
             email,
             name: name.trim(),
@@ -230,7 +232,7 @@ export default function CaktoPaymentPanel({ plan, price, onSuccess }: CaktoPayme
     }
   }
 
-  const ctaLabel = `Pagar ${money(price)}`;
+  const ctaLabel = `Pagar ${money(total)}`;
 
   return (
     <div>
