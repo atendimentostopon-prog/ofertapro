@@ -33,7 +33,7 @@ export const tokens = {
     surface: {
       DEFAULT: '#FFFFFF',
       0: '#FFFFFF',   // canvas branco
-      1: '#F6F7F9',   // cloud — seções secundárias
+      1: '#F6F7F9',   // cloud: seções secundárias
       2: '#F1F3F6',   // elevated sutil
       3: '#E7EAEE',   // hover
       4: '#D8DCE2',   // pressed
