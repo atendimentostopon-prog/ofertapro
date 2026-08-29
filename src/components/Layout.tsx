@@ -1,10 +1,12 @@
 import React, { ReactNode, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import NewOfferModal from './modals/NewOfferModal';
 import FeedbackButton from './feedback/FeedbackButton';
 import { useUser } from '../context/UserContext';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAccountAccess } from '../hooks/useAccountAccess';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
@@ -15,6 +17,8 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
+  const navigate = useNavigate();
+  const access = useAccountAccess();
   const { user } = useUser();
   const { data: subscription } = useSubscription();
   const [showNewOffer, setShowNewOffer] = useState(false);
@@ -57,6 +61,19 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
           onNewOffer={() => setShowNewOffer(true)}
           onMenuClick={() => setSidebarOpen(true)}
         />
+        {access.isExpired && (
+          <div className="bg-danger-bg border-b border-danger/20 px-4 py-2 flex items-center gap-3 text-xs">
+            <span className="font-semibold text-danger-ink flex-1">
+              Seu teste acabou. O bot está pausado e nada foi apagado.
+            </span>
+            <button
+              onClick={() => navigate('/pricing')}
+              className="font-bold text-danger-ink underline underline-offset-2 flex-shrink-0 cursor-pointer"
+            >
+              Ver planos
+            </button>
+          </div>
+        )}
         <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
       </div>
 
