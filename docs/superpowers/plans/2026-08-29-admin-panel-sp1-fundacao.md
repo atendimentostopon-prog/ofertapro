@@ -1603,10 +1603,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ## Task 7: `admin-api` handler `admins/*` + mapeamento de erro das RPCs
 
 **Files:**
+- Create: `supabase/functions/admin-api/_roles.ts`
 - Create: `supabase/functions/admin-api/handlers/_pg-errors.ts`
 - Create: `supabase/functions/admin-api/handlers/admins.ts`
 - Modify: `supabase/functions/admin-api/index.ts` (registrar `admins`, usar `mapPgError` no catch)
 - Test: `supabase/functions/admin-api/handlers/pg_errors_test.ts`
+
+> **Nota de bundling:** a Edge Function é empacotada só com o próprio diretório no `supabase functions deploy`. Não importar de `../../../../shared/`. Os 4 `ROLE_KEYS` são replicados em `admin-api/_roles.ts` (poucas strings estáticas; `shared/admin-permissions.ts` continua a fonte para o front e para o seed SQL).
 
 **Interfaces:**
 - Consumes: `Handler`, `serviceClient`, `RbacError`/`ErrorCode`.
@@ -1674,13 +1677,22 @@ export function mapPgError(err: unknown): { code: ErrorCode; message: string } |
 }
 ```
 
-- [ ] **Step 4: Escrever `handlers/admins.ts`**
+- [ ] **Step 4: Escrever `_roles.ts` e `handlers/admins.ts`**
 
+`supabase/functions/admin-api/_roles.ts`:
+```ts
+// Replica local dos cargos (bundling da Edge Function nao alcanca shared/).
+// shared/admin-permissions.ts continua a fonte para o front e o seed SQL.
+export const ROLE_KEYS = ['SUPER_ADMIN', 'SUPPORT', 'DEVELOPER', 'ANALYST'] as const;
+export type RoleKey = (typeof ROLE_KEYS)[number];
+```
+
+`supabase/functions/admin-api/handlers/admins.ts`:
 ```ts
 import type { Handler } from '../index.ts';
 import { serviceClient } from '../_lib.ts';
 import { RbacError } from '../rbac.ts';
-import { ROLE_KEYS } from '../../../../shared/admin-permissions.ts';
+import { ROLE_KEYS } from '../_roles.ts';
 
 function reqString(params: Record<string, unknown>, key: string): string {
   const v = params[key];
@@ -1757,7 +1769,7 @@ export const reactivate: Handler = async (params, identity, ctx) => {
 };
 ```
 
-> Nota de import: o caminho relativo de `admin-api/handlers/` para `shared/` é `../../../../shared/`. Confirme a profundidade ao implementar (`supabase/functions/admin-api/handlers/` são 4 níveis abaixo da raiz).
+> `ROLE_KEYS` vem de `admin-api/_roles.ts` (réplica local), nunca de `shared/` (bundling da Edge Function).
 
 - [ ] **Step 5: Atualizar `index.ts`**
 
@@ -3179,30 +3191,47 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-const callAdminApi = vi.fn();
-vi.mock('../../lib/admin-api', () => ({ callAdminApi: (...a: unknown[]) => callAdminApi(...a), AdminApiError: class extends Error { code = 'x'; } }));
-vi.mock('../../context/AdminAuthContext', () => ({ useAdminAuth: () => ({ identity: { permissions: ['admins.read', 'admins.manage'] } }) }));
+const h = vi.hoisted(() => ({
+  callAdminApi: vi.fn(),
+  permissions: { value: ['admins.read', 'admins.manage'] as string[] },
+}));
+vi.mock('../../lib/admin-api', () => ({ callAdminApi: h.callAdminApi, AdminApiError: class extends Error { code = 'x'; } }));
+vi.mock('../../context/AdminAuthContext', () => ({
+  useAdminAuth: () => ({ identity: { permissions: h.permissions.value } }),
+}));
 vi.mock('../../context/ToastContext', () => ({ useToast: () => vi.fn() }));
+
+const callAdminApi = h.callAdminApi;
+const currentPermissions = h.permissions;
 
 import AdminsList from './AdminsList';
 
-beforeEach(() => callAdminApi.mockReset());
+const ONE_ADMIN = { admins: [
+  { id: 'a1', email: 'super@aflyo.com', status: 'active', roleKeys: ['SUPER_ADMIN'], mfaEnrolled: true, lastSignInAt: null, createdAt: '2026-08-29' },
+] };
+
+beforeEach(() => {
+  callAdminApi.mockReset();
+  currentPermissions.value = ['admins.read', 'admins.manage'];
+});
 
 it('lista admins e mostra acao de suspender para quem tem admins.manage', async () => {
-  callAdminApi.mockResolvedValue({ admins: [
-    { id: 'a1', email: 'super@aflyo.com', status: 'active', roleKeys: ['SUPER_ADMIN'], mfaEnrolled: true, lastSignInAt: null, createdAt: '2026-08-29' },
-  ] });
+  callAdminApi.mockResolvedValue(ONE_ADMIN);
   render(<MemoryRouter><AdminsList /></MemoryRouter>);
   await waitFor(() => expect(screen.getByText('super@aflyo.com')).toBeInTheDocument());
   expect(screen.getByRole('button', { name: /suspender/i })).toBeInTheDocument();
 });
 
 it('esconde acoes sem admins.manage', async () => {
-  vi.doMock('../../context/AdminAuthContext', () => ({ useAdminAuth: () => ({ identity: { permissions: ['admins.read'] } }) }));
-  // (reimport dinamico ou teste separado; aceitar como caso de doc se o mock nao recarregar)
-  expect(true).toBe(true);
+  currentPermissions.value = ['admins.read'];
+  callAdminApi.mockResolvedValue(ONE_ADMIN);
+  render(<MemoryRouter><AdminsList /></MemoryRouter>);
+  await waitFor(() => expect(screen.getByText('super@aflyo.com')).toBeInTheDocument());
+  expect(screen.queryByRole('button', { name: /suspender/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /convidar admin/i })).not.toBeInTheDocument();
 });
 ```
+> A referência mutável `currentPermissions` funciona porque a factory do `vi.mock` lê `currentPermissions.value` a cada chamada de `useAdminAuth`, e cada teste ajusta o valor antes do `render`.
 
 `InviteAdmin.test.tsx`:
 ```tsx
