@@ -1,8 +1,7 @@
 // supabase/functions/cakto-webhook/handlers.ts
 // Consolida os 7 handlers antigos (b5f1256^:supabase/functions/cakto-webhook/
 // handlers/*) num arquivo so, com as colunas provider_* e a logica de
-// reativacao/revogacao de trial portada de stripe-webhook (invoicePaid.ts +
-// subscriptionDeleted.ts).
+// reativacao/revogacao de trial no fluxo de assinatura.
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
 import { mapCaktoOfferId } from "./lib.ts";
 

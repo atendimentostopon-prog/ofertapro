@@ -8,8 +8,8 @@
 // cakto-webhook (evento purchase_approved). O retorno daqui so tira o frontend
 // da tela de cartao.
 //
-// Auth e CORS espelham stripe-create-subscription/index.ts (JWT do usuario via
-// SUPABASE_ANON_KEY client + auth.getUser).
+// Auth e CORS seguem o padrao das outras edge functions autenticadas (JWT do
+// usuario via SUPABASE_ANON_KEY client + auth.getUser).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { caktoFetch, getSupabaseAdmin } from "../_shared/cakto.ts";

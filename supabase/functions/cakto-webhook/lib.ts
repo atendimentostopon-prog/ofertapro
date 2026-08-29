@@ -1,7 +1,7 @@
 // supabase/functions/cakto-webhook/lib.ts
 // Consolida validateSecret + idempotency + planMapping das 4 libs antigas
-// (b5f1256^:supabase/functions/cakto-webhook/lib/*). Colunas adaptadas pro
-// schema pos-Stripe: provider_event_id / provider_subscription_id.
+// (b5f1256^:supabase/functions/cakto-webhook/lib/*). Colunas no schema atual:
+// provider_event_id / provider_subscription_id.
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
 
 // ---------------------------------------------------------------------------
