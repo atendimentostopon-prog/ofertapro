@@ -9,9 +9,12 @@ import NotificationsDropdown from './NotificationsDropdown';
 interface TopBarProps {
   onNewOffer?: () => void;
   onMenuClick?: () => void;
+  // Quando a faixa de acesso expirado (fixa no topo) esta visivel, o TopBar
+  // sticky precisa colar abaixo dela em vez de em top:0.
+  belowExpiredBar?: boolean;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick }) => {
+const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, belowExpiredBar }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
@@ -105,7 +108,11 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
   const handleNewOffer = () => navigate('/offers/new');
 
   return (
-    <header className="h-16 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky top-0 z-35">
+    <header
+      className={`h-16 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky z-35 ${
+        belowExpiredBar ? 'top-[58px] sm:top-[42px]' : 'top-0'
+      }`}
+    >
       {/* Mobile Menu Button */}
       {onMenuClick && (
         <button
