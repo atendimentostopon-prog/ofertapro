@@ -38,15 +38,21 @@ GRANT EXECUTE ON FUNCTION public.has_active_access(uuid) TO anon, authenticated,
 
 -- Backfill das contas atuais.
 --  - quem tem assinatura ativa/past_due  -> account_status 'active'
---  - founders / cortesia (plan starter/pro/enterprise sem assinatura) -> 'active'
+--  - as 3 contas fundadoras (decisao do usuario 2026-08-28) -> 'active' permanente
 --  - resto -> 'trialing' com 7 dias a partir de agora, e plan='starter' se
 --    hoje for 'free' (pra ter acesso nivel Starter durante o trial)
+-- Obs: as 17 contas atuais estao todas em plan='starter' (cortesia) e nenhuma
+-- tem assinatura. Sem a lista explicita, todas virariam 'active' permanente.
 UPDATE public.profiles p SET
   account_status = CASE
     WHEN EXISTS (SELECT 1 FROM public.subscriptions s
                  WHERE s.user_id = p.id AND s.status IN ('active','past_due'))
       THEN 'active'
-    WHEN p.plan IN ('starter','pro','enterprise')
+    WHEN lower(p.email) IN (
+      'andressabenedito123@gmail.com',
+      'andressads.benedito@gmail.com',
+      'contatogivaldo@outlook.com'
+    )
       THEN 'active'
     ELSE 'trialing'
   END,
