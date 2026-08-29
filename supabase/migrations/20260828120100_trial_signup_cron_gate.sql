@@ -6,20 +6,16 @@
 --    fallback createMinimalProfile do UserContext, que roda como authenticated
 --    e nao consegue escrever a coluna plan pelo PostgREST).
 CREATE OR REPLACE FUNCTION public.profiles_trial_defaults()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
   IF NEW.plan IS NULL OR NEW.plan = 'free' THEN
     NEW.plan := 'starter';
   END IF;
-  IF NEW.account_status IS NULL THEN
-    NEW.account_status := 'trialing';
-  END IF;
-  IF NEW.trial_started_at IS NULL THEN
-    NEW.trial_started_at := now();
-  END IF;
-  IF NEW.trial_ends_at IS NULL THEN
-    NEW.trial_ends_at := now() + interval '7 days';
-  END IF;
+  -- Colunas de trial sao autoritativas no INSERT (nao default-only): fecha o
+  -- buraco de um INSERT do cliente conseguir mandar account_status:'active'.
+  NEW.trial_started_at := now();
+  NEW.trial_ends_at := now() + interval '7 days';
+  NEW.account_status := 'trialing';
   RETURN NEW;
 END; $$;
 
@@ -45,6 +41,13 @@ BEGIN
      AND NOT public.has_active_access(NEW.user_id) THEN
     RAISE EXCEPTION 'Assine um plano para religar o bot.'
       USING ERRCODE = 'check_violation';
+  END IF;
+  -- Reativacao permitida (transicao pra 'active' com has_active_access true):
+  -- limpa o marcador 'access_revoked'. Restrito a essa transicao pra nao
+  -- pisar no cron expire_trials / webhook que SETam paused_reason='access_revoked'
+  -- em updates sem transicao.
+  IF NEW.status = 'active' AND COALESCE(OLD.status, '') <> 'active' THEN
+    NEW.paused_reason := NULL;
   END IF;
   RETURN NEW;
 END; $$;

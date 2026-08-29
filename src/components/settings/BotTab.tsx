@@ -16,7 +16,6 @@ import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { canAddSourceGroup } from '../../config/plans';
 import { PaywallModal } from '../billing/PaywallModal';
-import { useAccountAccess } from '../../hooks/useAccountAccess';
 
 interface BotConfig {
   user_id: string;
@@ -76,7 +75,6 @@ export const BotTab: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const access = useAccountAccess();
 
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<BotConfig | null>(null);

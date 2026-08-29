@@ -78,7 +78,10 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
 
   // Gate de acesso: trial expirado / assinatura inativa bloqueia qualquer disparo.
   try {
-    const { data: hasAccess } = await supabase.rpc('has_active_access', { uid: userId });
+    const { data: hasAccess, error: accessError } = await supabase.rpc('has_active_access', { uid: userId });
+    if (accessError) {
+      console.warn('[DISPATCH] has_active_access rpc error, seguindo:', accessError.message);
+    }
     if (hasAccess === false) {
       console.log('[DISPATCH] bloqueado: conta sem acesso ativo');
       return { status: 'error' as const, results: [] as DispatchResult[], blocked: true };

@@ -24,6 +24,12 @@ export function useAccountAccess(): AccountAccess {
       status === 'trialing' && !!trialEndsAt && trialEndsAt.getTime() > now;
     const hasAccess = status === 'active' || trialActive;
 
+    // Janela entre trial_ends_at passar e o cron expire_trials rodar (ate 1h):
+    // no banco status ainda e 'trialing', mas o acesso ja acabou e o servidor
+    // ja bloqueia. Trata como expirado na UI pra nao mostrar a faixa de trial.
+    const trialLapsed =
+      status === 'trialing' && !!trialEndsAt && trialEndsAt.getTime() <= now;
+
     const daysLeft =
       trialEndsAt && trialEndsAt.getTime() > now
         ? Math.ceil((trialEndsAt.getTime() - now) / 86_400_000)
@@ -32,8 +38,8 @@ export function useAccountAccess(): AccountAccess {
     return {
       status,
       hasAccess,
-      isTrialing: status === 'trialing',
-      isExpired: status === 'expired' || status === 'canceled',
+      isTrialing: status === 'trialing' && !trialLapsed,
+      isExpired: status === 'expired' || status === 'canceled' || trialLapsed,
       daysLeft,
       trialEndsAt,
     };

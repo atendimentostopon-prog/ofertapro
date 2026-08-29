@@ -518,6 +518,9 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
 
         if (dispatchReport.blocked) {
           toast('Seu acesso expirou. Assine um plano para voltar a disparar ofertas.', 'error');
+          setProgressStep('idle');
+          setProgressText('');
+          if (onClose) onClose();
           navigate('/pricing');
           return;
         }

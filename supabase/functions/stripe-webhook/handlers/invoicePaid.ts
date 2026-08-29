@@ -39,13 +39,16 @@ export async function invoicePaid(invoice: any, supabase: any): Promise<void> {
     current_period_end: periodEnd,
   }, { onConflict: "provider_subscription_id" });
 
-  await supabase.from("profiles")
+  // account_status requer a migration 20260828120000 aplicada antes deste deploy.
+  const { error: profileError } = await supabase.from("profiles")
     .update({ plan: mapping.plan, account_status: "active" })
     .eq("id", profile.id);
+  if (profileError) console.error("[stripe-webhook] invoicePaid: falha ao atualizar profiles (plan/account_status):", profileError.message);
 
-  await supabase.from("bot_configs")
+  const { error: botError } = await supabase.from("bot_configs")
     .update({ status: "active", paused_reason: null })
     .eq("user_id", profile.id)
     .eq("status", "paused")
     .eq("paused_reason", "access_revoked");
+  if (botError) console.error("[stripe-webhook] invoicePaid: falha ao reativar bot_configs:", botError.message);
 }

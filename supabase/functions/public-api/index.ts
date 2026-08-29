@@ -812,6 +812,7 @@ serve(async (req) => {
         )
       }
 
+      // Requer a migration 20260828120000 (has_active_access) aplicada. Deploy desta function so depois dela.
       const { data: hasAccess, error: accessError } = await supabaseAdmin
         .rpc('has_active_access', { uid: userId })
       if (accessError) {

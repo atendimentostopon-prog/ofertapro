@@ -1,6 +1,7 @@
 -- supabase/migrations/20260828120000_account_trial_status.sql
 -- Trial de 7 dias: status de conta como fonte de verdade do acesso, separado
 -- de profiles.plan (que continua sendo o nivel de entitlement).
+-- DEPLOY ORDER: aplicar esta migration ANTES de redeployar public-api e stripe-webhook. Sem has_active_access / account_status, /dispatch retorna 503 pra todo mundo e invoice.paid nao grava o account_status.
 
 -- Colunas SEM default primeiro. Um DEFAULT no ADD COLUMN preencheria todas as
 -- linhas existentes na hora, e o backfill abaixo (WHERE account_status IS NULL)
