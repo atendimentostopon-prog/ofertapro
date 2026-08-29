@@ -131,12 +131,12 @@ import {
 } from './admin-permissions';
 
 describe('catálogo de permissões', () => {
-  it('tem as 43 permissões do prompt mestre, sem duplicata', () => {
+  it('tem as 49 permissoes do prompt mestre, sem duplicata', () => {
     expect(new Set(PERMISSION_KEYS).size).toBe(PERMISSION_KEYS.length);
     expect(PERMISSION_KEYS).toContain('dashboard.read');
     expect(PERMISSION_KEYS).toContain('roles.manage');
     expect(PERMISSION_KEYS).toContain('users.impersonate');
-    expect(PERMISSION_KEYS.length).toBe(43);
+    expect(PERMISSION_KEYS.length).toBe(49);
   });
 
   it('toda permissão em PERMISSIONS existe em PERMISSION_KEYS e tem grupo', () => {
@@ -343,9 +343,9 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 do $$
 begin
   assert (select count(*) from admin_roles) = 4, 'esperado 4 cargos';
-  assert (select count(*) from admin_permissions) = 43, 'esperado 43 permissoes';
-  assert (select count(*) from admin_role_permissions where role_key = 'SUPER_ADMIN') = 43,
-    'SUPER_ADMIN deve ter as 43 permissoes';
+  assert (select count(*) from admin_permissions) = 49, 'esperado 49 permissoes';
+  assert (select count(*) from admin_role_permissions where role_key = 'SUPER_ADMIN') = 49,
+    'SUPER_ADMIN deve ter as 49 permissoes';
   assert (select count(*) from admin_role_permissions where role_key = 'ANALYST') = 3,
     'ANALYST deve ter 3 permissoes';
   assert exists (select 1 from admin_role_permissions where role_key = 'DEVELOPER' and permission_key = 'jobs.retry'),
@@ -479,7 +479,7 @@ insert into public.admin_roles (key, label, description, is_system) values
   ('ANALYST','Analista','Leitura de dashboard, analytics e metricas.',true)
 on conflict (key) do update set label = excluded.label, description = excluded.description;
 
--- Seed: permissoes (43, casa com shared/admin-permissions.ts)
+-- Seed: permissoes (49, casa com shared/admin-permissions.ts)
 insert into public.admin_permissions (key, grp, description) values
   ('dashboard.read','overview','dashboard.read'),
   ('analytics.read','overview','analytics.read'),
