@@ -56,8 +56,13 @@ serve(async (req: Request) => {
   const { data: { user } } = await userClient.auth.getUser();
   if (!user) return json({ error: "Nao autorizado." }, 401);
 
-  const { plan_code, billing_cycle, installments, card_token, three_d_secure, antifraud_ref, customer } =
-    await req.json();
+  let payload: any;
+  try {
+    payload = await req.json();
+  } catch {
+    return json({ error: "Corpo invalido." }, 400);
+  }
+  const { plan_code, billing_cycle, installments, card_token, three_d_secure, antifraud_ref, customer } = payload;
 
   const offerId = OFFER[plan_code]?.[billing_cycle];
   if (!offerId) return json({ error: "Plano invalido." }, 400);
@@ -105,9 +110,18 @@ serve(async (req: Request) => {
     headers: { "X-Idempotency-Key": crypto.randomUUID() },
     body: JSON.stringify(payBody),
   });
-  const order = await payRes.json();
+  // Le como texto primeiro: um gateway upstream pode devolver 429 text/plain ou
+  // 502/503 HTML, e payRes.json() nesse caso estoura dentro do serve (500 sem
+  // CORS) logo depois do cartao + 3DS terem sido digitados.
+  const raw = await payRes.text();
+  let order: any = {};
+  try {
+    order = raw ? JSON.parse(raw) : {};
+  } catch {
+    /* corpo nao-JSON */
+  }
   if (!payRes.ok) {
-    return json({ error: order?.detail || order?.message || "Falha no pagamento." }, 400);
+    return json({ error: order?.detail || order?.message || raw || "Falha no pagamento." }, 400);
   }
 
   if (order.status === "paid") {
