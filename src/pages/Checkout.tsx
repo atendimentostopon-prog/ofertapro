@@ -111,10 +111,12 @@ export default function Checkout() {
   const { user, loading: userLoading } = useUser();
 
   const planParam = searchParams.get('plan');
-  const initialCycle = (searchParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly') as BillingCycle;
+  // O ciclo vem da tela de Planos (query param). Nao ha toggle no checkout: pra
+  // trocar mensal/anual o usuario volta pra /pricing. Isso mantem o
+  // CaktoPaymentPanel montado uma vez so, com as parcelas ja certas pro ciclo.
+  const cycle = (searchParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly') as BillingCycle;
   const plan = VALID_PLANS.includes(planParam as PlanCode) ? (planParam as PlanCode) : null;
 
-  const [cycle, setCycle] = useState<BillingCycle>(initialCycle);
   const [confirmedLocally, setConfirmedLocally] = useState(false);
 
   useEffect(() => {
@@ -186,32 +188,20 @@ export default function Checkout() {
             {copy.subline}
           </p>
 
-          <div className="relative z-10 mt-8 sm:mt-12 flex flex-col items-center min-h-[150px] justify-center">
-            <div className="inline-flex p-[3px] rounded-full bg-white/5 border border-white/10 gap-0.5">
-              <button
-                type="button"
-                onClick={() => setCycle('monthly')}
-                className={`px-3.5 py-[7px] rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${cycle === 'monthly' ? 'bg-mint-400 text-graphite' : 'text-white/70'}`}
-              >
-                Mensal
-              </button>
-              <button
-                type="button"
-                onClick={() => setCycle('yearly')}
-                className={`px-3.5 py-[7px] rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${cycle === 'yearly' ? 'bg-mint-400 text-graphite' : 'text-white/70'}`}
-              >
-                Anual
-                <span className={`text-[0.6875rem] font-bold px-1.5 py-px rounded-full ${cycle === 'yearly' ? 'bg-graphite/20' : 'bg-mint-400/16 text-mint-400'}`}>-17%</span>
-              </button>
-            </div>
-
-            <div className="flex items-end gap-2.5 mt-[22px]">
+          <div className="relative z-10 mt-8 sm:mt-12 flex flex-col items-center justify-center">
+            <div className="flex items-end gap-2.5">
               <span className="font-display text-2xl font-semibold text-mint-400 pb-2.5">R$</span>
               <span className="font-display text-[clamp(3rem,5vw+1rem,4.25rem)] font-bold tracking-tight leading-[0.95] bg-gradient-to-b from-white to-ice bg-clip-text text-transparent">
                 {Number.isInteger(sku.price) ? sku.price : sku.price.toFixed(2).replace('.', ',')}
               </span>
               <span className="text-[0.9375rem] text-white/70 pb-3.5">/{cycle === 'monthly' ? 'mês' : 'ano'}</span>
             </div>
+            {cycle === 'yearly' && (
+              <span className="mt-3 inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-mint-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-mint-400" />
+                Plano anual com 17% de desconto
+              </span>
+            )}
           </div>
 
           <div className="relative z-10 mt-7 sm:mt-10 max-w-[340px] w-full border-t border-mint-400/15 pt-[22px] text-left">
