@@ -246,7 +246,7 @@ const Dashboard: React.FC = () => {
                 Faça upgrade para visualizar cliques por canal e origem.
               </p>
               <button
-                onClick={() => navigate('/settings')}
+                onClick={() => navigate('/pricing')}
                 className="mt-4 btn-gradient py-2 px-5 text-xs font-semibold cursor-pointer"
               >
                 Fazer Upgrade

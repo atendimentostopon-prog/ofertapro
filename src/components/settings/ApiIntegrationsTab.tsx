@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Key, ShieldAlert, Copy, Check, RefreshCw, Trash2, 
-  Terminal, ShieldCheck, Code, Globe, HelpCircle, Loader2, Radio
+import {
+  Key, ShieldAlert, Copy, Check, RefreshCw, Trash2,
+  Terminal, ShieldCheck, Code, Globe, HelpCircle, Loader2, Radio, Eye, EyeOff
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ApiKeyService, ApiKeyMetadata } from '../../services/ApiKeyService';
@@ -24,6 +24,12 @@ const ApiIntegrationsTab: React.FC = () => {
   // Modal de Exibição de Chave Nova
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Revelar chave ativa (sem revogar/regenerar)
+  const [revealedKey, setRevealedKey] = useState<string | null>(null);
+  const [revealLoading, setRevealLoading] = useState(false);
+  const [revealNotSynced, setRevealNotSynced] = useState(false);
+  const [copiedReveal, setCopiedReveal] = useState(false);
 
   // Endpoint Base do Supabase
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://seu-projeto.supabase.co';
@@ -75,6 +81,8 @@ const ApiIntegrationsTab: React.FC = () => {
       const result = await ApiKeyService.generateApiKey();
       if (result.success) {
         setNewKey(result.apiKey);
+        setRevealedKey(null);
+        setRevealNotSynced(false);
         toast('Nova chave de API gerada com sucesso!', 'success');
         await loadKeys();
       }
@@ -94,6 +102,8 @@ const ApiIntegrationsTab: React.FC = () => {
     try {
       const result = await ApiKeyService.revokeApiKey(id);
       if (result.success) {
+        setRevealedKey(null);
+        setRevealNotSynced(false);
         toast('Chave de API revogada com sucesso.', 'success');
         await loadKeys();
       }
@@ -110,6 +120,40 @@ const ApiIntegrationsTab: React.FC = () => {
       navigator.clipboard.writeText(newKey);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast('Chave de API copiada!', 'success');
+    }
+  };
+
+  const handleToggleReveal = async () => {
+    // Já revelada → esconder
+    if (revealedKey) {
+      setRevealedKey(null);
+      setRevealNotSynced(false);
+      return;
+    }
+    setRevealLoading(true);
+    setRevealNotSynced(false);
+    try {
+      const res = await ApiKeyService.revealApiKey();
+      if (res.apiKey) {
+        setRevealedKey(res.apiKey);
+      } else {
+        setRevealNotSynced(true);
+        toast('Esta chave foi criada antes da visualização ficar disponível. Regenere a chave uma vez para habilitar.', 'info');
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast(err.message || 'Não foi possível revelar a chave.', 'error');
+    } finally {
+      setRevealLoading(false);
+    }
+  };
+
+  const handleCopyRevealedKey = () => {
+    if (revealedKey) {
+      navigator.clipboard.writeText(revealedKey);
+      setCopiedReveal(true);
+      setTimeout(() => setCopiedReveal(false), 2000);
       toast('Chave de API copiada!', 'success');
     }
   };
@@ -197,10 +241,41 @@ const ApiIntegrationsTab: React.FC = () => {
             {keys.map((k) => (
               <div key={k.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-2.5 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-ink font-mono bg-surface-1 border border-line px-3 py-1 rounded-lg">
-                      {k.key_prefix}••••••••••••{k.key_last4}
+                  <div className="flex items-center flex-wrap gap-2.5">
+                    <span className="text-xs font-bold text-ink font-mono bg-surface-1 border border-line px-3 py-1 rounded-lg break-all select-all">
+                      {k.status === 'active' && revealedKey
+                        ? revealedKey
+                        : `${k.key_prefix}••••••••••••${k.key_last4}`}
                     </span>
+
+                    {k.status === 'active' && (
+                      <>
+                        <button
+                          onClick={handleToggleReveal}
+                          disabled={revealLoading}
+                          className="w-8 h-8 rounded-lg bg-surface-1 hover:bg-surface-2 border border-line flex items-center justify-center text-ink-secondary hover:text-ink transition-all disabled:opacity-50"
+                          title={revealedKey ? 'Esconder chave' : 'Mostrar chave'}
+                        >
+                          {revealLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : revealedKey ? (
+                            <EyeOff className="w-3.5 h-3.5" />
+                          ) : (
+                            <Eye className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        {revealedKey && (
+                          <button
+                            onClick={handleCopyRevealedKey}
+                            className="w-8 h-8 rounded-lg bg-surface-1 hover:bg-surface-2 border border-line flex items-center justify-center text-ink-secondary hover:text-mint-700 transition-all"
+                            title="Copiar chave"
+                          >
+                            {copiedReveal ? <Check className="w-3.5 h-3.5 text-success-ink" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        )}
+                      </>
+                    )}
+
                     <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
                       k.status === 'active'
                         ? 'bg-success-bg border-success/15 text-success-ink'
@@ -209,6 +284,13 @@ const ApiIntegrationsTab: React.FC = () => {
                       {k.status === 'active' ? 'Ativa' : 'Revogada'}
                     </span>
                   </div>
+
+                  {k.status === 'active' && revealNotSynced && (
+                    <p className="text-[11px] text-warning-ink bg-warning-bg border border-warning/20 rounded-lg px-3 py-2 leading-relaxed">
+                      Esta chave foi criada antes da visualização ficar disponível.
+                      Clique em <strong>Regenerar API Key</strong> uma vez para habilitar o "mostrar chave".
+                    </p>
+                  )}
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] text-ink-secondary">
                     <p>Criada em: <span className="font-semibold text-ink">{formatDate(k.created_at)}</span></p>

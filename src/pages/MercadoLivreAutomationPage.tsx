@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft, BookOpen, AlertTriangle,
-  ChevronDown, ChevronUp, Info, HelpCircle, CheckCircle2, Settings, Chrome, Key, Link2,
+  ChevronDown, ChevronUp, Info, HelpCircle, CheckCircle2, Settings, Chrome, Key, Link2, Download,
 } from 'lucide-react';
+
+const EXTENSION_DOWNLOAD_URL = '/extensions/aflyo-mercadolivre-extension.zip';
 import { Link } from 'react-router-dom';
 import { APP_NAME } from '../config/app';
 
@@ -31,27 +33,28 @@ export const MercadoLivreAutomationPage: React.FC = () => {
     {
       num: '01',
       title: 'Baixar a extensão do Chrome',
-      desc: `A extensão do ${APP_NAME} para Mercado Livre ainda não está na Chrome Web Store — você recebe a pasta da extensão e carrega manualmente (é rápido, leva menos de 2 minutos):`,
+      desc: `A extensão do ${APP_NAME} para Mercado Livre ainda não está na Chrome Web Store. Você baixa o arquivo aqui e carrega no Chrome manualmente. É rápido, leva menos de 2 minutos:`,
       bullets: [
-        'Baixe a pasta da extensão que foi disponibilizada para você.',
+        'Clique no botão abaixo para baixar o arquivo .zip da extensão.',
+        'Descompacte o arquivo numa pasta do seu computador.',
         'Abra chrome://extensions na barra de endereço do Chrome.',
         'Ative "Modo do desenvolvedor" no canto superior direito da tela.',
-        'Clique em "Carregar sem compactação" e selecione a pasta da extensão.',
+        'Clique em "Carregar sem compactação" e selecione a pasta descompactada.',
       ],
       note: 'O ícone do Aflyo deve aparecer na barra de extensões do Chrome depois desse passo.',
-      buttonLabel: null,
-      url: null,
+      buttonLabel: 'Baixar extensão (.zip)',
+      url: EXTENSION_DOWNLOAD_URL,
     },
     {
       num: '02',
       title: `Gerar sua API Key do ${APP_NAME}`,
       desc: 'A extensão precisa de uma credencial para saber que a conta é sua e salvar os dados no lugar certo:',
       bullets: [
-        `Acesse o painel do ${APP_NAME} e vá em Configurações > Integrações.`,
+        `No menu lateral do ${APP_NAME}, abra "Integrações" e clique na aba "API & Integrações".`,
         'Clique em "Gerar API Key" (se ainda não tiver uma).',
         'Copie a chave gerada (começa com lof_live_...).',
       ],
-      note: 'Guarde essa chave com cuidado — ela dá acesso à sua conta. Se desconfiar de vazamento, regenere a qualquer momento.',
+      note: 'Guarde essa chave com cuidado, ela dá acesso à sua conta. Se desconfiar de vazamento, regenere a qualquer momento.',
       buttonLabel: null,
       url: null,
     },
@@ -65,21 +68,21 @@ export const MercadoLivreAutomationPage: React.FC = () => {
         'Clique em "Conectar".',
         'Se ainda não estiver, faça login em mercadolivre.com.br numa aba do mesmo navegador.',
       ],
-      note: 'O status muda para "Conectado" quando a sincronização funciona. A extensão repete essa sincronização sozinha a cada ~25 minutos enquanto o Chrome estiver aberto.',
+      note: 'O status muda para "Conectado" quando a sincronização funciona. A extensão repete essa sincronização sozinha a cada 25 minutos enquanto o Chrome estiver aberto.',
       buttonLabel: null,
       url: null,
     },
     {
       num: '04',
       title: `Cadastrar sua tag de afiliado no ${APP_NAME}`,
-      desc: 'Falta um último dado — a mesma tag que você já usa no painel de afiliados do Mercado Livre:',
+      desc: 'Falta um último dado, a mesma tag que você já usa no painel de afiliados do Mercado Livre:',
       bullets: [
-        `Acesse o painel do ${APP_NAME} e vá em Configurações > Bot.`,
-        'Localize a seção "Mercado Livre" (logo abaixo das credenciais Shopee).',
+        `No menu lateral do ${APP_NAME}, abra "Integrações" e fique na aba "Bot".`,
+        'Desça até a seção "Configurações Adicionais" e localize "Mercado Livre (opcional)".',
         'Preencha o campo "Tag de afiliado Mercado Livre".',
         'Clique em "Salvar configurações".',
       ],
-      note: 'Pronto! A partir daqui, ofertas do Mercado Livre detectadas nos seus grupos de origem geram link de afiliado automaticamente, sem precisar de revisão manual.',
+      note: 'Pronto. A partir daqui, ofertas do Mercado Livre detectadas nos seus grupos de origem geram link de afiliado automaticamente, sem precisar de revisão manual.',
       buttonLabel: null,
       url: null,
     },
@@ -88,11 +91,11 @@ export const MercadoLivreAutomationPage: React.FC = () => {
   const faqs = [
     {
       q: 'Isso é um recurso oficial do Mercado Livre?',
-      a: 'Não. O Mercado Livre não oferece uma API pública de afiliados. A extensão usa a mesma técnica de ferramentas parecidas no mercado: aproveita a sua própria sessão logada no site para automatizar a geração do link, do mesmo jeito que aconteceria se você clicasse manualmente no painel de afiliados deles. Por não ser um recurso oficial, pode parar de funcionar sem aviso se o Mercado Livre mudar algo no site deles — nesse caso a oferta simplesmente volta a cair na revisão manual, como já acontecia antes.',
+      a: 'Não. O Mercado Livre não oferece uma API pública de afiliados. A extensão usa a mesma técnica de ferramentas parecidas no mercado: aproveita a sua própria sessão logada no site para automatizar a geração do link, do mesmo jeito que aconteceria se você clicasse manualmente no painel de afiliados deles. Por não ser um recurso oficial, pode parar de funcionar sem aviso se o Mercado Livre mudar algo no site deles. Nesse caso a oferta simplesmente volta a cair na revisão manual, como já acontecia antes.',
     },
     {
       q: 'Preciso deixar o Chrome aberto o tempo todo?',
-      a: 'A extensão só sincroniza enquanto o Chrome está aberto (ela roda em segundo plano a cada ~25 minutos). Se o computador ficar desligado por muito tempo, a sessão do Mercado Livre pode expirar — nesse caso, basta abrir o Chrome de novo com o Mercado Livre logado que a próxima sincronização resolve sozinha.',
+      a: 'A extensão só sincroniza enquanto o Chrome está aberto (ela roda em segundo plano a cada 25 minutos). Se o computador ficar desligado por muito tempo, a sessão do Mercado Livre pode expirar. Nesse caso, basta abrir o Chrome de novo com o Mercado Livre logado que a próxima sincronização resolve sozinha.',
     },
     {
       q: 'O que fazer se aparecer "sessão expirada" ou erro parecido?',
@@ -100,15 +103,15 @@ export const MercadoLivreAutomationPage: React.FC = () => {
     },
     {
       q: 'Isso é seguro? Que dado é enviado?',
-      a: `Só os cookies da sua sessão no mercadolivre.com.br são enviados, direto do seu navegador para os servidores do ${APP_NAME} — nunca pra terceiros. Eles ficam associados só à sua conta e são usados exclusivamente para gerar seus próprios links de afiliado.`,
+      a: `Só os cookies da sua sessão no mercadolivre.com.br são enviados, direto do seu navegador para os servidores do ${APP_NAME}, nunca para terceiros. Eles ficam associados só à sua conta e são usados exclusivamente para gerar seus próprios links de afiliado.`,
     },
     {
       q: 'E se eu não quiser usar a extensão?',
-      a: 'Sem problema — sem ela, ofertas do Mercado Livre continuam funcionando exatamente como hoje: você recebe o aviso no Telegram e responde colando o link de afiliado manualmente.',
+      a: 'Sem problema. Sem ela, ofertas do Mercado Livre continuam funcionando exatamente como hoje: você recebe o aviso no Telegram e responde colando o link de afiliado manualmente.',
     },
     {
       q: 'Onde cadastro minha tag de afiliado?',
-      a: 'No painel, em Configurações > Bot > seção "Mercado Livre". É a mesma tag que aparece no seu painel de afiliados do próprio Mercado Livre.',
+      a: 'No menu lateral, em Integrações > aba "Bot" > seção "Configurações Adicionais" > "Mercado Livre (opcional)". É a mesma tag que aparece no seu painel de afiliados do próprio Mercado Livre.',
     },
   ];
 
@@ -120,11 +123,11 @@ export const MercadoLivreAutomationPage: React.FC = () => {
       <div className="max-w-4xl mx-auto relative z-10 space-y-12">
         <div className="flex items-center justify-between pb-6 border-b border-line select-none">
           <Link
-            to="/settings"
+            to="/integrations?tab=bot"
             className="flex items-center gap-2 text-xs font-bold text-ink-secondary hover:text-ink transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-            Voltar para Configurações
+            Voltar para Integrações
           </Link>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-ice border border-mint-200 flex items-center justify-center">
@@ -136,7 +139,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
 
         <section className="text-center space-y-6 py-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-[11px] font-bold text-yellow-600 rounded-full select-none">
-            🛒 Automação Mercado Livre
+            Automação Mercado Livre
           </div>
           <h1 className="text-3xl sm:text-4.5xl font-black text-ink tracking-tight leading-tight max-w-2xl mx-auto">
             Como automatizar seus links do Mercado Livre
@@ -144,6 +147,16 @@ export const MercadoLivreAutomationPage: React.FC = () => {
           <p className="text-sm sm:text-base text-ink-secondary leading-relaxed max-w-xl mx-auto font-medium">
             Instale a extensão do Chrome, conecte com sua conta e o {APP_NAME} passa a gerar o link de afiliado do Mercado Livre sozinho, sem revisão manual.
           </p>
+          <div className="flex justify-center pt-1">
+            <a
+              href={EXTENSION_DOWNLOAD_URL}
+              download
+              className="inline-flex items-center gap-2 btn-gradient text-xs font-bold px-6 py-3 rounded-lg shadow-md"
+            >
+              <Download className="w-4 h-4" />
+              Baixar extensão (.zip)
+            </a>
+          </div>
         </section>
 
         <section className="bg-warning-bg border border-warning/20 rounded-2xl p-6 sm:p-7 space-y-4">
@@ -153,9 +166,9 @@ export const MercadoLivreAutomationPage: React.FC = () => {
               <h4 className="text-xs sm:text-sm font-extrabold text-warning-ink uppercase tracking-wider">Aviso Importante</h4>
               <ul className="space-y-2 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium list-disc list-inside">
                 <li>Esse recurso é opcional. Sem ele, ofertas do Mercado Livre continuam indo pra revisão manual normalmente.</li>
-                <li>Não é um recurso oficial do Mercado Livre — pode parar de funcionar sem aviso se eles mudarem algo no site.</li>
+                <li>Não é um recurso oficial do Mercado Livre. Pode parar de funcionar sem aviso se eles mudarem algo no site.</li>
                 <li>A extensão precisa do Chrome aberto e você logado no Mercado Livre para sincronizar.</li>
-                <li>Ainda não está na Chrome Web Store — a instalação é manual ("carregar sem compactação").</li>
+                <li>Ainda não está na Chrome Web Store. A instalação é manual ("carregar sem compactação").</li>
               </ul>
             </div>
           </div>
@@ -195,6 +208,17 @@ export const MercadoLivreAutomationPage: React.FC = () => {
                     </p>
                   </div>
                 )}
+
+                {step.url && step.buttonLabel && (
+                  <a
+                    href={step.url}
+                    download
+                    className="inline-flex items-center gap-2 btn-gradient text-xs font-bold px-5 py-3 rounded-lg shadow-md"
+                  >
+                    <Download className="w-4 h-4" />
+                    {step.buttonLabel}
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -211,7 +235,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
           <div className="space-y-3 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
             <div className="flex items-start gap-2.5">
               <Chrome className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
-              <p>A extensão roda em segundo plano no seu Chrome, capturando sua sessão do Mercado Livre a cada ~25 minutos.</p>
+              <p>A extensão roda em segundo plano no seu Chrome, capturando sua sessão do Mercado Livre a cada 25 minutos.</p>
             </div>
             <div className="flex items-start gap-2.5">
               <Key className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
@@ -219,7 +243,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
             </div>
             <div className="flex items-start gap-2.5">
               <Link2 className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
-              <p>Quando o bot encontra uma oferta do Mercado Livre num dos seus grupos de origem, ele usa essa sessão pra gerar o link de afiliado na hora e publicar direto — sem esperar você responder um aviso manual.</p>
+              <p>Quando o bot encontra uma oferta do Mercado Livre num dos seus grupos de origem, ele usa essa sessão pra gerar o link de afiliado na hora e publicar direto, sem esperar você responder um aviso manual.</p>
             </div>
           </div>
         </section>
@@ -275,15 +299,15 @@ export const MercadoLivreAutomationPage: React.FC = () => {
             Pronto pra automatizar?
           </h3>
           <p className="text-xs sm:text-sm text-ink-inverse/70 max-w-lg mx-auto leading-relaxed font-medium">
-            Volte às configurações do painel para gerar sua API Key e cadastrar sua tag de afiliado.
+            Abra "Integrações" no menu lateral para gerar sua API Key (aba "API & Integrações") e cadastrar sua tag de afiliado (aba "Bot").
           </p>
           <div className="flex justify-center pt-2">
             <Link
-              to="/settings"
+              to="/integrations?tab=bot"
               className="w-full sm:w-auto btn-gradient text-xs font-bold px-6 py-3 rounded-lg flex items-center justify-center gap-1.5 shadow-md"
             >
               <Settings className="w-4 h-4" />
-              Voltar para as configurações
+              Ir para Integrações
             </Link>
           </div>
         </section>

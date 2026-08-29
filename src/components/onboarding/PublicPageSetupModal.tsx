@@ -511,7 +511,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                 Configuração inicial
               </span>
               <span className="text-xs font-bold text-ink-secondary">
-                Etapa {step} de 2 — {step === 1 ? 'Minha Conta' : 'Minha Vitrine'}
+                Etapa {step} de 2: {step === 1 ? 'Minha Conta' : 'Minha Vitrine'}
               </span>
             </div>
 
@@ -526,7 +526,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
             </h2>
             <p className="text-xs text-ink-secondary mt-1 mb-6 leading-relaxed">
               {step === 1
-                ? 'Essas informações aparecem só pra você, no seu painel — nada disso vai pra sua vitrine pública.'
+                ? 'Essas informações aparecem só pra você, no seu painel. Nada disso vai pra sua vitrine pública.'
                 : 'Defina o link, nome e grupos sociais que aparecerão na sua vitrine para a sua audiência.'}
             </p>
 

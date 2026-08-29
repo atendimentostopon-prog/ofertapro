@@ -69,7 +69,7 @@ export const BillingTab: React.FC = () => {
           <div className="p-6 text-xs text-ink-secondary">Carregando…</div>
         ) : !subscription && user?.plan === 'starter' ? (
           <div className="p-6 bg-success-bg border border-success/20 rounded-2xl">
-            <h4 className="text-sm font-bold text-success-ink font-display">Plano Starter — cortesia</h4>
+            <h4 className="text-sm font-bold text-success-ink font-display">Plano Starter (cortesia)</h4>
             <p className="text-xs text-success-ink/80 mt-2">Você usa o {APP_NAME} por cortesia como usuário fundador. Uso vitalício, sem cobrança.</p>
           </div>
         ) : !subscription ? (
@@ -91,7 +91,7 @@ export const BillingTab: React.FC = () => {
             <div className="flex items-center gap-2 text-xs text-ink-secondary">
               <Calendar className="w-4 h-4" />
               {subscription.cancel_at_period_end
-                ? <>Cancelada — acesso até <strong>{new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}</strong></>
+                ? <>Cancelada. Acesso até <strong>{new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}</strong></>
                 : <>Próxima cobrança em <strong>{new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}</strong></>
               }
             </div>
