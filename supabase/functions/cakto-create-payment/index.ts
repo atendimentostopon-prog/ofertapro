@@ -20,13 +20,14 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// offerIds reais de producao, criados na Task 1. Precisa bater com
-// src/config/planCatalog.ts (Task 7) e com o OFFER_MAP do cakto-webhook/lib.ts.
-// Deno nao importa TS do frontend, entao o mapa e duplicado aqui.
-const OFFER: Record<string, Record<string, string>> = {
-  starter: { monthly: "oy56ftb", yearly: "5523xh7" },
-  pro: { monthly: "38r43o4", yearly: "3uikgc2" },
-  enterprise: { monthly: "3chkywe", yearly: "ig6ciuy" },
+// offerIds mensais reais de producao. Precisa bater com src/config/planCatalog.ts
+// e com o OFFER_MAP do cakto-webhook/lib.ts. So mensal por enquanto -- as ofertas
+// anuais sairam do produto em 2026-08-29. Deno nao importa TS do front, entao o
+// mapa e duplicado aqui.
+const OFFER: Record<string, string> = {
+  starter: "oy56ftb",
+  pro: "38r43o4",
+  enterprise: "3chkywe",
 };
 
 function json(obj: unknown, status = 200): Response {
@@ -70,15 +71,13 @@ serve(async (req: Request) => {
   } catch {
     return json({ error: "Corpo invalido." }, 400);
   }
-  const { plan_code, billing_cycle, installments, card_token, three_d_secure, antifraud_ref, customer } = payload;
+  const { plan_code, card_token, three_d_secure, antifraud_ref, customer } = payload;
 
-  const offerId = OFFER[plan_code]?.[billing_cycle];
+  const offerId = OFFER[plan_code];
   if (!offerId) return json({ error: "Plano invalido." }, 400);
 
-  // Parcelamento so no anual (teto 12, sem juros). Mensal e sempre 1x.
-  const parcelas = billing_cycle === "yearly"
-    ? Math.min(Math.max(Number(installments) || 12, 1), 12)
-    : 1;
+  // So plano mensal: cobranca unica de 1x. (Anual/parcelamento saiu do produto.)
+  const parcelas = 1;
 
   // Email/nome vem do profile (service role), nao do body do frontend.
   const admin = getSupabaseAdmin();
@@ -121,7 +120,7 @@ serve(async (req: Request) => {
     metadata: {
       supabase_user_id: user.id,
       plan_code,
-      billing_cycle,
+      billing_cycle: "monthly",
       installments: String(parcelas),
     },
   };
