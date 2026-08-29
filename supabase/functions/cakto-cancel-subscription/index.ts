@@ -72,7 +72,10 @@ serve(async (req: Request) => {
     if (!cancelRes.ok) {
       const errText = await cancelRes.text();
       console.error("[cakto-cancel-subscription] Cakto retornou erro:", cancelRes.status, errText);
-      return json({ error: "Falha ao cancelar na Cakto." }, 502);
+      if (cancelRes.status !== 400 && cancelRes.status !== 404) {
+        return json({ error: "Falha ao cancelar na Cakto." }, 502);
+      }
+      console.warn("[cakto-cancel-subscription] tratando", cancelRes.status, "como ja-cancelada (idempotente)");
     }
 
     // Grava o cancelamento local sem esperar o webhook subscription_canceled

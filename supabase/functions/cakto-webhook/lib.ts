@@ -53,7 +53,10 @@ interface WebhookPayload {
 
 export function getEventId(payload: WebhookPayload): string {
   const data = payload.data ?? {};
-  if (data.id) return String(data.id);
+  // Namespaceia pelo tipo de evento: sem isso, purchase_approved da order X
+  // queima a chave e refund/chargeback da MESMA order X voltam como duplicata
+  // (200, handler nunca roda) -> acesso nunca revogado.
+  if (data.id) return `${payload.event ?? "unknown"}:${data.id}`;
   // Fallback ESTAVEL (sem Date.now): o mesmo evento retried tem que gerar a
   // mesma chave, senao a idempotencia nao detecta a duplicata.
   const sub = data.subscription?.id ?? "nosub";

@@ -40,6 +40,14 @@ function onlyDigits(s: unknown): string {
   return String(s ?? "").replace(/\D/g, "");
 }
 
+// A mascara do front gera 10-11 digitos (DDD + numero). A Cakto quer E.164 sem
+// "+", COM DDI (5511...). Se ja vier com DDI (12+ digitos), passa direto.
+function toE164BR(raw: unknown): string {
+  const d = String(raw ?? "").replace(/\D/g, "");
+  if (!d) return "";
+  return d.length <= 11 ? "55" + d : d;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -80,12 +88,25 @@ serve(async (req: Request) => {
     .eq("id", user.id)
     .maybeSingle();
 
+  // Pricing.tsx bloqueia na UI, mas quem abre /checkout?... direto com assinatura
+  // ativa compraria uma segunda e seria cobrado 2x (o X-Idempotency-Key e um uuid
+  // novo por request, nao protege).
+  const { data: dupSub } = await admin
+    .from("subscriptions")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("status", ["active", "past_due"])
+    .limit(1);
+  if (dupSub && dupSub.length > 0) {
+    return json({ error: "Voce ja tem uma assinatura ativa. Gerencie em Configuracoes." }, 409);
+  }
+
   const payBody = {
     paymentMethod: three_d_secure ? "threeDs" : "credit_card",
     customer: {
       name: customer?.name ?? profile?.full_name ?? "Cliente",
       email: profile?.email ?? user.email,
-      phone: onlyDigits(customer?.phone), // E.164 sem +
+      phone: toE164BR(customer?.phone), // E.164 com DDI
       fingerprint: antifraud_ref || user.id,
       docType: "cpf",
       docNumber: onlyDigits(customer?.cpf),
@@ -139,6 +160,10 @@ serve(async (req: Request) => {
         await subRes.text(),
       );
     }
+  }
+
+  if (order.status !== "paid") {
+    console.warn("[cakto-create-payment] order nao concluida:", order.status, order.id);
   }
 
   return json({ status: order.status, order_id: order.id });

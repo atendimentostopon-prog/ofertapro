@@ -50,8 +50,9 @@ function periodEnd(data: any, cycle: string | undefined): string {
 async function resolveUserId(supabase: any, data: any): Promise<string | null> {
   const metaUid = data.metadata?.supabase_user_id;
   if (metaUid) {
-    const { data: byId } = await supabase
+    const { data: byId, error: byIdErr } = await supabase
       .from("profiles").select("id").eq("id", metaUid).maybeSingle();
+    if (byIdErr) throw new Error(`[cakto-webhook] resolveUserId: profiles by id: ${byIdErr.message}`);
     if (byId?.id) return byId.id;
     console.error(
       `[cakto-webhook] metadata.supabase_user_id ${metaUid} nao existe em profiles, tentando email`,
@@ -59,8 +60,9 @@ async function resolveUserId(supabase: any, data: any): Promise<string | null> {
   }
   const email = data.customer?.email;
   if (email) {
-    const { data: byEmail } = await supabase
+    const { data: byEmail, error: byEmailErr } = await supabase
       .from("profiles").select("id").ilike("email", email).limit(1).maybeSingle();
+    if (byEmailErr) throw new Error(`[cakto-webhook] resolveUserId: profiles by email: ${byEmailErr.message}`);
     if (byEmail?.id) return byEmail.id;
   }
   return null;
@@ -111,14 +113,20 @@ async function writeSubscription(
 
   const { data: existing } = await supabase
     .from("subscriptions")
-    .select("id")
+    .select("id, provider_subscription_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (existing?.id) {
-    const { error } = await supabase.from("subscriptions").update(row).eq("id", existing.id);
+    const patch: Record<string, unknown> = { ...row };
+    // subscription_created ja pode ter gravado o id real da subscription;
+    // purchase_approved traz o id da order. Nao regrava por cima.
+    if (existing.provider_subscription_id && existing.provider_subscription_id !== row.provider_subscription_id) {
+      delete patch.provider_subscription_id;
+    }
+    const { error } = await supabase.from("subscriptions").update(patch).eq("id", existing.id);
     if (error) throw new Error(`[cakto-webhook] ${tag}: subscriptions update: ${error.message}`);
   } else {
     const { error } = await supabase.from("subscriptions").insert(row);
@@ -204,6 +212,11 @@ export async function purchaseApproved(data: any): Promise<void> {
     return;
   }
 
+  if (!providerSubId(data)) {
+    console.error("[cakto-webhook] purchase_approved: sem id de order nem de subscription, noop");
+    return;
+  }
+
   await writeSubscription(supabase, userId, data, plan, cycle, "purchase_approved");
   await grantEntitlement(supabase, userId, plan, "purchase_approved");
 }
@@ -238,14 +251,14 @@ export async function subscriptionCreated(data: any): Promise<void> {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (selError) console.error("[cakto-webhook] subscription_created: falha ao buscar subscriptions:", selError.message);
+  if (selError) throw new Error(`[cakto-webhook] subscription_created: buscar subscriptions: ${selError.message}`);
 
   if (existing?.id) {
     const { error: updError } = await supabase
       .from("subscriptions")
       .update({ provider_subscription_id: subId, status: "active" })
       .eq("id", existing.id);
-    if (updError) console.error("[cakto-webhook] subscription_created: falha ao gravar provider_subscription_id:", updError.message);
+    if (updError) throw new Error(`[cakto-webhook] subscription_created: gravar provider_subscription_id: ${updError.message}`);
     return;
   }
 
