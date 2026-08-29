@@ -41,14 +41,18 @@
 
 ### Novos: `supabase/migrations/` (4 arquivos)
 
-O spec previa 3 migrations; o plano acrescenta uma 4a só de agregação de leitura para o Dashboard (`20260829100300`). Sem impacto no escopo; registrado no `ADMIN_ARCHITECTURE.md` (Task 17).
+O spec previa 3 migrations; o plano acrescenta uma 4a só de agregação de leitura para o Dashboard (`20260829130300`). Sem impacto no escopo; registrado no `ADMIN_ARCHITECTURE.md` (Task 17).
+
+Numeração `20260829130xxx` fica **depois** da última migration já versionada (`20260829120000_subscriptions_installments.sql`), evitando `--include-all` no `supabase db push`.
+
+Os arquivos de asserção psql ficam em **`supabase/tests/manual/`** (não em `supabase/migrations/`, senão o CLI os trataria como migrations e os executaria no `db reset`/`db push`). São rodados à mão com `psql -f` depois de um `supabase db reset`.
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `20260829100000_admin_rbac_foundation.sql` | Tabelas `admin_accounts`, `admin_roles`, `admin_permissions`, `admin_role_permissions`, `admin_user_roles`. Funções de leitura (`admin_current_account`, `admin_is_active`, `admin_has_permission`). Redefine `is_current_user_admin()`. Seed de cargos, permissões e matriz. RLS. |
-| `20260829100100_admin_audit_and_mutations.sql` | Tabela `admin_audit_log` (append-only: trigger anti-update/delete + revokes). Helper `admin_audit_write`. Funções de mutação `admin_invite`, `admin_suspend`, `admin_reactivate`, `admin_assign_role`, `admin_revoke_role` (mudança + auditoria atômicas). |
-| `20260829100200_admin_bootstrap_and_cleanup.sql` | Bootstrap de `contatogivaldo@outlook.com` como `SUPER_ADMIN`. Limpa e-mails de teste. `DROP TABLE admin_users`. `DROP FUNCTION get_admin_*`. |
-| `20260829100300_admin_dashboard_summary.sql` | `admin_dashboard_summary(p_from, p_to)`: agregação do Dashboard executivo, com métricas sem fonte marcadas `available:false`. |
+| `20260829130000_admin_rbac_foundation.sql` | Tabelas `admin_accounts`, `admin_roles`, `admin_permissions`, `admin_role_permissions`, `admin_user_roles`. Funções de leitura (`admin_current_account`, `admin_is_active`, `admin_has_permission`). Redefine `is_current_user_admin()`. Seed de cargos, permissões e matriz. RLS. |
+| `20260829130100_admin_audit_and_mutations.sql` | Tabela `admin_audit_log` (append-only: trigger anti-update/delete + revokes). Helper `admin_audit_write`. Funções de mutação `admin_invite`, `admin_suspend`, `admin_reactivate`, `admin_assign_role`, `admin_revoke_role` (mudança + auditoria atômicas). |
+| `20260829130200_admin_bootstrap_and_cleanup.sql` | Bootstrap de `contatogivaldo@outlook.com` como `SUPER_ADMIN`. Limpa e-mails de teste. `DROP TABLE admin_users`. `DROP FUNCTION get_admin_*`. |
+| `20260829130300_admin_dashboard_summary.sql` | `admin_dashboard_summary(p_from, p_to)`: agregação do Dashboard executivo, com métricas sem fonte marcadas `available:false`. |
 
 ### Novos: `supabase/functions/admin-api/`
 
@@ -326,8 +330,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ## Task 2: Migration 1, fundação do RBAC
 
 **Files:**
-- Create: `supabase/migrations/20260829100000_admin_rbac_foundation.sql`
-- Test: `supabase/migrations/20260829100000_admin_rbac_foundation.test.sql` (asserções psql, rodadas manualmente contra `supabase db reset` local; ver Step 2)
+- Create: `supabase/migrations/20260829130000_admin_rbac_foundation.sql`
+- Test: `supabase/tests/manual/20260829130000_admin_rbac_foundation.test.sql` (asserções psql, rodadas manualmente contra `supabase db reset` local; ver Step 2)
 
 **Interfaces:**
 - Produces (SQL, schema `public`):
@@ -337,7 +341,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
   - `admin_has_permission(perm text) returns boolean`
   - `is_current_user_admin() returns boolean` (redefinida)
 
-- [ ] **Step 1: Escrever o arquivo de teste** `supabase/migrations/20260829100000_admin_rbac_foundation.test.sql`
+- [ ] **Step 1: Escrever o arquivo de teste** `supabase/tests/manual/20260829130000_admin_rbac_foundation.test.sql`
 
 ```sql
 -- Rodar apos `supabase db reset` (que aplica todas as migrations).
@@ -358,11 +362,17 @@ begin
     'DEVELOPER nao pode ter users.suspend';
   assert not exists (select 1 from admin_role_permissions where role_key = 'SUPPORT' and permission_key = 'users.impersonate'),
     'SUPPORT nao pode ter users.impersonate no seed';
-  -- RLS ligado
-  assert (select relrowsecurity from pg_class where oid = 'public.admin_accounts'::regclass), 'RLS off em admin_accounts';
-  assert (select relrowsecurity from pg_class where oid = 'public.admin_audit_log'::regclass) is not null
-    or true, 'ok';
-  -- funcao redefinida
+  assert (select count(*) from admin_role_permissions where role_key = 'SUPPORT') = 22,
+    'SUPPORT deve ter 22 permissoes';
+  assert (select count(*) from admin_role_permissions where role_key = 'DEVELOPER') = 14,
+    'DEVELOPER deve ter 14 permissoes';
+  -- RLS ligado nas 5 tabelas do RBAC
+  assert (select bool_and(relrowsecurity) from pg_class
+          where oid in ('public.admin_accounts'::regclass, 'public.admin_roles'::regclass,
+                        'public.admin_permissions'::regclass, 'public.admin_role_permissions'::regclass,
+                        'public.admin_user_roles'::regclass)),
+    'RLS deve estar ligado nas 5 tabelas do RBAC';
+  -- funcoes
   assert exists (select 1 from pg_proc where proname = 'is_current_user_admin'), 'is_current_user_admin sumiu';
   assert exists (select 1 from pg_proc where proname = 'admin_has_permission'), 'admin_has_permission ausente';
   raise notice 'PASS migration 1';
@@ -374,13 +384,13 @@ end $$;
 Run:
 ```bash
 supabase db reset            # aplica migrations; ainda sem a migration 1 -> tabelas nao existem
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100000_admin_rbac_foundation.test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130000_admin_rbac_foundation.test.sql
 ```
 Expected: erro `relation "admin_roles" does not exist`.
 
 > Se `supabase` CLI / Postgres local não estiverem disponíveis no ambiente de execução, marque este passo como "verificado por inspeção do SQL" e registre no commit. A validação real roda no deploy (ordem na seção Deploy do spec).
 
-- [ ] **Step 3: Escrever a migration** `supabase/migrations/20260829100000_admin_rbac_foundation.sql`
+- [ ] **Step 3: Escrever a migration** `supabase/migrations/20260829130000_admin_rbac_foundation.sql`
 
 ```sql
 -- SP1 Fundacao do painel admin. Substitui admin_users solto de supabase_admin_setup.sql.
@@ -481,7 +491,7 @@ insert into public.admin_roles (key, label, description, is_system) values
   ('SUPPORT','Suporte','Operacao de usuarios, promocoes, links, envios e suporte.',true),
   ('DEVELOPER','Desenvolvedor','Logs, erros, jobs, filas, webhooks, integracoes e system health.',true),
   ('ANALYST','Analista','Leitura de dashboard, analytics e metricas.',true)
-on conflict (key) do update set label = excluded.label, description = excluded.description;
+on conflict (key) do update set label = excluded.label, description = excluded.description, is_system = excluded.is_system;
 
 -- Seed: permissoes (49, casa com shared/admin-permissions.ts)
 insert into public.admin_permissions (key, grp, description) values
@@ -534,7 +544,7 @@ insert into public.admin_permissions (key, grp, description) values
   ('admins.manage','administration','admins.manage'),
   ('roles.read','administration','roles.read'),
   ('roles.manage','administration','roles.manage')
-on conflict (key) do update set grp = excluded.grp;
+on conflict (key) do update set grp = excluded.grp, description = excluded.description;
 
 -- Seed: matriz. SUPER_ADMIN = todas.
 insert into public.admin_role_permissions (role_key, permission_key)
@@ -592,7 +602,7 @@ create policy admin_role_permissions_read on public.admin_role_permissions
 Run:
 ```bash
 supabase db reset
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100000_admin_rbac_foundation.test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130000_admin_rbac_foundation.test.sql
 ```
 Expected: `NOTICE: PASS migration 1`, sem erro.
 
@@ -607,7 +617,7 @@ supabase gen types typescript --local > shared/database.types.ts
 - [ ] **Step 6: Commit**
 
 ```bash
-git add supabase/migrations/20260829100000_admin_rbac_foundation.sql supabase/migrations/20260829100000_admin_rbac_foundation.test.sql shared/database.types.ts
+git add supabase/migrations/20260829130000_admin_rbac_foundation.sql supabase/tests/manual/20260829130000_admin_rbac_foundation.test.sql shared/database.types.ts
 git commit -m "feat(admin): migration da fundacao do RBAC (tabelas, funcoes, seed)
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -618,8 +628,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ## Task 3: Migration 2, Audit Log imutável e funções de mutação
 
 **Files:**
-- Create: `supabase/migrations/20260829100100_admin_audit_and_mutations.sql`
-- Test: `supabase/migrations/20260829100100_admin_audit_and_mutations.test.sql`
+- Create: `supabase/migrations/20260829130100_admin_audit_and_mutations.sql`
+- Test: `supabase/tests/manual/20260829130100_admin_audit_and_mutations.test.sql`
 
 **Interfaces:**
 - Consumes: tabelas e funções da Task 2.
@@ -633,7 +643,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
   - `admin_revoke_role(p_actor uuid, p_target uuid, p_role_key text, p_ctx jsonb) returns jsonb` — erro `'LAST_SUPER_ADMIN'`, `'NOT_FOUND'`.
   - Convenção de retorno: `jsonb` com o registro resultante (ou `{ "ok": true }`). Convenção de erro: `raise exception '%', message using errcode = '<CODE>'` onde `<CODE>` é uma das strings acima; `_lib.ts`/handlers mapeiam para HTTP.
 
-- [ ] **Step 1: Escrever o teste** `supabase/migrations/20260829100100_admin_audit_and_mutations.test.sql`
+- [ ] **Step 1: Escrever o teste** `supabase/tests/manual/20260829130100_admin_audit_and_mutations.test.sql`
 
 ```sql
 -- psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f este_arquivo.sql
@@ -699,10 +709,10 @@ end $$;
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100100_admin_audit_and_mutations.test.sql`
+Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130100_admin_audit_and_mutations.test.sql`
 Expected: erro `function public.admin_invite(...) does not exist`. (Ou "verificado por inspeção" se sem CLI.)
 
-- [ ] **Step 3: Escrever a migration** `supabase/migrations/20260829100100_admin_audit_and_mutations.sql`
+- [ ] **Step 3: Escrever a migration** `supabase/migrations/20260829130100_admin_audit_and_mutations.sql`
 
 ```sql
 -- SP1: Audit Log imutavel + funcoes de mutacao (mudanca + auditoria atomicas).
@@ -911,7 +921,7 @@ grant execute on function public.admin_revoke_role(uuid, uuid, text, jsonb) to s
 
 - [ ] **Step 4: Rodar e confirmar que passa**
 
-Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100100_admin_audit_and_mutations.test.sql`
+Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130100_admin_audit_and_mutations.test.sql`
 Expected: `NOTICE: PASS migration 2`.
 
 - [ ] **Step 5: Regenerar tipos** (mesmo comando da Task 2 Step 5).
@@ -919,7 +929,7 @@ Expected: `NOTICE: PASS migration 2`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add supabase/migrations/20260829100100_admin_audit_and_mutations.sql supabase/migrations/20260829100100_admin_audit_and_mutations.test.sql shared/database.types.ts
+git add supabase/migrations/20260829130100_admin_audit_and_mutations.sql supabase/tests/manual/20260829130100_admin_audit_and_mutations.test.sql shared/database.types.ts
 git commit -m "feat(admin): audit log imutavel e funcoes de mutacao atomicas
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -930,13 +940,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ## Task 4: Migration 3, bootstrap do SUPER_ADMIN e limpeza do admin antigo
 
 **Files:**
-- Create: `supabase/migrations/20260829100200_admin_bootstrap_and_cleanup.sql`
+- Create: `supabase/migrations/20260829130200_admin_bootstrap_and_cleanup.sql`
 
 **Interfaces:**
 - Consumes: tabelas/funções das Tasks 2 e 3.
 - Produces: linha `admin_accounts` para `contatogivaldo@outlook.com` com cargo `SUPER_ADMIN` (se a conta `auth.users` existir). `admin_users` (tabela antiga) dropada. `get_admin_dashboard_stats`, `get_admin_recent_users`, `get_admin_recent_offers`, `get_admin_recent_dispatches`, `get_admin_channels`, `get_admin_api_keys` dropadas.
 
-- [ ] **Step 1: Escrever a migration** `supabase/migrations/20260829100200_admin_bootstrap_and_cleanup.sql`
+- [ ] **Step 1: Escrever a migration** `supabase/migrations/20260829130200_admin_bootstrap_and_cleanup.sql`
 
 ```sql
 -- SP1: bootstrap do primeiro SUPER_ADMIN + limpeza do admin legado.
@@ -1000,7 +1010,7 @@ psql "$SUPABASE_DB_URL" -c "select proname from pg_proc where proname like 'get_
 - [ ] **Step 4: Commit**
 
 ```bash
-git add supabase/migrations/20260829100200_admin_bootstrap_and_cleanup.sql
+git add supabase/migrations/20260829130200_admin_bootstrap_and_cleanup.sql
 git commit -m "feat(admin): bootstrap do SUPER_ADMIN e remocao do admin legado
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -1379,8 +1389,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `supabase/functions/admin-api/handlers/dashboard.ts`
 - Modify: `supabase/functions/admin-api/index.ts` (registrar handler)
-- Create: `supabase/migrations/20260829100300_admin_dashboard_summary.sql`
-- Create: `supabase/migrations/20260829100300_admin_dashboard_summary.test.sql`
+- Create: `supabase/migrations/20260829130300_admin_dashboard_summary.sql`
+- Create: `supabase/tests/manual/20260829130300_admin_dashboard_summary.test.sql`
 - Test: `supabase/functions/admin-api/handlers/dashboard_test.ts`
 
 **Interfaces:**
@@ -1390,7 +1400,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
   - `handlers/dashboard.ts`: `summary: Handler`. `params`: `{ range?: 'today'|'7d'|'30d'|'90d'|'custom', from?: string, to?: string }`. Resolve `range` para `[from,to]` (default `7d`), chama a RPC, devolve o jsonb. Métricas conhecidas sem fonte (`jobs_failed`, `jobs_pending`, `queue_depth`, `services_degraded`, `errors_24h`, `webhooks_failed`) já vêm `available:false` da RPC; o handler não inventa nada.
   - `METRIC_LABELS: Record<string, string>` exportado (rótulos pt-BR para a UI).
 
-- [ ] **Step 1: Escrever `20260829100300_admin_dashboard_summary.test.sql`**
+- [ ] **Step 1: Escrever `20260829130300_admin_dashboard_summary.test.sql`**
 
 ```sql
 do $$
@@ -1410,10 +1420,10 @@ end $$;
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100300_admin_dashboard_summary.test.sql`
+Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130300_admin_dashboard_summary.test.sql`
 Expected: `function public.admin_dashboard_summary(...) does not exist`.
 
-- [ ] **Step 3: Escrever `20260829100300_admin_dashboard_summary.sql`**
+- [ ] **Step 3: Escrever `20260829130300_admin_dashboard_summary.sql`**
 
 ```sql
 -- SP1: agregacao do dashboard executivo. Metricas sem fonte real vem available:false.
@@ -1496,7 +1506,7 @@ grant execute on function public.admin_dashboard_summary(timestamptz, timestampt
 
 - [ ] **Step 4: Rodar e confirmar que passa**
 
-Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260829100300_admin_dashboard_summary.test.sql`
+Run: `supabase db reset && psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20260829130300_admin_dashboard_summary.test.sql`
 Expected: `NOTICE: PASS dashboard summary`.
 
 - [ ] **Step 5: Escrever `handlers/dashboard_test.ts`**
@@ -1596,7 +1606,7 @@ Expected: PASS, sem erro de tipo.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add supabase/functions/admin-api/ supabase/migrations/20260829100300_admin_dashboard_summary.sql supabase/migrations/20260829100300_admin_dashboard_summary.test.sql
+git add supabase/functions/admin-api/ supabase/migrations/20260829130300_admin_dashboard_summary.sql supabase/tests/manual/20260829130300_admin_dashboard_summary.test.sql
 git commit -m "feat(admin-api): dashboard/summary com metricas reais e indisponiveis marcadas
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
@@ -3431,8 +3441,8 @@ Conteúdo mínimo: diagrama textual (app `src/` e app `admin/` compartilham o me
 - [ ] **Step 2: `ADMIN_DEPLOYMENT.md`**
 
 Passo a passo, na ordem da seção 12 do spec:
-1. Aplicar as 4 migrations (`20260829100000`..`20260829100300`) via `supabase db push` ou pelo dashboard. Conferir `NOTICE` do bootstrap.
-2. Pré-requisito do bootstrap: confirmar `select id from auth.users where email='contatogivaldo@outlook.com';` retorna linha. Se não, criar/entrar com a conta no app do cliente primeiro, depois reaplicar a migration `20260829100200` (ou rodar o bloco `do $$ ... $$` à mão).
+1. Aplicar as 4 migrations (`20260829130000`..`20260829130300`) via `supabase db push` ou pelo dashboard. Conferir `NOTICE` do bootstrap.
+2. Pré-requisito do bootstrap: confirmar `select id from auth.users where email='contatogivaldo@outlook.com';` retorna linha. Se não, criar/entrar com a conta no app do cliente primeiro, depois reaplicar a migration `20260829130200` (ou rodar o bloco `do $$ ... $$` à mão).
 3. `supabase functions deploy admin-api`. Secrets necessárias: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `ENVIRONMENT=production`.
 4. Confirmar MFA TOTP habilitado em Authentication → MFA no dashboard Supabase (padrão ligado).
 5. Vercel: novo projeto, root `admin/`, build `npm run build`, output `dist`. Env: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_API_URL`, `VITE_ADMIN_HOSTNAME=admin.aflyo.com.br`.
@@ -3523,7 +3533,7 @@ Editar `C:\Users\Tuik\.claude\projects\d--ofertapro\memory\project_admin_panel.m
 | Seção 12 ordem de deploy + config externa | 17 (`ADMIN_DEPLOYMENT.md`) |
 | Seção 13 dev local | 9 (porta 5273), 17 |
 
-Observação: o spec previa **3** migrations; o plano tem **4** (`20260829100300_admin_dashboard_summary.sql` é a extra). É agregação de leitura, coerente com o SP1; a Task 17 registra isso no `ADMIN_ARCHITECTURE.md`. Sem lacuna funcional.
+Observação: o spec previa **3** migrations; o plano tem **4** (`20260829130300_admin_dashboard_summary.sql` é a extra). É agregação de leitura, coerente com o SP1; a Task 17 registra isso no `ADMIN_ARCHITECTURE.md`. Sem lacuna funcional.
 
 **2. Placeholders:** os "colar aqui o objeto `theme.extend`" (Task 9) e "porte enxuto do ToastContext" (Task 11 Step 4) são instruções de cópia de origem citada (arquivo e função exatos), não TODOs abertos. O `ADMIN_OPERATIONS.md` tem placeholders **intencionais e rotulados** ("a partir do SP2"). Nenhum "TBD"/"implementar depois" real.
 
