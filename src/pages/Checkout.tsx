@@ -5,6 +5,7 @@ import {
   getSku,
   PLAN_LABELS,
   FEATURES_BY_PLAN,
+  CAKTO_CARD_FEE,
   type PlanCode,
 } from '../config/planCatalog';
 import { useSubscription } from '../hooks/useSubscription';
@@ -199,9 +200,21 @@ export default function Checkout() {
                 </li>
               ))}
             </ul>
-            <div className="flex items-baseline justify-between pt-[18px] border-t border-mint-400/15">
-              <span className="text-[0.8125rem] text-white/70">Total hoje</span>
-              <span className="font-display text-[1.375rem] font-semibold">{money(sku.price)}</span>
+            <div className="space-y-1.5 pt-[18px] border-t border-mint-400/15">
+              <div className="flex items-baseline justify-between text-[0.8125rem] text-white/55">
+                <span>Plano {PLAN_LABELS[plan]}</span>
+                <span>{money(sku.price)}</span>
+              </div>
+              {CAKTO_CARD_FEE > 0 && (
+                <div className="flex items-baseline justify-between text-[0.8125rem] text-white/55">
+                  <span>Taxa de processamento</span>
+                  <span>{money(CAKTO_CARD_FEE)}</span>
+                </div>
+              )}
+              <div className="flex items-baseline justify-between pt-1.5">
+                <span className="text-[0.8125rem] text-white/70">Total hoje</span>
+                <span className="font-display text-[1.375rem] font-semibold">{money(sku.price + CAKTO_CARD_FEE)}</span>
+              </div>
             </div>
             <div className="mt-2 text-xs text-white/40">
               Renova dia {nextBillingLabel}. Cancela quando quiser, sem pegadinha.
