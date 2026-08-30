@@ -76,21 +76,24 @@ export function makeSupabaseDeps(): RbacDeps {
     },
     async loadAdmin(userId) {
       const svc = serviceClient();
-      const { data: acc } = await svc
+      const { data: acc, error: accErr } = await svc
         .from('admin_accounts')
         .select('id, status')
         .eq('user_id', userId)
         .maybeSingle();
+      if (accErr) throw new RbacError('internal', 'Falha ao carregar a conta administrativa.');
       if (!acc) return null;
-      const { data: roles } = await svc
+      const { data: roles, error: rolesErr } = await svc
         .from('admin_user_roles')
         .select('role_key')
         .eq('admin_id', acc.id);
+      if (rolesErr) throw new RbacError('internal', 'Falha ao carregar os cargos.');
       const roleKeys = (roles ?? []).map((r: { role_key: string }) => r.role_key);
-      const { data: perms } = await svc
+      const { data: perms, error: permsErr } = await svc
         .from('admin_role_permissions')
         .select('permission_key')
         .in('role_key', roleKeys.length ? roleKeys : ['__none__']);
+      if (permsErr) throw new RbacError('internal', 'Falha ao carregar as permissoes.');
       return {
         adminId: acc.id,
         status: acc.status,

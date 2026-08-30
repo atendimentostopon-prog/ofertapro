@@ -1,13 +1,18 @@
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const DEV = Deno.env.get('ENVIRONMENT') === 'dev';
-const ALLOWED_ORIGINS = DEV
-  ? ['https://admin.aflyo.com.br', 'http://localhost:5273']
-  : ['https://admin.aflyo.com.br'];
+// Lazy: nao ler Deno.env no top level (forcaria --allow-env em todo teste que
+// importe este modulo transitivamente).
+function allowedOrigins(): string[] {
+  const dev = Deno.env.get('ENVIRONMENT') === 'dev';
+  return dev
+    ? ['https://admin.aflyo.com.br', 'http://localhost:5273']
+    : ['https://admin.aflyo.com.br'];
+}
 
 export function corsHeaders(req: Request): Record<string, string> {
+  const origins = allowedOrigins();
   const origin = req.headers.get('Origin') ?? '';
-  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allow = origins.includes(origin) ? origin : origins[0];
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-request-id',
@@ -25,15 +30,19 @@ export const STATUS_BY_CODE: Record<ErrorCode, number> = {
   validation: 422, rate_limited: 429, internal: 500,
 };
 
-export function json(data: unknown, status: number, req: Request): Response {
+export function json(data: unknown, status: number, req: Request, requestId?: string): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders(req), 'Content-Type': 'application/json', 'X-Request-Id': getRequestContext(req).request_id },
+    headers: {
+      ...corsHeaders(req),
+      'Content-Type': 'application/json',
+      'X-Request-Id': requestId ?? getRequestContext(req).request_id,
+    },
   });
 }
 
-export function errorResponse(code: ErrorCode, message: string, req: Request): Response {
-  return json({ error: { code, message } }, STATUS_BY_CODE[code], req);
+export function errorResponse(code: ErrorCode, message: string, req: Request, requestId?: string): Response {
+  return json({ error: { code, message } }, STATUS_BY_CODE[code], req, requestId);
 }
 
 export function serviceClient(): SupabaseClient {
