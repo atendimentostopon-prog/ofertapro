@@ -17,7 +17,7 @@ import Feedbacks from './pages/Feedbacks';
 import PublicPage from './pages/PublicPage';
 import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminMoved from './pages/AdminMoved';
 import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
 import { supabase } from './lib/supabase';
@@ -280,6 +280,10 @@ const App: React.FC = () => {
               Faz o próprio gate de autenticação dentro do componente. */}
           <Route path="/checkout" element={<Checkout />} />
 
+          {/* /admin saiu do app do cliente: agora e app propria em admin.aflyo.com.br.
+              Este endereco vira um 404 dedicado, sem redirect e sem link. */}
+          <Route path="/admin" element={<AdminMoved />} />
+
           {/* Protected routes */}
           <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -290,7 +294,6 @@ const App: React.FC = () => {
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/feedbacks" element={<Feedbacks />} />
-            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/pricing" element={<Pricing />} />
           </Route>
 
