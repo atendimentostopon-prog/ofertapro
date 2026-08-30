@@ -29,12 +29,22 @@ const statusConfig: Record<string, { label: string; className: string; dot: stri
   paused:       { label: 'Pausado',      className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
   draft:        { label: 'Rascunho',     className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
   connected:    { label: 'Conectado',    className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
+  open:         { label: 'Conectado',    className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
   disconnected: { label: 'Desconectado', className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
+  close:        { label: 'Desconectado', className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
+  closed:       { label: 'Desconectado', className: 'bg-surface-1 text-ink-secondary border-line',      dot: 'bg-ink-tertiary' },
+  pending:      { label: 'Pendente',     className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
+  connecting:   { label: 'Conectando',   className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
+  qrcode:       { label: 'Aguardando QR', className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
+  creating:     { label: 'Criando',      className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
+  created:      { label: 'Pendente',     className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
   error:        { label: 'Erro',         className: 'bg-danger-bg text-danger-ink border-danger/20',    dot: 'bg-danger' },
   failed:       { label: 'Erro',         className: 'bg-danger-bg text-danger-ink border-danger/20',    dot: 'bg-danger' },
   success:      { label: 'Enviado',      className: 'bg-success-bg text-success-ink border-success/20', dot: 'bg-success' },
   partial:      { label: 'Parcial',      className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' },
 };
+
+const FALLBACK_STATUS = { label: 'Pendente', className: 'bg-warning-bg text-warning-ink border-warning/20', dot: 'bg-warning' };
 
 const channelConfig: Record<string, { className: string; label: string; logo: string; emoji: string }> = {
   whatsapp: { className: 'bg-ice text-mint-800 border-mint-200',    label: 'WhatsApp', logo: getChannelLogoSrc('whatsapp'), emoji: '💬' },
@@ -92,8 +102,7 @@ const Badge: React.FC<BadgeProps> = (props) => {
     }
 
     if (type === 'status') {
-      const config = statusConfig[value];
-      if (!config) return null;
+      const config = statusConfig[value] ?? statusConfig[String(value ?? '').toLowerCase()] ?? FALLBACK_STATUS;
       return (
         <span className={`inline-flex items-center gap-1.5 font-medium rounded-full border ${config.className} ${sizeClass}`}>
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${config.dot}`} />
