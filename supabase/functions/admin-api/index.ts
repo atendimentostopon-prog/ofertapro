@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders, errorResponse, getRequestContext, json } from './_lib.ts';
 import { authorize, requirePermission, RbacError, makeSupabaseDeps, type AdminIdentity } from './rbac.ts';
 import type { AuditContext } from './audit.ts';
+import * as dashboard from './handlers/dashboard.ts';
 
 export type Handler = (
   params: Record<string, unknown>,
@@ -14,6 +15,9 @@ export type HandlerMap = Record<string, Record<string, { permission: string; han
 const HANDLERS: HandlerMap = {
   ping: {
     read: { permission: 'dashboard.read', handler: async () => ({ pong: true }) },
+  },
+  dashboard: {
+    summary: { permission: 'dashboard.read', handler: dashboard.summary },
   },
 };
 
