@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
+import { X } from 'lucide-react';
 import { ROLES } from '../../lib/roles';
 import { callAdminApi } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useToast } from '../../context/ToastContext';
 import { hasPermission } from '../../lib/permissions';
+import { permLabel, groupLabel, PERMISSION_ORDER } from '../../lib/permission-labels';
 import { Badge } from '../../components/ui/Badge';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { ErrorState } from '../../components/ui/ErrorState';
@@ -12,8 +14,77 @@ import { ErrorState } from '../../components/ui/ErrorState';
 type RoleRow = { key: string; label: string; description: string; permissions: string[] };
 type PermRow = { key: string; grp: string; description: string };
 type RolesPayload = { roles: RoleRow[]; permissions: PermRow[] };
-
 type AdminRow = { id: string; email: string; roleKeys: string[] };
+
+// Ordem de exibicao dos cards, do mais poderoso pro menos.
+const ROLE_RANK: Record<string, number> = { SUPER_ADMIN: 0, SUPPORT: 1, DEVELOPER: 2, ANALYST: 3 };
+const permRank = (k: string) => {
+  const i = PERMISSION_ORDER.indexOf(k);
+  return i === -1 ? 999 : i;
+};
+
+function RoleCard({ role, grpByPerm }: { role: RoleRow; grpByPerm: Map<string, string> }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const groups = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const p of [...role.permissions].sort((a, b) => permRank(a) - permRank(b))) {
+      const g = grpByPerm.get(p) ?? 'outros';
+      const arr = m.get(g) ?? [];
+      arr.push(p);
+      m.set(g, arr);
+    }
+    return [...m.entries()];
+  }, [role.permissions, grpByPerm]);
+
+  const long = role.permissions.length > 12;
+  const shown = long && !expanded ? groups.slice(0, 2) : groups;
+
+  return (
+    <div className="rounded-xl border border-line bg-surface-0 p-4 shadow-card">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h2 className="font-display text-sm font-bold text-ink">{role.label}</h2>
+          {role.description && <p className="mt-0.5 text-xs text-ink-secondary">{role.description}</p>}
+        </div>
+        <Badge>{role.key}</Badge>
+      </div>
+
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
+        {role.permissions.length} {role.permissions.length === 1 ? 'permissão' : 'permissões'}
+      </p>
+
+      <div className="mt-2 space-y-3">
+        {shown.map(([grp, perms]) => (
+          <div key={grp}>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">{groupLabel(grp)}</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {perms.map((p) => (
+                <span
+                  key={p}
+                  title={p}
+                  className="rounded-md bg-surface-1 px-1.5 py-0.5 text-[11px] text-ink-secondary"
+                >
+                  {permLabel(p)}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {long && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-3 text-xs font-semibold text-ink-secondary underline"
+        >
+          {expanded ? 'ver menos' : `ver todas as ${role.permissions.length}`}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function RolesList() {
   const { identity } = useAdminAuth();
@@ -35,10 +106,14 @@ export default function RolesList() {
     return map;
   }, [data]);
 
+  const sortedRoles = useMemo(
+    () => [...(data?.roles ?? [])].sort((a, b) => (ROLE_RANK[a.key] ?? 9) - (ROLE_RANK[b.key] ?? 9)),
+    [data],
+  );
+
   const [adminId, setAdminId] = useState('');
   const [roleKey, setRoleKey] = useState('');
   const [busy, setBusy] = useState(false);
-
   const selectedAdmin = (adminsData?.admins ?? []).find((a) => a.id === adminId) ?? null;
 
   const runMutation = useCallback(
@@ -47,11 +122,11 @@ export default function RolesList() {
       setBusy(true);
       try {
         await callAdminApi('roles', action, { adminId, roleKey: rk });
-        toast(action === 'assign' ? 'Cargo atribuido.' : 'Cargo revogado.', 'success');
+        toast(action === 'assign' ? 'Cargo atribuído.' : 'Cargo revogado.', 'success');
         reload();
         reloadAdmins();
       } catch (e) {
-        toast(e instanceof Error ? e.message : 'Falha na operacao.', 'error');
+        toast(e instanceof Error ? e.message : 'Falha na operação.', 'error');
       } finally {
         setBusy(false);
       }
@@ -66,62 +141,35 @@ export default function RolesList() {
       <header>
         <h1 className="font-display text-xl font-bold text-ink">Cargos</h1>
         <p className="mt-1 text-sm text-ink-secondary">
-          Os 4 cargos do painel e as permissoes de cada um.
+          Os 4 cargos do painel e as permissões de cada um.
         </p>
       </header>
 
       {loading && (
         <div className="grid gap-3 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-40 w-full" />
+            <Skeleton key={i} className="h-48 w-full" />
           ))}
         </div>
       )}
 
       {!loading && data && (
         <div className="grid gap-3 md:grid-cols-2">
-          {data.roles.map((role) => {
-            const groups = new Map<string, string[]>();
-            for (const perm of role.permissions) {
-              const grp = grpByPerm.get(perm) ?? 'outros';
-              const arr = groups.get(grp) ?? [];
-              arr.push(perm);
-              groups.set(grp, arr);
-            }
-            return (
-              <div key={role.key} className="rounded-xl border border-line bg-surface-0 p-4 shadow-card">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-display text-sm font-bold text-ink">{role.label}</h2>
-                  <Badge>{role.key}</Badge>
-                </div>
-                {role.description && (
-                  <p className="mt-1 text-xs text-ink-secondary">{role.description}</p>
-                )}
-                <div className="mt-3 space-y-2">
-                  {[...groups.entries()].map(([grp, perms]) => (
-                    <div key={grp}>
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">{grp}</p>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {perms.map((p) => (
-                          <span key={p} className="rounded-md bg-surface-1 px-1.5 py-0.5 font-mono text-[11px] text-ink-secondary">
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {sortedRoles.map((role) => (
+            <RoleCard key={role.key} role={role} grpByPerm={grpByPerm} />
+          ))}
         </div>
       )}
 
       {canManage && (
         <div className="rounded-xl border border-line bg-surface-0 p-4">
           <h2 className="font-display text-sm font-bold text-ink">Atribuir cargo</h2>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <label className="block">
+          <p className="mt-1 text-xs text-ink-secondary">
+            Escolha um administrador e o cargo. A mudança grava na auditoria.
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            <label className="flex flex-col">
               <span className="text-xs font-semibold text-ink-secondary">Administrador</span>
               <select
                 value={adminId}
@@ -134,7 +182,7 @@ export default function RolesList() {
                 ))}
               </select>
             </label>
-            <label className="block">
+            <label className="flex flex-col">
               <span className="text-xs font-semibold text-ink-secondary">Cargo</span>
               <select
                 value={roleKey}
@@ -158,22 +206,28 @@ export default function RolesList() {
           </div>
 
           {selectedAdmin && (
-            <div className="mt-4">
-              <p className="text-xs font-semibold text-ink-secondary">Cargos atuais de {selectedAdmin.email}</p>
+            <div className="mt-4 border-t border-line-subtle pt-4">
+              <p className="text-xs font-semibold text-ink-secondary">
+                Cargos atuais de {selectedAdmin.email}
+              </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {selectedAdmin.roleKeys.length === 0 && (
                   <span className="text-xs text-ink-tertiary">nenhum</span>
                 )}
                 {selectedAdmin.roleKeys.map((rk) => (
-                  <span key={rk} className="flex items-center gap-1.5 rounded-full border border-line bg-surface-1 px-2 py-0.5 text-[11px] font-semibold text-ink-secondary">
+                  <span
+                    key={rk}
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-1 py-0.5 pl-2 pr-1 text-[11px] font-semibold text-ink-secondary"
+                  >
                     {rk}
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => { void runMutation('revoke', rk); }}
-                      className="text-danger-ink hover:underline disabled:opacity-50"
+                      aria-label={`Revogar ${rk}`}
+                      className="rounded-full p-0.5 text-ink-tertiary transition-colors hover:bg-danger-bg hover:text-danger-ink disabled:opacity-50"
                     >
-                      revogar
+                      <X className="h-3 w-3" />
                     </button>
                   </span>
                 ))}
