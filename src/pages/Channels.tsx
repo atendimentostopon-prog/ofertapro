@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Wifi, WifiOff, Users, RefreshCw,
   MessageSquare, Send, Webhook, Trash2, MoreVertical, Shield, CheckCircle2, XCircle, Radio,
-  Loader2, QrCode, LogOut
+  Loader2, QrCode, LogOut, Copy, Check
 } from 'lucide-react';
 import type { ChannelType } from '../types';
 import Badge from '../components/Badge';
 import ConnectChannelModal from '../components/modals/ConnectChannelModal';
 import { supabase } from '../lib/supabase';
 import { testTelegramConnection, maskBotToken } from '../lib/telegram';
+import { maskWebhookUrl } from '../lib/format';
 import { FeedbackService } from '../services/FeedbackService';
 import { useUser } from '../context/UserContext';
 import { getPlanLimits, canConnectChannel } from '../config/plans';
@@ -58,6 +59,7 @@ const ChannelCard: React.FC<{
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
+  const [copiedIdentifier, setCopiedIdentifier] = useState(false);
   const cfg = channelTypeConfig[channel.type as ChannelType] || channelTypeConfig.telegram;
   const menuRef = useRef<HTMLDivElement>(null);
   const isActive = channel.status === 'connected' || channel.status === 'active';
@@ -90,9 +92,27 @@ const ChannelCard: React.FC<{
     ? new Date(channel.lastSync).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
     : 'Nunca';
 
-  const displayIdentifier = channel.identifier
-    ? (channel.type === 'telegram' ? `Chat: ${channel.identifier}` : channel.identifier)
+  const rawIdentifier: string | null = channel.identifier || null;
+  // Discord guarda a URL completa do webhook no identifier; nunca exibir em texto claro.
+  const isSecretIdentifier = channel.type === 'discord';
+  const displayIdentifier = rawIdentifier
+    ? channel.type === 'telegram'
+      ? `Chat: ${rawIdentifier}`
+      : isSecretIdentifier
+        ? maskWebhookUrl(rawIdentifier)
+        : rawIdentifier
     : null;
+
+  const handleCopyIdentifier = () => {
+    if (!rawIdentifier) return;
+    try {
+      navigator.clipboard.writeText(rawIdentifier);
+      setCopiedIdentifier(true);
+      setTimeout(() => setCopiedIdentifier(false), 2000);
+    } catch {
+      /* clipboard indisponível; silencioso */
+    }
+  };
 
   const handleTestTelegram = async () => {
     if (channel.type !== 'telegram') return;
@@ -195,8 +215,23 @@ const ChannelCard: React.FC<{
           </div>
 
           {displayIdentifier && (
-            <div className="mt-2 text-[10px] text-ink-tertiary font-mono truncate max-w-[220px]" title={displayIdentifier}>
-              {displayIdentifier}
+            <div className="mt-2 flex items-center gap-1.5 max-w-[240px]">
+              <span
+                className="text-[10px] text-ink-tertiary font-mono truncate"
+                title={isSecretIdentifier ? 'URL do webhook oculta por segurança' : displayIdentifier}
+              >
+                {displayIdentifier}
+              </span>
+              {isSecretIdentifier && (
+                <button
+                  onClick={handleCopyIdentifier}
+                  className="w-5 h-5 rounded-md border border-transparent hover:border-line hover:bg-surface-1 flex items-center justify-center flex-shrink-0 text-ink-tertiary hover:text-ink transition-colors cursor-pointer"
+                  aria-label="Copiar URL do webhook"
+                  title="Copiar URL do webhook"
+                >
+                  {copiedIdentifier ? <Check className="w-3 h-3 text-success-ink" /> : <Copy className="w-3 h-3" />}
+                </button>
+              )}
             </div>
           )}
 
