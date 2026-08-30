@@ -654,6 +654,7 @@ declare
   v_target_user uuid;
   v_target uuid;
   v_before_count int;
+  v_blocked boolean;
 begin
   -- fixtures: dois usuarios auth ficticios
   insert into auth.users (id, email) values (gen_random_uuid(), 'actor.test@aflyo.local')
@@ -674,31 +675,36 @@ begin
   select id into v_target from public.admin_accounts where email = 'target.test@aflyo.local';
   assert exists (select 1 from public.admin_user_roles where admin_id = v_target and role_key = 'DEVELOPER'), 'cargo atribuido';
 
-  -- audit log e append-only
+  -- audit log e append-only. Padrao: a op roda dentro de um sub-bloco que so
+  -- seta v_blocked no handler; o assert fica FORA do bloco, entao um
+  -- assert_failure nao e engolido pelo "when others".
+  v_blocked := false;
   begin
     update public.admin_audit_log set reason = 'x' where true;
-    assert false, 'UPDATE em admin_audit_log deveria falhar';
-  exception when others then null;
+  exception when others then v_blocked := true;
   end;
+  assert v_blocked, 'UPDATE em admin_audit_log deveria falhar';
+
+  v_blocked := false;
   begin
     delete from public.admin_audit_log where true;
-    assert false, 'DELETE em admin_audit_log deveria falhar';
-  exception when others then null;
+  exception when others then v_blocked := true;
   end;
+  assert v_blocked, 'DELETE em admin_audit_log deveria falhar';
 
-  -- nao pode suspender a si mesmo
+  v_blocked := false;
   begin
     perform public.admin_suspend(v_actor, v_actor, 'teste', '{}'::jsonb);
-    assert false, 'suspender a si mesmo deveria falhar';
-  exception when others then null;
+  exception when others then v_blocked := true;
   end;
+  assert v_blocked, 'suspender a si mesmo deveria falhar';
 
-  -- nao pode remover o ultimo SUPER_ADMIN
+  v_blocked := false;
   begin
     perform public.admin_revoke_role(v_actor, v_actor, 'SUPER_ADMIN', '{}'::jsonb);
-    assert false, 'remover ultimo SUPER_ADMIN deveria falhar';
-  exception when others then null;
+  exception when others then v_blocked := true;
   end;
+  assert v_blocked, 'remover ultimo SUPER_ADMIN deveria falhar';
 
   -- limpeza
   delete from public.admin_accounts where email in ('actor.test@aflyo.local','target.test@aflyo.local');
@@ -764,15 +770,23 @@ create or replace function public.admin_audit_write(
   p_before jsonb, p_after jsonb, p_reason text, p_ctx jsonb
 ) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare v_id uuid;
+declare
+  v_id uuid;
+  v_ip inet;
 begin
+  -- ip defensivo: um valor malformado no ctx nao pode abortar a mutacao inteira
+  begin
+    v_ip := nullif(p_ctx->>'ip', '')::inet;
+  exception when others then
+    v_ip := null;
+  end;
   insert into public.admin_audit_log
     (admin_id, admin_email, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id)
   values (
     p_admin_id,
     (select email from public.admin_accounts where id = p_admin_id),
     p_action, p_entity_type, p_entity_id, p_before, p_after, p_reason,
-    nullif(p_ctx->>'ip','')::inet, p_ctx->>'user_agent', p_ctx->>'request_id'
+    v_ip, p_ctx->>'user_agent', p_ctx->>'request_id'
   )
   returning id into v_id;
   return v_id;
