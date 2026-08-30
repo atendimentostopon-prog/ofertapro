@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Package, AlertCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { CATEGORIES } from '../lib/utils';
+import { pluralize } from '../lib/format';
 import type { Marketplace, OfferStatus } from '../types';
 import NewOfferModal from '../components/modals/NewOfferModal';
 import { useOffers } from '../hooks/useOffers';
@@ -187,7 +188,7 @@ const Offers: React.FC = () => {
     <div className="max-w-7xl mx-auto space-y-5 animate-slide-up">
       <PageHeader
         title="Minhas Ofertas"
-        description={`${filtered.length} oferta(s) encontrada(s)`}
+        description={`${pluralize(filtered.length, 'oferta encontrada', 'ofertas encontradas')}`}
       >
         <div className="flex gap-2">
           {filtered.length > 0 && (
@@ -232,22 +233,27 @@ const Offers: React.FC = () => {
             aria-label="Buscar ofertas"
           />
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             {/* Status Selector */}
-            <div className="tab-container overflow-x-auto scrollbar-none">
-              {(['all', 'active', 'paused', 'draft'] as const).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`tab-item flex items-center gap-1.5 ${statusFilter === s ? 'active' : ''}`}
-                >
-                  {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-                    statusFilter === s ? 'bg-ice text-mint-800' : 'bg-surface-1 text-ink-tertiary'
-                  }`}>{statusCounts[s]}</span>
-                </button>
-              ))}
+            <div
+              className="fade-scroll-x min-w-0 max-w-full"
+              style={{ '--fade-scroll-color': 'var(--surface-1)' } as React.CSSProperties}
+            >
+              <div className="tab-container overflow-x-auto scrollbar-none">
+                {(['all', 'active', 'paused', 'draft'] as const).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={`tab-item flex items-center gap-1.5 ${statusFilter === s ? 'active' : ''}`}
+                  >
+                    {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+                      statusFilter === s ? 'bg-ice text-mint-800' : 'bg-surface-1 text-ink-tertiary'
+                    }`}>{statusCounts[s]}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Marketplace Select */}
@@ -273,20 +279,22 @@ const Offers: React.FC = () => {
           </div>
 
           {/* Category Filter */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border cursor-pointer ${
-                  categoryFilter === cat
-                    ? 'bg-graphite text-ink-inverse border-graphite'
-                    : 'bg-surface-0 text-ink-secondary border-line hover:text-ink hover:border-line-strong'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="fade-scroll-x min-w-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border cursor-pointer ${
+                    categoryFilter === cat
+                      ? 'bg-graphite text-ink-inverse border-graphite'
+                      : 'bg-surface-0 text-ink-secondary border-line hover:text-ink hover:border-line-strong'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </Card>

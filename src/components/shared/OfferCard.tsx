@@ -97,11 +97,13 @@ const OfferCard: React.FC<OfferCardProps> = ({
           alt={offer.name}
           className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
         />
-        <div className="absolute top-3 left-3 z-10">
-          <span className="bg-danger text-ink-inverse text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
-            -{offer.discount}%
-          </span>
-        </div>
+        {offer.discount > 0 && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="bg-danger text-ink-inverse text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+              -{offer.discount}%
+            </span>
+          </div>
+        )}
         {offer.status === 'paused' && (
           <div className="absolute inset-0 bg-surface-0/70 backdrop-blur-xs flex items-center justify-center">
             <span className="bg-surface-0 border border-line text-ink text-[11px] font-semibold px-3 py-1.5 rounded-md shadow-sm flex items-center gap-1.5">
