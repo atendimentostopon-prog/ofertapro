@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useAsync<T>(
   fn: () => Promise<T>,
@@ -9,16 +9,13 @@ export function useAsync<T>(
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
 
-  const fnRef = useRef(fn);
-  fnRef.current = fn;
-
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setError(null);
     (async () => {
       try {
-        const res = await fnRef.current();
+        const res = await fn();
         if (alive) setData(res);
       } catch (e) {
         if (alive) setError(e instanceof Error ? e.message : String(e));
@@ -27,7 +24,8 @@ export function useAsync<T>(
       }
     })();
     return () => { alive = false; };
-    // deps sao controladas pelo caller; fn vem de ref pra nao re-disparar sozinho
+    // fn e capturado no run do effect; o caller mantem `deps` alinhado com o
+    // que a fn fecha (range, page, etc).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce]);
 
