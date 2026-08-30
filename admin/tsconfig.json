@@ -11,9 +11,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "vitest/globals"],
-    "paths": { "@shared/*": ["../shared/*"] }
+    "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src", "../shared"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "../shared/**/*.test.ts"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

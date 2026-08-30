@@ -62,9 +62,9 @@ export default function MfaEnroll() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-1 px-4">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-surface-0 p-8 shadow-card">
-        <h1 className="font-display text-lg font-bold text-ink">Ativar verificacao em duas etapas</h1>
+        <h1 className="font-display text-lg font-bold text-ink">Ativar verificação em duas etapas</h1>
         <p className="mt-1 text-xs text-ink-secondary">
-          Escaneie o QR code no seu app autenticador e informe o codigo de 6 digitos.
+          Escaneie o QR code no seu app autenticador e informe o código de 6 dígitos.
         </p>
 
         {enrolling && <p className="mt-6 text-xs text-ink-tertiary">Gerando o QR code...</p>}

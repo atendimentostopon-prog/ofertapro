@@ -14,6 +14,6 @@ describe('RequirePermission', () => {
   it('bloqueia quando falta', () => {
     render(<RequirePermission permission="admins.manage"><div>ok</div></RequirePermission>);
     expect(screen.queryByText('ok')).not.toBeInTheDocument();
-    expect(screen.getByText(/nao tem permissao/i)).toBeInTheDocument();
+    expect(screen.getByText(/não tem permissão/i)).toBeInTheDocument();
   });
 });

@@ -30,7 +30,7 @@ describe('Dashboard', () => {
     mockImpl = () => Promise.resolve(payload);
     render(<Dashboard />);
     await waitFor(() => expect(screen.getByText('1.200')).toBeInTheDocument());
-    expect(screen.getByText('Dados indisponiveis')).toBeInTheDocument();
+    expect(screen.getByText('Dados indisponíveis')).toBeInTheDocument();
   });
   it('mostra erro com retry', async () => {
     mockImpl = () => Promise.reject(new Error('falhou'));
