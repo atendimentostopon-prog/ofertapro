@@ -72,6 +72,11 @@ export const BillingTab: React.FC = () => {
             <h4 className="text-sm font-bold text-success-ink font-display">Plano Starter (cortesia)</h4>
             <p className="text-xs text-success-ink/80 mt-2">Você usa o {APP_NAME} por cortesia como usuário fundador. Uso vitalício, sem cobrança.</p>
           </div>
+        ) : !subscription && (user?.plan === 'pro' || user?.plan === 'enterprise') ? (
+          <div className="p-6 bg-success-bg border border-success/20 rounded-2xl">
+            <h4 className="text-sm font-bold text-success-ink font-display">Plano {PLAN_LABELS[user.plan as PlanCode]} (cortesia)</h4>
+            <p className="text-xs text-success-ink/80 mt-2">Acesso {PLAN_LABELS[user.plan as PlanCode]} liberado na sua conta, sem cobrança.</p>
+          </div>
         ) : !subscription ? (
           <div className="p-6 bg-surface-1 border border-line rounded-2xl">
             <h4 className="text-sm font-bold text-ink font-display">Sem plano ativo</h4>
