@@ -1,4 +1,4 @@
-# Painel Admin SP2, Usuarios (gerenciar contas de cliente) — design
+# Painel Admin SP2, Usuarios (gerenciar contas de cliente): design
 
 Data: 2026-08-31 (brainstorm em 2026-08-30 a noite)
 Status: aprovado (design), aguardando spec review + plano
@@ -263,7 +263,7 @@ nova (talvez um `Section`/`Field` helper leve se repetir muito; decidir no plano
 
 ## Testes (sem novos unit tests de componente alem do necessario)
 
-- Deno: `handlers/users_test.ts` — validacao de params (userId obrigatorio,
+- Deno: `handlers/users_test.ts`, validacao de params (userId obrigatorio,
   plan/days invalidos) com `serviceClient` fake; `_pg-errors` cobre os hints
   novos em `pg_errors_test.ts`.
 - Vitest: `permission-labels.test.ts` -> 50 chaves. `UsersList.test.tsx` (lista +
