@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TrendingUp, MousePointerClick, Package, Radio,
+  TrendingUp, MousePointerClick, Radio,
   Activity, Clock, ArrowUpRight, Lightbulb, BarChart3, Sparkles
 } from 'lucide-react';
 import {
@@ -50,7 +50,6 @@ const Dashboard: React.FC = () => {
     totalClicksToday,
     totalClicks7d,
     totalClicks30d,
-    activeOffers,
     connectedChannels,
     topOffers,
     topMarketplace,
@@ -101,11 +100,11 @@ const Dashboard: React.FC = () => {
     { label: '30 dias', value: totalClicks30d,   sub: 'cliques no mês',    icon: MousePointerClick, accent: 'text-info-ink' },
   ];
 
-  // Estado de "limite atingido" para os cards de uso (Ofertas / Canais)
-  const offersLimited = limits.maxOffers !== Infinity;
-  const offersAtLimit = offersLimited && activeOffers >= limits.maxOffers;
+  // Estado de "limite atingido" no card de Canais. O `&& channelLimit > 0` cobre
+  // o estado transiente (plano ainda carregando / desconhecido -> vira 'free' com
+  // tudo 0) que fazia o card mostrar "0 / 0 · Limite atingido".
   const channelLimit = limits.maxWhatsappConnections + limits.maxTelegramConnections;
-  const channelsLimited = limits.maxWhatsappConnections !== Infinity;
+  const channelsLimited = limits.maxWhatsappConnections !== Infinity && channelLimit > 0;
   const channelsAtLimit = channelsLimited && connectedChannels >= channelLimit;
 
   return (
@@ -172,7 +171,7 @@ const Dashboard: React.FC = () => {
       <OnboardingChecklist />
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {metricCards.map((m) => {
           const Icon = m.icon;
           return (
@@ -188,37 +187,6 @@ const Dashboard: React.FC = () => {
             </Card>
           );
         })}
-
-        {/* Ofertas Ativas vs Limites */}
-        <Card
-          variant="metric"
-          className="p-4 flex flex-col justify-between group"
-          title={offersAtLimit ? 'Você atingiu o limite de ofertas ativas do seu plano. Faça upgrade para criar mais.' : undefined}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-ink-tertiary uppercase tracking-wider">Ofertas</span>
-            <Package className={`w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity ${offersAtLimit ? 'text-warning-ink' : 'text-ink-secondary'}`} />
-          </div>
-          <div className="mt-3">
-            <div className="flex items-baseline gap-1">
-              <h3 className="text-2xl font-bold text-ink tracking-tight tabular-nums font-display">{activeOffers}</h3>
-              <span className="text-[10px] font-medium text-ink-tertiary">
-                / {limits.maxOffers === Infinity ? '∞' : limits.maxOffers}
-              </span>
-            </div>
-            {offersLimited && (
-              <div className="w-full bg-surface-1 h-1.5 rounded-full overflow-hidden mt-2 border border-line-subtle">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${offersAtLimit ? 'bg-warning' : 'bg-mint-500'}`}
-                  style={{ width: `${Math.min((activeOffers / limits.maxOffers) * 100, 100)}%` }}
-                />
-              </div>
-            )}
-            {offersAtLimit && (
-              <p className="text-[10px] font-semibold text-warning-ink mt-1.5">Limite atingido</p>
-            )}
-          </div>
-        </Card>
 
         {/* Canais Conectados vs Limites */}
         <Card

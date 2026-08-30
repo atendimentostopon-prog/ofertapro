@@ -10,7 +10,6 @@ import { APP_NAME, getShortlinkHost } from '../../config/app';
 import { TemplateService } from '../../services/TemplateService';
 import { sendTelegramPhoto } from '../../lib/telegram';
 import { sender } from '../../lib/sender';
-import { getPlanLimits } from '../../config/plans';
 import { normalizeMarketplace } from '../../lib/marketplace';
 import { SettingsSection, Field } from './shared';
 
@@ -28,9 +27,6 @@ const SHORTENER_MARKETPLACES: { id: string; label: string }[] = [
   { id: 'aliexpress', label: 'AliExpress' },
 ];
 
-interface TemplatesTabProps {
-  onUpgradeClick?: () => void;
-}
 
 const mockOffer = {
   name: 'Notebook ASUS Vivobook 15',
@@ -44,7 +40,7 @@ const mockOffer = {
   affiliateLink: 'https://amzn.to/exemplo',
 };
 
-export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) => {
+export const TemplatesTab: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -434,8 +430,6 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
     }, 0);
   };
 
-  const limits = getPlanLimits(user?.plan);
-
   const activeContent = getActiveTemplateContent();
   const activePlaceholder = getActiveTemplatePlaceholder();
   const mockProfile = {
@@ -461,24 +455,6 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         description="Personalize a mensagem de envio para cada canal utilizando variáveis dinâmicas"
         icon={MessageSquare}
       >
-        {!limits.customTemplates && (
-          <div className="p-4 bg-ice border border-mint-200 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
-            <div className="w-10 h-10 rounded-xl bg-surface-0 border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
-              <Sparkles className="w-5 h-5 animate-pulse" />
-            </div>
-            <div className="flex-1 space-y-1">
-              <h4 className="text-xs font-bold text-ink">Customização disponível no plano Starter!</h4>
-              <p className="text-[11px] text-ink-secondary font-medium">Faça o upgrade para personalizar as mensagens enviadas para os canais de disparo.</p>
-            </div>
-            <button
-              onClick={onUpgradeClick}
-              className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors flex-shrink-0"
-            >
-              Fazer Upgrade
-            </button>
-          </div>
-        )}
-
         <div className="p-4 bg-surface-1 rounded-2xl border border-line space-y-2 mb-2">
           <p className="text-[11.5px] text-ink-secondary font-medium leading-relaxed">
             <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{cupom_linha}`}</code>.
@@ -524,14 +500,13 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   value={getActiveTemplateContent()}
                   placeholder={getActiveTemplatePlaceholder()}
                   onChange={e => {
-                    if (!limits.customTemplates) return;
                     if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(e.target.value);
                     else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(e.target.value);
                     else setDiscordTemplate(e.target.value);
                   }}
-                  disabled={!limits.customTemplates || loadingTemplates}
+                  disabled={loadingTemplates}
                   rows={10}
-                  className={`input-modern resize-none font-mono text-xs ${!limits.customTemplates ? 'bg-surface-1 cursor-not-allowed text-ink-tertiary' : ''}`}
+                  className="input-modern resize-none font-mono text-xs"
                 />
               </div>
             </Field>
@@ -560,10 +535,8 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   <button
                     key={f.id}
                     type="button"
-                    onClick={() => limits.customTemplates && injectFormat(f.id as any)}
-                    className={`px-3 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary transition-all ${
-                      !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    onClick={() => injectFormat(f.id as any)}
+                    className="px-3 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary transition-all"
                     title={f.title}
                   >
                     {f.label}
@@ -579,10 +552,8 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   <button
                     key={v.name}
                     type="button"
-                    onClick={() => limits.customTemplates && injectVariable(v.name)}
-                    className={`px-2.5 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary flex items-center transition-all ${
-                      !limits.customTemplates ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    onClick={() => injectVariable(v.name)}
+                    className="px-2.5 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary flex items-center transition-all"
                     title={v.description}
                   >
                     {v.name}
@@ -594,7 +565,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
             <div className="flex flex-wrap gap-2 pt-1.5">
               <button
                 type="button"
-                disabled={!limits.customTemplates || loadingTemplates || restoringTemplate || savingTemplates}
+                disabled={loadingTemplates || restoringTemplate || savingTemplates}
                 onClick={handleRestoreDefaultTemplate}
                 className="px-3.5 py-2 border border-line hover:border-line-strong hover:bg-surface-1 rounded-xl text-[11px] font-bold text-ink-secondary bg-surface-0 transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
@@ -604,7 +575,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
               <button
                 type="button"
-                disabled={!limits.customTemplates || loadingTemplates || testingTemplate || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                disabled={loadingTemplates || testingTemplate || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
                 onClick={handleTestTemplate}
                 className="px-3.5 py-2 bg-ice hover:bg-mint-100 border border-mint-200 hover:border-mint-300 text-mint-700 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -618,7 +589,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
               <button
                 type="button"
-                disabled={!limits.customTemplates || loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                disabled={loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
                 onClick={handleSaveTemplates}
                 className="ml-auto px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >

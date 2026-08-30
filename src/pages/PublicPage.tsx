@@ -720,16 +720,30 @@ const PublicPage: React.FC = () => {
             <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="hover:text-ink-inverse transition-colors">Cookies</a>
           </div>
 
-          <div className="text-center md:text-right">
-            <span className="text-[10px] font-black text-ink-inverse/60 tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
-              Powered by 
-              <a href="/login" className="text-mint-400 hover:text-mint-300 hover:underline">
-                {APP_NAME}
-              </a>
-            </span>
-          </div>
+          {!profile?.hide_branding && (
+            <div className="text-center md:text-right">
+              <span className="text-[10px] font-black text-ink-inverse/60 tracking-wider uppercase flex items-center gap-1.5 justify-center md:justify-end">
+                Powered by{' '}
+                <a href="https://aflyo.com.br" target="_blank" rel="noopener noreferrer" className="text-mint-400 hover:text-mint-300 hover:underline">
+                  {APP_NAME}
+                </a>
+              </span>
+            </div>
+          )}
         </div>
       </footer>
+
+      {!profile?.hide_branding && (
+        <a
+          href="https://aflyo.com.br"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-3 right-3 z-50 inline-flex items-center gap-1.5 rounded-full bg-surface-0 border border-line shadow-md px-3 py-1.5 text-[10px] font-bold text-ink-secondary hover:text-ink hover:border-line-strong transition-colors"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-mint-500" />
+          Feito com {APP_NAME}
+        </a>
+      )}
     </div>
   );
 };
