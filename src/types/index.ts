@@ -93,6 +93,8 @@ export interface User {
   bio?: string;
   joinedAt: string;
   onboarded: boolean;
+  accountStatus?: 'trialing' | 'active' | 'expired' | 'canceled';
+  trialEndsAt?: string;
   isPublicActive: boolean;
   publicName?: string;
   public_name?: string;

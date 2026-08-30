@@ -367,6 +367,23 @@
     scrollbar-width: none;
   }
 
+  /* Fade lateral para linhas roláveis horizontalmente (tabs/pills no mobile).
+     Envolve o scroller num wrapper .fade-scroll-x relative; o ::after fica
+     fixo no wrapper e sinaliza que há mais conteúdo à direita.
+     Sobrescreva a cor com --fade-scroll-color quando o fundo não for surface-0. */
+  .fade-scroll-x { position: relative; }
+  .fade-scroll-x::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(to right, transparent, var(--fade-scroll-color, var(--surface-0)));
+  }
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;

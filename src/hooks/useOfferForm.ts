@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import { OfferService } from '../services/OfferService';
 import { compressImage, uploadOfferImage, validateImage } from '../lib/image-utils';
 import { dispatchOffer } from '../lib/dispatch-service';
@@ -27,7 +29,9 @@ interface UseOfferFormParams {
 
 export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormParams = {}) {
   const { user } = useUser();
-  
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const initialImage = offerToEdit?.image || offerToEdit?.image_url || '';
   const isSupabaseStorage = initialImage.includes('supabase.co/storage') || initialImage.includes('/storage/v1/object/public/');
 
@@ -511,6 +515,15 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
             setProgressText(stepText);
           }
         });
+
+        if (dispatchReport.blocked) {
+          toast('Seu acesso expirou. Assine um plano para voltar a disparar ofertas.', 'error');
+          setProgressStep('idle');
+          setProgressText('');
+          if (onClose) onClose();
+          navigate('/pricing');
+          return;
+        }
 
         if (dispatchReport.results) {
           setDispatchResults(dispatchReport.results);

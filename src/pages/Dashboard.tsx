@@ -19,6 +19,8 @@ import { useUser } from '../context/UserContext';
 import { ErrorState } from '../components/ui/ErrorState';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
+import { useAccountAccess } from '../hooks/useAccountAccess';
+import { pluralize, toDisplayName } from '../lib/format';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -42,6 +44,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const stats = useDashboardStats();
   const { user } = useUser();
+  const access = useAccountAccess();
 
   const {
     totalClicksToday,
@@ -98,11 +101,18 @@ const Dashboard: React.FC = () => {
     { label: '30 dias', value: totalClicks30d,   sub: 'cliques no mês',    icon: MousePointerClick, accent: 'text-info-ink' },
   ];
 
+  // Estado de "limite atingido" para os cards de uso (Ofertas / Canais)
+  const offersLimited = limits.maxOffers !== Infinity;
+  const offersAtLimit = offersLimited && activeOffers >= limits.maxOffers;
+  const channelLimit = limits.maxWhatsappConnections + limits.maxTelegramConnections;
+  const channelsLimited = limits.maxWhatsappConnections !== Infinity;
+  const channelsAtLimit = channelsLimited && connectedChannels >= channelLimit;
+
   return (
     <div className="max-w-7xl mx-auto space-y-5 animate-slide-up pb-8">
       {/* Welcome Header */}
       <PageHeader
-        title={`Olá, ${getFirstName()}!`}
+        title={`Olá, ${toDisplayName(getFirstName())}!`}
         description="Acompanhe suas métricas de vendas e engajamento."
       >
         <div className="flex items-center gap-1.5 text-[10px] font-medium text-ink-secondary bg-surface-0 border border-line rounded-md px-2.5 py-1.5">
@@ -110,6 +120,53 @@ const Dashboard: React.FC = () => {
           <span>Atualizado agora</span>
         </div>
       </PageHeader>
+
+      {access.isExpired && (
+        <div className="rounded-2xl border border-danger/25 bg-danger-bg/40 p-5 sm:p-6 flex flex-col sm:flex-row gap-4">
+          <div className="w-11 h-11 rounded-xl bg-danger-bg text-danger-ink flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-bold text-ink font-display">Seu acesso expirou</h3>
+            <p className="text-sm text-ink-secondary mt-1 max-w-2xl">
+              O teste grátis de 7 dias terminou e o bot parou de monitorar seus grupos. Suas ofertas,
+              canais, grupos de origem e templates continuam salvos. Assine um plano e tudo volta a
+              funcionar exatamente como estava.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button onClick={() => navigate('/pricing')} className="btn-gradient px-5 py-2 text-xs font-semibold cursor-pointer">
+                Ver planos
+              </button>
+              <button onClick={() => navigate('/feedbacks')} className="btn-secondary px-5 py-2 text-xs font-semibold cursor-pointer">
+                Falar com o suporte
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {access.isTrialing && (
+        <div className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${
+          access.daysLeft <= 1
+            ? 'border-warning/30 bg-warning-bg/50'
+            : 'border-mint-200 bg-ice/60'
+        }`}>
+          <Clock className={`w-4 h-4 flex-shrink-0 ${access.daysLeft <= 1 ? 'text-warning-ink' : 'text-mint-700'}`} />
+          <p className={`text-xs font-medium flex-1 ${access.daysLeft <= 1 ? 'text-warning-ink' : 'text-mint-800'}`}>
+            {access.daysLeft <= 1
+              ? 'Último dia do teste grátis. Amanhã o bot para de monitorar e disparar até você assinar.'
+              : `Teste grátis. Faltam ${access.daysLeft} dias. Depois disso o bot pausa até você assinar.`}
+          </p>
+          <button
+            onClick={() => navigate('/pricing')}
+            className={`text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer flex-shrink-0 ${
+              access.daysLeft <= 1 ? 'bg-warning-ink text-white' : 'bg-mint-600 text-white hover:bg-mint-700'
+            }`}
+          >
+            Assinar agora
+          </button>
+        </div>
+      )}
 
       {/* Onboarding Checklist */}
       <OnboardingChecklist />
@@ -133,10 +190,14 @@ const Dashboard: React.FC = () => {
         })}
 
         {/* Ofertas Ativas vs Limites */}
-        <Card variant="metric" className="p-4 flex flex-col justify-between group">
+        <Card
+          variant="metric"
+          className="p-4 flex flex-col justify-between group"
+          title={offersAtLimit ? 'Você atingiu o limite de ofertas ativas do seu plano. Faça upgrade para criar mais.' : undefined}
+        >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-ink-tertiary uppercase tracking-wider">Ofertas</span>
-            <Package className="w-4 h-4 text-ink-secondary opacity-70 group-hover:opacity-100 transition-opacity" />
+            <Package className={`w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity ${offersAtLimit ? 'text-warning-ink' : 'text-ink-secondary'}`} />
           </div>
           <div className="mt-3">
             <div className="flex items-baseline gap-1">
@@ -145,37 +206,47 @@ const Dashboard: React.FC = () => {
                 / {limits.maxOffers === Infinity ? '∞' : limits.maxOffers}
               </span>
             </div>
-            {limits.maxOffers !== Infinity && (
+            {offersLimited && (
               <div className="w-full bg-surface-1 h-1.5 rounded-full overflow-hidden mt-2 border border-line-subtle">
                 <div
-                  className="h-full bg-mint-500 rounded-full transition-all duration-500"
+                  className={`h-full rounded-full transition-all duration-500 ${offersAtLimit ? 'bg-warning' : 'bg-mint-500'}`}
                   style={{ width: `${Math.min((activeOffers / limits.maxOffers) * 100, 100)}%` }}
                 />
               </div>
+            )}
+            {offersAtLimit && (
+              <p className="text-[10px] font-semibold text-warning-ink mt-1.5">Limite atingido</p>
             )}
           </div>
         </Card>
 
         {/* Canais Conectados vs Limites */}
-        <Card variant="metric" className="p-4 flex flex-col justify-between col-span-1 xs:col-span-2 sm:col-span-1 group">
+        <Card
+          variant="metric"
+          className="p-4 flex flex-col justify-between col-span-1 xs:col-span-2 sm:col-span-1 group"
+          title={channelsAtLimit ? 'Você atingiu o limite de canais do seu plano. Faça upgrade para conectar mais.' : undefined}
+        >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-ink-tertiary uppercase tracking-wider">Canais</span>
-            <Radio className="w-4 h-4 text-ink-secondary opacity-70 group-hover:opacity-100 transition-opacity" />
+            <Radio className={`w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity ${channelsAtLimit ? 'text-warning-ink' : 'text-ink-secondary'}`} />
           </div>
           <div className="mt-3">
             <div className="flex items-baseline gap-1">
               <h3 className="text-2xl font-bold text-ink tracking-tight tabular-nums font-display">{connectedChannels}</h3>
               <span className="text-[10px] font-medium text-ink-tertiary">
-                / {limits.maxWhatsappConnections === Infinity ? '∞' : limits.maxWhatsappConnections + limits.maxTelegramConnections}
+                / {channelsLimited ? channelLimit : '∞'}
               </span>
             </div>
-            {limits.maxWhatsappConnections !== Infinity && (
+            {channelsLimited && (
               <div className="w-full bg-surface-1 h-1.5 rounded-full overflow-hidden mt-2 border border-line-subtle">
                 <div
-                  className="h-full bg-mint-500 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((connectedChannels / (limits.maxWhatsappConnections + limits.maxTelegramConnections)) * 100, 100)}%` }}
+                  className={`h-full rounded-full transition-all duration-500 ${channelsAtLimit ? 'bg-warning' : 'bg-mint-500'}`}
+                  style={{ width: `${Math.min((connectedChannels / channelLimit) * 100, 100)}%` }}
                 />
               </div>
+            )}
+            {channelsAtLimit && (
+              <p className="text-[10px] font-semibold text-warning-ink mt-1.5">Limite atingido</p>
             )}
           </div>
         </Card>
@@ -373,7 +444,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-ink truncate">{h.offer_name}</p>
                   <div className="flex items-center gap-1.5 text-[10px] text-ink-tertiary mt-0.5">
-                    <span>{h.channel_count} canal(is)</span>
+                    <span>{pluralize(h.channel_count || 0, 'canal', 'canais')}</span>
                     <span className="text-ink-disabled">·</span>
                     <span>{new Date(h.sent_at).toLocaleDateString('pt-BR')}</span>
                   </div>

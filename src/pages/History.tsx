@@ -13,8 +13,10 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../context/ToastContext';
+import { useNavigate } from 'react-router-dom';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
+import { pluralize } from '../lib/format';
 
 const statusConfig: Record<string, {
   icon: React.ElementType; bg: string; iconColor: string; label: string;
@@ -103,7 +105,7 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
                 <div className="flex items-center gap-1.5 text-xs">
                   <Send className="w-3.5 h-3.5 text-ink-tertiary" />
                   <span className="font-bold text-ink">{entry.channel_count || 0}</span>
-                  <span className="text-ink-tertiary">canal(is)</span>
+                  <span className="text-ink-tertiary">{pluralize(entry.channel_count || 0, 'canal', 'canais', false)}</span>
                 </div>
               </div>
             </div>
@@ -225,6 +227,7 @@ const History: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | HistoryStatus>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week'>('all');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const loadHistory = async () => {
     try {
@@ -266,7 +269,7 @@ const History: React.FC = () => {
         return;
       }
 
-      await dispatchOffer({
+      const result = await dispatchOffer({
         userId: user.id,
         offerId: offer.id,
         offerName: offer.name,
@@ -281,6 +284,12 @@ const History: React.FC = () => {
         channelIds: offer.channels,
         shortCode: offer.short_code
       });
+
+      if (result.blocked) {
+        toast('Seu acesso expirou. Assine um plano para voltar a disparar ofertas.', 'error');
+        navigate('/pricing');
+        return;
+      }
 
       loadHistory();
       toast('Oferta reenviada com sucesso!', 'success');

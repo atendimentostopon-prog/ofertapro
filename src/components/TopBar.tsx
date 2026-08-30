@@ -9,9 +9,12 @@ import NotificationsDropdown from './NotificationsDropdown';
 interface TopBarProps {
   onNewOffer?: () => void;
   onMenuClick?: () => void;
+  // Quando a faixa de acesso expirado (fixa no topo) esta visivel, o TopBar
+  // sticky precisa colar abaixo dela em vez de em top:0.
+  belowExpiredBar?: boolean;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick }) => {
+const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, belowExpiredBar }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
@@ -20,6 +23,9 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
   const [hasUnread, setHasUnread] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading] = useState(false);
+  // Snapshot da última leitura no momento da abertura; itens mais novos ficam
+  // destacados no dropdown mesmo depois de marcarmos como lido.
+  const [lastReadSnapshot, setLastReadSnapshot] = useState<number | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const loadNotifications = async () => {
@@ -81,6 +87,8 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
     const nextState = !notifOpen;
     setNotifOpen(nextState);
     if (nextState && user && user.id) {
+      const prevRead = localStorage.getItem(`last_read_notif_${user.id}`);
+      setLastReadSnapshot(prevRead ? parseInt(prevRead, 10) : null);
       if (notifications.length > 0) {
         const newestTime = new Date(notifications[0].sent_at).getTime();
         localStorage.setItem(`last_read_notif_${user.id}`, newestTime.toString());
@@ -105,7 +113,11 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
   const handleNewOffer = () => navigate('/offers/new');
 
   return (
-    <header className="h-16 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky top-0 z-35">
+    <header
+      className={`h-16 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky z-35 ${
+        belowExpiredBar ? 'top-[58px] sm:top-[42px]' : 'top-0'
+      }`}
+    >
       {/* Mobile Menu Button */}
       {onMenuClick && (
         <button
@@ -195,6 +207,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick })
               notifications={notifications}
               onClose={() => setNotifOpen(false)}
               loading={notifLoading}
+              lastReadAt={lastReadSnapshot}
             />
           )}
         </div>

@@ -1,14 +1,16 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, LogOut, ExternalLink, Star, MessageSquare, X, ShieldCheck, CreditCard, Plug
+  ChevronRight, LogOut, ExternalLink, MessageSquare, X, ShieldCheck, CreditCard, Plug
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
 import { APP_NAME, getShortlinkUrl } from '../config/app';
 import { Avatar } from './ui/Avatar';
+import { useAccountAccess } from '../hooks/useAccountAccess';
+import { toDisplayName } from '../lib/format';
 
 interface SidebarProps {
   onLogout: () => void;
@@ -27,9 +29,9 @@ const navItems = [
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
-  const navigate = useNavigate();
   const { user, isAdmin } = useUser();
   const { toast } = useToast();
+  const access = useAccountAccess();
 
   if (!user) return null;
 
@@ -121,30 +123,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
         </button>
       </nav>
 
-      {/* Pro Banner */}
-      {FEATURES.billing && user.plan === 'free' && (
-        <div className="mx-3 mb-3 p-4 rounded-xl bg-ice border border-mint-200 text-left">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Star className="w-3.5 h-3.5 text-mint-700 fill-mint-500" />
-            <span className="text-[11px] font-semibold text-mint-800 uppercase tracking-wider">Upgrade Aflyo</span>
-          </div>
-          <p className="text-[11px] text-ink-secondary mb-3 leading-relaxed">Desbloqueie canais ilimitados e recursos avançados.</p>
-          <button
-            onClick={() => { handleLinkClick(); navigate('/pricing'); }}
-            className="text-[11px] font-semibold text-ink-inverse bg-graphite hover:bg-graphite-800 px-3 py-2 rounded-md transition-colors w-full cursor-pointer"
-          >
-            Ver planos
-          </button>
-        </div>
-      )}
-
       {/* User Profile */}
       <div className="p-3 border-t border-line flex-shrink-0">
         <div className="flex items-center gap-2.5 mb-2.5 px-2">
-          <Avatar src={user.avatar_url} name={user.preferred_name || user.full_name || 'Usuário'} size="sm" />
+          <Avatar src={user.avatar_url} name={toDisplayName(user.preferred_name || user.full_name) || 'Usuário'} size="sm" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-ink truncate">{user.preferred_name || user.full_name || 'Usuário'}</p>
+            <p className="text-[13px] font-semibold text-ink truncate">{toDisplayName(user.preferred_name || user.full_name) || 'Usuário'}</p>
             <p className="text-[11px] text-ink-tertiary truncate">{user.email}</p>
+            {access.isTrialing && (
+              <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-semibold text-mint-800 bg-ice px-1.5 py-0.5 rounded-full">
+                Teste grátis
+                {access.daysLeft > 0 && ` · ${access.daysLeft} ${access.daysLeft === 1 ? 'dia' : 'dias'}`}
+              </span>
+            )}
           </div>
         </div>
         <button

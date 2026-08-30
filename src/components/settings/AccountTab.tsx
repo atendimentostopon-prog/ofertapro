@@ -76,12 +76,13 @@ export const AccountTab: React.FC<AccountTabProps> = ({ profile }) => {
           />
         </Field>
 
-        <Field label="Como podemos te chamar?" hint="Nome preferido ou apelido para saudações e exibição no painel">
+        <Field label="Como podemos te chamar?" hint="Será usado nas saudações do painel. Exibimos sempre com a inicial maiúscula.">
           <input
             type="text"
             value={preferredName}
             onChange={e => setPreferredName(e.target.value)}
             placeholder="Ex: João"
+            maxLength={30}
             className="input-modern text-xs"
           />
         </Field>

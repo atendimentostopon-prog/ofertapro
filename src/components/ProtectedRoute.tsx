@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext';
 import FullPageLoader from './FullPageLoader';
 import { supabase } from '../lib/supabase';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAccountAccess } from '../hooks/useAccountAccess';
 
 interface ProtectedRouteProps {
   isLoggedIn: boolean;
@@ -32,17 +33,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
     );
   }
 
-  // 3. Gate de paywall: free sem subscription e sem admin → /pricing
-  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/integrations', '/auth/callback'];
-  const isAllowedRoute = ALLOWED_WHEN_UNPAID.some(r => location.pathname.startsWith(r));
+  const access = useAccountAccess();
 
-  if (
-    !subLoading &&
-    !isAdmin &&
-    user?.plan === 'free' &&
-    !subscription &&
-    !isAllowedRoute
-  ) {
+  // 3. Gate de paywall:
+  // Rotas permitidas quando o plano/trial estiver expirado:
+  const ALLOWED_WHEN_EXPIRED = ['/pricing', '/checkout', '/settings', '/auth/callback'];
+  const isAllowedRoute = ALLOWED_WHEN_EXPIRED.some(r => location.pathname.startsWith(r));
+
+  // A conta só é bloqueada se:
+  // - Não for administrador
+  // - Não estiver carregando o status da assinatura
+  // - Não possuir assinatura paga ativa
+  // - O teste de 7 dias já tiver expirado (access.isExpired) OU não tiver acesso ativo (!access.hasAccess)
+  const isBlocked = !isAdmin && !subLoading && !subscription && (access.isExpired || (!access.hasAccess && user?.plan === 'free'));
+
+  if (isBlocked && !isAllowedRoute) {
+    console.log("[ProtectedRoute] Período de teste expirado ou sem plano ativo, redirecionando para /pricing");
     return <Navigate to="/pricing" replace />;
   }
 

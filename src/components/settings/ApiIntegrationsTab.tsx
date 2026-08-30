@@ -11,15 +11,20 @@ import { useToast } from '../../context/ToastContext';
 import { Channel } from '../../types';
 import { getChannelLogo, getChannelLogoSrc } from '../../lib/logos';
 import { APP_NAME } from '../../config/app';
+import { withTimeout } from '../../lib/utils';
+
+const LOAD_TIMEOUT_MS = 10000;
 
 const ApiIntegrationsTab: React.FC = () => {
   const { toast } = useToast();
   const { user } = useUser();
   const [keys, setKeys] = useState<ApiKeyMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const [keysError, setKeysError] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [channelsLoading, setChannelsLoading] = useState(false);
+  const [channelsLoading, setChannelsLoading] = useState(true);
+  const [channelsError, setChannelsError] = useState(false);
   
   // Modal de Exibição de Chave Nova
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -38,10 +43,12 @@ const ApiIntegrationsTab: React.FC = () => {
   const loadKeys = async () => {
     try {
       setLoading(true);
-      const data = await ApiKeyService.getApiKeys();
+      setKeysError(false);
+      const data = await withTimeout(ApiKeyService.getApiKeys(), LOAD_TIMEOUT_MS, 'Carregar chaves de API');
       setKeys(data);
     } catch (err) {
       console.error(err);
+      setKeysError(true);
       toast('Não foi possível carregar as chaves de API.', 'error');
     } finally {
       setLoading(false);
@@ -49,10 +56,18 @@ const ApiIntegrationsTab: React.FC = () => {
   };
 
   const loadIntegrationChannels = async () => {
-    if (!user) return;
+    setChannelsLoading(true);
+    setChannelsError(false);
+    if (!user) {
+      setChannelsLoading(false);
+      return;
+    }
     try {
-      setChannelsLoading(true);
-      const data = await ChannelService.getIntegrationChannels(user.id);
+      const data = await withTimeout(
+        ChannelService.getIntegrationChannels(user.id),
+        LOAD_TIMEOUT_MS,
+        'Carregar canais de integração'
+      );
       const mappedData = (data || []).map((ch: any) => ({
         id: ch.id,
         name: ch.name,
@@ -64,6 +79,7 @@ const ApiIntegrationsTab: React.FC = () => {
       setChannels(mappedData);
     } catch (err) {
       console.error('Erro ao carregar canais para integração:', err);
+      setChannelsError(true);
       toast('Não foi possível carregar os canais para integração.', 'error');
     } finally {
       setChannelsLoading(false);
@@ -230,6 +246,20 @@ const ApiIntegrationsTab: React.FC = () => {
         <div className="glass-card p-8 flex items-center justify-center border-line">
           <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
         </div>
+      ) : keysError ? (
+        <div className="glass-card p-8 text-center border-line space-y-3">
+          <p className="text-sm font-bold text-ink">Não foi possível carregar suas chaves</p>
+          <p className="text-xs text-ink-secondary max-w-xs mx-auto">
+            A conexão demorou demais ou falhou. Verifique sua internet e tente de novo.
+          </p>
+          <button
+            onClick={loadKeys}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 text-ink border border-line text-xs font-bold transition-all"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Tentar novamente
+          </button>
+        </div>
       ) : keys.length > 0 ? (
         <div className="glass-card overflow-hidden border-line shadow-sm">
           <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-2.5">
@@ -365,6 +395,20 @@ const ApiIntegrationsTab: React.FC = () => {
           {channelsLoading && channels.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 text-mint-700 animate-spin" />
+            </div>
+          ) : channelsError && channels.length === 0 ? (
+            <div className="text-center py-8 bg-surface-0/15 rounded-2xl border border-dashed border-line space-y-3">
+              <p className="text-xs font-bold text-ink">Não foi possível carregar os canais</p>
+              <p className="text-[11px] text-ink-secondary max-w-xs mx-auto">
+                A conexão demorou demais ou falhou. Tente novamente.
+              </p>
+              <button
+                onClick={loadIntegrationChannels}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 text-ink border border-line text-xs font-bold transition-all"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Tentar novamente
+              </button>
             </div>
           ) : channels.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

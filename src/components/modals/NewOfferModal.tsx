@@ -15,6 +15,7 @@ import ChannelLogo from '../ui/ChannelLogo';
 import { getMarketplaceLogoSrc } from '../../lib/logos';
 import { FEATURES } from '../../config/features';
 import { getShortlinkHost } from '../../config/app';
+import { pluralize } from '../../lib/format';
 
 interface NewOfferModalProps {
   onClose: () => void;
@@ -214,15 +215,15 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
 
     if (totalFailed === 0) {
       statusTitle = 'Oferta enviada com sucesso.';
-      statusSubtitle = `Enviada para todos os ${totalSuccess} canal(is) selecionados.`;
+      statusSubtitle = `Enviada para ${pluralize(totalSuccess, 'canal selecionado', 'canais selecionados')}.`;
       statusColorClass = 'bg-success-bg border border-success/25 text-success-ink';
     } else if (totalSuccess > 0) {
       statusTitle = 'Oferta enviada parcialmente.';
-      statusSubtitle = `Enviada com sucesso para ${totalSuccess} de ${totalChannels} canal(is).`;
+      statusSubtitle = `Enviada com sucesso para ${totalSuccess} de ${pluralize(totalChannels, 'canal', 'canais')}.`;
       statusColorClass = 'bg-warning-bg border border-warning/25 text-warning-ink';
     } else {
       statusTitle = 'Oferta salva, mas o envio falhou.';
-      statusSubtitle = `Ocorreu um erro no disparo para todos os ${totalChannels} canal(is).`;
+      statusSubtitle = `Ocorreu um erro no disparo para ${pluralize(totalChannels, 'o canal', 'os ' + totalChannels + ' canais')}.`;
       statusColorClass = 'bg-danger-bg border border-danger/20 text-danger-ink';
     }
 
@@ -799,7 +800,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                       ? connectedChannels.find(c => selectedChannels.includes(c.id))?.name || 'Canal Selecionado' 
                       : 'Canal de Transmissão'}
                   </p>
-                  <p className="text-ink-secondary text-[9px] font-medium">{selectedChannels.length} canal(is) selecionado(s)</p>
+                  <p className="text-ink-secondary text-[9px] font-medium">{pluralize(selectedChannels.length, 'canal selecionado', 'canais selecionados')}</p>
                 </div>
               </div>
               
@@ -858,7 +859,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-t border-line bg-surface-1 rounded-b-2xl">
           <div className="text-xs font-semibold text-ink-secondary text-center sm:text-left order-2 sm:order-1">
             {selectedChannels.length > 0
-              ? `${selectedChannels.length} canal(is) selecionado(s)`
+              ? pluralize(selectedChannels.length, 'canal selecionado', 'canais selecionados')
               : 'Nenhum canal selecionado'}
           </div>
           <div className="flex items-center gap-3 order-1 sm:order-2">

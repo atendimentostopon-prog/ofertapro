@@ -1,4 +1,6 @@
 export type PlanCode = 'starter' | 'pro' | 'enterprise';
+// Só mensal por enquanto. O tipo mantém 'yearly' pra não quebrar as colunas do
+// banco / assinaturas antigas, mas nada no produto oferece anual (2026-08-29).
 export type BillingCycle = 'monthly' | 'yearly';
 
 // Rótulo exibido pro usuário -- plan_code interno continua igual no banco/triggers/RLS
@@ -9,58 +11,63 @@ export const PLAN_LABELS: Record<PlanCode, string> = {
 };
 
 export interface PlanSKU {
-  stripePriceId: string;
+  caktoOfferId: string;
   price: number; // BRL
 }
 
-// Price IDs de PRODUÇÃO (Task 14 Step 8, item 6). Criados via API direto em
-// modo live (products + prices próprios -- test mode e live mode são
-// catálogos completamente separados na Stripe, IDs nunca se repetem entre os
-// dois). Preços revisados: Profissional e Business reduzidos de 167/247 pra
-// 97/197 pra suavizar o salto entre planos (~2x por degrau em vez de
-// 3,5x/1,48x desigual). Anual = 10x o mensal, mesmo padrão do Starter.
-export const PLAN_CATALOG: Record<PlanCode, Record<BillingCycle, PlanSKU>> = {
+// Offer IDs mensais de PRODUÇÃO da Cakto. As ofertas anuais (5523xh7 / 3uikgc2 /
+// ig6ciuy) foram tiradas do produto em 2026-08-29 -- anual volta mais pra frente.
+export const PLAN_CATALOG: Record<PlanCode, { monthly: PlanSKU }> = {
   starter: {
-    monthly: { stripePriceId: 'price_1U8SzoIQWKvpEAwaX2uj3MAH', price: 47.9 },
-    yearly:  { stripePriceId: 'price_1U8SzpIQWKvpEAwaYAj809SW',  price: 479 },
+    monthly: { caktoOfferId: 'oy56ftb', price: 47.9 },
   },
   pro: {
-    monthly: { stripePriceId: 'price_1U8SzpIQWKvpEAwa5bJ1O5Ho', price: 97 },
-    yearly:  { stripePriceId: 'price_1U8SzqIQWKvpEAwadnuGiMPT',  price: 970 },
+    monthly: { caktoOfferId: '38r43o4', price: 97 },
   },
   enterprise: {
-    monthly: { stripePriceId: 'price_1U8SzrIQWKvpEAwamwdlTArp', price: 197 },
-    yearly:  { stripePriceId: 'price_1U8SzsIQWKvpEAwaQ3OUAcUn',  price: 1970 },
+    monthly: { caktoOfferId: '3chkywe', price: 197 },
   },
 };
 
-export function getSku(plan: PlanCode, cycle: BillingCycle): PlanSKU {
-  return PLAN_CATALOG[plan][cycle];
+export function getSku(plan: PlanCode): PlanSKU {
+  return PLAN_CATALOG[plan].monthly;
 }
+
+// Taxa de processamento que a Cakto repassa ao cliente no cartao.
+// CONFIRMADO no QA com compra PAGA (pedido a7bc710b, 2026-08-29): amount R$ 48,89
+// = baseAmount R$ 47,90 + R$ 0,99. Vale tambem no checkout transparente, nao so
+// no hospedado. (O pedido recusado antes mostrava fees=0 so porque nada foi
+// cobrado -- me confundiu.)
+export const CAKTO_CARD_FEE = 0.99;
 
 // Compartilhado entre Pricing.tsx (lista de planos) e Checkout.tsx (resumo do pedido)
 export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
   starter: [
-    'Monitora até 5 grupos de origem',
-    'Até 3 conexões WhatsApp',
-    'Até 2 conexões Telegram',
+    'Monitora até 2 grupos de origem',
+    'Conecta 1 número de WhatsApp',
+    'Dispara para até 5 grupos de WhatsApp',
+    'Dispara para até 5 grupos do Telegram',
     'Até 20.000 ofertas ativas',
     'Disparo em massa + agendamento',
     'Analytics avançado',
+    'Templates de mensagem customizados',
     'Shopee, Amazon, Mercado Livre',
   ],
   pro: [
-    'Monitora até 30 grupos de origem',
-    'Até 5 conexões WhatsApp',
-    'Até 3 conexões Telegram',
+    'Monitora até 5 grupos de origem',
+    'Conecta até 2 números de WhatsApp',
+    'Dispara para até 10 grupos de WhatsApp',
+    'Dispara para até 10 grupos do Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',
     'Remove a marca Aflyo da vitrine',
     'Tudo do Starter',
   ],
   enterprise: [
-    'Grupos de origem ilimitados',
-    'WhatsApp e Telegram ilimitados',
+    'Monitora até 15 grupos de origem',
+    'Conecta até 3 números de WhatsApp',
+    'Dispara para até 15 grupos de WhatsApp',
+    'Dispara para até 15 grupos do Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',
     'Remove a marca Aflyo da vitrine',
