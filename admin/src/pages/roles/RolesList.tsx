@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ROLES } from '@shared/admin-permissions';
+import { ROLES } from '../../lib/roles';
 import { callAdminApi } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
 import { useAdminAuth } from '../../context/AdminAuthContext';
