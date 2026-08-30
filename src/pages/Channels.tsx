@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Wifi, WifiOff, Users, RefreshCw,
   MessageSquare, Send, Webhook, Trash2, MoreVertical, Shield, CheckCircle2, XCircle, Radio,
-  Loader2, QrCode, LogOut
+  Loader2, QrCode, LogOut, Copy, Check
 } from 'lucide-react';
 import type { ChannelType } from '../types';
 import Badge from '../components/Badge';
 import ConnectChannelModal from '../components/modals/ConnectChannelModal';
 import { supabase } from '../lib/supabase';
 import { testTelegramConnection, maskBotToken } from '../lib/telegram';
+import { maskWebhookUrl } from '../lib/format';
 import { FeedbackService } from '../services/FeedbackService';
 import { useUser } from '../context/UserContext';
 import { getPlanLimits, canConnectChannel } from '../config/plans';
@@ -58,6 +59,7 @@ const ChannelCard: React.FC<{
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
+  const [copiedIdentifier, setCopiedIdentifier] = useState(false);
   const cfg = channelTypeConfig[channel.type as ChannelType] || channelTypeConfig.telegram;
   const menuRef = useRef<HTMLDivElement>(null);
   const isActive = channel.status === 'connected' || channel.status === 'active';
@@ -90,9 +92,27 @@ const ChannelCard: React.FC<{
     ? new Date(channel.lastSync).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
     : 'Nunca';
 
-  const displayIdentifier = channel.identifier
-    ? (channel.type === 'telegram' ? `Chat: ${channel.identifier}` : channel.identifier)
+  const rawIdentifier: string | null = channel.identifier || null;
+  // Discord guarda a URL completa do webhook no identifier; nunca exibir em texto claro.
+  const isSecretIdentifier = channel.type === 'discord';
+  const displayIdentifier = rawIdentifier
+    ? channel.type === 'telegram'
+      ? `Chat: ${rawIdentifier}`
+      : isSecretIdentifier
+        ? maskWebhookUrl(rawIdentifier)
+        : rawIdentifier
     : null;
+
+  const handleCopyIdentifier = () => {
+    if (!rawIdentifier) return;
+    try {
+      navigator.clipboard.writeText(rawIdentifier);
+      setCopiedIdentifier(true);
+      setTimeout(() => setCopiedIdentifier(false), 2000);
+    } catch {
+      /* clipboard indisponível; silencioso */
+    }
+  };
 
   const handleTestTelegram = async () => {
     if (channel.type !== 'telegram') return;
@@ -195,8 +215,23 @@ const ChannelCard: React.FC<{
           </div>
 
           {displayIdentifier && (
-            <div className="mt-2 text-[10px] text-ink-tertiary font-mono truncate max-w-[220px]" title={displayIdentifier}>
-              {displayIdentifier}
+            <div className="mt-2 flex items-center gap-1.5 max-w-[240px]">
+              <span
+                className="text-[10px] text-ink-tertiary font-mono truncate"
+                title={isSecretIdentifier ? 'URL do webhook oculta por segurança' : displayIdentifier}
+              >
+                {displayIdentifier}
+              </span>
+              {isSecretIdentifier && (
+                <button
+                  onClick={handleCopyIdentifier}
+                  className="w-5 h-5 rounded-md border border-transparent hover:border-line hover:bg-surface-1 flex items-center justify-center flex-shrink-0 text-ink-tertiary hover:text-ink transition-colors cursor-pointer"
+                  aria-label="Copiar URL do webhook"
+                  title="Copiar URL do webhook"
+                >
+                  {copiedIdentifier ? <Check className="w-3 h-3 text-success-ink" /> : <Copy className="w-3 h-3" />}
+                </button>
+              )}
             </div>
           )}
 
@@ -302,6 +337,9 @@ const AddChannelCard: React.FC<{
 const Channels: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
+  // Limite real de WhatsApp do plano atual do usuário
+  const planLimits = getPlanLimits((user?.plan as any) || 'free');
+  const maxWhatsapp = planLimits.maxWhatsappConnections;
   const [channels, setChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectModal, setConnectModal] = useState<ChannelType | null>(null);
@@ -630,17 +668,22 @@ const Channels: React.FC = () => {
             <MessageSquare className="w-5 h-5 text-mint-700 flex-shrink-0" />
             WhatsApp (Evolution API)
             <span className="text-xs font-semibold text-ink-tertiary bg-surface-1 border border-line px-2 py-0.5 rounded-full">
-              {instances.length}/3 Conectados
+              {instances.length}/{planLimits.maxWhatsappConnections} Conectados
             </span>
           </h2>
-          {instances.length < 3 && (
-            <button
-              onClick={() => setShowConnectWhatsappModal(true)}
-              className="px-3.5 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 self-start sm:self-auto"
-            >
-              <Plus className="w-4 h-4" /> Conectar WhatsApp
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (instances.length >= planLimits.maxWhatsappConnections) {
+                setPaywallFeature('conectar mais números de WhatsApp');
+                setPaywallOpen(true);
+                return;
+              }
+              setShowConnectWhatsappModal(true);
+            }}
+            className="px-3.5 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" /> Conectar WhatsApp
+          </button>
         </div>
 
         {instancesLoading ? (
@@ -654,10 +697,17 @@ const Channels: React.FC = () => {
             </div>
             <p className="text-sm font-bold text-ink font-display">Nenhuma conta WhatsApp conectada</p>
             <p className="text-xs text-ink-secondary max-w-xs mx-auto">
-              Você pode conectar até 3 números de WhatsApp para disparar suas ofertas para grupos.
+              Você pode conectar até {planLimits.maxWhatsappConnections} número{planLimits.maxWhatsappConnections > 1 ? 's' : ''} de WhatsApp e disparar para até {planLimits.maxWhatsappGroups} grupos.
             </p>
             <button
-              onClick={() => setShowConnectWhatsappModal(true)}
+              onClick={() => {
+                if (instances.length >= planLimits.maxWhatsappConnections) {
+                  setPaywallFeature('conectar mais números de WhatsApp');
+                  setPaywallOpen(true);
+                  return;
+                }
+                setShowConnectWhatsappModal(true);
+              }}
               className="px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md transition-colors cursor-pointer"
             >
               Conectar Primeiro WhatsApp
@@ -760,81 +810,114 @@ const Channels: React.FC = () => {
       </div>
 
       {/* WhatsApp Groups Selection Section */}
-      {activeInstanceGroupsId && (
-        <Card className="p-5 space-y-4 animate-slide-up">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
-            <div>
-              <h3 className="font-bold text-base text-ink font-display">Grupos Disponíveis para Disparo</h3>
-              <p className="text-xs text-ink-secondary">Selecione quais grupos atuarão como canais do WhatsApp para envio</p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => setActiveInstanceGroupsId(null)}
-                className="px-3.5 py-1.5 bg-surface-0 hover:bg-surface-1 text-ink text-xs font-semibold rounded-md border border-line transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveSelectedGroups}
-                disabled={savingGroups}
-                className="px-4 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {savingGroups ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  'Salvar Canais'
-                )}
-              </button>
-            </div>
-          </div>
+      {activeInstanceGroupsId && (() => {
+        const otherInstancesSelectedCount = channels.filter(
+          c => c.type === 'whatsapp' && c.external_instance_id !== activeInstanceGroupsId && (c.status === 'connected' || c.status === 'active')
+        ).length;
+        const currentInstanceSelectedCount = Object.values(groupSelections).filter(Boolean).length;
+        const totalSelectedWhatsappGroups = otherInstancesSelectedCount + currentInstanceSelectedCount;
+        const isLimitReached = totalSelectedWhatsappGroups >= planLimits.maxWhatsappGroups;
 
-          {selectedInstanceGroups.length === 0 ? (
-            <p className="text-xs text-ink-tertiary text-center py-6">
-              Nenhum grupo encontrado nesta conta do WhatsApp ou sincronize primeiro.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-96 overflow-y-auto pr-1">
-              {selectedInstanceGroups.map(g => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => setGroupSelections(prev => ({ ...prev, [g.evolution_group_id]: !prev[g.evolution_group_id] }))}
-                  className={`flex items-center gap-3 p-3 rounded-md border text-left cursor-pointer transition-all ${
-                    groupSelections[g.evolution_group_id]
-                      ? 'border-mint-500 bg-ice text-mint-800 shadow-xs'
-                      : 'border-line bg-surface-0 hover:bg-surface-1'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                    groupSelections[g.evolution_group_id] ? 'bg-mint-500 border-mint-500' : 'border-line'
+        return (
+          <Card className="p-5 space-y-4 animate-slide-up border-mint-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-base text-ink font-display">Grupos Disponíveis para Disparo</h3>
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                    totalSelectedWhatsappGroups > planLimits.maxWhatsappGroups
+                      ? 'bg-danger-bg text-danger-ink border-danger/30'
+                      : totalSelectedWhatsappGroups === planLimits.maxWhatsappGroups
+                      ? 'bg-warning-bg text-warning-ink border-warning/30'
+                      : 'bg-ice text-mint-800 border-mint-200'
                   }`}>
-                    {groupSelections[g.evolution_group_id] && <CheckCircle2 className="w-3 h-3 text-graphite" />}
-                  </div>
-
-                  {g.picture_url ? (
-                    <img src={g.picture_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-surface-1 border border-line" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-ice text-mint-800 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      GP
-                    </div>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-ink truncate">{g.name}</p>
-                    <p className="text-[9px] text-ink-tertiary mt-0.5">
-                      {g.participants_count ? `${g.participants_count} participantes` : 'Membros não sincronizados'}
-                      {g.announce && <span className="ml-1.5 text-warning-ink font-semibold">[Apenas Admins]</span>}
-                    </p>
-                  </div>
+                    {totalSelectedWhatsappGroups}/{planLimits.maxWhatsappGroups} Grupos Selecionados
+                  </span>
+                </div>
+                <p className="text-xs text-ink-secondary mt-0.5">
+                  Selecione até {planLimits.maxWhatsappGroups} grupos no seu plano para receber as ofertas automáticas
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => setActiveInstanceGroupsId(null)}
+                  className="px-3.5 py-1.5 bg-surface-0 hover:bg-surface-1 text-ink text-xs font-semibold rounded-md border border-line transition-colors cursor-pointer"
+                >
+                  Cancelar
                 </button>
-              ))}
+                <button
+                  onClick={handleSaveSelectedGroups}
+                  disabled={savingGroups}
+                  className="px-4 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {savingGroups ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar Canais'
+                  )}
+                </button>
+              </div>
             </div>
-          )}
-        </Card>
-      )}
+
+            {selectedInstanceGroups.length === 0 ? (
+              <p className="text-xs text-ink-tertiary text-center py-6">
+                Nenhum grupo encontrado nesta conta do WhatsApp ou sincronize primeiro.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-96 overflow-y-auto pr-1">
+                {selectedInstanceGroups.map(g => {
+                  const isSelected = !!groupSelections[g.evolution_group_id];
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => {
+                        if (!isSelected && isLimitReached) {
+                          toast(`Seu plano ${planLimits.label} permite selecionar no máximo ${planLimits.maxWhatsappGroups} grupos de WhatsApp no total.`, 'warning');
+                          setPaywallFeature('selecionar mais grupos de envio');
+                          setPaywallOpen(true);
+                          return;
+                        }
+                        setGroupSelections(prev => ({ ...prev, [g.evolution_group_id]: !prev[g.evolution_group_id] }));
+                      }}
+                      className={`flex items-center gap-3 p-3 rounded-md border text-left cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-mint-500 bg-ice text-mint-800 shadow-xs'
+                          : 'border-line bg-surface-0 hover:bg-surface-1'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
+                        isSelected ? 'bg-mint-500 border-mint-500' : 'border-line'
+                      }`}>
+                        {isSelected && <CheckCircle2 className="w-3 h-3 text-graphite" />}
+                      </div>
+
+                      {g.picture_url ? (
+                        <img src={g.picture_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-surface-1 border border-line" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-ice text-mint-800 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          GP
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-ink truncate">{g.name}</p>
+                        <p className="text-[9px] text-ink-tertiary mt-0.5">
+                          {g.participants_count ? `${g.participants_count} participantes` : 'Membros não sincronizados'}
+                          {g.announce && <span className="ml-1.5 text-warning-ink font-semibold">[Apenas Admins]</span>}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        );
+      })()}
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -924,16 +1007,17 @@ const Channels: React.FC = () => {
               disabled={false}
               onConnect={() => {
                 if (type === 'whatsapp') {
-                  if (!canConnectChannel(instances.length, user?.plan, 'whatsapp')) {
-                    setPaywallFeature('conectar outro WhatsApp');
+                  if (instances.length >= planLimits.maxWhatsappConnections) {
+                    setPaywallFeature('conectar mais números de WhatsApp');
                     setPaywallOpen(true);
                     return;
                   }
                   setShowConnectWhatsappModal(true);
                   return;
                 }
-                if (!canConnectChannel(connectedChannels.length, user?.plan, 'telegram')) {
-                  setPaywallFeature('conectar outro Telegram');
+                const telegramCount = connectedChannels.filter(c => c.type === 'telegram').length;
+                if (type === 'telegram' && telegramCount >= planLimits.maxTelegramGroups) {
+                  setPaywallFeature('conectar mais canais do Telegram');
                   setPaywallOpen(true);
                   return;
                 }

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { compressImage, uploadAvatarImage } from '../lib/image-utils';
+import { getShortlinkUrl } from '../config/app';
 
 type SocialType = 'whatsapp' | 'telegram' | 'discord';
 
@@ -227,7 +228,7 @@ export const useSettingsProfile = () => {
   };
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/${username}`);
+    navigator.clipboard.writeText(`${getShortlinkUrl()}/${username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

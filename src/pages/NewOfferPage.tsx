@@ -15,6 +15,8 @@ import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
+import { getShortlinkHost } from '../config/app';
+import { pluralize } from '../lib/format';
 import { Card } from '../components/ui/Card';
 import {
   formatCurrencyInput,
@@ -219,15 +221,15 @@ const NewOfferPage: React.FC = () => {
     let statusTitle: string, statusSubtitle: string, statusColorClass: string;
     if (totalFailed === 0) {
       statusTitle = 'Oferta enviada com sucesso!';
-      statusSubtitle = `Enviada para todos os ${totalSuccess} canal(is) selecionados.`;
+      statusSubtitle = `Enviada para ${pluralize(totalSuccess, 'canal selecionado', 'canais selecionados')}.`;
       statusColorClass = 'bg-success-bg border-success/25 text-success-ink';
     } else if (totalSuccess > 0) {
       statusTitle = 'Oferta enviada parcialmente.';
-      statusSubtitle = `Enviada para ${totalSuccess} de ${totalChannels} canal(is).`;
+      statusSubtitle = `Enviada para ${totalSuccess} de ${pluralize(totalChannels, 'canal', 'canais')}.`;
       statusColorClass = 'bg-warning-bg border-warning/25 text-warning-ink';
     } else {
       statusTitle = 'Oferta salva, mas o envio falhou.';
-      statusSubtitle = `Erro no disparo para todos os ${totalChannels} canal(is).`;
+      statusSubtitle = `Erro no disparo para ${pluralize(totalChannels, 'o canal', 'os ' + totalChannels + ' canais')}.`;
       statusColorClass = 'bg-danger-bg border-danger/20 text-danger-ink';
     }
 
@@ -836,7 +838,7 @@ const NewOfferPage: React.FC = () => {
                       ? connectedChannels.find(c => selectedChannels.includes(c.id))?.name || 'Canal'
                       : 'Canal de Transmissão'}
                   </p>
-                  <p className="text-ink-tertiary text-[9px] font-medium">{selectedChannels.length} canal(is) selecionado(s)</p>
+                  <p className="text-ink-tertiary text-[9px] font-medium">{pluralize(selectedChannels.length, 'canal selecionado', 'canais selecionados')}</p>
                 </div>
               </div>
 
@@ -873,8 +875,8 @@ const NewOfferPage: React.FC = () => {
                   )}
                   <p className="text-mint-700 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
-                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
-                      : '🔗 aflyo.com.br/o/...'}
+                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}`
+                      : `🔗 ${getShortlinkHost()}/o/...`}
                   </p>
                 </div>
               </div>
@@ -919,7 +921,7 @@ const NewOfferPage: React.FC = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="text-xs font-semibold text-ink-tertiary">
             {selectedChannels.length > 0
-              ? `${selectedChannels.length} canal(is) selecionado(s)`
+              ? pluralize(selectedChannels.length, 'canal selecionado', 'canais selecionados')
               : 'Nenhum canal selecionado, rascunho apenas'}
           </div>
           <div className="flex items-center gap-3">

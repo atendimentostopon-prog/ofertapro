@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext';
 import FullPageLoader from './FullPageLoader';
 import { supabase } from '../lib/supabase';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAccountAccess } from '../hooks/useAccountAccess';
 
 interface ProtectedRouteProps {
   isLoggedIn: boolean;
@@ -16,6 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   const { user, loading, authUser, profileLoadFailed, refreshProfile, isAdmin } = useUser();
   const { data: subscription, loading: subLoading } = useSubscription();
   const location = useLocation();
+  const access = useAccountAccess();
   const [retrying, setRetrying] = React.useState(false);
 
   // 1. Se o App.tsx ou o UserContext identificou falta de sessão do Supabase, redireciona imediatamente
@@ -32,29 +34,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
     );
   }
 
-  // 3. Gate de paywall: free sem subscription e sem admin → /pricing
-  // /integrations ficava liberada aqui antes -- deixava o Bot (WhatsApp/
-  // Telegram) e as chaves de API acessíveis pra qualquer conta sem plano,
-  // sem nenhum enforcement por trás (bug real reportado em 2026-08-27: conta
-  // nova sem assinatura conseguia ver e usar a aba de conectar bot).
-  //
-  // Exceção: contas com trial expirado/cancelado (accountStatus 'expired' ou
-  // 'canceled') NÃO são redirecionadas. O sistema de trial agora é o dono da
-  // mensagem de estado expirado dentro do app (card no Dashboard, barra no
-  // Layout) e os dados continuam visíveis e editáveis; um redirect duro pra
-  // /pricing deixaria essa UI inalcançável.
-  const ALLOWED_WHEN_UNPAID = ['/pricing', '/settings', '/auth/callback'];
-  const isAllowedRoute = ALLOWED_WHEN_UNPAID.some(r => location.pathname.startsWith(r));
-  const trialExpired = user?.accountStatus === 'expired' || user?.accountStatus === 'canceled';
+  // 3. Gate de paywall:
+  // Rotas permitidas quando o plano/trial estiver expirado:
+  const ALLOWED_WHEN_EXPIRED = ['/pricing', '/checkout', '/settings', '/auth/callback'];
+  const isAllowedRoute = ALLOWED_WHEN_EXPIRED.some(r => location.pathname.startsWith(r));
 
-  if (
-    !subLoading &&
-    !isAdmin &&
-    user?.plan === 'free' &&
-    !subscription &&
-    !isAllowedRoute &&
-    !trialExpired
-  ) {
+  // A conta só é bloqueada se:
+  // - Não for administrador
+  // - Não estiver carregando o status da assinatura
+  // - Não possuir assinatura paga ativa
+  // - O teste de 7 dias já tiver expirado (access.isExpired) OU não tiver acesso ativo (!access.hasAccess)
+  const isBlocked = !isAdmin && !subLoading && !subscription && (access.isExpired || (!access.hasAccess && user?.plan === 'free'));
+
+  if (isBlocked && !isAllowedRoute) {
+    console.log("[ProtectedRoute] Período de teste expirado ou sem plano ativo, redirecionando para /pricing");
     return <Navigate to="/pricing" replace />;
   }
 

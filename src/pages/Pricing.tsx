@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { PLAN_CATALOG, PLAN_LABELS, FEATURES_BY_PLAN, type PlanCode } from "../config/planCatalog";
 import { useSubscription } from "../hooks/useSubscription";
 import { useUser } from "../context/UserContext";
+import { useAccountAccess } from "../hooks/useAccountAccess";
 
 const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
 
@@ -14,6 +15,7 @@ const PLAN_HIGHLIGHT: PlanCode = "pro";
 export default function Pricing() {
   const { data: currentSub } = useSubscription();
   const { user } = useUser();
+  const access = useAccountAccess();
   const nav = useNavigate();
 
   const handleAssinar = (plan: PlanCode) => {
@@ -22,7 +24,45 @@ export default function Pricing() {
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
-      {user?.plan === 'starter' && !currentSub && (
+      {/* Banner de Teste Grátis Ativo (7 dias) */}
+      {access.isTrialing && (
+        <div className="mb-8 mx-auto max-w-3xl p-5 rounded-2xl bg-ice border border-mint-200 text-mint-900 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-slide-up">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-mint-500 text-graphite rounded-full">
+                Teste Grátis Ativo
+              </span>
+              <span className="text-sm font-bold text-ink">
+                Você tem {access.daysLeft} {access.daysLeft === 1 ? 'dia restante' : 'dias restantes'} de teste no Plano Starter.
+              </span>
+            </div>
+            <p className="text-xs text-mint-800 mt-1">
+              Todos os recursos do Starter estão liberados para você. A conta só será bloqueada após os 7 dias.
+            </p>
+          </div>
+          <Button variant="primary" size="sm" onClick={() => nav('/dashboard')} className="flex-shrink-0 cursor-pointer">
+            Acessar Painel →
+          </Button>
+        </div>
+      )}
+
+      {/* Banner de Teste Expirado */}
+      {access.isExpired && !currentSub && (
+        <div className="mb-8 mx-auto max-w-3xl p-5 rounded-2xl bg-warning-bg border border-warning/30 text-warning-ink shadow-sm animate-slide-up">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-warning text-white rounded-full">
+              Período de Teste Finalizado
+            </span>
+            <span className="text-sm font-bold">Seu teste de 7 dias encerrou.</span>
+          </div>
+          <p className="text-xs text-ink-secondary mt-1">
+            Escolha um dos planos abaixo para reativar seu acesso e continuar enviando suas ofertas automaticamente.
+          </p>
+        </div>
+      )}
+
+      {/* Usuário Fundador / Cortesia Vitalícia */}
+      {!access.isTrialing && !access.isExpired && user?.plan === 'starter' && !currentSub && (
         <div className="mb-6 mx-auto max-w-3xl p-4 rounded-2xl bg-ice border border-mint-200 text-mint-800">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold">Você já usa o Aflyo Starter por cortesia.</span>
@@ -30,6 +70,7 @@ export default function Pricing() {
           <p className="text-xs text-mint-700 mt-1">Como usuário fundador, seu acesso é vitalício e não precisa de assinatura.</p>
         </div>
       )}
+
       <h1 className="text-3xl md:text-4xl font-bold text-ink text-center font-display">Planos</h1>
       <p className="text-base text-ink-secondary text-center mt-2">
         Escolha o plano ideal pro seu volume de ofertas e canais.
@@ -41,11 +82,11 @@ export default function Pricing() {
           const isHighlighted = plan === PLAN_HIGHLIGHT;
           const isAvailable = Boolean(sku.caktoOfferId?.trim());
           const isCurrent = currentSub?.plan_code === plan;
-          const isGrandfathered = plan === 'starter' && user?.plan === 'starter' && !currentSub;
-          // Ainda não existe fluxo de troca de plano com proração -- enquanto isso,
-          // qualquer assinatura ativa (em QUALQUER plano) bloqueia a criação de
-          // uma segunda assinatura na Cakto. Sem isso, "Assinar" em outro plano
-          // criava uma subscription paralela e cobrava o cliente duas vezes.
+          const isGrandfathered = !access.isTrialing && !access.isExpired && plan === 'starter' && user?.plan === 'starter' && !currentSub;
+          
+          // Se estiver em trial, o Starter é o plano do teste
+          const isTrialCurrent = access.isTrialing && plan === 'starter';
+          
           const blockedByActiveSub = Boolean(currentSub) && !isCurrent;
           return (
             <div
@@ -82,9 +123,19 @@ export default function Pricing() {
                 ))}
               </ul>
               <Button
-                className="mt-6 w-full"
+                className="mt-6 w-full cursor-pointer"
                 variant={isHighlighted ? "primary" : "secondary"}
-                onClick={() => (blockedByActiveSub ? nav("/settings?tab=billing") : handleAssinar(plan))}
+                onClick={() => {
+                  if (blockedByActiveSub) {
+                    nav("/settings?tab=billing");
+                    return;
+                  }
+                  if (isTrialCurrent) {
+                    nav("/dashboard");
+                    return;
+                  }
+                  handleAssinar(plan);
+                }}
                 disabled={!isAvailable || isCurrent || isGrandfathered}
               >
                 {!isAvailable
@@ -93,6 +144,8 @@ export default function Pricing() {
                   ? "Plano atual"
                   : isGrandfathered
                   ? "Já ativo (cortesia)"
+                  : isTrialCurrent
+                  ? "Em teste (Ir ao Painel)"
                   : blockedByActiveSub
                   ? "Gerencie em Configurações"
                   : "Assinar"}

@@ -16,7 +16,7 @@ import { LoadingState } from '../components/ui/LoadingState';
 import ProductImage from '../components/shared/ProductImage';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { useToast } from '../context/ToastContext';
-import { APP_NAME } from '../config/app';
+import { APP_NAME, getShortlinkUrl } from '../config/app';
 
 const marketplaceList: { value: Marketplace | 'all'; label: string; logoValue: string }[] = [
   { value: 'all', label: 'Todas', logoValue: '' },
@@ -286,14 +286,18 @@ const PublicPage: React.FC = () => {
   const handleShare = async () => {
     try {
       const displayName = profile?.public_display_name || profile?.full_name || 'Usuário';
+      // Sempre o domínio público curto (go.aflyo.com.br/<username>), não o
+      // origin atual -- que pode ser o do painel ou um preview do Vercel.
+      const slug = profile?.username || profile?.public_url || username;
+      const shareUrl = `${getShortlinkUrl()}/${slug}`;
       if (navigator.share) {
         await navigator.share({
           title: `Ofertas de ${displayName}`,
           text: `Confira as melhores ofertas que encontrei!`,
-          url: window.location.href,
+          url: shareUrl,
         });
       } else {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(shareUrl);
         toast('Link da vitrine copiado!', 'success');
       }
     } catch (err) {

@@ -18,6 +18,7 @@ import PublicPage from './pages/PublicPage';
 import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminMoved from './pages/AdminMoved';
+import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
 import { supabase } from './lib/supabase';
@@ -37,6 +38,17 @@ const isPublicRoute = () => {
   const path = window.location.pathname;
   const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/feedbacks'];
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
+};
+
+/**
+ * Verifica se a rota atual é o callback OAuth.
+ * Nesse caso, o App NÃO deve bloquear o render aguardando sessão —
+ * pois a sessão ainda não existe (vai ser criada pelo AuthCallback via
+ * exchangeCodeForSession). Bloquear causaria timeout e nunca mostraria o callback.
+ */
+const isOAuthCallbackRoute = () => {
+  const path = window.location.pathname;
+  return path === '/auth/callback' || path.startsWith('/auth/callback');
 };
 
 /**
@@ -76,6 +88,16 @@ const App: React.FC = () => {
     console.log("[BOOT] Checking Supabase session...");
 
     let active = true;
+
+    // Durante o callback OAuth, NÃO esperamos sessão pré-existente.
+    // O componente AuthCallback vai criar a sessão via exchangeCodeForSession.
+    // Se bloquearmos o render aqui, o AuthCallback nunca monta e o code expira.
+    if (isOAuthCallbackRoute()) {
+      console.log('[BOOT] Rota OAuth callback detectada — pulando verificação de sessão inicial.');
+      setSession(null);
+      setLoading(false);
+      return;
+    }
 
     // Timeout de 5 segundos para a verificação de sessão inicial
     const timeoutId = setTimeout(() => {
@@ -240,6 +262,7 @@ const App: React.FC = () => {
     <ToastProvider>
       <UserProvider onBootError={(err) => setBootError(err)}>
         <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           {/* Root Redirect */}
           <Route path="/" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
@@ -301,6 +324,7 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
         </Routes>
         <CookieBanner />
+        </ErrorBoundary>
         </BrowserRouter>
       </UserProvider>
     </ToastProvider>

@@ -23,6 +23,9 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
   const [hasUnread, setHasUnread] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading] = useState(false);
+  // Snapshot da última leitura no momento da abertura; itens mais novos ficam
+  // destacados no dropdown mesmo depois de marcarmos como lido.
+  const [lastReadSnapshot, setLastReadSnapshot] = useState<number | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const loadNotifications = async () => {
@@ -84,6 +87,8 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
     const nextState = !notifOpen;
     setNotifOpen(nextState);
     if (nextState && user && user.id) {
+      const prevRead = localStorage.getItem(`last_read_notif_${user.id}`);
+      setLastReadSnapshot(prevRead ? parseInt(prevRead, 10) : null);
       if (notifications.length > 0) {
         const newestTime = new Date(notifications[0].sent_at).getTime();
         localStorage.setItem(`last_read_notif_${user.id}`, newestTime.toString());
@@ -202,6 +207,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
               notifications={notifications}
               onClose={() => setNotifOpen(false)}
               loading={notifLoading}
+              lastReadAt={lastReadSnapshot}
             />
           )}
         </div>
