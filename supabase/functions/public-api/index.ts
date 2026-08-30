@@ -170,80 +170,34 @@ function normalizeProductTitle(
   return title;
 }
 
-async function shortenLink(url: string, provider = 'isgd'): Promise<string> {
-  if (!url || provider === 'none') return url;
-  
-  let shortUrl = url;
-  let usedProvider = provider;
+// Encurtador de terceiro (is.gd / tinyurl) removido do produto. O link que
+// vai pro canal é sempre o encurtador próprio (${appUrl}/o/<short_code>,
+// montado no /dispatch) ou o affiliate_link real. Esta função vira no-op:
+// devolve a URL como veio. Só o Bitly age, e mesmo assim apenas se
+// BITLY_ACCESS_TOKEN estiver setado e provider==='bitly'.
+async function shortenLink(url: string, provider = 'none'): Promise<string> {
+  if (!url || provider !== 'bitly') return url;
+
   const bitlyToken = Deno.env.get('BITLY_ACCESS_TOKEN');
+  if (!bitlyToken) return url;
 
-  if (provider === 'bitly' && bitlyToken) {
-    try {
-      const res = await fetch('https://api-ssl.bitly.com/v4/shorten', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${bitlyToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ long_url: url })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.link) {
-          shortUrl = data.link;
-        }
-      } else {
-        console.warn('Erro ao encurtar com Bitly, caindo para isgd:', res.statusText);
-        usedProvider = 'isgd';
-      }
-    } catch (err) {
-      console.warn('Erro na chamada do Bitly, caindo para isgd:', err);
-      usedProvider = 'isgd';
+  try {
+    const res = await fetch('https://api-ssl.bitly.com/v4/shorten', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${bitlyToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ long_url: url })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.link) return data.link;
     }
-  } else if (provider === 'bitly' && !bitlyToken) {
-    usedProvider = 'isgd';
+  } catch (err) {
+    console.warn('Erro na chamada do Bitly (mantendo URL original):', err);
   }
-
-  if (usedProvider === 'isgd') {
-    try {
-      const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(6000)
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.shorturl) {
-          shortUrl = data.shorturl.trim();
-        } else if (data && data.errormessage) {
-          console.warn('Erro retornado pela API do is.gd, tentando fallback tinyurl:', data.errormessage);
-          usedProvider = 'tinyurl';
-        }
-      } else {
-        console.warn('is.gd retornou status de erro, tentando fallback tinyurl:', res.statusText);
-        usedProvider = 'tinyurl';
-      }
-    } catch (err) {
-      console.warn('Erro ao encurtar com is.gd, tentando fallback tinyurl:', err);
-      usedProvider = 'tinyurl';
-    }
-  }
-
-  if (usedProvider === 'tinyurl' && shortUrl === url) {
-    try {
-      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(6000)
-      });
-      if (res.ok) {
-        const text = await res.text();
-        if (text && text.startsWith('http')) {
-          shortUrl = text.trim();
-        }
-      }
-    } catch (err) {
-      console.warn('Erro ao encurtar com TinyURL:', err);
-    }
-  }
-
-  return shortUrl;
+  return url;
 }
 
 function renderMessageTemplate(
@@ -624,7 +578,14 @@ serve(async (req) => {
     // ROUTING ENDPOINTS
     // ==========================================
 
-    const appUrl = Deno.env.get('VITE_PUBLIC_APP_URL') || 'https://www.aflyo.com.br'
+    // Base do link curto /o/<code>. Prioriza SHORTLINK_URL (domínio apex
+    // aflyo.com.br), cai pro domínio do painel, e por fim pro apex hardcoded.
+    const appUrl = (
+      Deno.env.get('SHORTLINK_URL') ||
+      Deno.env.get('VITE_SHORTLINK_URL') ||
+      Deno.env.get('VITE_PUBLIC_APP_URL') ||
+      'https://aflyo.com.br'
+    ).replace(/\/+$/, '')
 
     // ------------------------------------------
     // ENDPOINT 1: Listar Canais (GET /channels)
@@ -728,17 +689,19 @@ serve(async (req) => {
         ? Math.round((1 - (salePriceVal / originalPriceVal)) * 100)
         : 0
 
-      // Tentar encurtar o link com tinyurl (ou bitly se configurado e houver token)
+      // Encurtador de terceiro removido. short_affiliate_url só é preenchido
+      // se houver Bitly configurado (BITLY_ACCESS_TOKEN); senão fica null e o
+      // disparo usa o encurtador próprio (/o/<short_code>).
       let shortAffiliateUrl = null;
       let shortAffiliateProvider = 'none';
       let shortAffiliateCreatedAt = null;
 
       if (affiliate_link && affiliate_link.trim().startsWith('http')) {
         try {
-          const shortened = await shortenLink(affiliate_link.trim(), 'isgd');
+          const shortened = await shortenLink(affiliate_link.trim(), 'bitly');
           if (shortened && shortened !== affiliate_link) {
             shortAffiliateUrl = shortened;
-            shortAffiliateProvider = 'isgd';
+            shortAffiliateProvider = 'bitly';
             shortAffiliateCreatedAt = new Date().toISOString();
           }
         } catch (err) {
@@ -962,17 +925,17 @@ serve(async (req) => {
           ? Math.round((1 - (salePriceVal / originalPriceVal)) * 100)
           : 0
 
-        // Tentar encurtar o link
+        // Encurtador de terceiro removido -- ver comentário no POST /offers.
         let shortAffiliateUrl = null;
         let shortAffiliateProvider = 'none';
         let shortAffiliateCreatedAt = null;
 
         if (affiliate_link && affiliate_link.trim().startsWith('http')) {
           try {
-            const shortened = await shortenLink(affiliate_link.trim(), 'isgd');
+            const shortened = await shortenLink(affiliate_link.trim(), 'bitly');
             if (shortened && shortened !== affiliate_link) {
               shortAffiliateUrl = shortened;
-              shortAffiliateProvider = 'isgd';
+              shortAffiliateProvider = 'bitly';
               shortAffiliateCreatedAt = new Date().toISOString();
             }
           } catch (err) {

@@ -1,6 +1,6 @@
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
-import { APP_NAME } from '../config/app';
+import { APP_NAME, getShortlinkUrl } from '../config/app';
 
 interface DiscordEmbed {
   title: string;
@@ -21,11 +21,12 @@ export const sender = {
    * sem duplicar dados em fields automáticos.
    */
   async sendToDiscord(webhookUrl: string, offer: any) {
+    const base = getShortlinkUrl();
     const trackingLink = FEATURES.useDirectAffiliateLinkInChannels && offer.affiliateLink
       ? offer.affiliateLink
-      : (offer.shortCode 
-        ? `${window.location.origin}/o/${offer.shortCode}?src=discord`
-        : `${window.location.origin}/r/${offer.offerId}?src=discord`);
+      : (offer.shortCode
+        ? `${base}/o/${offer.shortCode}?src=discord`
+        : `${base}/r/${offer.offerId}?src=discord`);
 
     const embed: DiscordEmbed = {
       title: offer.offerName,

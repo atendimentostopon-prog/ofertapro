@@ -4,6 +4,7 @@ import {
   MousePointerClick, MoreVertical, Copy, Tag
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
+import { getShortlinkUrl } from '../../config/app';
 import type { Offer } from '../../types';
 import Badge from '../Badge';
 import { useToast } from '../../context/ToastContext';
@@ -212,9 +213,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => {
+                const base = getShortlinkUrl();
                 const shortLink = offer.shortCode
-                  ? `${window.location.origin}/o/${offer.shortCode}`
-                  : `${window.location.origin}/l/${offer.id}`;
+                  ? `${base}/o/${offer.shortCode}`
+                  : `${base}/l/${offer.id}`;
                 navigator.clipboard.writeText(shortLink)
                   .then(() => {
                     toast('Link encurtado copiado!', 'success');

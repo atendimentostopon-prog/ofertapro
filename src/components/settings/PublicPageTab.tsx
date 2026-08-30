@@ -2,6 +2,7 @@ import React from 'react';
 import { User as UserIcon, Globe, Camera, Loader2, ExternalLink } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { SettingsSection, Field } from './shared';
+import { getShortlinkHost, getShortlinkUrl } from '../../config/app';
 import type { SettingsProfileHook } from '../../hooks/useSettingsProfile';
 
 interface PublicPageTabProps {
@@ -99,7 +100,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
         <Field label="Link de Acesso (URL Personalizada)">
           <div className="flex items-stretch rounded-xl border border-line bg-surface-0 overflow-hidden focus-within:border-mint-400 focus-within:shadow-[0_0_0_3px_rgba(94,231,165,0.28)] transition-colors">
             <span className="flex items-center pl-3.5 pr-1.5 text-xs text-ink-tertiary font-mono select-none whitespace-nowrap">
-              {window.location.origin}/
+              {getShortlinkHost()}/
             </span>
             <input
               type="text"
@@ -113,7 +114,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
 
         <div className="flex flex-wrap items-center gap-3 p-3 bg-surface-1 rounded-xl border border-line">
           <Globe className="w-4 h-4 text-ink-tertiary" />
-          <span className="text-xs text-mint-700 font-bold flex-1 truncate">{window.location.origin}/{username}</span>
+          <span className="text-xs text-mint-700 font-bold flex-1 truncate">{getShortlinkHost()}/{username}</span>
           <button
             onClick={copyUrl}
             className="flex items-center gap-1 text-[11px] font-bold text-ink-secondary hover:text-mint-700 transition-colors"
@@ -121,7 +122,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
             {copied ? 'Copiado!' : 'Copiar Link'}
           </button>
           <a
-            href={`/${username}`}
+            href={`${getShortlinkUrl()}/${username}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-[11px] font-bold text-ink-secondary hover:text-mint-700 transition-colors"

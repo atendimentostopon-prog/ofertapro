@@ -110,7 +110,7 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
 
     const { data: offerData, error: offerErr } = await supabase
       .from('offers')
-      .select('short_code, affiliate_link, short_affiliate_url')
+      .select('short_code, affiliate_link')
       .eq('id', offerId)
       .maybeSingle();
 
@@ -118,7 +118,10 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
       if (offerData.short_code) {
         shortCode = offerData.short_code;
       }
-      finalAffiliateLink = offerData.short_affiliate_url || offerData.affiliate_link || finalAffiliateLink;
+      // Nunca mais usar short_affiliate_url (is.gd/tinyurl legado). O link que
+      // vai pro canal é o encurtador próprio (/o/<shortCode>, montado no
+      // sender) ou o affiliate_link real.
+      finalAffiliateLink = offerData.affiliate_link || finalAffiliateLink;
     }
 
     if (!shortCode) {

@@ -8,7 +8,7 @@ import {
   Loader2, CheckCircle2, AlertCircle, Eye, Star, Phone, Mail, Link as LinkIcon, ChevronRight, ChevronLeft, Check, Sparkles
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
-import { APP_NAME } from '../../config/app';
+import { APP_NAME, getShortlinkHost } from '../../config/app';
 
 interface PublicPageSetupModalProps {
   isOpen: boolean;
@@ -898,7 +898,7 @@ export const PublicPageSetupModal: React.FC<PublicPageSetupModalProps> = ({ isOp
                     <Star className="w-2 h-2 fill-current mr-0.5" /> Verificado
                   </span>
                 </div>
-                <p className="text-[8px] text-ink-tertiary font-mono">aflyo.com.br/{username || 'slug'}</p>
+                <p className="text-[8px] text-ink-tertiary font-mono">{getShortlinkHost()}/{username || 'slug'}</p>
                 
                 <p className="text-[10px] text-ink-secondary mt-2 line-clamp-2 leading-relaxed">
                   {bio || 'Sua descrição aparecerá aqui. Adicione uma bio informativa para seus visitantes.'}

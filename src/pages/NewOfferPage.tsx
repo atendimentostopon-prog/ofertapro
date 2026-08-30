@@ -15,6 +15,7 @@ import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
+import { getShortlinkHost } from '../config/app';
 import { pluralize } from '../lib/format';
 import { Card } from '../components/ui/Card';
 import {
@@ -874,8 +875,8 @@ const NewOfferPage: React.FC = () => {
                   )}
                   <p className="text-mint-700 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
-                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
-                      : '🔗 aflyo.com.br/o/...'}
+                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}`
+                      : `🔗 ${getShortlinkHost()}/o/...`}
                   </p>
                 </div>
               </div>

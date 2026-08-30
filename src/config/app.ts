@@ -37,3 +37,21 @@ export const getAppUrl = (): string => {
   // Nunca usar aflyo.com.br aqui — esse é o domínio da landing page, não da app.
   return 'https://app.aflyo.com.br';
 };
+
+/**
+ * Base dos LINKS PÚBLICOS: link curto /o/<code> e vitrine pública /:username.
+ * Subdomínio dedicado (go.aflyo.com.br) pra ficar curto no celular -- a raiz
+ * aflyo.com.br é a landing. Cai pro getAppUrl() enquanto VITE_SHORTLINK_URL
+ * não estiver setado, então nada quebra antes de o subdomínio ir pro ar.
+ */
+export const getShortlinkUrl = (): string => {
+  const envUrl = import.meta.env.VITE_SHORTLINK_URL;
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return getAppUrl();
+};
+
+/** Só o host do domínio público, pra placeholders da UI (ex.: "go.aflyo.com.br/o/..."). */
+export const getShortlinkHost = (): string =>
+  getShortlinkUrl().replace(/^https?:\/\//, '').replace(/\/+$/, '');
