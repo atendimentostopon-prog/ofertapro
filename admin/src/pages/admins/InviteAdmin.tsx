@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROLES } from '@shared/admin-permissions';
+import { ROLES } from '../../lib/roles';
 import { callAdminApi, AdminApiError } from '../../lib/admin-api';
 import { useToast } from '../../context/ToastContext';
 
