@@ -4,6 +4,9 @@ import { authorize, requirePermission, RbacError, makeSupabaseDeps, type AdminId
 import type { AuditContext } from './audit.ts';
 import * as dashboard from './handlers/dashboard.ts';
 import * as admins from './handlers/admins.ts';
+import * as roles from './handlers/roles.ts';
+import * as audit from './handlers/audit.ts';
+import * as session from './handlers/session.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -11,12 +14,14 @@ export type Handler = (
   identity: AdminIdentity,
   ctx: AuditContext,
 ) => Promise<unknown>;
-export type HandlerMap = Record<string, Record<string, { permission: string; handler: Handler }>>;
+export type HandlerMap = Record<string, Record<string, { permission: string | null; handler: Handler }>>;
 
-// Registry. Handlers reais entram nas Tasks 6 a 8.
 const HANDLERS: HandlerMap = {
   ping: {
     read: { permission: 'dashboard.read', handler: async () => ({ pong: true }) },
+  },
+  session: {
+    whoami: { permission: null, handler: session.whoami },
   },
   dashboard: {
     summary: { permission: 'dashboard.read', handler: dashboard.summary },
@@ -26,6 +31,14 @@ const HANDLERS: HandlerMap = {
     invite:     { permission: 'admins.manage', handler: admins.invite },
     suspend:    { permission: 'admins.manage', handler: admins.suspend },
     reactivate: { permission: 'admins.manage', handler: admins.reactivate },
+  },
+  roles: {
+    list:   { permission: 'roles.read',   handler: roles.list },
+    assign: { permission: 'roles.manage', handler: roles.assign },
+    revoke: { permission: 'roles.manage', handler: roles.revoke },
+  },
+  audit: {
+    list: { permission: 'audit.read', handler: audit.list },
   },
 };
 
@@ -58,7 +71,7 @@ serve(async (req) => {
 
   try {
     const identity = await authorize(req, deps);
-    requirePermission(identity, entry.permission);
+    if (entry.permission !== null) requirePermission(identity, entry.permission);
     const data = await entry.handler(params, identity, ctx);
     return json({ data }, 200, req, rid);
   } catch (err) {
