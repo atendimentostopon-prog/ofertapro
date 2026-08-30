@@ -43,7 +43,7 @@ export const CAKTO_CARD_FEE = 0.99;
 // Compartilhado entre Pricing.tsx (lista de planos) e Checkout.tsx (resumo do pedido)
 export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
   starter: [
-    'Monitora até 1 grupo de origem',
+    'Monitora até 2 grupos de origem',
     'Até 1 conexão WhatsApp',
     'Até 1 conexão Telegram',
     'Até 20.000 ofertas ativas',

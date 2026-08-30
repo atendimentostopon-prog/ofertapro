@@ -40,6 +40,17 @@ const isPublicRoute = () => {
 };
 
 /**
+ * Verifica se a rota atual é o callback OAuth.
+ * Nesse caso, o App NÃO deve bloquear o render aguardando sessão —
+ * pois a sessão ainda não existe (vai ser criada pelo AuthCallback via
+ * exchangeCodeForSession). Bloquear causaria timeout e nunca mostraria o callback.
+ */
+const isOAuthCallbackRoute = () => {
+  const path = window.location.pathname;
+  return path === '/auth/callback' || path.startsWith('/auth/callback');
+};
+
+/**
  * Limpa todas as chaves de sessão do Supabase do localStorage.
  * Chamado automaticamente quando detectamos sessão corrompida/inválida.
  */
@@ -76,6 +87,16 @@ const App: React.FC = () => {
     console.log("[BOOT] Checking Supabase session...");
 
     let active = true;
+
+    // Durante o callback OAuth, NÃO esperamos sessão pré-existente.
+    // O componente AuthCallback vai criar a sessão via exchangeCodeForSession.
+    // Se bloquearmos o render aqui, o AuthCallback nunca monta e o code expira.
+    if (isOAuthCallbackRoute()) {
+      console.log('[BOOT] Rota OAuth callback detectada — pulando verificação de sessão inicial.');
+      setSession(null);
+      setLoading(false);
+      return;
+    }
 
     // Timeout de 5 segundos para a verificação de sessão inicial
     const timeoutId = setTimeout(() => {

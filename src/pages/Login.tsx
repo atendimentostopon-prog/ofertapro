@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
@@ -19,6 +19,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+
+  // Exibe mensagem amigável se o callback OAuth retornou um erro
+  useEffect(() => {
+    const oauthError = searchParams.get('error');
+    if (oauthError === 'oauth_cancelled') {
+      setError('O login com Google foi cancelado. Tente novamente.');
+    } else if (oauthError === 'oauth_callback') {
+      setError('Não foi possível concluir o login com Google. Tente novamente ou use e-mail e senha.');
+    } else if (oauthError === 'missing_oauth_code') {
+      setError('Fluxo de login incompleto. Por favor, inicie o login novamente.');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (user && !profileLoading) {
