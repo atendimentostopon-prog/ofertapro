@@ -14,6 +14,7 @@ import { useToast } from '../../context/ToastContext';
 import ChannelLogo from '../ui/ChannelLogo';
 import { getMarketplaceLogoSrc } from '../../lib/logos';
 import { FEATURES } from '../../config/features';
+import { getShortlinkHost } from '../../config/app';
 
 interface NewOfferModalProps {
   onClose: () => void;
@@ -838,8 +839,8 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
   
                   <p className="text-mint-700 text-[9.5px] mt-2 underline truncate">
                     {FEATURES.useDirectAffiliateLinkInChannels 
-                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}` 
-                      : '🔗 aflyo.com.br/o/...'}
+                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}`
+                      : `🔗 ${getShortlinkHost()}/o/...`}
                   </p>
                 </div>
               </div>

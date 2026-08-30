@@ -578,7 +578,14 @@ serve(async (req) => {
     // ROUTING ENDPOINTS
     // ==========================================
 
-    const appUrl = Deno.env.get('VITE_PUBLIC_APP_URL') || 'https://www.aflyo.com.br'
+    // Base do link curto /o/<code>. Prioriza SHORTLINK_URL (domínio apex
+    // aflyo.com.br), cai pro domínio do painel, e por fim pro apex hardcoded.
+    const appUrl = (
+      Deno.env.get('SHORTLINK_URL') ||
+      Deno.env.get('VITE_SHORTLINK_URL') ||
+      Deno.env.get('VITE_PUBLIC_APP_URL') ||
+      'https://aflyo.com.br'
+    ).replace(/\/+$/, '')
 
     // ------------------------------------------
     // ENDPOINT 1: Listar Canais (GET /channels)

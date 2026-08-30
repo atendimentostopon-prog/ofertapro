@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { Toggle } from '../ui/Toggle';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
-import { APP_NAME } from '../../config/app';
+import { APP_NAME, getShortlinkHost } from '../../config/app';
 import { TemplateService } from '../../services/TemplateService';
 import { sendTelegramPhoto } from '../../lib/telegram';
 import { sender } from '../../lib/sender';
@@ -676,7 +676,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
               <div key={id} className="py-3 first:pt-0 last:pb-0">
                 <Toggle
                   id={`use-own-shortener-${id}`}
-                  label={`Usar encurtador próprio para ${label} (aflyo.com.br/o/...)`}
+                  label={`Usar encurtador próprio para ${label} (${getShortlinkHost()}/o/...)`}
                   description={
                     checked
                       ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'

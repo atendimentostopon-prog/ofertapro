@@ -7,7 +7,7 @@ import {
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { FEATURES } from '../config/features';
-import { APP_NAME } from '../config/app';
+import { APP_NAME, getShortlinkUrl } from '../config/app';
 import { Avatar } from './ui/Avatar';
 
 interface SidebarProps {
@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
               toast('Por favor, conclua a configuração da sua página pública.', 'warning');
               return;
             }
-            window.open(`/${user.username}`, '_blank');
+            window.open(`${getShortlinkUrl()}/${user.username}`, '_blank');
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors duration-160 group cursor-pointer"
         >
