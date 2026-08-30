@@ -17,6 +17,7 @@ import Feedbacks from './pages/Feedbacks';
 import PublicPage from './pages/PublicPage';
 import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import AdminDashboard from './pages/AdminDashboard';
 import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
@@ -261,6 +262,7 @@ const App: React.FC = () => {
     <ToastProvider>
       <UserProvider onBootError={(err) => setBootError(err)}>
         <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           {/* Root Redirect */}
           <Route path="/" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
@@ -319,6 +321,7 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
         </Routes>
         <CookieBanner />
+        </ErrorBoundary>
         </BrowserRouter>
       </UserProvider>
     </ToastProvider>
