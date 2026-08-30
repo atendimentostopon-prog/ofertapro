@@ -634,8 +634,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: tabelas e funções da Task 2.
 - Produces (SQL):
-  - `admin_audit_log(id uuid pk, admin_id uuid, action text, entity_type text, entity_id text, before jsonb, after jsonb, reason text, ip inet, user_agent text, request_id text, created_at timestamptz)`
-  - `admin_audit_write(p_admin_id uuid, p_action text, p_entity_type text, p_entity_id text, p_before jsonb, p_after jsonb, p_reason text, p_ctx jsonb) returns uuid`
+  - `admin_audit_log(id uuid pk, admin_id uuid (soft ref, sem FK), admin_email text, action text, entity_type text, entity_id text, before jsonb, after jsonb, reason text, ip inet, user_agent text, request_id text, created_at timestamptz)`. `admin_id` sem FK de propósito (o log é imutável e sobrevive à exclusão da conta). `admin_email` é preenchido por `admin_audit_write` a partir de `admin_accounts` no momento da escrita.
+  - `admin_audit_write(p_admin_id uuid, p_action text, p_entity_type text, p_entity_id text, p_before jsonb, p_after jsonb, p_reason text, p_ctx jsonb) returns uuid`. `security definer`; `revoke execute from authenticated, anon` + `grant execute to service_role` (senão um usuário logado forjaria linhas via RPC — o trigger append-only só barra UPDATE/DELETE, não INSERT).
   - `admin_invite(p_actor uuid, p_email text, p_role_keys text[], p_ctx jsonb) returns jsonb` — `p_actor` é `admin_accounts.id` de quem chama. Erros: `raise exception using errcode='P0002'` (não encontrado, e-mail sem `auth.users`), `errcode='23505'`/custom `'ADMIN_EXISTS'` (já é admin).
   - `admin_suspend(p_actor uuid, p_target uuid, p_reason text, p_ctx jsonb) returns jsonb` — erros: `'CANNOT_SUSPEND_SELF'`, `'LAST_SUPER_ADMIN'`, `'NOT_FOUND'`.
   - `admin_reactivate(p_actor uuid, p_target uuid, p_ctx jsonb) returns jsonb`
@@ -719,7 +719,11 @@ Expected: erro `function public.admin_invite(...) does not exist`. (Ou "verifica
 
 create table if not exists public.admin_audit_log (
   id uuid primary key default gen_random_uuid(),
-  admin_id uuid references public.admin_accounts(id),
+  -- referencia SOFT (sem FK): o log e imutavel e sobrevive a exclusao da conta
+  -- admin. Uma FK on delete set null seria um UPDATE, que o trigger append-only
+  -- abaixo bloqueia; on delete restrict travaria o cascade de auth.users.
+  admin_id uuid,
+  admin_email text,
   action text not null,
   entity_type text,
   entity_id text,
@@ -763,15 +767,20 @@ language plpgsql security definer set search_path = public as $$
 declare v_id uuid;
 begin
   insert into public.admin_audit_log
-    (admin_id, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id)
+    (admin_id, admin_email, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id)
   values (
-    p_admin_id, p_action, p_entity_type, p_entity_id, p_before, p_after, p_reason,
+    p_admin_id,
+    (select email from public.admin_accounts where id = p_admin_id),
+    p_action, p_entity_type, p_entity_id, p_before, p_after, p_reason,
     nullif(p_ctx->>'ip','')::inet, p_ctx->>'user_agent', p_ctx->>'request_id'
   )
   returning id into v_id;
   return v_id;
 end;
 $$;
+
+revoke execute on function public.admin_audit_write(uuid, text, text, text, jsonb, jsonb, text, jsonb) from authenticated, anon;
+grant execute on function public.admin_audit_write(uuid, text, text, text, jsonb, jsonb, text, jsonb) to service_role;
 
 -- Mutacoes. Cada uma faz a mudanca E o audit no mesmo corpo (mesma transacao).
 
@@ -1952,7 +1961,7 @@ export const list: Handler = async (params) => {
   const svc = serviceClient();
   let q = svc
     .from('admin_audit_log')
-    .select('id, admin_id, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id, created_at', { count: 'exact' })
+    .select('id, admin_id, admin_email, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
 
