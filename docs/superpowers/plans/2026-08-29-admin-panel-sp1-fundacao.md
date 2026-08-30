@@ -61,7 +61,7 @@ Os arquivos de asserção psql ficam em **`supabase/tests/manual/`** (não em `s
 | `index.ts` | `serve()`: CORS preflight, parse de `{ resource, action, params }`, roteia para handler, formata erro no envelope padrão. |
 | `_lib.ts` | `corsHeaders(req)`, `json(data, status, req)`, `errorResponse(code, message, req)`, `serviceClient()`, `getRequestContext(req)` (ip, user agent, request_id). |
 | `rbac.ts` | `authorize(req, deps)`: pipeline auth → AAL2 → conta ativa → retorna `AdminIdentity`. `requirePermission(identity, perm, deps)`. Lógica pura, recebe `deps` injetável (testável sem Supabase). |
-| `audit.ts` | `buildAuditContext(req, identity)`: monta `{ ip, user_agent, request_id, admin_id }` passado às RPCs de mutação. Mapa `ACTION_NAMES`. |
+| `audit.ts` | `type AuditContext` (`{ ip, user_agent, request_id }`) e o mapa `ACTION_NAMES`. O contexto é computado uma vez no `index.ts` (`getRequestContext`) e passado ao handler / às RPCs de mutação. |
 | `handlers/dashboard.ts` | `summary(params, ctx)`: chama `admin_dashboard_summary` e formata. |
 | `handlers/admins.ts` | `list`, `invite`, `suspend`, `reactivate`. |
 | `handlers/roles.ts` | `list`, `assign`, `revoke`. |
@@ -1057,7 +1057,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Produces:
   - `_lib.ts`: `corsHeaders(req: Request): Record<string,string>`; `json(data: unknown, status: number, req: Request): Response`; `errorResponse(code: ErrorCode, message: string, req: Request): Response`; `type ErrorCode = 'unauthenticated'|'forbidden'|'not_found'|'conflict'|'validation'|'rate_limited'|'internal'`; `STATUS_BY_CODE: Record<ErrorCode, number>`; `serviceClient(): SupabaseClient`; `getRequestContext(req: Request): { ip: string|null; user_agent: string|null; request_id: string }`
   - `rbac.ts`: `type AdminIdentity = { adminId: string; userId: string; email: string; roleKeys: string[]; permissions: Set<string> }`; `type RbacDeps = { getUser(jwt: string): Promise<{ userId: string; email: string; aal: string } | null>; loadAdmin(userId: string): Promise<{ adminId: string; status: string; roleKeys: string[]; permissions: string[] } | null> }`; `authorize(req: Request, deps: RbacDeps): Promise<AdminIdentity>` (throws `RbacError`); `requirePermission(identity: AdminIdentity, perm: string): void` (throws `RbacError`); `class RbacError extends Error { code: ErrorCode }`; `makeSupabaseDeps(): RbacDeps` (implementação real, usa `serviceClient` + `auth.getUser`).
-  - `audit.ts`: `type AuditContext = { ip: string|null; user_agent: string|null; request_id: string }`; `auditContextFrom(req: Request): AuditContext` (re-export de `getRequestContext` sem o campo a mais). `ACTION_NAMES` (mapa informativo).
+  - `audit.ts`: `type AuditContext = { ip: string|null; user_agent: string|null; request_id: string }` e `ACTION_NAMES` (mapa informativo). O contexto em si é computado uma vez em `index.ts` via `getRequestContext` e passado ao handler.
   - `index.ts`: HTTP handler. Contrato: `POST` com body `{ resource: string, action: string, params?: object }`, header `Authorization: Bearer <jwt>`. Resposta sucesso `{ data: <payload> }` status 200. Erro `{ error: { code, message } }`.
   - `type Handler = (params: Record<string, unknown>, identity: AdminIdentity, ctx: AuditContext) => Promise<unknown>`; `type HandlerMap = Record<string, Record<string, { permission: string; handler: Handler }>>`. `index.ts` importa `HANDLERS` de um registry; nesta task, registry só com `{ ping: { read: { permission: 'dashboard.read', handler: async () => ({ pong: true }) } } }`.
 
@@ -1135,7 +1135,7 @@ Deno.test('SUPER_ADMIN passa em qualquer permissao', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test --allow-env supabase/functions/admin-api/rbac_test.ts`
+Run: `deno test supabase/functions/admin-api/rbac_test.ts`
 Expected: FAIL, `Module not found "./rbac.ts"`.
 
 - [ ] **Step 3: Escrever `_lib.ts`**
@@ -1143,14 +1143,19 @@ Expected: FAIL, `Module not found "./rbac.ts"`.
 ```ts
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const DEV = Deno.env.get('ENVIRONMENT') === 'dev';
-const ALLOWED_ORIGINS = DEV
-  ? ['https://admin.aflyo.com.br', 'http://localhost:5273']
-  : ['https://admin.aflyo.com.br'];
+// Lazy: nao ler Deno.env no top level (forcaria --allow-env em todo teste que
+// importe este modulo transitivamente).
+function allowedOrigins(): string[] {
+  const dev = Deno.env.get('ENVIRONMENT') === 'dev';
+  return dev
+    ? ['https://admin.aflyo.com.br', 'http://localhost:5273']
+    : ['https://admin.aflyo.com.br'];
+}
 
 export function corsHeaders(req: Request): Record<string, string> {
+  const origins = allowedOrigins();
   const origin = req.headers.get('Origin') ?? '';
-  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allow = origins.includes(origin) ? origin : origins[0];
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-request-id',
@@ -1168,15 +1173,19 @@ export const STATUS_BY_CODE: Record<ErrorCode, number> = {
   validation: 422, rate_limited: 429, internal: 500,
 };
 
-export function json(data: unknown, status: number, req: Request): Response {
+export function json(data: unknown, status: number, req: Request, requestId?: string): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders(req), 'Content-Type': 'application/json', 'X-Request-Id': getRequestContext(req).request_id },
+    headers: {
+      ...corsHeaders(req),
+      'Content-Type': 'application/json',
+      'X-Request-Id': requestId ?? getRequestContext(req).request_id,
+    },
   });
 }
 
-export function errorResponse(code: ErrorCode, message: string, req: Request): Response {
-  return json({ error: { code, message } }, STATUS_BY_CODE[code], req);
+export function errorResponse(code: ErrorCode, message: string, req: Request, requestId?: string): Response {
+  return json({ error: { code, message } }, STATUS_BY_CODE[code], req, requestId);
 }
 
 export function serviceClient(): SupabaseClient {
@@ -1279,21 +1288,24 @@ export function makeSupabaseDeps(): RbacDeps {
     },
     async loadAdmin(userId) {
       const svc = serviceClient();
-      const { data: acc } = await svc
+      const { data: acc, error: accErr } = await svc
         .from('admin_accounts')
         .select('id, status')
         .eq('user_id', userId)
         .maybeSingle();
+      if (accErr) throw new RbacError('internal', 'Falha ao carregar a conta administrativa.');
       if (!acc) return null;
-      const { data: roles } = await svc
+      const { data: roles, error: rolesErr } = await svc
         .from('admin_user_roles')
         .select('role_key')
         .eq('admin_id', acc.id);
+      if (rolesErr) throw new RbacError('internal', 'Falha ao carregar os cargos.');
       const roleKeys = (roles ?? []).map((r: { role_key: string }) => r.role_key);
-      const { data: perms } = await svc
+      const { data: perms, error: permsErr } = await svc
         .from('admin_role_permissions')
         .select('permission_key')
         .in('role_key', roleKeys.length ? roleKeys : ['__none__']);
+      if (permsErr) throw new RbacError('internal', 'Falha ao carregar as permissoes.');
       return {
         adminId: acc.id,
         status: acc.status,
@@ -1308,14 +1320,9 @@ export function makeSupabaseDeps(): RbacDeps {
 - [ ] **Step 5: Escrever `audit.ts`**
 
 ```ts
-import { getRequestContext } from './_lib.ts';
-
+// O contexto da request e computado uma vez no index.ts (getRequestContext) e
+// passado ao handler. Este modulo so define o tipo e o mapa de nomes de acao.
 export type AuditContext = { ip: string | null; user_agent: string | null; request_id: string };
-
-export function auditContextFrom(req: Request): AuditContext {
-  const { ip, user_agent, request_id } = getRequestContext(req);
-  return { ip, user_agent, request_id };
-}
 
 export const ACTION_NAMES = {
   ADMIN_INVITED: 'admins/invite',
@@ -1336,9 +1343,9 @@ export const ACTION_NAMES = {
 `supabase/functions/admin-api/index.ts`:
 ```ts
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { corsHeaders, errorResponse, json } from './_lib.ts';
+import { corsHeaders, errorResponse, getRequestContext, json } from './_lib.ts';
 import { authorize, requirePermission, RbacError, makeSupabaseDeps, type AdminIdentity } from './rbac.ts';
-import { auditContextFrom, type AuditContext } from './audit.ts';
+import type { AuditContext } from './audit.ts';
 
 export type Handler = (
   params: Record<string, unknown>,
@@ -1358,39 +1365,49 @@ const deps = makeSupabaseDeps();
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
-  if (req.method !== 'POST') return errorResponse('validation', 'Use POST.', req);
 
-  let body: { resource?: string; action?: string; params?: Record<string, unknown> };
+  // Contexto da request computado UMA vez: o mesmo request_id vai para o header
+  // X-Request-Id da resposta e para o handler (linha de auditoria nas Tasks 6-8).
+  const ctx = getRequestContext(req);
+  const rid = ctx.request_id;
+
+  if (req.method !== 'POST') return errorResponse('validation', 'Use POST.', req, rid);
+
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return errorResponse('validation', 'Corpo JSON invalido.', req);
+    return errorResponse('validation', 'Corpo JSON invalido.', req, rid);
   }
-  const { resource, action, params = {} } = body;
-  if (!resource || !action) return errorResponse('validation', 'resource e action sao obrigatorios.', req);
+  if (!body || typeof body !== 'object') {
+    return errorResponse('validation', 'Corpo deve ser um objeto JSON.', req, rid);
+  }
+  const { resource, action, params = {} } = body as {
+    resource?: string; action?: string; params?: Record<string, unknown>;
+  };
+  if (!resource || !action) return errorResponse('validation', 'resource e action sao obrigatorios.', req, rid);
 
   const entry = HANDLERS[resource]?.[action];
-  if (!entry) return errorResponse('not_found', `Rota desconhecida: ${resource}/${action}.`, req);
+  if (!entry) return errorResponse('not_found', `Rota desconhecida: ${resource}/${action}.`, req, rid);
 
   try {
     const identity = await authorize(req, deps);
     requirePermission(identity, entry.permission);
-    const ctx = auditContextFrom(req);
     const data = await entry.handler(params, identity, ctx);
-    return json({ data }, 200, req);
+    return json({ data }, 200, req, rid);
   } catch (err) {
-    if (err instanceof RbacError) return errorResponse(err.code, err.message, req);
+    if (err instanceof RbacError) return errorResponse(err.code, err.message, req, rid);
     const e = err as { code?: string; message?: string };
     // Erros das RPCs plpgsql chegam com hint no message; mapeamento fino nas Tasks 7-8.
     console.error('[admin-api]', resource, action, e?.message ?? err);
-    return errorResponse('internal', 'Erro interno.', req);
+    return errorResponse('internal', 'Erro interno.', req, rid);
   }
 });
 ```
 
 - [ ] **Step 7: Rodar e confirmar que passa**
 
-Run: `deno test --allow-env supabase/functions/admin-api/rbac_test.ts`
+Run: `deno test supabase/functions/admin-api/rbac_test.ts`
 Expected: todos os testes PASS.
 
 - [ ] **Step 8: Checar tipos**
@@ -1623,7 +1640,7 @@ const HANDLERS: HandlerMap = {
 
 Run:
 ```bash
-deno test --allow-env supabase/functions/admin-api/
+deno test supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS, sem erro de tipo.
@@ -1688,7 +1705,7 @@ Deno.test('desconhecido -> null', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test --allow-env supabase/functions/admin-api/handlers/pg_errors_test.ts`
+Run: `deno test supabase/functions/admin-api/handlers/pg_errors_test.ts`
 Expected: FAIL, módulo não encontrado.
 
 - [ ] **Step 3: Escrever `handlers/_pg-errors.ts`**
@@ -1840,7 +1857,7 @@ import * as admins from './handlers/admins.ts';
 
 Run:
 ```bash
-deno test --allow-env supabase/functions/admin-api/
+deno test supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS.
@@ -1902,7 +1919,7 @@ Deno.test('clampPage normaliza', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test --allow-env supabase/functions/admin-api/handlers/roles_test.ts`
+Run: `deno test supabase/functions/admin-api/handlers/roles_test.ts`
 Expected: FAIL, `./audit.ts` não encontrado.
 
 - [ ] **Step 3: Escrever `handlers/roles.ts`**
@@ -2008,13 +2025,13 @@ export const whoami: Handler = async (_params, identity) => ({
 
 - [ ] **Step 6: Atualizar `index.ts` para `permission: null` e registrar handlers**
 
-Trocar o tipo do registry e o trecho de autorização:
+Trocar o tipo do registry e o trecho de autorização (o `ctx` já é computado uma vez no topo do `serve` desde a Task 5; só a linha do `requirePermission` muda):
 ```ts
 export type HandlerMap = Record<string, Record<string, { permission: string | null; handler: Handler }>>;
 // ...
     const identity = await authorize(req, deps);
     if (entry.permission !== null) requirePermission(identity, entry.permission);
-    const ctx = auditContextFrom(req);
+    const data = await entry.handler(params, identity, ctx);
 ```
 Registrar:
 ```ts
@@ -2040,7 +2057,7 @@ Também trocar o `permission: 'dashboard.read'` do `ping` para manter (ping cont
 
 Run:
 ```bash
-deno test --allow-env supabase/functions/admin-api/
+deno test supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS.
@@ -3506,7 +3523,7 @@ Run:
 npm --prefix admin test
 npm --prefix admin run build
 npm --prefix admin run lint
-deno test --allow-env supabase/functions/admin-api/
+deno test supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 npm run build   # app do cliente
 npm run lint    # app do cliente
