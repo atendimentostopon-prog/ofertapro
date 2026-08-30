@@ -17,6 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   const { user, loading, authUser, profileLoadFailed, refreshProfile, isAdmin } = useUser();
   const { data: subscription, loading: subLoading } = useSubscription();
   const location = useLocation();
+  const access = useAccountAccess();
   const [retrying, setRetrying] = React.useState(false);
 
   // 1. Se o App.tsx ou o UserContext identificou falta de sessão do Supabase, redireciona imediatamente
@@ -32,8 +33,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
       <FullPageLoader message="Carregando perfil e preferências do usuário..." />
     );
   }
-
-  const access = useAccountAccess();
 
   // 3. Gate de paywall:
   // Rotas permitidas quando o plano/trial estiver expirado:
