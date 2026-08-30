@@ -96,7 +96,7 @@ insert into public.admin_roles (key, label, description, is_system) values
   ('SUPPORT','Suporte','Operacao de usuarios, promocoes, links, envios e suporte.',true),
   ('DEVELOPER','Desenvolvedor','Logs, erros, jobs, filas, webhooks, integracoes e system health.',true),
   ('ANALYST','Analista','Leitura de dashboard, analytics e metricas.',true)
-on conflict (key) do update set label = excluded.label, description = excluded.description;
+on conflict (key) do update set label = excluded.label, description = excluded.description, is_system = excluded.is_system;
 
 -- Seed: permissoes (49, casa com shared/admin-permissions.ts)
 insert into public.admin_permissions (key, grp, description) values
@@ -149,7 +149,7 @@ insert into public.admin_permissions (key, grp, description) values
   ('admins.manage','administration','admins.manage'),
   ('roles.read','administration','roles.read'),
   ('roles.manage','administration','roles.manage')
-on conflict (key) do update set grp = excluded.grp;
+on conflict (key) do update set grp = excluded.grp, description = excluded.description;
 
 -- Seed: matriz. SUPER_ADMIN = todas.
 insert into public.admin_role_permissions (role_key, permission_key)
