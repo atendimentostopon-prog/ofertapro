@@ -53,8 +53,8 @@ export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
     'Shopee, Amazon, Mercado Livre',
   ],
   pro: [
-    'Monitora até 5 grupos de origem',
-    'Até 3 conexões WhatsApp',
+    'Monitora até 10 grupos de origem',
+    'Até 2 conexões WhatsApp',
     'Até 2 conexões Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',
@@ -62,8 +62,8 @@ export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
     'Tudo do Starter',
   ],
   enterprise: [
-    'Monitora até 10 grupos de origem',
-    'Até 10 conexões WhatsApp',
+    'Monitora até 15 grupos de origem',
+    'Até 3 conexões WhatsApp',
     'Até 5 conexões Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',

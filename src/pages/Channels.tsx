@@ -302,6 +302,9 @@ const AddChannelCard: React.FC<{
 const Channels: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
+  // Limite real de WhatsApp do plano atual do usuário
+  const planLimits = getPlanLimits((user?.plan as any) || 'free');
+  const maxWhatsapp = planLimits.maxWhatsappConnections;
   const [channels, setChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectModal, setConnectModal] = useState<ChannelType | null>(null);
@@ -630,10 +633,10 @@ const Channels: React.FC = () => {
             <MessageSquare className="w-5 h-5 text-mint-700 flex-shrink-0" />
             WhatsApp (Evolution API)
             <span className="text-xs font-semibold text-ink-tertiary bg-surface-1 border border-line px-2 py-0.5 rounded-full">
-              {instances.length}/3 Conectados
+              {instances.length}/{maxWhatsapp} Conectados
             </span>
           </h2>
-          {instances.length < 3 && (
+          {instances.length < maxWhatsapp && (
             <button
               onClick={() => setShowConnectWhatsappModal(true)}
               className="px-3.5 py-1.5 bg-graphite hover:bg-graphite-800 text-ink-inverse text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 self-start sm:self-auto"
@@ -654,7 +657,7 @@ const Channels: React.FC = () => {
             </div>
             <p className="text-sm font-bold text-ink font-display">Nenhuma conta WhatsApp conectada</p>
             <p className="text-xs text-ink-secondary max-w-xs mx-auto">
-              Você pode conectar até 3 números de WhatsApp para disparar suas ofertas para grupos.
+              Você pode conectar até {maxWhatsapp} número{maxWhatsapp > 1 ? 's' : ''} de WhatsApp para disparar suas ofertas para grupos.
             </p>
             <button
               onClick={() => setShowConnectWhatsappModal(true)}
