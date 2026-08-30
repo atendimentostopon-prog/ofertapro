@@ -27,22 +27,25 @@ Sintomas do desalinhamento:
 
 ### Valores canônicos por plano
 
-| coluna | free | **starter** | pro | enterprise |
+Valores fechados com o usuário em 2026-08-30 (tabela comparativa Starter / Profissional / Business). `pro` = plano "Profissional", `enterprise` = plano "Business".
+
+| coluna | free | **starter** | **pro** | **enterprise** |
 |---|---|---|---|---|
-| `max_source_groups` (grupos de origem monitorados) | 0 | **2** | 5 | 15 |
-| `max_whatsapp_instances` (números de WhatsApp) | 0 | **1** | 2 | 3 |
-| `max_whatsapp_dest_groups` (grupos de destino WhatsApp) | 0 | **5** | 10 | 15 |
-| `max_telegram_dest_groups` (grupos/canais de destino Telegram) | 0 | **5** | 10 | 15 |
-| `allow_shortener` (encurtador automático próprio) | false | **false** | true | true |
-| `allow_analytics` (painel de analytics / cliques visíveis) | false | **false** | true | true |
-| `allow_scheduling` (agendamento de disparo) | false | **true** | true | true |
+| `max_source_groups` (grupos de origem monitorados) | 0 | **2** | **6** | **15** |
+| `max_whatsapp_instances` (números de WhatsApp) | 0 | **1** | **2** | **4** |
+| `max_whatsapp_dest_groups` (grupos de destino WhatsApp) | 0 | **5** | **12** | **20** |
+| `max_telegram_dest_groups` (grupos/canais de destino Telegram) | 0 | **5** | **12** | **20** |
+| `allow_shortener` (encurtador automático próprio) | false | **false** | **true** | **true** |
+| `allow_analytics` (painel de analytics / cliques visíveis) | false | **false** | **true** | **true** |
+| `allow_scheduling` (agendamento de disparo) | false | **true** | **true** | **true** |
 | `remove_branding` (remove marca Aflyo da vitrine) | false | **false** | **false** | **true** |
 
-> `remove_branding` só no Enterprise/Business. Free, Starter e Pro exibem o selo "Aflyo" na vitrine pública **sem opção de remover** — não há toggle em lugar nenhum. Ver §9.
+> `remove_branding` só no Business (`enterprise`). Free, Starter e Profissional exibem o selo "Aflyo" na vitrine pública **sem opção de remover** — não há toggle em lugar nenhum. Ver §9.
 
-- **Ofertas:** ilimitado em todos os planos → sem coluna na tabela.
-- **Templates:** editáveis em todos os planos (1 template padrão por canal, como já é hoje) → sem coluna na tabela; o conceito `customTemplates` some do front.
-- Pro/Enterprise usam os números que já estão nos triggers `v2` (2026-08-30). Serão revisados quando o usuário for mexer nesses planos — fora do escopo deste SP.
+- **Ofertas:** ilimitado em todos os planos → sem coluna na tabela, sem trigger.
+- **Templates:** editáveis em todos os planos (1 template padrão por canal, como já é hoje) → sem coluna na tabela; o conceito `customTemplates` some do front. A linha "Templates personalizados: 3 / 10 / 30" da tabela comparativa foi **descartada** pelo usuário.
+- **Suporte prioritário** (só Business, na tabela comparativa): é diferenciação de marketing, sem comportamento no app → vira só um bullet em `FEATURES_BY_PLAN.enterprise`, **sem coluna** em `plan_limits`.
+- `maxTelegramConnections` (só front, sem trigger): free 0 / starter 1 / pro 2 / enterprise 5 — herdado, a tabela comparativa não distingue "conexão" de "grupo de destino" Telegram.
 
 ### Não-objetivos (ficam pra SP2/SP3)
 
@@ -100,8 +103,8 @@ INSERT INTO public.plan_limits
 VALUES
   ('free',       0,  0,  0,  0, false, false, false, false),
   ('starter',    2,  1,  5,  5, false, false, true,  false),
-  ('pro',        5,  2, 10, 10, true,  true,  true,  false),
-  ('enterprise',15,  3, 15, 15, true,  true,  true,  true)
+  ('pro',        6,  2, 12, 12, true,  true,  true,  false),
+  ('enterprise',15,  4, 20, 20, true,  true,  true,  true)
 ON CONFLICT (plan) DO UPDATE SET
   max_source_groups        = EXCLUDED.max_source_groups,
   max_whatsapp_instances   = EXCLUDED.max_whatsapp_instances,
@@ -169,8 +172,8 @@ Ofertas passam a ser ilimitadas em qualquer caminho de escrita (front, `public-a
 - `PLAN_CONFIGS`:
   - `free`: `maxOffers: Infinity`, `allowShortener: false`, `advancedAnalytics: false`, `removeBranding: false`, `futureScheduling: false`.
   - `starter`: `maxOffers: Infinity`, `allowShortener: false`, `advancedAnalytics: false`, `futureScheduling: true`, `removeBranding: false`. Grupos: `maxSourceGroups: 2`, `maxWhatsappConnections: 1`, `maxTelegramConnections: 1`, `maxWhatsappGroups: 5`, `maxTelegramGroups: 5`.
-  - `pro`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: false`. Grupos: `5 / 2 / 2 / 10 / 10`.
-  - `enterprise`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: true`. Grupos: `15 / 3 / 5 / 15 / 15`.
+  - `pro`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: false`. Grupos (`maxSourceGroups / maxWhatsappConnections / maxTelegramConnections / maxWhatsappGroups / maxTelegramGroups`): `6 / 2 / 2 / 12 / 12`.
+  - `enterprise`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: true`. Grupos: `15 / 4 / 5 / 20 / 20`.
   - O branch `!FEATURES.billing` de `getPlanLimits` ganha `allowShortener: true` e perde `customTemplates`.
 - `canCreateOffer`: passa a `return true;` (comentário: ofertas ilimitadas — mantida por compatibilidade com os callers). Callers em `useOfferForm.ts`, `Offers.tsx` não mudam.
 - `hasFeature`: a assinatura já exclui as chaves numéricas; após remover `customTemplates`, as chaves válidas passam a ser `removeBranding | advancedAnalytics | futureScheduling | allowShortener`.
@@ -183,7 +186,18 @@ Ofertas passam a ser ilimitadas em qualquer caminho de escrita (front, `public-a
 - `'Templates de mensagem customizados'` → `'Personalize o template de mensagem'`.
 - Sem menção a teto de ofertas em nenhum plano.
 
-`FEATURES_BY_PLAN.pro` / `.enterprise`: se citarem "ofertas ilimitadas" como bullet, manter (é verdade e é bullet de venda); nenhuma remoção obrigatória.
+`FEATURES_BY_PLAN.pro` (números da tabela comparativa 2026-08-30):
+
+- "Monitora até 5 grupos de origem" → "6"; "até 10 grupos de WhatsApp" → "12"; "até 10 grupos do Telegram" → "12".
+- Linha de templates com número → `'Personalize o template de mensagem'`.
+
+`FEATURES_BY_PLAN.enterprise`:
+
+- "Conecta até 3 números de WhatsApp" → "4"; "até 15 grupos de WhatsApp" → "20"; "até 15 grupos do Telegram" → "20".
+- Linha de templates com número → `'Personalize o template de mensagem'`.
+- Adiciona `'Suporte prioritário'`.
+
+"Ofertas ilimitadas", se já for bullet de `pro`/`enterprise`, mantém.
 
 ### 6. `src/components/settings/TemplatesTab.tsx`
 
