@@ -53,6 +53,7 @@ begin
   end;
 
   -- limpeza
+  -- audit rows referenciam admin_id por valor (sem FK); leftover num DB de db reset e inofensivo
   delete from public.admin_accounts where email in ('actor.test@aflyo.local','target.test@aflyo.local');
   delete from auth.users where email in ('actor.test@aflyo.local','target.test@aflyo.local');
   raise notice 'PASS migration 2';

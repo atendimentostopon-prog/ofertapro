@@ -2,7 +2,11 @@
 
 create table if not exists public.admin_audit_log (
   id uuid primary key default gen_random_uuid(),
-  admin_id uuid references public.admin_accounts(id),
+  -- referencia SOFT (sem FK): o log e imutavel e sobrevive a exclusao da conta
+  -- admin. Uma FK on delete set null seria um UPDATE, que o trigger append-only
+  -- abaixo bloqueia; on delete restrict travaria o cascade de auth.users.
+  admin_id uuid,
+  admin_email text,
   action text not null,
   entity_type text,
   entity_id text,
@@ -46,15 +50,20 @@ language plpgsql security definer set search_path = public as $$
 declare v_id uuid;
 begin
   insert into public.admin_audit_log
-    (admin_id, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id)
+    (admin_id, admin_email, action, entity_type, entity_id, before, after, reason, ip, user_agent, request_id)
   values (
-    p_admin_id, p_action, p_entity_type, p_entity_id, p_before, p_after, p_reason,
+    p_admin_id,
+    (select email from public.admin_accounts where id = p_admin_id),
+    p_action, p_entity_type, p_entity_id, p_before, p_after, p_reason,
     nullif(p_ctx->>'ip','')::inet, p_ctx->>'user_agent', p_ctx->>'request_id'
   )
   returning id into v_id;
   return v_id;
 end;
 $$;
+
+revoke execute on function public.admin_audit_write(uuid, text, text, text, jsonb, jsonb, text, jsonb) from authenticated, anon;
+grant execute on function public.admin_audit_write(uuid, text, text, text, jsonb, jsonb, text, jsonb) to service_role;
 
 -- Mutacoes. Cada uma faz a mudanca E o audit no mesmo corpo (mesma transacao).
 
