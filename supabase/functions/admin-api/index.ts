@@ -3,6 +3,8 @@ import { corsHeaders, errorResponse, getRequestContext, json } from './_lib.ts';
 import { authorize, requirePermission, RbacError, makeSupabaseDeps, type AdminIdentity } from './rbac.ts';
 import type { AuditContext } from './audit.ts';
 import * as dashboard from './handlers/dashboard.ts';
+import * as admins from './handlers/admins.ts';
+import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
   params: Record<string, unknown>,
@@ -18,6 +20,12 @@ const HANDLERS: HandlerMap = {
   },
   dashboard: {
     summary: { permission: 'dashboard.read', handler: dashboard.summary },
+  },
+  admins: {
+    list:       { permission: 'admins.read',   handler: admins.list },
+    invite:     { permission: 'admins.manage', handler: admins.invite },
+    suspend:    { permission: 'admins.manage', handler: admins.suspend },
+    reactivate: { permission: 'admins.manage', handler: admins.reactivate },
   },
 };
 
@@ -55,6 +63,8 @@ serve(async (req) => {
     return json({ data }, 200, req, rid);
   } catch (err) {
     if (err instanceof RbacError) return errorResponse(err.code, err.message, req, rid);
+    const mapped = mapPgError(err);
+    if (mapped) return errorResponse(mapped.code, mapped.message, req, rid);
     const e = err as { code?: string; message?: string };
     console.error('[admin-api]', resource, action, e?.message ?? err);
     return errorResponse('internal', 'Erro interno.', req, rid);
