@@ -16,6 +16,7 @@ import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
+import { pluralize } from '../lib/format';
 
 const statusConfig: Record<string, {
   icon: React.ElementType; bg: string; iconColor: string; label: string;
@@ -104,7 +105,7 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
                 <div className="flex items-center gap-1.5 text-xs">
                   <Send className="w-3.5 h-3.5 text-ink-tertiary" />
                   <span className="font-bold text-ink">{entry.channel_count || 0}</span>
-                  <span className="text-ink-tertiary">canal(is)</span>
+                  <span className="text-ink-tertiary">{pluralize(entry.channel_count || 0, 'canal', 'canais', false)}</span>
                 </div>
               </div>
             </div>
