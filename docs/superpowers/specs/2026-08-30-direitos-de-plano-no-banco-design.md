@@ -1,4 +1,4 @@
-# SP1 — Direitos de plano no banco (fonte única) + Starter canônico
+# SP1 — Direitos de plano no banco (fonte única) + Starter canônico + selo Aflyo na vitrine
 
 Data: 2026-08-30
 Status: aprovado (design), aguardando spec review
@@ -23,6 +23,7 @@ Sintomas do desalinhamento:
 3. Remover o limite de ofertas de vez (todos os planos ilimitado) e **toda menção a "20.000"** ou a qualquer teto de ofertas na UI.
 4. Alinhar o espelho no front (`PLAN_CONFIGS`) e adicionar um script que avisa quando ele diverge do banco.
 5. Ajustar os valores do plano **Starter** pro que foi definido com o usuário (abaixo).
+6. Colocar o **selo "Aflyo"** na vitrine pública com gate: aparece pra free/Starter/Pro (sem opção de remover), some pro Business. Ver §9.
 
 ### Valores canônicos por plano
 
@@ -35,7 +36,9 @@ Sintomas do desalinhamento:
 | `allow_shortener` (encurtador automático próprio) | false | **false** | true | true |
 | `allow_analytics` (painel de analytics / cliques visíveis) | false | **false** | true | true |
 | `allow_scheduling` (agendamento de disparo) | false | **true** | true | true |
-| `remove_branding` (remove marca Aflyo da vitrine) | false | **false** | true | true |
+| `remove_branding` (remove marca Aflyo da vitrine) | false | **false** | **false** | **true** |
+
+> `remove_branding` só no Enterprise/Business. Free, Starter e Pro exibem o selo "Aflyo" na vitrine pública **sem opção de remover** — não há toggle em lugar nenhum. Ver §9.
 
 - **Ofertas:** ilimitado em todos os planos → sem coluna na tabela.
 - **Templates:** editáveis em todos os planos (1 template padrão por canal, como já é hoje) → sem coluna na tabela; o conceito `customTemplates` some do front.
@@ -97,7 +100,7 @@ INSERT INTO public.plan_limits
 VALUES
   ('free',       0,  0,  0,  0, false, false, false, false),
   ('starter',    2,  1,  5,  5, false, false, true,  false),
-  ('pro',        5,  2, 10, 10, true,  true,  true,  true),
+  ('pro',        5,  2, 10, 10, true,  true,  true,  false),
   ('enterprise',15,  3, 15, 15, true,  true,  true,  true)
 ON CONFLICT (plan) DO UPDATE SET
   max_source_groups        = EXCLUDED.max_source_groups,
@@ -110,6 +113,8 @@ ON CONFLICT (plan) DO UPDATE SET
   remove_branding  = EXCLUDED.remove_branding,
   updated_at = now();
 ```
+
+A mesma migration recria a view `public.public_profiles` adicionando `hide_branding` (§9) — mantendo as 15 colunas atuais 1:1, `security_invoker = false` e o `GRANT SELECT … TO anon, authenticated`.
 
 ### 2. Migration `supabase/migrations/20260831000100_triggers_read_plan_limits.sql`
 
@@ -164,7 +169,7 @@ Ofertas passam a ser ilimitadas em qualquer caminho de escrita (front, `public-a
 - `PLAN_CONFIGS`:
   - `free`: `maxOffers: Infinity`, `allowShortener: false`, `advancedAnalytics: false`, `removeBranding: false`, `futureScheduling: false`.
   - `starter`: `maxOffers: Infinity`, `allowShortener: false`, `advancedAnalytics: false`, `futureScheduling: true`, `removeBranding: false`. Grupos: `maxSourceGroups: 2`, `maxWhatsappConnections: 1`, `maxTelegramConnections: 1`, `maxWhatsappGroups: 5`, `maxTelegramGroups: 5`.
-  - `pro`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: true`. Grupos: `5 / 2 / 2 / 10 / 10`.
+  - `pro`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: false`. Grupos: `5 / 2 / 2 / 10 / 10`.
   - `enterprise`: `maxOffers: Infinity`, `allowShortener: true`, `advancedAnalytics: true`, `futureScheduling: true`, `removeBranding: true`. Grupos: `15 / 3 / 5 / 15 / 15`.
   - O branch `!FEATURES.billing` de `getPlanLimits` ganha `allowShortener: true` e perde `customTemplates`.
 - `canCreateOffer`: passa a `return true;` (comentário: ofertas ilimitadas — mantida por compatibilidade com os callers). Callers em `useOfferForm.ts`, `Offers.tsx` não mudam.
@@ -211,6 +216,31 @@ Remove a dependência de `limits.customTemplates` (o editor de template fica sem
   - `removeBranding` ↔ `remove_branding`
   - `maxTelegramConnections` — só front (não há trigger de instância Telegram hoje); script ignora.
 
+### 9. Selo "Aflyo" na vitrine pública (branding)
+
+Hoje o `PublicPage.tsx` tem um "Powered by Aflyo" fixo no rodapé (linha ~723), **sem gate de plano** — aparece em toda vitrine. `removeBranding` está no `PLAN_CONFIGS` mas nunca é consumido.
+
+**Gate sem vazar o plano.** A view `public.public_profiles` **não expõe `plan`** (removido por segurança na migration `20260820121000`). Adicionar à view um booleano derivado:
+
+```sql
+-- Na migration 20260831000000 (ou 000100), recriar a view public_profiles
+-- adicionando a coluna:
+  , EXISTS (
+      SELECT 1 FROM public.plan_limits pl
+      WHERE pl.plan = p.plan AND pl.remove_branding
+    ) AS hide_branding
+-- (renomear o FROM pra `public.profiles p` e prefixar as colunas existentes)
+```
+
+A vitrine passa a saber só "mostra ou não o selo", nunca o plano.
+
+**Front — `src/pages/PublicPage.tsx`:**
+
+- O tipo do profile público (`useSettingsProfile` / o shape lido de `public_profiles`) ganha `hide_branding?: boolean`.
+- **Rodapé:** o bloco "Powered by Aflyo" (`<div className="text-center md:text-right">…`) só renderiza quando `!profile.hide_branding`.
+- **Badge fixo no canto** (novo): quando `!profile.hide_branding`, renderizar um selo `position: fixed` no canto inferior direito — pill discreto com sombra, `bg-surface-0`, `z` alto, texto "Feito com Aflyo" + link pra `https://aflyo.com.br` (`target="_blank"`). Não cobre conteúdo (`bottom-3 right-3`, tamanho pequeno, `pointer-events-auto` só no link). Some junto com o rodapé pro Business.
+- **Nenhum toggle de "remover branding"** em `/settings` nem em lugar nenhum. Business já vem sem o selo automaticamente (a view devolve `hide_branding = true`).
+
 ## Riscos e edge cases
 
 - **Contas Starter grandfathered acima do novo cap.** A migration `20260821` cita 4 contas Starter que rodavam automação com até ~10k ofertas e 2 WA / 2 TG. Ofertas: agora ilimitado, sem risco. Canais: o novo cap Starter é `1 WA instance` e `5` grupos de destino — quem já tiver `2` instâncias ou `>5` grupos **não é desconectado** (o trigger só barra novas ativações; `IF TG_OP='UPDATE' AND OLD.status IN ('connected','active') THEN RETURN NEW`). Fica "acima do limite" até desconectar algo. Aceitável; documentar.
@@ -218,6 +248,8 @@ Remove a dependência de `limits.customTemplates` (o editor de template fica sem
 - **Ordem das migrations.** `20260831000000` (tabela+seed) tem que rodar antes de `…000100` (triggers que fazem `SELECT` dela). Timestamps garantem a ordem.
 - **`check:plan-limits` no CI.** Não vamos plugar no CI neste SP (evita quebrar build de terceiros que não rodaram a migration). Fica como comando manual + linha no checklist de PR.
 - **Trial.** Conta em trial tem `plan='starter'` → puxa a linha `starter` de `plan_limits` automaticamente. Nada especial a fazer. No 8º dia `expire_*` cron muda `plan` pra `free` → puxa a linha `free` (tudo 0). Já coberto pelo sistema de trial existente.
+- **View `public_profiles` com `hide_branding`.** Recriar a view (`DROP VIEW` + `CREATE VIEW`) — as 15 colunas atuais têm que ser mantidas 1:1 (qualquer coluna a menos quebra a vitrine). `security_invoker = false` e o `GRANT SELECT … TO anon, authenticated` precisam ser reaplicados. O sub-SELECT em `plan_limits` roda com os privilégios do dono da view (definer-like), então funciona pra visitante anônimo mesmo com a policy de `plan_limits` sendo só `TO authenticated`.
+- **Contas Enterprise/Business existentes.** Passam a não ver o selo automaticamente assim que a view for recriada. Sem ação do usuário, sem migração de dados.
 
 ## Verificação (sem novos unit tests, regra do projeto)
 
@@ -229,12 +261,14 @@ Remove a dependência de `limits.customTemplates` (o editor de template fica sem
    - Tentar adicionar 3º grupo de origem numa conta Starter → erro do trigger.
    - Criar 30+ ofertas ativas em qualquer plano → sem erro (trigger de ofertas removido).
    - `/pricing` e a aba "Planos & Cobrança": sem menção a "20.000 ofertas"; Starter lista "Personalize o template de mensagem".
+   - Vitrine pública de conta Starter/Pro: selo "Aflyo" no rodapé **e** badge fixo no canto. Vitrine de conta Business/Enterprise: sem selo, sem badge.
 
 ## Ordem de implementação (resumo pro plano)
 
-1. Migrations `20260831000000` / `000100` / `000200`.
+1. Migrations `20260831000000` (tabela `plan_limits` + seed + recria a view `public_profiles` com `hide_branding`) / `000100` (triggers leem da tabela) / `000200` (drop do trigger de ofertas).
 2. `scripts/check-plan-limits.mjs` + `package.json`.
 3. `src/config/plans.ts` + `src/config/planCatalog.ts`.
 4. `src/components/settings/TemplatesTab.tsx` (limpeza de `customTemplates`).
 5. `src/pages/Dashboard.tsx` (remove card Ofertas + quick-fix Canais).
-6. Rodar `check:plan-limits`, build, QA manual.
+6. `src/pages/PublicPage.tsx` (+ tipo do profile público): gate do rodapé + badge fixo no canto por `hide_branding`.
+7. Rodar `check:plan-limits`, build, QA manual.
