@@ -1135,7 +1135,7 @@ Deno.test('SUPER_ADMIN passa em qualquer permissao', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test supabase/functions/admin-api/rbac_test.ts`
+Run: `deno test --allow-env supabase/functions/admin-api/rbac_test.ts`
 Expected: FAIL, `Module not found "./rbac.ts"`.
 
 - [ ] **Step 3: Escrever `_lib.ts`**
@@ -1390,7 +1390,7 @@ serve(async (req) => {
 
 - [ ] **Step 7: Rodar e confirmar que passa**
 
-Run: `deno test supabase/functions/admin-api/rbac_test.ts`
+Run: `deno test --allow-env supabase/functions/admin-api/rbac_test.ts`
 Expected: todos os testes PASS.
 
 - [ ] **Step 8: Checar tipos**
@@ -1623,7 +1623,7 @@ const HANDLERS: HandlerMap = {
 
 Run:
 ```bash
-deno test supabase/functions/admin-api/
+deno test --allow-env supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS, sem erro de tipo.
@@ -1688,7 +1688,7 @@ Deno.test('desconhecido -> null', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test supabase/functions/admin-api/handlers/pg_errors_test.ts`
+Run: `deno test --allow-env supabase/functions/admin-api/handlers/pg_errors_test.ts`
 Expected: FAIL, módulo não encontrado.
 
 - [ ] **Step 3: Escrever `handlers/_pg-errors.ts`**
@@ -1840,7 +1840,7 @@ import * as admins from './handlers/admins.ts';
 
 Run:
 ```bash
-deno test supabase/functions/admin-api/
+deno test --allow-env supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS.
@@ -1902,7 +1902,7 @@ Deno.test('clampPage normaliza', () => {
 
 - [ ] **Step 2: Rodar e confirmar que falha**
 
-Run: `deno test supabase/functions/admin-api/handlers/roles_test.ts`
+Run: `deno test --allow-env supabase/functions/admin-api/handlers/roles_test.ts`
 Expected: FAIL, `./audit.ts` não encontrado.
 
 - [ ] **Step 3: Escrever `handlers/roles.ts`**
@@ -2040,7 +2040,7 @@ Também trocar o `permission: 'dashboard.read'` do `ping` para manter (ping cont
 
 Run:
 ```bash
-deno test supabase/functions/admin-api/
+deno test --allow-env supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 ```
 Expected: PASS.
@@ -3506,7 +3506,7 @@ Run:
 npm --prefix admin test
 npm --prefix admin run build
 npm --prefix admin run lint
-deno test supabase/functions/admin-api/
+deno test --allow-env supabase/functions/admin-api/
 deno check supabase/functions/admin-api/index.ts
 npm run build   # app do cliente
 npm run lint    # app do cliente
