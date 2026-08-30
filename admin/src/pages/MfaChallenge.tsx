@@ -55,9 +55,9 @@ export default function MfaChallenge() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-1 px-4">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-surface-0 p-8 shadow-card">
-        <h1 className="font-display text-lg font-bold text-ink">Verificacao em duas etapas</h1>
+        <h1 className="font-display text-lg font-bold text-ink">Verificação em duas etapas</h1>
         <p className="mt-1 text-xs text-ink-secondary">
-          Informe o codigo de 6 digitos do seu app autenticador.
+          Informe o código de 6 dígitos do seu app autenticador.
         </p>
 
         {loading && <p className="mt-6 text-xs text-ink-tertiary">Carregando...</p>}

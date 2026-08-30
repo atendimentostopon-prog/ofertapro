@@ -91,14 +91,14 @@ export default function AdminsList() {
           <span className="text-ink-tertiary">nenhum</span>
         ),
     },
-    { key: 'mfaEnrolled', header: 'MFA', render: (r) => (r.mfaEnrolled ? 'Sim' : 'Nao') },
+    { key: 'mfaEnrolled', header: 'MFA', render: (r) => (r.mfaEnrolled ? 'Sim' : 'Não') },
     { key: 'createdAt', header: 'Criado em', render: (r) => fmtDate(r.createdAt) },
   ];
 
   if (canManage) {
     columns.push({
       key: 'acoes',
-      header: 'Acoes',
+      header: 'Ações',
       render: (r) =>
         r.status === 'active' ? (
           <button
