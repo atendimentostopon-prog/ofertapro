@@ -61,8 +61,10 @@ export function useDashboardStats() {
         fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers', 4000),
         fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels', 4000),
         fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history', 4000),
-        // Otimização crucial: selecionar apenas as colunas necessárias para reduzir tamanho de dados na rede
-        fetchWithFallback(supabase.from('clicks').select('created_at, source').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks', 4000)
+        // offer_id incluído pra poder ranquear "produtos mais clicados" a partir
+        // do evento real em vez do contador denormalizado offers.clicks (ver nota
+        // abaixo) -- ainda leve, mesma tabela/período já buscados.
+        fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks', 4000)
       ]);
 
       // Se todas as consultas falharem catastróficamente (ex: erro de rede global), exibe o erro geral
@@ -87,23 +89,33 @@ export function useDashboardStats() {
       const totalClicks7d = clicks.filter(c => new Date(c.created_at) >= sevenDaysAgo).length;
       const totalClicks30d = clicks.length;
 
-      // 3. Top 5 Ofertas
+      // 3. Top 5 Ofertas (últimos 30 dias)
+      // Ranqueia pelos eventos reais da tabela `clicks` em vez do contador
+      // denormalizado `offers.clicks` -- esse contador depende de um trigger
+      // (`handle_new_click`, supabase_clicks_schema.sql) pra ficar em sincronia,
+      // e cliques apareciam nos gráficos de cliques/dia (que já liam `clicks`
+      // direto) sem refletir aqui. Somando o evento real elimina essa classe de
+      // bug de vez, sem depender do trigger estar de fato aplicado em produção.
+      const clicksByOffer: Record<string, number> = {};
+      clicks.forEach((c: { offer_id: string }) => {
+        clicksByOffer[c.offer_id] = (clicksByOffer[c.offer_id] || 0) + 1;
+      });
       const sortedOffers = [...offers]
-        .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
-        .slice(0, 5)
         .map(o => ({
           id: o.id,
           name: o.name,
           image: o.image,
-          clicks: o.clicks || 0,
+          clicks: clicksByOffer[o.id] || 0,
           marketplace: o.marketplace
-        }));
+        }))
+        .sort((a, b) => b.clicks - a.clicks)
+        .slice(0, 5);
 
-      // 4. Melhor Marketplace (com base nas ofertas criadas)
+      // 4. Melhor Marketplace (com base nos cliques reais, mesmo motivo do item 3)
       const marketplaceClicks: Record<string, number> = {};
       offers.forEach(o => {
         const mp = o.marketplace || 'Outros';
-        marketplaceClicks[mp] = (marketplaceClicks[mp] || 0) + (o.clicks || 0);
+        marketplaceClicks[mp] = (marketplaceClicks[mp] || 0) + (clicksByOffer[o.id] || 0);
       });
       let topMarketplace = 'Nenhum';
       let maxMarketplaceClicks = 0;
