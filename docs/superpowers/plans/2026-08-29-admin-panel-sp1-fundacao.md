@@ -996,13 +996,15 @@ begin
 end $$;
 
 -- Limpeza do seed antigo de e-mails de teste (estavam em supabase_admin_setup.sql).
--- Roda so se a tabela antiga ainda existir.
+-- Roda so se a tabela antiga ainda existir. NAO inclui contatogivaldo@outlook.com:
+-- essa conta e o SUPER_ADMIN novo, ja tratada no bloco de bootstrap acima. Este
+-- delete e redundante com o drop table logo abaixo, mas documenta a intencao.
 do $$
 begin
   if to_regclass('public.admin_users') is not null then
     delete from public.admin_users where email in (
       'qa.teste1@gmail.com','kaikfarias051@gmail.com','testeonboarding@teste.com',
-      'qa.ofertapro.162606@gmail.com','conta@teste.com','contatogivaldo@outlook.com'
+      'qa.ofertapro.162606@gmail.com','conta@teste.com'
     );
   end if;
 end $$;
