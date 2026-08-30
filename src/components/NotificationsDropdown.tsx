@@ -1,11 +1,14 @@
 import React from 'react';
 import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Clock } from 'lucide-react';
 import { HistoryStatus } from '../types';
+import { pluralize } from '../lib/format';
 
 interface NotificationsDropdownProps {
   notifications: any[];
   onClose: () => void;
   loading: boolean;
+  /** Timestamp (ms) da última leitura antes desta abertura; itens mais novos ficam destacados. */
+  lastReadAt?: number | null;
 }
 
 const statusConfig: Record<HistoryStatus, { icon: React.ElementType; color: string; bg: string }> = {
@@ -16,16 +19,25 @@ const statusConfig: Record<HistoryStatus, { icon: React.ElementType; color: stri
   failed:  { icon: AlertCircle,   color: 'text-danger-ink',  bg: 'bg-danger-bg'  },
 };
 
-const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notifications, onClose, loading }) => {
+const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notifications, onClose, loading, lastReadAt }) => {
+  // Dado principal (resultado + nº de canais) vem primeiro; o nome da oferta,
+  // que é o trecho longo, fica no fim onde o line-clamp pode cortar sem prejuízo.
   const getNotificationText = (notif: any) => {
     const channelCount = notif.channel_count || (notif.channels || []).length;
+    const offer = notif.offer_name ? `: "${notif.offer_name}"` : '';
     if (notif.status === 'success' || notif.status === 'sent') {
-      return `Oferta "${notif.offer_name}" enviada com sucesso para ${channelCount} canal(is).`;
+      return `Enviada para ${pluralize(channelCount, 'canal', 'canais')}${offer}`;
     }
     if (notif.status === 'partial') {
-      return `Oferta "${notif.offer_name}" enviada com falhas parciais.`;
+      return `Enviada com falhas parciais${offer}`;
     }
-    return `Falha crítica ao disparar oferta "${notif.offer_name}".`;
+    return `Falha ao disparar${offer}`;
+  };
+
+  const isUnread = (notif: any) => {
+    if (!lastReadAt) return true;
+    const sentTime = new Date(notif.sent_at).getTime();
+    return Number.isFinite(sentTime) && sentTime > lastReadAt;
   };
 
   const formatNotifTime = (dateStr: string) => {
@@ -60,13 +72,21 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
           notifications.map(n => {
             const cfg = statusConfig[n.status as HistoryStatus] || statusConfig.error;
             const Icon = cfg.icon;
+            const unread = isUnread(n);
             return (
-              <div key={n.id} className="px-4 py-3 hover:bg-surface-1 transition-colors flex gap-3 items-start cursor-pointer">
+              <div
+                key={n.id}
+                className={`px-4 py-3 transition-colors flex gap-3 items-start cursor-pointer ${
+                  unread ? 'bg-ice hover:bg-mint-200/60' : 'hover:bg-surface-1'
+                }`}
+              >
                 <div className={`w-8 h-8 rounded-md ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
                   <Icon className={`w-4 h-4 ${cfg.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-medium text-ink leading-normal line-clamp-2">
+                  <p className={`text-[11px] leading-normal line-clamp-2 ${
+                    unread ? 'font-semibold text-ink' : 'font-medium text-ink-secondary'
+                  }`}>
                     {getNotificationText(n)}
                   </p>
                   <p className="text-[10px] text-ink-tertiary mt-1 flex items-center gap-1">
@@ -74,6 +94,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
                     {formatNotifTime(n.sent_at)}
                   </p>
                 </div>
+                {unread && <span className="w-1.5 h-1.5 rounded-full bg-mint-500 flex-shrink-0 mt-1.5" />}
               </div>
             );
           })
