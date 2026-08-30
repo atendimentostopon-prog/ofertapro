@@ -44,8 +44,9 @@ export const CAKTO_CARD_FEE = 0.99;
 export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
   starter: [
     'Monitora até 2 grupos de origem',
-    'Até 1 conexão WhatsApp',
-    'Até 1 conexão Telegram',
+    'Conecta 1 número de WhatsApp',
+    'Dispara para até 5 grupos de WhatsApp',
+    'Dispara para até 5 grupos do Telegram',
     'Até 20.000 ofertas ativas',
     'Disparo em massa + agendamento',
     'Analytics avançado',
@@ -53,9 +54,10 @@ export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
     'Shopee, Amazon, Mercado Livre',
   ],
   pro: [
-    'Monitora até 10 grupos de origem',
-    'Até 2 conexões WhatsApp',
-    'Até 2 conexões Telegram',
+    'Monitora até 5 grupos de origem',
+    'Conecta até 2 números de WhatsApp',
+    'Dispara para até 10 grupos de WhatsApp',
+    'Dispara para até 10 grupos do Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',
     'Remove a marca Aflyo da vitrine',
@@ -63,8 +65,9 @@ export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
   ],
   enterprise: [
     'Monitora até 15 grupos de origem',
-    'Até 3 conexões WhatsApp',
-    'Até 5 conexões Telegram',
+    'Conecta até 3 números de WhatsApp',
+    'Dispara para até 15 grupos de WhatsApp',
+    'Dispara para até 15 grupos do Telegram',
     'Ofertas ilimitadas',
     'Templates de mensagem customizados',
     'Remove a marca Aflyo da vitrine',
