@@ -144,9 +144,7 @@ const Settings: React.FC = () => {
         {activeTab === 'account' && <AccountTab profile={profile} />}
         {activeTab === 'profile' && <PublicPageTab profile={profile} />}
         {activeTab === 'links' && <LinksTab profile={profile} />}
-        {activeTab === 'templates' && (
-          <TemplatesTab onUpgradeClick={() => handleTabChange('billing')} />
-        )}
+        {activeTab === 'templates' && <TemplatesTab />}
         {activeTab === 'billing' && <BillingTab />}
       </div>
     </div>
