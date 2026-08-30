@@ -72,7 +72,7 @@ export default function AuditList() {
   ];
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <header>
         <h1 className="font-display text-xl font-bold text-ink">Auditoria</h1>
         <p className="mt-1 text-sm text-ink-secondary">
