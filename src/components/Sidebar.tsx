@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, LogOut, ExternalLink, MessageSquare, X, ShieldCheck, CreditCard, Plug
+  ChevronRight, LogOut, ExternalLink, MessageSquare, X, CreditCard, Plug
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -29,16 +29,13 @@ const navItems = [
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
-  const { user, isAdmin } = useUser();
+  const { user } = useUser();
   const { toast } = useToast();
   const access = useAccountAccess();
 
   if (!user) return null;
 
-  const activeNavItems = [
-    ...navItems,
-    ...(isAdmin ? [{ to: '/admin', icon: ShieldCheck, label: 'Painel Admin' }] : []),
-  ];
+  const activeNavItems = navItems;
 
   const handleLinkClick = () => {
     if (onCloseMobile) {

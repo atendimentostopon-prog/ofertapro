@@ -47,3 +47,10 @@ supabase/.branches
 supabase/.temp
 
 .vercel
+
+# Superpowers SDD scratch
+.superpowers/
+.worktrees/
+
+# Deno lockfile gerado ao rodar `deno test`/`deno check` nas Edge Functions
+/deno.lock
