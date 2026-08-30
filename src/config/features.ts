@@ -8,9 +8,12 @@ export const FEATURES = {
   feedback: true,      // Habilita o sistema de feedbacks e logs do beta
   publicPage: true,     // Habilita a página pública sem restrições de autenticação
   useDirectAffiliateLinkInChannels: true, // Envia o link de afiliado direto nos canais (Telegram/Discord)
+  // Encurtador de terceiro (is.gd / tinyurl / bitly) DESLIGADO para sempre.
+  // Nos canais vai só o encurtador próprio (aflyo.com.br/o/<code>) ou o link
+  // de afiliado original. Nada de domínio de terceiro.
   linkShortener: {
-    enabled: true,
-    provider: 'isgd' as 'tinyurl' | 'isgd' | 'bitly' | 'none'
+    enabled: false,
+    provider: 'none' as 'tinyurl' | 'isgd' | 'bitly' | 'none'
   }
 };
 

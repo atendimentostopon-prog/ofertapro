@@ -680,7 +680,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   description={
                     checked
                       ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
-                      : 'Os links são encurtados por um serviço externo (is.gd) e não contam clique no seu painel.'
+                      : 'O link de afiliado original é enviado sem encurtar. Não conta clique no seu painel.'
                   }
                   checked={checked}
                   onChange={(next) => handleToggleShortener(id, next)}
