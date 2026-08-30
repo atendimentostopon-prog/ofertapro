@@ -1,26 +1,28 @@
+// ESPELHO de public.plan_limits (migration 20260831000000). Mudou aqui?
+// Rode `npm run check:plan-limits` e crie a migration de UPDATE correspondente.
 import { UserPlan } from '../types';
 import { FEATURES } from './features';
 
 export interface PlanLimits {
   name: string;
   label: string;
-  maxOffers: number;
+  maxOffers: number; // sempre Infinity — ofertas ilimitadas (mantido por compat)
   maxWhatsappConnections: number; // Números / instâncias WhatsApp conectadas
-  maxTelegramConnections: number; // Conexões / bots Telegram
+  maxTelegramConnections: number; // Conexões / bots Telegram (só front)
   maxWhatsappGroups: number; // Grupos de destino WhatsApp
   maxTelegramGroups: number; // Grupos/canais de destino Telegram
   maxSourceGroups: number; // Grupos monitorados (origem)
   removeBranding: boolean;
   advancedAnalytics: boolean;
   futureScheduling: boolean;
-  customTemplates: boolean;
+  allowShortener: boolean; // Encurtador automático próprio (go.aflyo.com.br/o/...)
 }
 
 export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
   free: {
     name: 'free',
     label: 'Plano Free',
-    maxOffers: 0,
+    maxOffers: Infinity,
     maxWhatsappConnections: 0,
     maxTelegramConnections: 0,
     maxWhatsappGroups: 0,
@@ -29,49 +31,49 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     removeBranding: false,
     advancedAnalytics: false,
     futureScheduling: false,
-    customTemplates: false,
+    allowShortener: false,
   },
   starter: {
     name: 'starter',
     label: 'Plano Starter',
-    maxOffers: 20000,
+    maxOffers: Infinity,
     maxWhatsappConnections: 1, // 1 número de WhatsApp
     maxTelegramConnections: 1, // 1 conexão Telegram
     maxWhatsappGroups: 5, // Até 5 grupos de WhatsApp para envio
     maxTelegramGroups: 5, // Até 5 grupos do Telegram para envio
     maxSourceGroups: 2, // Monitora até 2 grupos de origem
     removeBranding: false,
-    advancedAnalytics: true,
+    advancedAnalytics: false,
     futureScheduling: true,
-    customTemplates: true,
+    allowShortener: false,
   },
   pro: {
     name: 'pro',
-    label: 'Plano PRO',
+    label: 'Plano PRO', // não mexer aqui — o nome de venda ("Profissional") vem de PLAN_LABELS
     maxOffers: Infinity,
     maxWhatsappConnections: 2, // 2 números de WhatsApp
     maxTelegramConnections: 2, // 2 conexões Telegram
-    maxWhatsappGroups: 10, // Até 10 grupos de WhatsApp para envio
-    maxTelegramGroups: 10, // Até 10 grupos do Telegram para envio
-    maxSourceGroups: 5, // Monitora até 5 grupos de origem
-    removeBranding: true,
+    maxWhatsappGroups: 12, // Até 12 grupos de WhatsApp para envio
+    maxTelegramGroups: 12, // Até 12 grupos do Telegram para envio
+    maxSourceGroups: 6, // Monitora até 6 grupos de origem
+    removeBranding: false,
     advancedAnalytics: true,
     futureScheduling: true,
-    customTemplates: true,
+    allowShortener: true,
   },
   enterprise: {
     name: 'enterprise',
-    label: 'Plano Enterprise',
+    label: 'Plano Enterprise', // idem — "Business" vem de PLAN_LABELS
     maxOffers: Infinity,
-    maxWhatsappConnections: 3, // 3 números de WhatsApp
+    maxWhatsappConnections: 4, // 4 números de WhatsApp
     maxTelegramConnections: 5, // Conexões Telegram
-    maxWhatsappGroups: 15, // Até 15 grupos de WhatsApp para envio
-    maxTelegramGroups: 15, // Até 15 grupos do Telegram para envio
+    maxWhatsappGroups: 20, // Até 20 grupos de WhatsApp para envio
+    maxTelegramGroups: 20, // Até 20 grupos do Telegram para envio
     maxSourceGroups: 15, // Monitora até 15 grupos de origem
     removeBranding: true,
     advancedAnalytics: true,
     futureScheduling: true,
-    customTemplates: true,
+    allowShortener: true,
   },
 };
 
@@ -92,19 +94,18 @@ export function getPlanLimits(plan: UserPlan = 'free'): PlanLimits {
       removeBranding: true,
       advancedAnalytics: true,
       futureScheduling: true,
-      customTemplates: true,
+      allowShortener: true,
     };
   }
   return PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
 }
 
 /**
- * Valida se o usuário pode criar uma nova oferta ativa com base no seu uso atual e plano
+ * Ofertas são ilimitadas em todos os planos (SP1). Mantida por compatibilidade
+ * com os callers em useOfferForm.ts / Offers.tsx.
  */
-export function canCreateOffer(activeOffersCount: number, plan: UserPlan = 'free'): boolean {
-  if (!FEATURES.billing) return true;
-  const limits = getPlanLimits(plan);
-  return activeOffersCount < limits.maxOffers;
+export function canCreateOffer(_activeOffersCount: number, _plan: UserPlan = 'free'): boolean {
+  return true;
 }
 
 /**
