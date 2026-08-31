@@ -42,8 +42,14 @@ const HANDLERS: HandlerMap = {
     list: { permission: 'audit.read', handler: audit.list },
   },
   users: {
-    list: { permission: 'users.read', handler: users.list },
-    get:  { permission: 'users.read', handler: users.get },
+    list:          { permission: 'users.read',            handler: users.list },
+    get:           { permission: 'users.read',            handler: users.get },
+    suspend:       { permission: 'users.suspend',         handler: users.suspend },
+    reactivate:    { permission: 'users.reactivate',      handler: users.reactivate },
+    'set-plan':    { permission: 'users.billing.manage',  handler: users.setPlan },
+    'extend-trial':{ permission: 'users.billing.manage',  handler: users.extendTrial },
+    'add-note':    { permission: 'users.notes.manage',    handler: users.addNote },
+    'set-tags':    { permission: 'users.tags.manage',     handler: users.setTags },
   },
 };
 
