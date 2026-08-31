@@ -1,0 +1,6 @@
+supabase/
+scripts/
+docs/
+.superpowers/
+.worktrees/
+*.md
