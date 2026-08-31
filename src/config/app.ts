@@ -49,7 +49,10 @@ export const getShortlinkUrl = (): string => {
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/+$/, '');
   }
-  return getAppUrl();
+  // Fallback seguro: usa o subdomínio dedicado de shortlinks.
+  // Nunca deixar cair em getAppUrl() pois aflyo.com.br é a landing page
+  // e não tem a rota /o/:shortCode.
+  return 'https://go.aflyo.com.br';
 };
 
 /** Só o host do domínio público, pra placeholders da UI (ex.: "go.aflyo.com.br/o/..."). */
