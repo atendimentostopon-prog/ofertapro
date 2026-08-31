@@ -1036,6 +1036,12 @@ serve(async (req) => {
         supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template, shortener_marketplaces').eq('user_id', userId).maybeSingle()
       ])
       const profile = profileRes.data
+      const { data: planLimitsRow } = await supabaseAdmin
+        .from('plan_limits')
+        .select('allow_shortener')
+        .eq('plan', profile?.plan ?? 'free')
+        .maybeSingle()
+      const planAllowsShortener = planLimitsRow?.allow_shortener === true
       const settings = settingsRes.data
       const profileName = profile?.public_name || profile?.full_name || 'Afiliado'
 
@@ -1061,7 +1067,7 @@ serve(async (req) => {
       // marketplaces novos herdam o comportamento recomendado sem precisar de migration).
       const offerMarketplace = (targetOffer.marketplace || '').toLowerCase()
       const shortenerMarketplaces = settings?.shortener_marketplaces || {}
-      const useOwnShortener = shortenerMarketplaces[offerMarketplace] !== false
+      const useOwnShortener = planAllowsShortener && shortenerMarketplaces[offerMarketplace] !== false
 
       let finalAffiliateUrl: string
       if (useOwnShortener) {
