@@ -8,6 +8,9 @@ import { getShortlinkUrl } from '../../config/app';
 import type { Offer } from '../../types';
 import Badge from '../Badge';
 import { useToast } from '../../context/ToastContext';
+import { useUser } from '../../context/UserContext';
+import { getPlanLimits } from '../../config/plans';
+import { LockedNumber } from '../billing/LockedNumber';
 import ProductImage from './ProductImage';
 
 interface OfferCardProps {
@@ -34,6 +37,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
 
   const [resent, setResent] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
+  const showClicks = getPlanLimits(user?.plan).advancedAnalytics;
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -206,7 +211,11 @@ const OfferCard: React.FC<OfferCardProps> = ({
           <div className="flex items-center gap-1.5">
             <MousePointerClick className="w-3.5 h-3.5 text-mint-700" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-ink leading-none tabular-nums">{(offer.clicks || 0).toLocaleString('pt-BR')}</span>
+              <span className="text-xs font-bold text-ink leading-none tabular-nums">
+                {showClicks
+                  ? (offer.clicks || 0).toLocaleString('pt-BR')
+                  : <LockedNumber>{(offer.clicks || 0).toLocaleString('pt-BR')}</LockedNumber>}
+              </span>
               <span className="text-[9px] text-ink-tertiary">cliques</span>
             </div>
           </div>

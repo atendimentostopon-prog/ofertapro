@@ -17,6 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
 import { pluralize } from '../lib/format';
+import { useUser } from '../context/UserContext';
+import { getPlanLimits } from '../config/plans';
+import { LockedNumber } from '../components/billing/LockedNumber';
 
 const statusConfig: Record<string, {
   icon: React.ElementType; bg: string; iconColor: string; label: string;
@@ -28,7 +31,7 @@ const statusConfig: Record<string, {
   failed:  { icon: AlertCircle,   bg: 'bg-danger-bg border border-danger/20',   iconColor: 'text-danger-ink',  label: 'Erro'    },
 };
 
-const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: any) => Promise<void> }> = ({ entry, isLast, onResend }) => {
+const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: any) => Promise<void>; showClicks: boolean }> = ({ entry, isLast, onResend, showClicks }) => {
   const [expanded, setExpanded] = useState(false);
   const [resending, setResending] = useState(false);
   const { toast } = useToast();
@@ -99,7 +102,11 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
               <div className="flex flex-wrap items-center gap-4 mt-2.5">
                 <div className="flex items-center gap-1.5 text-xs">
                   <MousePointerClick className="w-3.5 h-3.5 text-mint-700" />
-                  <span className="font-bold text-ink">{(entry.clicks || 0).toLocaleString('pt-BR')}</span>
+                  <span className="font-bold text-ink">
+                    {showClicks
+                      ? (entry.clicks || 0).toLocaleString('pt-BR')
+                      : <LockedNumber>{(entry.clicks || 0).toLocaleString('pt-BR')}</LockedNumber>}
+                  </span>
                   <span className="text-ink-tertiary">cliques</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
@@ -227,6 +234,8 @@ const History: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | HistoryStatus>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week'>('all');
   const { toast } = useToast();
+  const { user } = useUser();
+  const showClicks = getPlanLimits(user?.plan).advancedAnalytics;
   const navigate = useNavigate();
 
   const loadHistory = async () => {
@@ -337,7 +346,7 @@ const History: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Total Disparos',    value: history.length,                     icon: Send,              accent: 'text-ink',         accentBg: 'bg-surface-1',   border: 'border-line' },
-          { label: 'Cliques Gerados',   value: totalClicks.toLocaleString('pt-BR'), icon: MousePointerClick, accent: 'text-mint-700',    accentBg: 'bg-ice',         border: 'border-mint-200' },
+          { label: 'Cliques Gerados',   value: totalClicks.toLocaleString('pt-BR'), locked: true, icon: MousePointerClick, accent: 'text-mint-700',    accentBg: 'bg-ice',         border: 'border-mint-200' },
           { label: 'Taxa de Sucesso',   value: `${successRate}%`,                  icon: CheckCircle2,      accent: 'text-success-ink', accentBg: 'bg-success-bg',  border: 'border-success/20' },
         ].map(stat => {
           const Icon = stat.icon;
@@ -347,7 +356,9 @@ const History: React.FC = () => {
                 <Icon className={`w-5.5 h-5.5 ${stat.accent}`} />
               </div>
               <div>
-                <p className="text-2xl font-black text-ink tracking-tight tabular-nums font-display">{stat.value}</p>
+                <p className="text-2xl font-black text-ink tracking-tight tabular-nums font-display">
+                  {(stat as any).locked && !showClicks ? <LockedNumber>{stat.value}</LockedNumber> : stat.value}
+                </p>
                 <p className="text-[13px] font-semibold text-ink-secondary">{stat.label}</p>
               </div>
             </Card>
@@ -404,6 +415,7 @@ const History: React.FC = () => {
               entry={entry}
               isLast={idx === filtered.length - 1}
               onResend={handleResend}
+              showClicks={showClicks}
             />
           ))
         ) : (
