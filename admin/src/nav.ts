@@ -26,7 +26,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Usuários',
     items: [
-      { label: 'Usuários', permission: 'users.read', icon: Users, comingSoon: true },
+      { label: 'Usuários', to: '/users', permission: 'users.read', icon: Users },
     ],
   },
   {

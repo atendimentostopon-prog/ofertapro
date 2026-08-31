@@ -14,6 +14,8 @@ import AdminsList from './pages/admins/AdminsList';
 import InviteAdmin from './pages/admins/InviteAdmin';
 import RolesList from './pages/roles/RolesList';
 import AuditList from './pages/audit/AuditList';
+import UsersList from './pages/users/UsersList';
+import UserDetail from './pages/users/UserDetail';
 
 function Gate() {
   const { phase } = useAdminAuth();
@@ -33,6 +35,8 @@ function Gate() {
           <Route path="/admins/invite" element={<RequirePermission permission="admins.manage"><InviteAdmin /></RequirePermission>} />
           <Route path="/roles" element={<RequirePermission permission="roles.read"><RolesList /></RequirePermission>} />
           <Route path="/audit" element={<RequirePermission permission="audit.read"><AuditList /></RequirePermission>} />
+          <Route path="/users" element={<RequirePermission permission="users.read"><UsersList /></RequirePermission>} />
+          <Route path="/users/:id" element={<RequirePermission permission="users.read"><UserDetail /></RequirePermission>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
