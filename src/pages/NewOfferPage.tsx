@@ -14,8 +14,6 @@ import ChannelLogo from '../components/ui/ChannelLogo';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
-import { FEATURES } from '../config/features';
-import { getShortlinkHost } from '../config/app';
 import { pluralize } from '../lib/format';
 import { Card } from '../components/ui/Card';
 import {
@@ -874,18 +872,14 @@ const NewOfferPage: React.FC = () => {
                     </div>
                   )}
                   <p className="text-mint-700 text-[9.5px] mt-2 underline truncate">
-                    {FEATURES.useDirectAffiliateLinkInChannels 
-                      ? `🔗 ${form.link || 'https://link-de-afiliado-real...'}`
-                      : `🔗 ${getShortlinkHost()}/o/...`}
+                    🔗 {form.link || 'https://link-de-afiliado-real...'}
                   </p>
                 </div>
               </div>
             </div>
 
             <p className="text-[10px] text-ink-tertiary text-center font-medium leading-relaxed">
-              {FEATURES.useDirectAffiliateLinkInChannels
-                ? 'O link de afiliado direto configurado será enviado nas mensagens dos canais.'
-                : 'O link gerado automaticamente rastreia cliques e credita suas comissões.'}
+              O link enviado nos canais depende do seu plano e das preferências de encurtador.
             </p>
 
             {/* Marketplace preview */}
