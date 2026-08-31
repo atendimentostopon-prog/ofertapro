@@ -335,10 +335,10 @@ const AddChannelCard: React.FC<{
 };
 
 const Channels: React.FC = () => {
-  const { user } = useUser();
+  const { user, loading: userLoading, refreshProfile } = useUser();
   const { toast } = useToast();
   // Limite real de WhatsApp do plano atual do usuário
-  const planLimits = getPlanLimits((user?.plan as any) || 'free');
+  const planLimits = getPlanLimits((user?.plan as any) || (userLoading ? 'starter' : 'free'));
   const maxWhatsapp = planLimits.maxWhatsappConnections;
   const [channels, setChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -668,12 +668,17 @@ const Channels: React.FC = () => {
             <MessageSquare className="w-5 h-5 text-mint-700 flex-shrink-0" />
             WhatsApp (Evolution API)
             <span className="text-xs font-semibold text-ink-tertiary bg-surface-1 border border-line px-2 py-0.5 rounded-full">
-              {instances.length}/{planLimits.maxWhatsappConnections} Conectados
+              {userLoading ? '...' : `${instances.length}/${planLimits.maxWhatsappConnections} Conectados`}
             </span>
           </h2>
           <button
-            onClick={() => {
-              if (instances.length >= planLimits.maxWhatsappConnections) {
+            onClick={async () => {
+              if (userLoading) {
+                toast('Carregando informações do plano...', 'info');
+                await refreshProfile();
+              }
+              const currentLimits = getPlanLimits((user?.plan as any) || (userLoading ? 'starter' : 'free'));
+              if (instances.length >= currentLimits.maxWhatsappConnections) {
                 setPaywallFeature('conectar mais números de WhatsApp');
                 setPaywallOpen(true);
                 return;
@@ -700,8 +705,13 @@ const Channels: React.FC = () => {
               Você pode conectar até {planLimits.maxWhatsappConnections} número{planLimits.maxWhatsappConnections > 1 ? 's' : ''} de WhatsApp e disparar para até {planLimits.maxWhatsappGroups} grupos.
             </p>
             <button
-              onClick={() => {
-                if (instances.length >= planLimits.maxWhatsappConnections) {
+              onClick={async () => {
+                if (userLoading) {
+                  toast('Carregando informações do plano...', 'info');
+                  await refreshProfile();
+                }
+                const currentLimits = getPlanLimits((user?.plan as any) || (userLoading ? 'starter' : 'free'));
+                if (instances.length >= currentLimits.maxWhatsappConnections) {
                   setPaywallFeature('conectar mais números de WhatsApp');
                   setPaywallOpen(true);
                   return;
@@ -1005,9 +1015,14 @@ const Channels: React.FC = () => {
               key={type}
               type={type}
               disabled={false}
-              onConnect={() => {
+              onConnect={async () => {
+                if (userLoading) {
+                  toast('Carregando informações do plano...', 'info');
+                  await refreshProfile();
+                }
+                const currentLimits = getPlanLimits((user?.plan as any) || (userLoading ? 'starter' : 'free'));
                 if (type === 'whatsapp') {
-                  if (instances.length >= planLimits.maxWhatsappConnections) {
+                  if (instances.length >= currentLimits.maxWhatsappConnections) {
                     setPaywallFeature('conectar mais números de WhatsApp');
                     setPaywallOpen(true);
                     return;
@@ -1016,7 +1031,7 @@ const Channels: React.FC = () => {
                   return;
                 }
                 const telegramCount = connectedChannels.filter(c => c.type === 'telegram').length;
-                if (type === 'telegram' && telegramCount >= planLimits.maxTelegramGroups) {
+                if (type === 'telegram' && telegramCount >= currentLimits.maxTelegramGroups) {
                   setPaywallFeature('conectar mais canais do Telegram');
                   setPaywallOpen(true);
                   return;
