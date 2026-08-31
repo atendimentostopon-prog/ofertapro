@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2, Clock,
+  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2, Clock, Lock,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Toggle } from '../ui/Toggle';
@@ -11,6 +11,8 @@ import { TemplateService } from '../../services/TemplateService';
 import { sendTelegramPhoto } from '../../lib/telegram';
 import { sender } from '../../lib/sender';
 import { normalizeMarketplace } from '../../lib/marketplace';
+import { getPlanLimits } from '../../config/plans';
+import { PaywallModal } from '../billing/PaywallModal';
 import { SettingsSection, Field } from './shared';
 
 type ChannelKind = 'whatsapp' | 'telegram' | 'discord';
@@ -43,6 +45,8 @@ const mockOffer = {
 export const TemplatesTab: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
+  const limits = getPlanLimits(user?.plan);
+  const [showShortenerPaywall, setShowShortenerPaywall] = useState(false);
 
   const [whatsappTemplate, setWhatsappTemplate] = useState('');
   const [telegramTemplate, setTelegramTemplate] = useState('');
@@ -640,23 +644,51 @@ export const TemplatesTab: React.FC = () => {
         description="Escolha, por marketplace, qual link é enviado nos disparos automáticos das suas ofertas"
         icon={Link2}
       >
+        {!limits.allowShortener && (
+          <div className="p-4 bg-ice border border-mint-200 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
+            <div className="w-10 h-10 rounded-xl bg-surface-0 border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
+              <Link2 className="w-5 h-5" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <h4 className="text-xs font-bold text-ink">Encurtador automático disponível no plano Profissional</h4>
+              <p className="text-[11px] text-ink-secondary font-medium">Assine o Profissional para encurtar os links dos seus disparos e rastrear os cliques.</p>
+            </div>
+            <button
+              onClick={() => setShowShortenerPaywall(true)}
+              className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors flex-shrink-0"
+            >
+              Fazer upgrade
+            </button>
+          </div>
+        )}
         <div className="divide-y divide-line">
           {SHORTENER_MARKETPLACES.map(({ id, label }) => {
             const checked = shortenerMap[id] !== false;
             return (
-              <div key={id} className="py-3 first:pt-0 last:pb-0">
-                <Toggle
-                  id={`use-own-shortener-${id}`}
-                  label={`Usar encurtador próprio para ${label} (${getShortlinkHost()}/o/...)`}
-                  description={
-                    checked
-                      ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
-                      : 'O link de afiliado original é enviado sem encurtar. Não conta clique no seu painel.'
-                  }
-                  checked={checked}
-                  onChange={(next) => handleToggleShortener(id, next)}
-                  disabled={savingShortenerId === id}
-                />
+              <div
+                key={id}
+                className="py-3 first:pt-0 last:pb-0"
+                onClick={() => { if (!limits.allowShortener) setShowShortenerPaywall(true); }}
+              >
+                <div className="flex items-center gap-2">
+                  {!limits.allowShortener && (
+                    <Lock className="w-3 h-3 text-ink-tertiary flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <Toggle
+                      id={`use-own-shortener-${id}`}
+                      label={`Usar encurtador próprio para ${label} (${getShortlinkHost()}/o/...)`}
+                      description={
+                        checked
+                          ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
+                          : 'O link de afiliado original é enviado sem encurtar. Não conta clique no seu painel.'
+                      }
+                      checked={checked}
+                      onChange={(next) => handleToggleShortener(id, next)}
+                      disabled={savingShortenerId === id || !limits.allowShortener}
+                    />
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -694,6 +726,13 @@ export const TemplatesTab: React.FC = () => {
             : `Uma oferta postada agora seria apagada automaticamente ${TTL_OPTIONS.find(o => o.value === offerTtlHours)?.label.toLowerCase()} depois. A limpeza roda a cada 15 minutos.`}
         </p>
       </SettingsSection>
+
+      <PaywallModal
+        open={showShortenerPaywall}
+        onClose={() => setShowShortenerPaywall(false)}
+        featureName="usar o encurtador automático de links"
+        planSuggestion="pro"
+      />
     </div>
   );
 };
