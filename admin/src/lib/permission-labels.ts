@@ -25,6 +25,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'users.notes.manage': 'Gerenciar anotações do usuário',
   'users.tags.manage': 'Gerenciar tags do usuário',
   'users.impersonate': 'Personificar usuário',
+  'users.billing.manage': 'Gerenciar plano e trial do usuário',
 
   'promotions.read': 'Ver promoções',
   'promotions.retry': 'Reprocessar promoção',

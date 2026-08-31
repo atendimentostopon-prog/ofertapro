@@ -4,12 +4,13 @@ import {
 } from './admin-permissions';
 
 describe('catálogo de permissões', () => {
-  it('tem as 49 permissoes do prompt mestre, sem duplicata', () => {
+  it('tem as 50 permissoes do catalogo, sem duplicata', () => {
     expect(new Set(PERMISSION_KEYS).size).toBe(PERMISSION_KEYS.length);
     expect(PERMISSION_KEYS).toContain('dashboard.read');
     expect(PERMISSION_KEYS).toContain('roles.manage');
     expect(PERMISSION_KEYS).toContain('users.impersonate');
-    expect(PERMISSION_KEYS.length).toBe(49);
+    expect(PERMISSION_KEYS).toContain('users.billing.manage');
+    expect(PERMISSION_KEYS.length).toBe(50);
   });
 
   it('toda permissão em PERMISSIONS existe em PERMISSION_KEYS e tem grupo', () => {

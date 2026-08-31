@@ -5,6 +5,7 @@ const KEYS = [
   'dashboard.read', 'analytics.read',
   'users.read', 'users.suspend', 'users.reactivate', 'users.sessions.read',
   'users.sessions.revoke', 'users.notes.manage', 'users.tags.manage', 'users.impersonate',
+  'users.billing.manage',
   'promotions.read', 'promotions.retry', 'promotions.cancel',
   'links.read', 'links.test', 'links.retry', 'links.disable',
   'shortener.read', 'shortener.manage',
@@ -19,13 +20,13 @@ const KEYS = [
 ];
 
 describe('permission-labels', () => {
-  it('tem rotulo pra todas as 49 permissoes', () => {
-    expect(KEYS).toHaveLength(49);
+  it('tem rotulo pra todas as 50 permissoes', () => {
+    expect(KEYS).toHaveLength(50);
     for (const k of KEYS) {
       expect(PERMISSION_LABELS[k], k).toBeTruthy();
       expect(PERMISSION_LABELS[k]).not.toBe(k);
     }
-    expect(Object.keys(PERMISSION_LABELS)).toHaveLength(49);
+    expect(Object.keys(PERMISSION_LABELS)).toHaveLength(50);
   });
 
   it('tem rotulo pros 8 grupos', () => {
@@ -35,8 +36,8 @@ describe('permission-labels', () => {
     expect(Object.keys(GROUP_LABELS)).toHaveLength(8);
   });
 
-  it('PERMISSION_ORDER tem as 49 chaves sem repetir', () => {
-    expect(new Set(PERMISSION_ORDER).size).toBe(49);
+  it('PERMISSION_ORDER tem as 50 chaves sem repetir', () => {
+    expect(new Set(PERMISSION_ORDER).size).toBe(50);
     expect([...PERMISSION_ORDER].sort()).toEqual([...KEYS].sort());
   });
 
