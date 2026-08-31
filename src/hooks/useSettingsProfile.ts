@@ -4,6 +4,7 @@ import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { compressImage, uploadAvatarImage } from '../lib/image-utils';
 import { getShortlinkUrl } from '../config/app';
+import { isCurrentEmailVerified, EMAIL_NOT_VERIFIED_MESSAGE } from '../lib/emailVerification';
 
 type SocialType = 'whatsapp' | 'telegram' | 'discord';
 
@@ -164,6 +165,14 @@ export const useSettingsProfile = () => {
 
     if (!wppVal.valid || !telVal.valid || !discVal.valid) {
       toast('Por favor, corrija os links inválidos das redes sociais destacados.', 'warning');
+      return;
+    }
+
+    // SEC-2: LIGAR a vitrine (off -> on) exige e-mail confirmado.
+    // Desligar, ou salvar com ela já ativa, continua livre.
+    const activatingPublicPage = isPublicActive && !user.public_page_active;
+    if (activatingPublicPage && !(await isCurrentEmailVerified())) {
+      toast(EMAIL_NOT_VERIFIED_MESSAGE, 'warning');
       return;
     }
 

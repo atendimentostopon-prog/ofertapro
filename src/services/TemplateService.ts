@@ -11,26 +11,44 @@ function escapeHTML(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function escapeHtmlText(s: string): string {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function formatTelegramHTML(text: string): string {
   if (!text) return '';
   let formatted = text;
-  
+
   // 1. Links markdown: [texto](url) -> <a href="url">texto</a>
-  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchorText, url) => {
-    const safeUrl = url.replace(/&amp;/g, '&').replace(/&/g, '&amp;');
-    return `<a href="${safeUrl}">${anchorText}</a>`;
+  // SEC-3/SEC-9: valida protocolo (só http/https) e escapa o href e o texto.
+  // Link inseguro/malformado vira só o texto, sem tag.
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, anchorText, rawUrl) => {
+    const safeText = escapeHtmlText(anchorText);
+    let href = '';
+    try {
+      const u = new URL(String(rawUrl).trim());
+      if (u.protocol === 'http:' || u.protocol === 'https:') href = u.toString();
+    } catch {
+      /* url inválida -> sem link */
+    }
+    if (!href) return safeText;
+    const safeHref = href.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<a href="${safeHref}">${safeText}</a>`;
   });
-  
+
   // 2. Negrito: **texto** ou *texto* -> <b>texto</b>
   formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
   formatted = formatted.replace(/\*([^*]+)\*/g, '<b>$1</b>');
-  
+
   // 3. Itálico: _texto_ -> <i>texto</i>
   formatted = formatted.replace(/_([^_]+)_/g, '<i>$1</i>');
-  
+
   // 4. Riscado: ~texto~ -> <s>texto</s>
   formatted = formatted.replace(/~([^~]+)~/g, '<s>$1</s>');
-  
+
   return formatted;
 }
 
@@ -256,7 +274,7 @@ Link: {link}
         .from('user_settings')
         .update({ [col]: null })
         .eq('user_id', userId);
-    } catch {}
+    } catch { /* fallback opcional: ignora falha ao limpar user_settings */ }
 
     return this.getDefaultTemplate(channelType as any);
   },
@@ -325,6 +343,14 @@ Link: {link}
     const timeVal = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     let rendered = template;
+
+    // SEC-9: no Telegram o preview usa dangerouslySetInnerHTML e o disparo
+    // manda parse_mode=HTML. Neutraliza HTML cru digitado no template do
+    // usuário (as tags seguras vêm depois, do markdown e das linhas
+    // inteligentes). Markdown (**, _, ~, [](): segue funcionando.
+    if (isTelegram) {
+      rendered = escapeHtmlText(rendered);
+    }
 
     // Substituir aliases/versões antigas
     rendered = rendered

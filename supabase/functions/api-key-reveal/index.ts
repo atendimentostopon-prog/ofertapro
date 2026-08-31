@@ -12,12 +12,12 @@ const corsHeaders = {
  * revogar/regenerar.
  *
  * Importante: api_keys guarda apenas o hash SHA-256 — a chave pura NÃO
- * é recuperável de lá. A única cópia em texto puro fica em
- * bot_configs.link_oferta_api_key, gravada no momento da geração pela
- * função api-key-generate (necessária para o bot multi-tenant disparar).
+ * é recuperável de lá. A única cópia em texto puro fica no Supabase Vault
+ * (SEC-4), gravada no momento da geração pela função api-key-generate e
+ * lida aqui via RPC public.get_bot_config_api_key(user_id) com service_role.
  *
  * Consequência: só é possível revelar chaves geradas/regeneradas DEPOIS
- * que a sincronização com bot_configs entrou no ar. Para chaves antigas,
+ * que a sincronização com o Vault entrou no ar. Para chaves antigas,
  * o retorno é { apiKey: null, reason: 'not_synced' } e o usuário precisa
  * regenerar uma vez.
  */
@@ -69,13 +69,10 @@ serve(async (req) => {
       )
     }
 
-    const { data: botCfg } = await supabaseAdmin
-      .from('bot_configs')
-      .select('link_oferta_api_key')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const { data: vaultKey } = await supabaseAdmin
+      .rpc('get_bot_config_api_key', { p_user_id: user.id })
 
-    const stored = botCfg?.link_oferta_api_key || null
+    const stored = (typeof vaultKey === 'string' && vaultKey) ? vaultKey : null
 
     // Confere que a cópia em texto puro corresponde MESMO à chave ativa
     // (evita devolver uma chave defasada de bot_configs).

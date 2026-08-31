@@ -13,6 +13,7 @@ import { sender } from '../../lib/sender';
 import { normalizeMarketplace } from '../../lib/marketplace';
 import { getPlanLimits } from '../../config/plans';
 import { PaywallModal } from '../billing/PaywallModal';
+import { sanitizeInlineHtml } from '../../lib/sanitizeHtml';
 import { SettingsSection, Field } from './shared';
 
 type ChannelKind = 'whatsapp' | 'telegram' | 'discord';
@@ -624,7 +625,8 @@ export const TemplatesTab: React.FC = () => {
                 {currentEditingTemplateTab === 'telegram' ? (
                   <div
                     className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all"
-                    dangerouslySetInnerHTML={{ __html: renderedPreview }}
+                    // SEC-9: sanitiza antes de injetar (allowlist: a/b/i/s/br).
+                    dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(renderedPreview) }}
                   />
                 ) : (
                   <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all">

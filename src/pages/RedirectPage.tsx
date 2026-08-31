@@ -3,10 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Zap } from 'lucide-react';
 
+// SEC-3: só http(s). Barra javascript:, data:, vbscript:, etc. antes de
+// jogar no window.location.
+function toSafeHttpUrl(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const u = new URL(raw.trim());
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 const RedirectPage: React.FC = () => {
   const { id, shortCode } = useParams<{ id?: string; shortCode?: string }>();
   const [notFound, setNotFound] = useState(false);
   const [emptyLink, setEmptyLink] = useState(false);
+  const [invalidLink, setInvalidLink] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,17 +31,14 @@ const RedirectPage: React.FC = () => {
       }
 
       try {
-        let query = supabase
-          .from('offers')
-          .select('id, affiliate_link, user_id');
+        // SEC-1: a tabela `offers` não é mais legível por anon. O destino do
+        // redirect vem de uma RPC SECURITY DEFINER que devolve só
+        // { id, affiliate_link } de UMA oferta ativa.
+        const { data, error } = await supabase.rpc('resolve_offer_redirect', {
+          p_identifier: identifier,
+        });
 
-        if (shortCode) {
-          query = query.eq('short_code', shortCode);
-        } else {
-          query = query.eq('id', id);
-        }
-
-        const { data: offer, error } = await query.single();
+        const offer = Array.isArray(data) ? data[0] : data;
 
         if (error || !offer) {
           console.error('Oferta não encontrada:', error?.message);
@@ -36,9 +46,16 @@ const RedirectPage: React.FC = () => {
           return;
         }
 
-        if (!offer.affiliate_link || offer.affiliate_link.trim() === '') {
+        if (!offer.affiliate_link || String(offer.affiliate_link).trim() === '') {
           console.error('Link de afiliado vazio');
           setEmptyLink(true);
+          return;
+        }
+
+        const safeUrl = toSafeHttpUrl(offer.affiliate_link);
+        if (!safeUrl) {
+          console.error('Link de afiliado com protocolo não permitido');
+          setInvalidLink(true);
           return;
         }
 
@@ -46,12 +63,13 @@ const RedirectPage: React.FC = () => {
           const urlParams = new URLSearchParams(window.location.search);
           const source = urlParams.get('src') || 'direct';
 
+          // SEC-10: clique é registrado anonimamente. O dono da oferta é
+          // resolvido por trigger no banco (clicks_set_offer_owner).
           const { error: clickError } = await supabase
             .from('clicks')
             .insert({
               offer_id: offer.id,
-              user_id: offer.user_id,
-              source: source
+              source: source,
             });
 
           if (clickError) {
@@ -61,8 +79,8 @@ const RedirectPage: React.FC = () => {
           console.error('Erro de rede ou permissão ao registrar clique:', clickErr);
         }
 
-        // Redireciona para o link de afiliado
-        window.location.href = offer.affiliate_link;
+        // Redireciona para o link de afiliado (já validado como http/https)
+        window.location.href = safeUrl;
       } catch (err) {
         console.error('Erro grave no redirecionamento:', err);
         setNotFound(true);
@@ -93,7 +111,7 @@ const RedirectPage: React.FC = () => {
     );
   }
 
-  if (emptyLink) {
+  if (emptyLink || invalidLink) {
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center bg-surface-1 text-ink p-6 text-center animate-fade-in">
         <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] bg-warning/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -102,7 +120,9 @@ const RedirectPage: React.FC = () => {
         </div>
         <h2 className="text-xl font-bold text-ink tracking-tight font-display">Link Indisponível</h2>
         <p className="text-sm text-ink-secondary mt-2 max-w-sm leading-relaxed">
-          O link de destino para esta oferta não está configurado corretamente.
+          {invalidLink
+            ? 'O link de destino desta oferta é inválido e não pode ser aberto com segurança.'
+            : 'O link de destino para esta oferta não está configurado corretamente.'}
         </p>
         <button
           onClick={() => navigate('/')}

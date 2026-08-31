@@ -68,18 +68,15 @@ serve(async (req) => {
       throw new Error(`Erro ao revogar chave de API no banco: ${dbError.message}`)
     }
 
-    // Se o bot multi-tenant estava usando exatamente esta chave, limpa a cópia
-    // em bot_configs para ele parar de tentar disparar com uma chave morta
-    // (evita spam de 401). O usuário gera uma nova chave para religar o disparo.
-    const { data: botCfg } = await supabaseAdmin
-      .from('bot_configs')
-      .select('id, link_oferta_api_key')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    // Se o bot multi-tenant estava usando exatamente esta chave, limpa a
+    // cópia no Vault (SEC-4) para ele parar de tentar disparar com uma chave
+    // morta (evita spam de 401). O usuário gera uma nova chave para religar.
+    const { data: vaultKey } = await supabaseAdmin
+      .rpc('get_bot_config_api_key', { p_user_id: user.id })
 
-    if (botCfg?.link_oferta_api_key) {
+    if (typeof vaultKey === 'string' && vaultKey) {
       const encoder = new TextEncoder()
-      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(botCfg.link_oferta_api_key))
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(vaultKey))
       const storedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
 
       const { data: revokedKey } = await supabaseAdmin
@@ -90,9 +87,7 @@ serve(async (req) => {
 
       if (revokedKey?.key_hash === storedHash) {
         await supabaseAdmin
-          .from('bot_configs')
-          .update({ link_oferta_api_key: null, updated_at: new Date().toISOString() })
-          .eq('id', botCfg.id)
+          .rpc('set_bot_config_api_key', { p_user_id: user.id, p_key: null })
       }
     }
 

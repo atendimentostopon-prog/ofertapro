@@ -1,6 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
+// SEC-7: comparação constante em tempo. Faz SHA-256 dos dois lados (sempre
+// 32 bytes) antes de comparar byte a byte, então difere no tempo só quando
+// os hashes diferem -- nunca vaza o comprimento nem o prefixo do secret.
+async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder()
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ])
+  const ua = new Uint8Array(ha)
+  const ub = new Uint8Array(hb)
+  let diff = 0
+  for (let i = 0; i < ua.length; i++) diff |= ua[i] ^ ub[i]
+  return diff === 0
+}
+
 serve(async (req) => {
   // Webhooks geralmente são acionados apenas por requisições POST
   if (req.method !== 'POST') {
@@ -8,14 +24,19 @@ serve(async (req) => {
   }
 
   try {
-    // 1. Validar o Webhook Secret
-    const urlObj = new URL(req.url)
-    const querySecret = urlObj.searchParams.get('secret')
-    const receivedSecret = req.headers.get('x-webhook-secret') || querySecret
-    const configSecret = Deno.env.get('EVOLUTION_WEBHOOK_SECRET')
+    // 1. Validar o Webhook Secret.
+    // SEC-7: o secret só é aceito no header `x-webhook-secret`. Nunca mais
+    // na query string (ia parar em log de acesso, Referer, histórico, etc).
+    const receivedSecret = req.headers.get('x-webhook-secret') || ''
+    const configSecret = Deno.env.get('EVOLUTION_WEBHOOK_SECRET') || ''
 
-    if (!configSecret || !receivedSecret || receivedSecret !== configSecret) {
-      console.warn(`[WEBHOOK] Validação de secret falhou. Recebida no header: ${req.headers.get('x-webhook-secret') || 'Nenhuma'} / Recebida na query: ${querySecret || 'Nenhuma'}`)
+    if (!configSecret) {
+      console.error('[WEBHOOK] EVOLUTION_WEBHOOK_SECRET não configurado.')
+      return new Response(JSON.stringify({ error: 'Webhook não configurado.' }), { status: 500 })
+    }
+
+    if (!receivedSecret || !(await timingSafeEqual(receivedSecret, configSecret))) {
+      console.warn('[WEBHOOK] Validação de secret falhou (header x-webhook-secret ausente ou incorreto).')
       return new Response(JSON.stringify({ error: 'Não autorizado.' }), { status: 401 })
     }
 

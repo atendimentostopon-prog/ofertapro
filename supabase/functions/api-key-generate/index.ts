@@ -90,22 +90,18 @@ serve(async (req) => {
       throw new Error(`Erro ao salvar chave de API no banco: ${dbError.message}`)
     }
 
-    // 6. Sincronizar a nova chave (em texto puro) com o bot multi-tenant.
-    // O bot lê bot_configs.link_oferta_api_key e recarrega a cada 60s, então
-    // assim que o usuário revoga/regenera a chave aqui, o disparo volta sozinho.
-    // Só existe um momento em que a chave pura está disponível: agora.
+    // 6. Sincronizar a nova chave com o bot multi-tenant.
+    // SEC-4: a chave pura NÃO fica mais em bot_configs.link_oferta_api_key
+    // (plaintext). Vai para o Supabase Vault via RPC SECURITY DEFINER
+    // (set_bot_config_api_key), acessível só por service_role. O bot lê de
+    // volta com public.get_bot_config_api_key(user_id).
     const { error: botSyncError } = await supabaseAdmin
-      .from('bot_configs')
-      .update({
-        link_oferta_api_key: apiKey,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
+      .rpc('set_bot_config_api_key', { p_user_id: user.id, p_key: apiKey })
 
     if (botSyncError) {
       // Não falha a geração da chave — apenas registra. O usuário ainda
       // recebe a chave pura e pode colá-la manualmente se necessário.
-      console.error('[API_KEY_GENERATE] Falha ao sincronizar chave com bot_configs:', botSyncError.message)
+      console.error('[API_KEY_GENERATE] Falha ao sincronizar chave com o Vault:', botSyncError.message)
     }
 
     // Retornar a chave pura apenas uma vez ao cliente, junto com os metadados cadastrados

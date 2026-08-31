@@ -12,6 +12,7 @@ import { Marketplace, DispatchResult } from '../types';
 import { withTimeout } from '../lib/utils';
 import { detectMarketplaceFromUrl } from '../lib/marketplace-detect';
 import { normalizeMarketplace } from '../lib/marketplace';
+import { isCurrentEmailVerified, EMAIL_NOT_VERIFIED_MESSAGE } from '../lib/emailVerification';
 import { ProductEnrichmentService, normalizeProductTitle } from '../services/ProductEnrichmentService';
 import { 
   parseCurrencyInputToCents, 
@@ -329,8 +330,17 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
       setError('O preço promocional é obrigatório e deve ser maior que zero.');
       return;
     }
-    if (!form.link.trim() || !form.link.startsWith('http')) {
-      setError('Insira um link de afiliado válido (começando com http/https).');
+    // SEC-3: valida protocolo de verdade (new URL), não só startsWith('http').
+    const linkOk = (() => {
+      try {
+        const u = new URL(form.link.trim());
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    })();
+    if (!linkOk) {
+      setError('Insira um link de afiliado válido (começando com http:// ou https://).');
       return;
     }
     if (!form.marketplace) {
@@ -345,6 +355,13 @@ export function useOfferForm({ offerToEdit, onClose, onSuccess }: UseOfferFormPa
 
     if (!user?.id) {
       setError('Usuário não autenticado no sistema.');
+      return;
+    }
+
+    // SEC-2: publicar oferta (não-rascunho) exige e-mail confirmado.
+    // Rascunho é livre — não fica visível na internet.
+    if (!isDraft && !(await isCurrentEmailVerified())) {
+      setError(EMAIL_NOT_VERIFIED_MESSAGE);
       return;
     }
 

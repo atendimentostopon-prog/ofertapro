@@ -9,6 +9,19 @@ const corsHeaders = {
 
 const USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS = true;
 
+// SEC-3: só aceita http(s) como link de afiliado. Barra javascript:, data:,
+// vbscript:, file: etc. antes de gravar no banco (o trigger
+// offers_affiliate_link_protocol_guard é a rede de segurança no servidor).
+function isSafeHttpUrl(raw: unknown): boolean {
+  if (typeof raw !== 'string') return false
+  try {
+    const u = new URL(raw.trim())
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 // Helper para formatar moeda BRL
 const formatCurrency = (val: number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -64,13 +77,23 @@ function escapeHTML(text: string): string {
 function formatTelegramHTML(text: string): string {
   if (!text) return '';
   let formatted = text;
-  
+
   // 1. Links markdown: [texto](url) -> <a href="url">texto</a>
-  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchorText, url) => {
-    const safeUrl = url.replace(/&amp;/g, '&').replace(/&/g, '&amp;');
-    return `<a href="${safeUrl}">${anchorText}</a>`;
+  // SEC-3/SEC-9: só http/https; href e texto escapados; link ruim vira texto.
+  formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, anchorText, rawUrl) => {
+    const safeText = String(anchorText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let href = '';
+    try {
+      const u = new URL(String(rawUrl).trim());
+      if (u.protocol === 'http:' || u.protocol === 'https:') href = u.toString();
+    } catch {
+      /* url inválida -> sem link */
+    }
+    if (!href) return safeText;
+    const safeHref = href.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<a href="${safeHref}">${safeText}</a>`;
   });
-  
+
   // 2. Negrito: **texto** ou *texto* -> <b>texto</b>
   formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
   formatted = formatted.replace(/\*([^*]+)\*/g, '<b>$1</b>');
@@ -269,6 +292,13 @@ function renderMessageTemplate(
   }
 
   let rendered = template;
+
+  // SEC-9: disparo Telegram usa parse_mode=HTML. Neutraliza HTML cru
+  // digitado no template do usuário; markdown e linhas inteligentes
+  // (que trazem as tags seguras) rodam depois.
+  if (isTelegram) {
+    rendered = rendered.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
   // Substituir aliases/versões antigas
   rendered = rendered
@@ -663,6 +693,14 @@ serve(async (req) => {
         )
       }
 
+      // SEC-3: affiliate_link precisa ser http(s).
+      if (!isSafeHttpUrl(affiliate_link)) {
+        return new Response(
+          JSON.stringify({ error: 'affiliate_link inválido: use uma URL http:// ou https://.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       // Validar marketplace
       const validMarketplaces = ['mercadolivre', 'shopee', 'amazon', 'magalu', 'aliexpress']
       if (!validMarketplaces.includes(marketplace.toLowerCase())) {
@@ -897,6 +935,14 @@ serve(async (req) => {
         if (!finalProductName || !affiliate_link || !marketplace || sale_price === undefined || !channel_ids || !Array.isArray(channel_ids) || channel_ids.length === 0) {
           return new Response(
             JSON.stringify({ error: 'Campos obrigatórios ausentes no objeto offer (name/product_name/title, affiliate_link, marketplace, sale_price) ou channel_ids vazios.' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // SEC-3: affiliate_link precisa ser http(s).
+        if (!isSafeHttpUrl(affiliate_link)) {
+          return new Response(
+            JSON.stringify({ error: 'affiliate_link inválido: use uma URL http:// ou https://.' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }

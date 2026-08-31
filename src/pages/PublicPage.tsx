@@ -244,12 +244,14 @@ const PublicPage: React.FC = () => {
         metadata: { profile_id: profileData.id, username: profileData.username }
       });
 
-      const { data: offersData } = await supabase
-        .from('offers')
-        .select('*')
-        .eq('user_id', profileData.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+      // SEC-1: `offers` não é mais legível por anon. A vitrine puxa as
+      // ofertas ativas deste perfil por uma RPC que devolve só colunas
+      // sanitizadas (sem affiliate_link / user_id / coupon / campos
+      // internos). `id` e `short_code` seguem disponíveis para o link
+      // /o/<short_code>.
+      const { data: offersData } = await supabase.rpc('list_public_offers', {
+        p_profile_id: profileData.id,
+      });
 
       if (offersData) {
         setActiveOffers(offersData);
