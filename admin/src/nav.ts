@@ -18,21 +18,21 @@ export type NavSection = { title: string; items: NavItem[] };
 // menu (secao 14 do spec) entra como "Em breve", sem rota.
 export const NAV: NavSection[] = [
   {
-    title: 'Visao geral',
+    title: 'Visão geral',
     items: [
       { label: 'Dashboard', to: '/', permission: 'dashboard.read', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Usuarios',
+    title: 'Usuários',
     items: [
-      { label: 'Usuarios', permission: 'users.read', icon: Users, comingSoon: true },
+      { label: 'Usuários', to: '/users', permission: 'users.read', icon: Users },
     ],
   },
   {
-    title: 'Operacao',
+    title: 'Operação',
     items: [
-      { label: 'Promocoes', permission: 'promotions.read', icon: Megaphone, comingSoon: true },
+      { label: 'Promoções', permission: 'promotions.read', icon: Megaphone, comingSoon: true },
       { label: 'Links', permission: 'links.read', icon: Link2, comingSoon: true },
       { label: 'Envios', permission: 'sends.read', icon: Send, comingSoon: true },
     ],
@@ -44,7 +44,7 @@ export const NAV: NavSection[] = [
     ],
   },
   {
-    title: 'Integracoes',
+    title: 'Integrações',
     items: [
       { label: 'Cakto', permission: 'cakto.read', icon: Plug, comingSoon: true },
       { label: 'Webhooks', permission: 'webhooks.read', icon: Plug, comingSoon: true },
@@ -58,7 +58,7 @@ export const NAV: NavSection[] = [
     ],
   },
   {
-    title: 'Seguranca',
+    title: 'Segurança',
     items: [
       { label: 'Risco e bloqueios', permission: 'security.read', icon: ShieldAlert, comingSoon: true },
     ],
@@ -66,11 +66,11 @@ export const NAV: NavSection[] = [
   {
     title: 'Sistema',
     items: [
-      { label: 'Configuracoes', permission: 'system_settings.read', icon: Settings, comingSoon: true },
+      { label: 'Configurações', permission: 'system_settings.read', icon: Settings, comingSoon: true },
     ],
   },
   {
-    title: 'Administracao',
+    title: 'Administração',
     items: [
       { label: 'Administradores', to: '/admins', permission: 'admins.read', icon: UserCog },
       { label: 'Cargos', to: '/roles', permission: 'roles.read', icon: KeyRound },

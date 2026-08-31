@@ -7,6 +7,7 @@ import * as admins from './handlers/admins.ts';
 import * as roles from './handlers/roles.ts';
 import * as audit from './handlers/audit.ts';
 import * as session from './handlers/session.ts';
+import * as users from './handlers/users.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -39,6 +40,16 @@ const HANDLERS: HandlerMap = {
   },
   audit: {
     list: { permission: 'audit.read', handler: audit.list },
+  },
+  users: {
+    list:          { permission: 'users.read',            handler: users.list },
+    get:           { permission: 'users.read',            handler: users.get },
+    suspend:       { permission: 'users.suspend',         handler: users.suspend },
+    reactivate:    { permission: 'users.reactivate',      handler: users.reactivate },
+    'set-plan':    { permission: 'users.billing.manage',  handler: users.setPlan },
+    'extend-trial':{ permission: 'users.billing.manage',  handler: users.extendTrial },
+    'add-note':    { permission: 'users.notes.manage',    handler: users.addNote },
+    'set-tags':    { permission: 'users.tags.manage',     handler: users.setTags },
   },
 };
 

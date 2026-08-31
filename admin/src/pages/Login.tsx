@@ -74,7 +74,7 @@ export default function Login() {
         </a>
 
         <p className="mt-6 text-[11px] leading-normal text-ink-tertiary">
-          Acesso restrito. Se voce nao e da equipe, feche esta pagina.
+          Acesso restrito. Se você não é da equipe, feche esta página.
         </p>
       </div>
     </div>

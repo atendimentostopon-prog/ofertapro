@@ -28,7 +28,7 @@ describe('DataTable', () => {
       />,
     );
     expect(screen.getByText('Ana')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /proxima/i }));
+    await userEvent.click(screen.getByRole('button', { name: /próxima/i }));
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 });

@@ -47,7 +47,7 @@ export default function AuditList() {
   const columns: Column<AuditRow>[] = [
     { key: 'created_at', header: 'Data', render: (r) => fmtDateTime(r.created_at) },
     { key: 'admin', header: 'Admin', render: (r) => r.admin_email ?? r.admin_id ?? 'sistema' },
-    { key: 'action', header: 'Acao' },
+    { key: 'action', header: 'Ação' },
     {
       key: 'entity',
       header: 'Entidade',
@@ -72,11 +72,11 @@ export default function AuditList() {
   ];
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <header>
         <h1 className="font-display text-xl font-bold text-ink">Auditoria</h1>
         <p className="mt-1 text-sm text-ink-secondary">
-          Registro imutavel de toda acao administrativa.
+          Registro imutável de toda ação administrativa.
         </p>
       </header>
 
