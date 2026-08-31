@@ -18,6 +18,7 @@ export type DataTableProps<Row> = {
   error?: string | null;
   emptyTitle?: string;
   onRetry?: () => void;
+  onRowClick?: (row: Row) => void;
   pagination?: { page: number; pageSize: number; total: number; onPageChange: (page: number) => void };
 };
 
@@ -34,6 +35,7 @@ export function DataTable<Row>({
   error,
   emptyTitle,
   onRetry,
+  onRowClick,
   pagination,
 }: DataTableProps<Row>) {
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
@@ -71,7 +73,13 @@ export function DataTable<Row>({
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={rowKey(row)} className="border-b border-line-subtle last:border-0">
+              <tr
+                key={rowKey(row)}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={`border-b border-line-subtle last:border-0 ${
+                  onRowClick ? 'cursor-pointer hover:bg-surface-1' : ''
+                }`}
+              >
                 {columns.map((c) => (
                   <td key={c.key} className={`px-4 py-3 text-ink ${c.className ?? ''}`}>
                     {cell(c, row)}
