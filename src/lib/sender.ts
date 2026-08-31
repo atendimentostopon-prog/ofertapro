@@ -1,5 +1,4 @@
 import { withTimeout } from './utils';
-import { FEATURES } from '../config/features';
 import { APP_NAME, getShortlinkUrl } from '../config/app';
 
 interface DiscordEmbed {
@@ -22,7 +21,7 @@ export const sender = {
    */
   async sendToDiscord(webhookUrl: string, offer: any) {
     const base = getShortlinkUrl();
-    const trackingLink = FEATURES.useDirectAffiliateLinkInChannels && offer.affiliateLink
+    const trackingLink = !offer.useShortener && offer.affiliateLink
       ? offer.affiliateLink
       : (offer.shortCode
         ? `${base}/o/${offer.shortCode}?src=discord`

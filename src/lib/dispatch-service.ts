@@ -7,6 +7,8 @@ import { DispatchResult, HistoryStatus, ChannelType } from '../types';
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
 import { normalizeProductTitle } from '../services/ProductEnrichmentService';
+import { getPlanLimits } from '../config/plans';
+import { getShortlinkUrl } from '../config/app';
 
 interface DispatchParams {
   userId: string;
@@ -147,15 +149,25 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
       onStepChange('Carregando informações do perfil e canais...');
     }
 
-    const [profileRes, templates, channelsRes] = await Promise.all([
+    const [profileRes, templates, channelsRes, settingsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
       TemplateService.getTemplates(userId),
-      supabase.from('channels').select('*').in('id', channelIds)
+      supabase.from('channels').select('*').in('id', channelIds),
+      supabase.from('user_settings').select('shortener_marketplaces').eq('user_id', userId).maybeSingle()
     ]);
 
     if (channelsRes.error) throw channelsRes.error;
     const channels = channelsRes.data || [];
     const profile = profileRes.data || { full_name: 'Afiliado' };
+
+    const shortenerMap: Record<string, boolean> = settingsRes.data?.shortener_marketplaces || {};
+    const marketplaceKey = (marketplace || '').toLowerCase();
+    const useShortener =
+      getPlanLimits(profile.plan).allowShortener &&
+      (shortenerMap[marketplaceKey] !== false);
+    const trackingLink = (useShortener && shortCode)
+      ? `${getShortlinkUrl()}/o/${shortCode}`
+      : finalAffiliateLink;
 
     console.log("[DISPATCH] channels count", channels.length);
     const results: DispatchResult[] = [];
@@ -213,8 +225,6 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
             throw new Error('Webhook do Discord inválido (URL ausente ou incorreta).');
           }
 
-          const trackingLink = finalAffiliateLink;
-
           const template = templates?.discord || TemplateService.getDefaultTemplate('discord');
           renderedMessage = TemplateService.renderTemplate(
             template,
@@ -232,6 +242,7 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
                 offerName: normalizeProductTitle(offerName),
                 offerImage,
                 shortCode,
+                useShortener,
                 customDescription: renderedMessage,
                 affiliateLink: trackingLink
               });
@@ -252,8 +263,6 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
           if (!botToken || !chatId) {
             throw new Error('Configuração do Telegram incompleta: token ou chat_id ausente.');
           }
-
-          const trackingLink = finalAffiliateLink;
 
           const template = templates?.telegram || TemplateService.getDefaultTemplate('telegram');
           renderedMessage = TemplateService.renderTemplate(

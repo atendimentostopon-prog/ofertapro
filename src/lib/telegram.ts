@@ -16,7 +16,6 @@
  */
 
 import { withTimeout } from './utils';
-import { FEATURES } from '../config/features';
 import { APP_NAME } from '../config/app';
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -219,6 +218,7 @@ export async function sendTelegramOffer(
     image?: string;
     trackingLink: string;
     affiliateLink?: string;
+    useShortener?: boolean;
   }
 ): Promise<void> {
   const cleanToken = String(botToken).trim();
@@ -231,9 +231,9 @@ export async function sendTelegramOffer(
     throw new Error('Chat ID inválido.');
   }
 
-  const finalUrl = FEATURES.useDirectAffiliateLinkInChannels
-    ? offer.affiliateLink || offer.trackingLink
-    : offer.trackingLink;
+  const finalUrl = offer.useShortener
+    ? offer.trackingLink
+    : (offer.affiliateLink || offer.trackingLink);
 
   if (!finalUrl || !finalUrl.trim().startsWith('http')) {
     throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.');
