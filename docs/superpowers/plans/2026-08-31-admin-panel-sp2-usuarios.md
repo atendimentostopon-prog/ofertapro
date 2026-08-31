@@ -474,9 +474,9 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `Handler` de `index.ts`, `serviceClient` de `_lib.ts`, `RbacError` de `rbac.ts`.
 - Produces:
-  - `reqUserId(params): string` — pega `params.userId`, `RbacError('validation', 'userId e obrigatorio.')` se ausente/vazio.
-  - `list: Handler` — `params { search?: string; page?: number; pageSize?: number }` -> rpc `admin_users_list`, devolve o jsonb.
-  - `get: Handler` — `params { userId }` -> rpc `admin_user_detail`; `data === null` -> `throw new RbacError('not_found', 'Usuario nao encontrado.')`.
+  - `reqUserId(params): string` , pega `params.userId`, `RbacError('validation', 'userId e obrigatorio.')` se ausente/vazio.
+  - `list: Handler` , `params { search?: string; page?: number; pageSize?: number }` -> rpc `admin_users_list`, devolve o jsonb.
+  - `get: Handler` , `params { userId }` -> rpc `admin_user_detail`; `data === null` -> `throw new RbacError('not_found', 'Usuario nao encontrado.')`.
 
 - [ ] **Step 1: Escrever `handlers/users_test.ts`** (funcoes puras)
 
@@ -574,12 +574,12 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `reqUserId` (Task 2), `serviceClient`, `RbacError`, `mapPgError` (via `index.ts` catch, ja existe).
 - Produces (em `users.ts`):
-  - `suspend: Handler` — `{ userId, reason }` -> rpc `admin_user_suspend(p_actor, p_target, p_reason, p_ctx)`.
-  - `reactivate: Handler` — `{ userId }` -> rpc `admin_user_reactivate(p_actor, p_target, p_ctx)`.
-  - `setPlan: Handler` — `{ userId, plan }` -> rpc `admin_user_set_plan(p_actor, p_target, p_plan, p_ctx)`.
-  - `extendTrial: Handler` — `{ userId, days }` -> rpc `admin_user_extend_trial(p_actor, p_target, p_days, p_ctx)`.
-  - `addNote: Handler` — `{ userId, body }` -> rpc `admin_user_add_note(p_actor, p_target, p_body, p_ctx)`.
-  - `setTags: Handler` — `{ userId, tags: string[] }` -> rpc `admin_user_set_tags(p_actor, p_target, p_tags, p_ctx)`.
+  - `suspend: Handler` , `{ userId, reason }` -> rpc `admin_user_suspend(p_actor, p_target, p_reason, p_ctx)`.
+  - `reactivate: Handler` , `{ userId }` -> rpc `admin_user_reactivate(p_actor, p_target, p_ctx)`.
+  - `setPlan: Handler` , `{ userId, plan }` -> rpc `admin_user_set_plan(p_actor, p_target, p_plan, p_ctx)`.
+  - `extendTrial: Handler` , `{ userId, days }` -> rpc `admin_user_extend_trial(p_actor, p_target, p_days, p_ctx)`.
+  - `addNote: Handler` , `{ userId, body }` -> rpc `admin_user_add_note(p_actor, p_target, p_body, p_ctx)`.
+  - `setTags: Handler` , `{ userId, tags: string[] }` -> rpc `admin_user_set_tags(p_actor, p_target, p_tags, p_ctx)`.
 - `_pg-errors.ts`: `BY_HINT` ganha `REASON_REQUIRED`/`INVALID_PLAN`/`INVALID_DAYS`/`INVALID_TAG`/`NOTE_EMPTY` (`validation`) e `HAS_SUBSCRIPTION` (`conflict`).
 
 - [ ] **Step 1: Escrever o teste de `_pg-errors`**
@@ -1265,6 +1265,6 @@ Sem lacuna.
 - Actions no `HANDLERS` batem com as strings usadas no front (`users/list`, `users/get`, `users/suspend`, `users/reactivate`, `users/set-plan`, `users/extend-trial`, `users/add-note`, `users/set-tags`).
 - Shape de `users/list` e `users/get` identico entre a funcao SQL (Task 1), o handler (Task 2) e o consumo no front (Tasks 6-7).
 - `STATUS_TONE` (UsersList) e o mesmo mapa citado na UserDetail (Task 7).
-- Permissoes: `users.read` (list/get/paginas), `users.suspend`, `users.reactivate`, `users.billing.manage` (set-plan/extend-trial), `users.notes.manage` (add-note), `users.tags.manage` (set-tags) — todas ja no catalogo (a `billing.manage` entra na Task 4, antes das tasks que a usam? Nao: Task 4 vem depois da Task 3. Mas o handler so referencia a string; o enforcement real e o seed da migration da Task 1, que ja insere a permissao + matriz. O catalogo TS/label da Task 4 e so front/teste. Ordem OK.)
+- Permissoes: `users.read` (list/get/paginas), `users.suspend`, `users.reactivate`, `users.billing.manage` (set-plan/extend-trial), `users.notes.manage` (add-note), `users.tags.manage` (set-tags) , todas ja no catalogo (a `billing.manage` entra na Task 4, antes das tasks que a usam? Nao: Task 4 vem depois da Task 3. Mas o handler so referencia a string; o enforcement real e o seed da migration da Task 1, que ja insere a permissao + matriz. O catalogo TS/label da Task 4 e so front/teste. Ordem OK.)
 
 **4. Ordem:** Task 1 (migration, ja semeia a permissao) -> 2 (leitura) -> 3 (mutacoes, usa `reqUserId` da 2) -> 4 (catalogo TS + label) -> 5 (rotas + stubs) -> 6 (UsersList) -> 7 (UserDetail) -> 8 (verificacao + deploy). Rodar em ordem.
