@@ -81,8 +81,8 @@ export default function Pricing() {
           const sku = PLAN_CATALOG[plan].monthly;
           const isHighlighted = plan === PLAN_HIGHLIGHT;
           const isAvailable = Boolean(sku.caktoOfferId?.trim());
-          const isCurrent = currentSub?.plan_code === plan;
-          const isGrandfathered = !access.isTrialing && !access.isExpired && plan === 'starter' && user?.plan === 'starter' && !currentSub;
+          const isCurrent = currentSub?.plan_code === plan || (!currentSub && user?.plan === plan && !access.isTrialing && !access.isExpired);
+          const isGrandfathered = !access.isTrialing && !access.isExpired && user?.plan === plan && !currentSub;
           
           // Se estiver em trial, o Starter é o plano do teste
           const isTrialCurrent = access.isTrialing && plan === 'starter';

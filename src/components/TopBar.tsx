@@ -5,6 +5,8 @@ import { Avatar } from './ui/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from './NotificationsDropdown';
+import { useAccountAccess } from '../hooks/useAccountAccess';
+import { PLAN_LABELS, PlanCode } from '../config/planCatalog';
 
 interface TopBarProps {
   onNewOffer?: () => void;
@@ -17,7 +19,21 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, belowExpiredBar }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const { user } = useUser();
+  const access = useAccountAccess();
   const navigate = useNavigate();
+
+  const getPlanBadgeLabel = (plan: string, isTrialing: boolean) => {
+    const planMap: Record<string, string> = {
+      starter: 'Starter',
+      pro: 'Pro',
+      enterprise: 'Business',
+    };
+    const label = planMap[plan] || PLAN_LABELS[plan as PlanCode] || plan;
+    if (isTrialing && plan === 'starter') {
+      return 'Starter (Teste)';
+    }
+    return `Plano ${label}`;
+  };
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
@@ -169,11 +185,11 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
       {/* Right Actions */}
       <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-shrink-0">
         {/* Plan Badge */}
-        {user.plan !== 'free' && (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-ice border border-mint-200">
+        {user.plan && user.plan !== 'free' && (
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ice border border-mint-200 shadow-xs">
             <Zap className="w-3.5 h-3.5 text-mint-700" fill="currentColor" />
-            <span className="text-[11px] font-semibold text-mint-800 uppercase tracking-wider">
-              {user.plan}
+            <span className="text-[11px] font-bold text-mint-800 tracking-tight">
+              {getPlanBadgeLabel(user.plan, access.isTrialing)}
             </span>
           </div>
         )}

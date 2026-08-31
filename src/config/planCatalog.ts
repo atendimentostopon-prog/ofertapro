@@ -6,7 +6,7 @@ export type BillingCycle = 'monthly' | 'yearly';
 // Rótulo exibido pro usuário -- plan_code interno continua igual no banco/triggers/RLS
 export const PLAN_LABELS: Record<PlanCode, string> = {
   starter: 'Starter',
-  pro: 'Profissional',
+  pro: 'Pro',
   enterprise: 'Business',
 };
 
