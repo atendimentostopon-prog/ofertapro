@@ -21,6 +21,7 @@ import ProductImage from '../components/shared/ProductImage';
 import ChannelLogo from '../components/ui/ChannelLogo';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { pluralize, toDisplayName } from '../lib/format';
+import { LockedNumber } from '../components/billing/LockedNumber';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -79,6 +80,7 @@ const Dashboard: React.FC = () => {
   }
 
   const limits = getPlanLimits(stats.profile?.plan || user?.plan || 'free');
+  const showClicks = limits.advancedAnalytics;
 
   // Paleta Aflyo para o donut/série de canais
   const COLORS = ['#3DD98F', '#22C078', '#199A5F', '#88E5B8'];
@@ -181,7 +183,9 @@ const Dashboard: React.FC = () => {
                 <Icon className={`w-4 h-4 ${m.accent} opacity-70 group-hover:opacity-100 transition-opacity`} />
               </div>
               <div className="mt-3">
-                <h3 className="text-2xl font-bold text-ink tracking-tight tabular-nums font-display">{m.value}</h3>
+                <h3 className="text-2xl font-bold text-ink tracking-tight tabular-nums font-display">
+                  {showClicks ? m.value : <LockedNumber>{m.value}</LockedNumber>}
+                </h3>
                 <p className="text-[10px] text-ink-tertiary mt-0.5">{m.sub}</p>
               </div>
             </Card>
@@ -237,6 +241,24 @@ const Dashboard: React.FC = () => {
               AO VIVO
             </div>
           </div>
+
+          {!showClicks && (
+            <div className="absolute inset-0 bg-surface-0/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-6 text-center rounded-2xl">
+              <div className="w-12 h-12 rounded-xl bg-ice border border-mint-200 text-mint-700 flex items-center justify-center mb-3">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-semibold text-ink mb-1 font-display">Analytics Completo</h4>
+              <p className="text-xs text-ink-secondary leading-relaxed max-w-[200px]">
+                Faça upgrade para acompanhar os cliques por dia das suas ofertas.
+              </p>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="mt-4 btn-gradient py-2 px-5 text-xs font-semibold cursor-pointer"
+              >
+                Fazer Upgrade
+              </button>
+            </div>
+          )}
 
           {totalClicks30d === 0 ? (
             <div className="flex-grow flex flex-col items-center justify-center py-8 text-center">
@@ -382,7 +404,11 @@ const Dashboard: React.FC = () => {
                   <p className="text-[10px] text-ink-tertiary uppercase tracking-wider">{offer.marketplace}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold text-ink tabular-nums">{(offer.clicks || 0).toLocaleString('pt-BR')}</p>
+                  <p className="text-sm font-bold text-ink tabular-nums">
+                    {showClicks
+                      ? (offer.clicks || 0).toLocaleString('pt-BR')
+                      : <LockedNumber>{(offer.clicks || 0).toLocaleString('pt-BR')}</LockedNumber>}
+                  </p>
                   <p className="text-[9px] text-ink-tertiary uppercase">cliques</p>
                 </div>
               </div>
