@@ -94,36 +94,13 @@ serve(async (req) => {
   const now = Date.now();
   const summary: Record<string, unknown> = {};
 
-  // ---- bucket 'offers' ----------------------------------------------------
-  {
-    const referenced = new Set<string>();
-    let from = 0;
-    while (true) {
-      const { data, error } = await admin
-        .from("offers")
-        .select("image")
-        .range(from, from + 999);
-      if (error) throw error;
-      if (!data || data.length === 0) break;
-      for (const row of data) {
-        const k = keyFromPublicUrl(row.image ?? "", "offers");
-        if (k) referenced.add(k);
-      }
-      if (data.length < 1000) break;
-      from += 1000;
-    }
+  // ---- bucket 'offers' ------------------------------------------------
+  // DESATIVADO (2026-09-03): imagens de ofertas nunca são apagadas
+  // automaticamente. Ofertas persistem indefinidamente no banco e storage.
+  summary.offers = { skipped: true, reason: "offer_ttl_disabled" };
 
-    const objects = await listAll("offers");
-    const orphans = objects
-      .filter((o) => !referenced.has(o.path))
-      .filter((o) => !o.created_at || now - new Date(o.created_at).getTime() > GRACE_MS)
-      .map((o) => o.path);
-
-    await removeInBatches("offers", orphans);
-    summary.offers = { total: objects.length, referenced: referenced.size, deleted: orphans.length };
-  }
-
-  // ---- bucket 'avatars' -------------------------------------------------
+  // ---- bucket 'avatars' -----------------------------------------------
+  // Limpa pastas de usuários que não existem mais em profiles.
   {
     const { data: profiles, error } = await admin.from("profiles").select("id");
     if (error) throw error;
@@ -149,3 +126,4 @@ serve(async (req) => {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
