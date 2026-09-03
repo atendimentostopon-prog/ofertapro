@@ -318,6 +318,14 @@ export const BotTab: React.FC = () => {
           setIsProcessing(false);
           toast('Telegram conectado com sucesso!', 'success');
 
+          // Salva o número de telefone na bot_config para exibir "Conta Telegram"
+          if (user && telegramPhone) {
+            await supabase
+              .from('bot_configs')
+              .update({ telegram_phone: telegramPhone.trim() })
+              .eq('user_id', user.id);
+          }
+
           setTimeout(async () => {
             await loadConfig();
             setIsReconnecting(false);
@@ -629,8 +637,41 @@ export const BotTab: React.FC = () => {
 
                 <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
                   <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Conta Telegram</p>
-                  <p className="text-sm font-bold text-ink truncate">{config.telegram_phone || 'Não informado'}</p>
+                  {config.telegram_phone ? (
+                    <p className="text-sm font-bold text-ink truncate">{config.telegram_phone}</p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="tel"
+                        placeholder="+55 11 99999-9999"
+                        value={telegramPhone}
+                        onChange={e => setTelegramPhone(e.target.value)}
+                        className="flex-1 text-xs border border-line rounded-lg px-2 py-1 bg-surface-2 text-ink placeholder:text-ink-tertiary focus:outline-none focus:ring-1 focus:ring-graphite min-w-0"
+                      />
+                      <button
+                        type="button"
+                        disabled={!telegramPhone.trim()}
+                        onClick={async () => {
+                          if (!user || !telegramPhone.trim()) return;
+                          const { error } = await supabase
+                            .from('bot_configs')
+                            .update({ telegram_phone: telegramPhone.trim() })
+                            .eq('user_id', user.id);
+                          if (!error) {
+                            toast('Número salvo!', 'success');
+                            await loadConfig();
+                          } else {
+                            toast('Erro ao salvar número.', 'error');
+                          }
+                        }}
+                        className="text-xs font-bold text-mint-700 hover:text-mint-800 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  )}
                 </div>
+
 
                 <div className="p-4 bg-surface-1 border border-line rounded-2xl space-y-2">
                   <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider">Grupos monitorados</p>
