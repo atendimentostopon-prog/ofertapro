@@ -54,5 +54,11 @@ export function buildSendDeps(
         .eq("id", id);
       if (error) console.error("[emails] finishLog erro:", error.message);
     },
+
+    async deleteLog(id: string) {
+      if (!id) return;
+      const { error } = await supabase.from("email_log").delete().eq("id", id);
+      if (error) console.error("[emails] deleteLog erro:", error.message);
+    },
   };
 }

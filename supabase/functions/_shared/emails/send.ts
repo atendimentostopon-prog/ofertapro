@@ -23,6 +23,8 @@ export interface SendDeps {
     id: string,
     patch: { status: "sent" | "error"; resendId?: string; error?: string },
   ): Promise<void>;
+  // Libera a dedupe_key da row reivindicada quando o envio falha, pra permitir retry.
+  deleteLog(id: string): Promise<void>;
 }
 
 export interface SendOpts {
@@ -49,18 +51,34 @@ export async function sendEmail(deps: SendDeps, opts: SendOpts): Promise<SendRes
   });
   if (!claim) return { status: "skipped" };
 
-  const html = await renderTemplate(opts.template, opts.vars);
-  const headers: Record<string, string> = {};
-  if (opts.listUnsubscribe) {
-    const url = opts.vars.UNSUBSCRIBE_URL || opts.vars.PREFERENCES_URL;
-    if (url) headers["List-Unsubscribe"] = `<${url}>`;
+  let res: { ok: boolean; id?: string; error?: string };
+  try {
+    const html = await renderTemplate(opts.template, opts.vars);
+    const headers: Record<string, string> = {};
+    if (opts.listUnsubscribe) {
+      const url = opts.vars.UNSUBSCRIBE_URL || opts.vars.PREFERENCES_URL;
+      if (url) headers["List-Unsubscribe"] = `<${url}>`;
+    }
+    res = await deps.fetchResend({ to: opts.to, subject: SUBJECTS[opts.template], html, headers });
+  } catch (e) {
+    // renderTemplate/fetchResend estourou: solta a row pra permitir retry.
+    await safeDeleteLog(deps, claim.id);
+    return { status: "error", error: String(e) };
   }
 
-  const res = await deps.fetchResend({ to: opts.to, subject: SUBJECTS[opts.template], html, headers });
   if (res.ok) {
     await deps.finishLog(claim.id, { status: "sent", resendId: res.id, error: undefined });
     return { status: "sent", resendId: res.id };
   }
-  await deps.finishLog(claim.id, { status: "error", error: res.error });
+  // Envio recusado: apaga a claim pra nao travar retries futuros (ON CONFLICT DO NOTHING).
+  await safeDeleteLog(deps, claim.id);
   return { status: "error", error: res.error };
+}
+
+async function safeDeleteLog(deps: SendDeps, id: string): Promise<void> {
+  try {
+    await deps.deleteLog(id);
+  } catch (e) {
+    console.error("[emails] deleteLog (best-effort) falhou:", String(e));
+  }
 }

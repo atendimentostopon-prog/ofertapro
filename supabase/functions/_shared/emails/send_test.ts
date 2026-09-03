@@ -7,6 +7,7 @@ function deps(over: Partial<SendDeps> = {}): SendDeps {
     fetchResend: async () => ({ ok: true, id: "re_123" }),
     claimLog: async () => ({ id: "log_1" }),
     finishLog: async () => {},
+    deleteLog: async () => {},
     ...over,
   };
 }
@@ -32,17 +33,31 @@ Deno.test("envio ok -> finishLog sent + retorna resendId", async () => {
   assertEquals(patch, { status: "sent", resendId: "re_123", error: undefined });
 });
 
-Deno.test("Resend falha -> finishLog error + status error, sem throw", async () => {
-  let patch: unknown;
+Deno.test("Resend falha -> deleteLog(claim.id) + status error, sem throw", async () => {
+  let deletedId: string | undefined;
   const r = await sendEmail(
     deps({
       fetchResend: async () => ({ ok: false, error: "resend 422: bad" }),
-      finishLog: async (_id, p) => { patch = p; },
+      deleteLog: async (id) => { deletedId = id; },
     }),
     { template: "boas-vindas", to: "a@b.c", vars: { USER_NAME: "X" } },
   );
   assertEquals(r.status, "error");
-  assertEquals((patch as { status: string }).status, "error");
+  assertEquals(r.error, "resend 422: bad");
+  assertEquals(deletedId, "log_1");
+});
+
+Deno.test("fetchResend lanca -> deleteLog(claim.id) + status error, sem propagar throw", async () => {
+  let deletedId: string | undefined;
+  const r = await sendEmail(
+    deps({
+      fetchResend: async () => { throw new Error("kaboom"); },
+      deleteLog: async (id) => { deletedId = id; },
+    }),
+    { template: "boas-vindas", to: "a@b.c", vars: { USER_NAME: "X" } },
+  );
+  assertEquals(r.status, "error");
+  assertEquals(deletedId, "log_1");
 });
 
 Deno.test("listUnsubscribe injeta header List-Unsubscribe", async () => {

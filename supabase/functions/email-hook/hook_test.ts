@@ -1,11 +1,13 @@
 // supabase/functions/email-hook/hook_test.ts
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildConfirmationUrl, pickTemplate, handleEmailHook } from "./index.ts";
+import { buildConfirmationUrl, pickTemplate, handleEmailHook, verifyHookSignature } from "./index.ts";
 
-Deno.test("pickTemplate mapeia signup/recovery", () => {
+Deno.test("pickTemplate mapeia signup/recovery; desconhecido -> null", () => {
   assertEquals(pickTemplate("signup"), "confirmacao-conta");
   assertEquals(pickTemplate("recovery"), "recuperacao-senha");
-  assertEquals(pickTemplate("magiclink"), "recuperacao-senha");
+  assertEquals(pickTemplate("magiclink"), null);
+  assertEquals(pickTemplate("email_change"), null);
+  assertEquals(pickTemplate("invite"), null);
 });
 
 Deno.test("buildConfirmationUrl: signup usa /auth/v1/verify e redirect default", () => {
@@ -33,6 +35,48 @@ Deno.test("assinatura invalida -> 401", async () => {
     send: async () => ({ status: "sent" as const }),
   });
   assertEquals(r.status, 401);
+});
+
+Deno.test("email_action_type nao suportado -> 500 e NAO chama send", async () => {
+  const secretRaw = "segredo";
+  const body = JSON.stringify({
+    user: { email: "a@b.c" },
+    email_data: { token_hash: "th", email_action_type: "email_change" },
+  });
+  const { signBodyForTest } = await import("./index.ts");
+  const sig = await signBodyForTest("whsec_" + btoa(secretRaw), "id1", "1700000000", body);
+  const req = new Request("https://x", {
+    method: "POST",
+    body,
+    headers: { "webhook-signature": sig, "webhook-id": "id1", "webhook-timestamp": "1700000000" },
+  });
+  let sendCalled = false;
+  const r = await handleEmailHook(req, {
+    hookSecret: "whsec_" + btoa(secretRaw),
+    supabaseUrl: "https://proj.supabase.co",
+    appUrl: "https://app.aflyo.com.br",
+    send: async () => { sendCalled = true; return { status: "sent" as const }; },
+  });
+  assertEquals(r.status, 500);
+  assertEquals(sendCalled, false);
+  assertStringIncludes(JSON.stringify(await r.json()), "email_action_type nao suportado: email_change");
+});
+
+// Vetor canonico do Standard Webhooks / Svix: prova que verifyHookSignature bate
+// contra uma assinatura gerada EXTERNAMENTE (o teste de round-trip nao pega bug
+// de encoding porque compartilha hmacB64 com o verificador).
+Deno.test("verifyHookSignature: vetor conhecido do Svix", async () => {
+  const secret = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw";
+  const body = '{"test": 2432232314}';
+  const mkHeaders = () =>
+    new Headers({
+      "webhook-id": "msg_p5jXN8AQM9LWM0D4loKWxJek",
+      "webhook-timestamp": "1614265330",
+      "webhook-signature": "v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=",
+    });
+  assertEquals(await verifyHookSignature(body, mkHeaders(), secret), true);
+  // corpo adulterado -> assinatura nao bate
+  assertEquals(await verifyHookSignature('{"test": 9999999999}', mkHeaders(), secret), false);
 });
 
 Deno.test("Resend erro -> 500 com objeto error", async () => {

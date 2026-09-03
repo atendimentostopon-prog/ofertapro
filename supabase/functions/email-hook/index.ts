@@ -56,8 +56,10 @@ export async function verifyHookSignature(rawBody: string, headers: Headers, hoo
   return false;
 }
 
-export function pickTemplate(action: string): "confirmacao-conta" | "recuperacao-senha" {
-  return action === "signup" ? "confirmacao-conta" : "recuperacao-senha";
+export function pickTemplate(action: string): "confirmacao-conta" | "recuperacao-senha" | null {
+  if (action === "signup") return "confirmacao-conta";
+  if (action === "recovery") return "recuperacao-senha";
+  return null;
 }
 
 export function buildConfirmationUrl(
@@ -108,6 +110,13 @@ export async function handleEmailHook(
   }
 
   const template = pickTemplate(ed.email_action_type);
+  if (template === null) {
+    console.error(`[email-hook] email_action_type nao suportado: ${ed.email_action_type}`);
+    return new Response(
+      JSON.stringify({ error: { http_code: 500, message: `email_action_type nao suportado: ${ed.email_action_type}` } }),
+      { status: 500 },
+    );
+  }
   const confirmationUrl = buildConfirmationUrl(deps.supabaseUrl, deps.appUrl, ed);
 
   const result = await deps.send({

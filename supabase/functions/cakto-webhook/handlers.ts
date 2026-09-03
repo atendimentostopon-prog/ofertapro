@@ -237,14 +237,20 @@ export async function purchaseApproved(data: any): Promise<void> {
 
 export async function purchaseRefused(data: any): Promise<void> {
   console.log("[cakto-webhook] purchase_refused: pagamento recusado", data?.id ?? null);
-  const supabase = getSupabaseAdmin();
-  const userId = await resolveUserId(supabase, data);
-  if (!userId) return;
-  const { plan } = resolvePlan(data);
-  await sendBillingEmail(supabase, "falha-pagamento", userId, {
-    PLAN_NAME: planLabel(plan),
-    AMOUNT: planAmount(plan),
-  }, "payment_failed:" + providerSubId(data) + ":" + nowIso().slice(0, 10));
+  // purchase_refused nao tem efeito de entitlement: falha aqui NAO pode virar 500
+  // (Cakto re-tentaria). Envio de e-mail e best-effort.
+  try {
+    const supabase = getSupabaseAdmin();
+    const userId = await resolveUserId(supabase, data);
+    if (!userId) return;
+    const { plan } = resolvePlan(data);
+    await sendBillingEmail(supabase, "falha-pagamento", userId, {
+      PLAN_NAME: planLabel(plan),
+      AMOUNT: planAmount(plan),
+    }, "payment_failed:" + userId + ":" + nowIso().slice(0, 10));
+  } catch (e) {
+    console.error("[cakto-webhook] purchase_refused: falha ao enviar e-mail:", (e as Error).message);
+  }
 }
 
 export async function subscriptionCreated(data: any): Promise<void> {

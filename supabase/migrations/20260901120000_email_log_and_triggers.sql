@@ -46,13 +46,18 @@ set search_path = public
 as $$
 declare
   v_key text := current_setting('app.service_role_key', true);
+  v_url text := current_setting('app.send_email_url', true);
 begin
   if v_key is null or v_key = '' then
     raise notice '[emails] app.service_role_key nao configurado; e-mail % ignorado', p_template;
     return;
   end if;
+  if v_url is null or v_url = '' then
+    raise notice '[emails] app.send_email_url nao configurado; e-mail % ignorado', p_template;
+    return;
+  end if;
   perform net.http_post(
-    url     := current_setting('app.send_email_url'),
+    url     := v_url,
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || v_key
@@ -82,7 +87,7 @@ security definer
 set search_path = public
 as $$
 declare
-  v_app text := current_setting('app.public_url', true);
+  v_app text := coalesce(current_setting('app.public_url', true), 'https://app.aflyo.com.br');
   v_name text;
 begin
   if new.email_confirmed_at is not null and old.email_confirmed_at is null then
@@ -123,14 +128,14 @@ select cron.schedule('trial_email_reminders', '0 12 * * *', $CRON$
       'USER_NAME', coalesce(u.raw_user_meta_data->>'full_name', split_part(u.email,'@',1)),
       'USER_EMAIL', u.email,
       'DAYS_LEFT', '3',
-      'APP_URL', current_setting('app.public_url'),
-      'SUPPORT_URL', current_setting('app.public_url') || '/suporte',
-      'PREFERENCES_URL', current_setting('app.public_url') || '/configuracoes',
-      'UNSUBSCRIBE_URL', current_setting('app.public_url') || '/configuracoes'),
+      'APP_URL', current_setting('app.public_url', true),
+      'SUPPORT_URL', current_setting('app.public_url', true) || '/suporte',
+      'PREFERENCES_URL', current_setting('app.public_url', true) || '/configuracoes',
+      'UNSUBSCRIBE_URL', current_setting('app.public_url', true) || '/configuracoes'),
     'trial_ending_3:' || p.id::text, true)
   from public.profiles p join auth.users u on u.id = p.id
   where p.account_status = 'trialing'
-    and p.trial_ends_at::date - now()::date = 3;
+    and (p.trial_ends_at::date - now()::date) between 2 and 3;
 
   -- 1 dia para acabar
   select public.enqueue_transactional_email(
@@ -139,14 +144,14 @@ select cron.schedule('trial_email_reminders', '0 12 * * *', $CRON$
       'USER_NAME', coalesce(u.raw_user_meta_data->>'full_name', split_part(u.email,'@',1)),
       'USER_EMAIL', u.email,
       'DAYS_LEFT', '1',
-      'APP_URL', current_setting('app.public_url'),
-      'SUPPORT_URL', current_setting('app.public_url') || '/suporte',
-      'PREFERENCES_URL', current_setting('app.public_url') || '/configuracoes',
-      'UNSUBSCRIBE_URL', current_setting('app.public_url') || '/configuracoes'),
+      'APP_URL', current_setting('app.public_url', true),
+      'SUPPORT_URL', current_setting('app.public_url', true) || '/suporte',
+      'PREFERENCES_URL', current_setting('app.public_url', true) || '/configuracoes',
+      'UNSUBSCRIBE_URL', current_setting('app.public_url', true) || '/configuracoes'),
     'trial_ending_1:' || p.id::text, true)
   from public.profiles p join auth.users u on u.id = p.id
   where p.account_status = 'trialing'
-    and p.trial_ends_at::date - now()::date = 1;
+    and (p.trial_ends_at::date - now()::date) between 0 and 1;
 
   -- expirado (janela de 2 dias apos a expiracao; dedupe garante 1 envio)
   select public.enqueue_transactional_email(
@@ -154,9 +159,9 @@ select cron.schedule('trial_email_reminders', '0 12 * * *', $CRON$
     jsonb_build_object(
       'USER_NAME', coalesce(u.raw_user_meta_data->>'full_name', split_part(u.email,'@',1)),
       'USER_EMAIL', u.email,
-      'APP_URL', current_setting('app.public_url'),
-      'SUPPORT_URL', current_setting('app.public_url') || '/suporte',
-      'PREFERENCES_URL', current_setting('app.public_url') || '/configuracoes'),
+      'APP_URL', current_setting('app.public_url', true),
+      'SUPPORT_URL', current_setting('app.public_url', true) || '/suporte',
+      'PREFERENCES_URL', current_setting('app.public_url', true) || '/configuracoes'),
     'trial_expired:' || p.id::text, false)
   from public.profiles p join auth.users u on u.id = p.id
   where p.account_status in ('trialing','expired')
