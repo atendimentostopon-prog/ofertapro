@@ -77,10 +77,10 @@ export default function SendsList() {
       key: 'detalhes',
       header: 'Detalhes',
       render: (r) =>
-        r.error || r.failed_channels.length > 0 ? (
+        r.error || r.failed_channels.length > 0 || r.successful_channels.length > 0 ? (
           <details>
             <summary className="cursor-pointer text-xs font-semibold text-ink-secondary">ver</summary>
-            <div className="mt-2 max-w-md text-[11px] text-ink-secondary">
+            <div className="mt-2 max-w-md space-y-1 text-[11px] text-ink-secondary">
               {r.error && <p className="text-danger-ink">{r.error}</p>}
               {r.failed_channels.length > 0 && <p>Falharam: {r.failed_channels.join(', ')}</p>}
               {r.successful_channels.length > 0 && <p>OK: {r.successful_channels.join(', ')}</p>}

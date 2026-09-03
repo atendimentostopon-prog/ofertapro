@@ -17,6 +17,8 @@ import SendsList from './SendsList';
 it('lista envios e o filtro de status chama a API com status', async () => {
   render(<MemoryRouter><SendsList /></MemoryRouter>);
   await waitFor(() => expect(screen.getByText('Fone TWS')).toBeInTheDocument());
+  // "ver" aparece mesmo em envio 100% ok, pra abrir a lista de canais
+  expect(screen.getByText('ver')).toBeInTheDocument();
   await userEvent.selectOptions(screen.getByLabelText(/status/i), 'error');
   await waitFor(() => {
     const last = h.calls[h.calls.length - 1];
