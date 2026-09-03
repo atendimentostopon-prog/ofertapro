@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  LayoutDashboard, Users, Megaphone, Link2, Send, LifeBuoy,
+  LayoutDashboard, Users, Megaphone, Send, LifeBuoy,
   Plug, Activity, ShieldAlert, Settings, UserCog, KeyRound, ScrollText,
 } from 'lucide-react';
 
@@ -32,9 +32,8 @@ export const NAV: NavSection[] = [
   {
     title: 'Operação',
     items: [
-      { label: 'Promoções', permission: 'promotions.read', icon: Megaphone, comingSoon: true },
-      { label: 'Links', permission: 'links.read', icon: Link2, comingSoon: true },
-      { label: 'Envios', permission: 'sends.read', icon: Send, comingSoon: true },
+      { label: 'Promoções', to: '/promotions', permission: 'promotions.read', icon: Megaphone },
+      { label: 'Envios', to: '/sends', permission: 'sends.read', icon: Send },
     ],
   },
   {
