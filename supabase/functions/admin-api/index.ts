@@ -61,13 +61,17 @@ const HANDLERS: HandlerMap = {
     list: { permission: 'sends.read', handler: operation.sendsList },
   },
   cakto: {
-    subscriptions:     { permission: 'cakto.read', handler: integrations.subscriptionsList },
-    subscription:      { permission: 'cakto.read', handler: integrations.subscriptionGet },
-    'reconcile-local': { permission: 'cakto.read', handler: integrations.reconcileLocal },
+    subscriptions:           { permission: 'cakto.read', handler: integrations.subscriptionsList },
+    subscription:            { permission: 'cakto.read', handler: integrations.subscriptionGet },
+    'reconcile-local':       { permission: 'cakto.read', handler: integrations.reconcileLocal },
+    'remote-subscription':   { permission: 'cakto.read', handler: integrations.remoteSubscription },
+    'remote-billing-cycles': { permission: 'cakto.read', handler: integrations.remoteBillingCycles },
+    'reconcile-remote':      { permission: 'cakto.read', handler: integrations.reconcileRemote },
   },
   webhooks: {
-    events: { permission: 'webhooks.read', handler: integrations.webhookEventsList },
-    event:  { permission: 'webhooks.read', handler: integrations.webhookEventGet },
+    events:           { permission: 'webhooks.read', handler: integrations.webhookEventsList },
+    event:            { permission: 'webhooks.read', handler: integrations.webhookEventGet },
+    'remote-history': { permission: 'webhooks.read', handler: integrations.webhooksRemoteHistory },
   },
 };
 
