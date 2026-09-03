@@ -17,20 +17,25 @@ type DashboardSummary = {
   feed: FeedItem[];
 };
 
-const DASHBOARD_METRIC_ORDER = [
-  'users_total', 'users_active', 'users_new', 'subs_active', 'subs_canceled',
-  'offers_created', 'links_processed', 'clicks', 'sends', 'sends_success_rate',
-  'webhooks_received', 'webhooks_failed', 'jobs_failed', 'jobs_pending',
-  'queue_depth', 'errors_24h', 'services_degraded',
+const DASHBOARD_SECTIONS: { title: string; muted?: boolean; keys: string[] }[] = [
+  { title: 'Usuários', keys: ['users_total', 'users_active', 'users_new'] },
+  { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'] },
+  { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'] },
+  { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'] },
+  {
+    title: 'Infraestrutura',
+    muted: true,
+    keys: ['webhooks_failed', 'jobs_failed', 'jobs_pending', 'queue_depth', 'errors_24h', 'services_degraded'],
+  },
 ];
 
 const METRIC_LABELS_FALLBACK: Record<string, string> = {
-  users_total: 'Usuarios totais',
-  users_active: 'Usuarios ativos',
-  users_new: 'Novos usuarios no periodo',
+  users_total: 'Usuários totais',
+  users_active: 'Usuários ativos',
+  users_new: 'Novos usuários no período',
   subs_active: 'Assinaturas ativas',
   subs_canceled: 'Assinaturas canceladas',
-  offers_created: 'Promocoes criadas',
+  offers_created: 'Promoções criadas',
   links_processed: 'Links processados',
   clicks: 'Cliques',
   sends: 'Envios',
@@ -40,16 +45,16 @@ const METRIC_LABELS_FALLBACK: Record<string, string> = {
   jobs_failed: 'Jobs falhos',
   jobs_pending: 'Jobs pendentes',
   queue_depth: 'Fila (queue depth)',
-  errors_24h: 'Erros nas ultimas 24h',
-  services_degraded: 'Servicos degradados',
+  errors_24h: 'Erros nas últimas 24h',
+  services_degraded: 'Serviços degradados',
 };
 
 const FEED_TYPE_LABELS: Record<string, string> = {
-  user_registered: 'Usuario registrado',
-  promotion_created: 'Promocao criada',
+  user_registered: 'Usuário registrado',
+  promotion_created: 'Promoção criada',
   send: 'Envio',
   webhook_received: 'Webhook recebido',
-  admin_action: 'Acao de admin',
+  admin_action: 'Ação de admin',
 };
 
 const RANGES: { key: Range; label: string }[] = [
@@ -85,7 +90,7 @@ export default function Dashboard() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-xl font-bold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-ink-secondary">Visao executiva do Aflyo.</p>
+          <p className="mt-1 text-sm text-ink-secondary">Visão executiva do Aflyo.</p>
         </div>
         <div className="flex gap-1 rounded-lg border border-line bg-surface-0 p-1">
           {RANGES.map((r) => (
@@ -115,17 +120,33 @@ export default function Dashboard() {
 
       {!error && !loading && data && (
         <>
-          <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
-            {DASHBOARD_METRIC_ORDER.filter((key) => key in data.metrics).map((key) => {
-              const m = data.metrics[key];
+          <div className="space-y-6">
+            {DASHBOARD_SECTIONS.map((section) => {
+              const keys = section.keys.filter((k) => k in data.metrics);
+              if (keys.length === 0) return null;
               return (
-                <StatCard
-                  key={key}
-                  label={data.labels[key] ?? METRIC_LABELS_FALLBACK[key] ?? key}
-                  value={m.value}
-                  available={m.available}
-                  suffix={key === 'sends_success_rate' ? '%' : undefined}
-                />
+                <div key={section.title}>
+                  <h2 className={`font-display text-sm font-bold ${section.muted ? 'text-ink-tertiary' : 'text-ink'}`}>
+                    {section.title}
+                    {section.muted && (
+                      <span className="ml-2 text-[11px] font-normal text-ink-tertiary">sem fonte no SP1</span>
+                    )}
+                  </h2>
+                  <div className="mt-2 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
+                    {keys.map((key) => {
+                      const m = data.metrics[key];
+                      return (
+                        <StatCard
+                          key={key}
+                          label={data.labels[key] ?? METRIC_LABELS_FALLBACK[key] ?? key}
+                          value={m.value}
+                          available={m.available}
+                          suffix={key === 'sends_success_rate' ? '%' : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -134,14 +155,14 @@ export default function Dashboard() {
             <h2 className="font-display text-sm font-bold text-ink">Atividade recente</h2>
             {data.feed.length === 0 ? (
               <div className="mt-3">
-                <EmptyState title="Sem atividade no periodo" />
+                <EmptyState title="Sem atividade no período" />
               </div>
             ) : (
               <ul className="mt-3 divide-y divide-line-subtle rounded-xl border border-line bg-surface-0">
                 {data.feed.map((item) => (
                   <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm text-ink">{item.title || 'Sem titulo'}</p>
+                      <p className="truncate text-sm text-ink">{item.title || 'Sem título'}</p>
                       <p className="text-xs text-ink-tertiary">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
                     </div>
                     <span className="shrink-0 text-xs text-ink-tertiary">{relative(item.at)}</span>

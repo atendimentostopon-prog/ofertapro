@@ -5,7 +5,7 @@ import { StatCard } from './StatCard';
 describe('StatCard', () => {
   it('mostra "Dados indisponiveis" quando available e false', () => {
     render(<StatCard label="Jobs falhos" value={null} available={false} />);
-    expect(screen.getByText('Dados indisponiveis')).toBeInTheDocument();
+    expect(screen.getByText('Dados indisponíveis')).toBeInTheDocument();
   });
   it('formata numero em pt-BR quando available', () => {
     render(<StatCard label="Usuarios" value={1234} available />);

@@ -7,6 +7,9 @@ import * as admins from './handlers/admins.ts';
 import * as roles from './handlers/roles.ts';
 import * as audit from './handlers/audit.ts';
 import * as session from './handlers/session.ts';
+import * as users from './handlers/users.ts';
+import * as operation from './handlers/operation.ts';
+import * as integrations from './handlers/integrations.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -39,6 +42,39 @@ const HANDLERS: HandlerMap = {
   },
   audit: {
     list: { permission: 'audit.read', handler: audit.list },
+  },
+  users: {
+    list:          { permission: 'users.read',            handler: users.list },
+    get:           { permission: 'users.read',            handler: users.get },
+    suspend:       { permission: 'users.suspend',         handler: users.suspend },
+    reactivate:    { permission: 'users.reactivate',      handler: users.reactivate },
+    'set-plan':    { permission: 'users.billing.manage',  handler: users.setPlan },
+    'extend-trial':{ permission: 'users.billing.manage',  handler: users.extendTrial },
+    'add-note':    { permission: 'users.notes.manage',    handler: users.addNote },
+    'set-tags':    { permission: 'users.tags.manage',     handler: users.setTags },
+  },
+  promotions: {
+    list: { permission: 'promotions.read', handler: operation.promotionsList },
+    get:  { permission: 'promotions.read', handler: operation.promotionGet },
+  },
+  sends: {
+    list: { permission: 'sends.read', handler: operation.sendsList },
+  },
+  cakto: {
+    subscriptions:           { permission: 'cakto.read', handler: integrations.subscriptionsList },
+    subscription:            { permission: 'cakto.read', handler: integrations.subscriptionGet },
+    'reconcile-local':       { permission: 'cakto.read', handler: integrations.reconcileLocal },
+    'remote-subscription':   { permission: 'cakto.read', handler: integrations.remoteSubscription },
+    'remote-billing-cycles': { permission: 'cakto.read', handler: integrations.remoteBillingCycles },
+    'reconcile-remote':      { permission: 'cakto.read', handler: integrations.reconcileRemote },
+    apply:                   { permission: 'cakto.sync', handler: integrations.applyRemote },
+    import:                  { permission: 'cakto.sync', handler: integrations.importRemote },
+  },
+  webhooks: {
+    events:           { permission: 'webhooks.read',  handler: integrations.webhookEventsList },
+    event:            { permission: 'webhooks.read',  handler: integrations.webhookEventGet },
+    'remote-history': { permission: 'webhooks.read',  handler: integrations.webhooksRemoteHistory },
+    reprocess:        { permission: 'webhooks.retry', handler: integrations.reprocessWebhook },
   },
 };
 
