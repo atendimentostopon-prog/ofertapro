@@ -27,3 +27,8 @@ select tgname from pg_trigger where tgrelid='auth.users'::regclass and tgname='t
 --     conferir net._http_response depois de alguns segundos.
 --   update auth.users set email_confirmed_at = now() where email = '<conta_teste>' and email_confirmed_at is null;
 --   select * from net._http_response order by created desc limit 3;
+
+-- (g) enqueue_transactional_email NAO deve ser executavel por anon/authenticated
+select grantee, privilege_type from information_schema.role_routine_grants
+  where routine_name = 'enqueue_transactional_email' and grantee in ('anon','authenticated','PUBLIC');
+-- espera 0 linhas

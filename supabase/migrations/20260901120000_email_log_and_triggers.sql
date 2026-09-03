@@ -68,6 +68,12 @@ begin
 end;
 $$;
 
+-- Nao expor como RPC do PostgREST: e security definer e, uma vez que o operador
+-- setar app.service_role_key, dispararia e-mail branded pra qualquer destinatario.
+-- O trigger em auth.users (security definer, dono postgres) e o job pg_cron
+-- (roda como superuser) mantem EXECUTE; nada interno quebra.
+revoke all on function public.enqueue_transactional_email(text, text, jsonb, text, boolean) from public, anon, authenticated;
+
 -- 4) Boas-vindas: quando email_confirmed_at vira nao-nulo ---------
 create or replace function public.on_email_confirmed_send_welcome()
 returns trigger
