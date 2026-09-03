@@ -9,6 +9,16 @@ interface PublicPageTabProps {
   profile: SettingsProfileHook;
 }
 
+const THEMES = [
+  { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
+  { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
+  { id: 'blue', name: 'Azul', color: 'bg-[#2563EB]' },
+  { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
+  { id: 'rose', name: 'Rosa', color: 'bg-[#DB2777]' },
+  { id: 'orange', name: 'Laranja', color: 'bg-[#EA580C]' },
+  { id: 'dark', name: 'Escuro', color: 'bg-graphite-800' },
+];
+
 export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
   const {
     user,
@@ -31,12 +41,15 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Página de Vendas Pública"
+        title="Vitrine pública"
         description="Aparência e informações visíveis na sua página de ofertas"
         icon={UserIcon}
       >
-        <div className="flex items-center gap-6">
-          <div className="relative group">
+        <div className="flex items-center gap-5">
+          <div
+            className="relative group w-20 h-20 flex-shrink-0 cursor-pointer"
+            onClick={() => !uploadingPublicAvatar && publicAvatarInputRef.current?.click()}
+          >
             <input
               type="file"
               ref={publicAvatarInputRef}
@@ -45,8 +58,7 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
               className="hidden"
             />
             <div
-              onClick={() => !uploadingPublicAvatar && publicAvatarInputRef.current?.click()}
-              className={`w-20 h-20 rounded-2xl overflow-hidden bg-surface-0 border transition-all duration-300 cursor-pointer ${
+              className={`w-20 h-20 rounded-2xl overflow-hidden bg-surface-0 border transition-colors duration-200 ${
                 uploadingPublicAvatar ? 'border-mint-500' : 'border-line-strong shadow-md group-hover:border-mint-500'
               }`}
             >
@@ -59,19 +71,21 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
                   src={publicAvatarUrl || avatarUrl}
                   name={publicName || user.email}
                   size="xl"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="w-full h-full object-cover"
                 />
               )}
-              {!uploadingPublicAvatar && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-              )}
             </div>
+            {!uploadingPublicAvatar && (
+              <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+            )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <h4 className="text-[13px] font-bold text-ink">Foto da Vitrine</h4>
-            <p className="text-[11px] text-ink-secondary max-w-xs leading-normal">Carregue a foto que aparecerá no topo do seu catálogo público.</p>
+            <p className="text-[11px] text-ink-secondary max-w-xs leading-normal">
+              Carregue a foto que aparecerá no topo do seu catálogo público.
+            </p>
           </div>
         </div>
 
@@ -113,8 +127,8 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
         </Field>
 
         <div className="flex flex-wrap items-center gap-3 p-3 bg-surface-1 rounded-xl border border-line">
-          <Globe className="w-4 h-4 text-ink-tertiary" />
-          <span className="text-xs text-mint-700 font-bold flex-1 truncate">{getShortlinkHost()}/{username}</span>
+          <Globe className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+          <span className="text-xs text-mint-700 font-bold flex-1 min-w-0 truncate">{getShortlinkHost()}/{username}</span>
           <button
             onClick={copyUrl}
             className="flex items-center gap-1 text-[11px] font-bold text-ink-secondary hover:text-mint-700 transition-colors"
@@ -132,44 +146,46 @@ export const PublicPageTab: React.FC<PublicPageTabProps> = ({ profile }) => {
         </div>
 
         <Field label="Tema de Cores">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { id: 'default', name: 'Clássico', color: 'bg-[#7C3AED]' },
-              { id: 'indigo', name: 'Índigo', color: 'bg-[#4F46E5]' },
-              { id: 'blue', name: 'Azul', color: 'bg-[#2563EB]' },
-              { id: 'emerald', name: 'Esmeralda', color: 'bg-[#10B981]' },
-              { id: 'rose', name: 'Rosa', color: 'bg-[#DB2777]' },
-              { id: 'orange', name: 'Laranja', color: 'bg-[#EA580C]' },
-              { id: 'dark', name: 'Escuro/Dark', color: 'bg-graphite-800' },
-            ].map(t => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setPublicTheme(t.id)}
-                className={`flex items-center gap-2 p-2.5 rounded-xl border text-center transition-all ${
-                  publicTheme === t.id
-                    ? 'border-mint-500 bg-graphite/20 text-mint-800 shadow-sm'
-                    : 'border-line bg-surface-1 text-ink-secondary hover:bg-surface-0/50'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 rounded-full ${t.color}`} />
-                <span className="text-[11px] font-bold">{t.name}</span>
-              </button>
-            ))}
+          <div
+            className="grid gap-2"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(116px, 1fr))' }}
+          >
+            {THEMES.map(t => {
+              const selected = publicTheme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setPublicTheme(t.id)}
+                  aria-pressed={selected}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all ${
+                    selected
+                      ? 'border-mint-500 bg-ice text-ink shadow-sm ring-1 ring-mint-500/40'
+                      : 'border-line bg-surface-1 text-ink-secondary hover:border-line-strong hover:bg-surface-2'
+                  }`}
+                >
+                  <div className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${t.color}`} />
+                  <span className="text-[11px] font-bold truncate">{t.name}</span>
+                </button>
+              );
+            })}
           </div>
         </Field>
 
-        <div className="flex items-center justify-between py-2 border-t border-line mt-4 pt-4">
-          <div>
+        <div className="flex items-center justify-between gap-4 border-t border-line mt-4 pt-4">
+          <div className="min-w-0">
             <p className="text-xs font-bold text-ink">Status da Página Pública</p>
-            <p className="text-[11px] text-ink-secondary mt-0.5">Disponibilizar vitrine na internet.</p>
+            <p className="text-[11px] text-ink-secondary mt-0.5">Disponibilizar a vitrine na internet.</p>
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={isPublicActive}
+            aria-label="Status da página pública"
             onClick={() => setIsPublicActive(!isPublicActive)}
-            className={`relative w-11 h-6 rounded-full transition-all duration-200 ${isPublicActive ? 'bg-mint-500' : 'bg-surface-2'}`}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${isPublicActive ? 'bg-mint-500' : 'bg-surface-3'}`}
           >
-            <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPublicActive ? 'translate-x-5' : 'translate-x-0'}`} />
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPublicActive ? 'translate-x-5' : 'translate-x-0'}`} />
           </button>
         </div>
       </SettingsSection>
