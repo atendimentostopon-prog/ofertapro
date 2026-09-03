@@ -9,6 +9,7 @@ import * as audit from './handlers/audit.ts';
 import * as session from './handlers/session.ts';
 import * as users from './handlers/users.ts';
 import * as operation from './handlers/operation.ts';
+import * as integrations from './handlers/integrations.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -58,6 +59,15 @@ const HANDLERS: HandlerMap = {
   },
   sends: {
     list: { permission: 'sends.read', handler: operation.sendsList },
+  },
+  cakto: {
+    subscriptions:     { permission: 'cakto.read', handler: integrations.subscriptionsList },
+    subscription:      { permission: 'cakto.read', handler: integrations.subscriptionGet },
+    'reconcile-local': { permission: 'cakto.read', handler: integrations.reconcileLocal },
+  },
+  webhooks: {
+    events: { permission: 'webhooks.read', handler: integrations.webhookEventsList },
+    event:  { permission: 'webhooks.read', handler: integrations.webhookEventGet },
   },
 };
 
