@@ -4,7 +4,7 @@ Ordem obrigatoria. Cada passo tem um jeito de verificar antes de seguir.
 
 ## 0. Se o Send Email Hook nao existir no projeto
 
-Configurar Resend como SMTP em Authentication (: SMTP (host `smtp.resend.com`, port 465, user `resend`, pass = `RESEND_API_KEY`). Colar `confirmacao-conta.html` e `recuperacao-senha.html` em Authentication (: Email Templates, trocando `{{CONFIRMATION_URL}}` -> `{{ .ConfirmationURL }}` e `{{USER_EMAIL}}` -> `{{ .Email }}`. Pular os passos 4(5 para o `email-hook` (mas manter `send-email` para os transacionais).
+Configurar Resend como SMTP em Authentication -> SMTP (host `smtp.resend.com`, port 465, user `resend`, pass = `RESEND_API_KEY`). Colar `confirmacao-conta.html` e `recuperacao-senha.html` em Authentication -> Email Templates, trocando `{{CONFIRMATION_URL}}` -> `{{ .ConfirmationURL }}` e `{{USER_EMAIL}}` -> `{{ .Email }}`. Pular os passos 4-5 para o `email-hook` (mas manter `send-email` para os transacionais).
 
 ## 1. Resend + DNS
 - Criar conta/projeto no Resend.
@@ -47,31 +47,31 @@ curl -si https://<proj>.functions.supabase.co/send-email -d '{}' | head -1
 ```
 
 ## 5. Send Email Hook (dashboard)
-- Authentication (: Hooks (: **Send Email Hook** (: Enable.
+- Authentication -> Hooks -> **Send Email Hook** -> Enable.
 - Endpoint: `https://<proj>.functions.supabase.co/email-hook`.
 - Secret: gerar; usar o mesmo valor de `SEND_EMAIL_HOOK_SECRET` (passo 2).
 - Salvar.
 
 ## 6. Confirm email ON (coordena com o SEC-2)
-- Authentication (: Sign In / Providers (: **Confirm email = ON**.
+- Authentication -> Sign In / Providers -> **Confirm email = ON**.
 - A partir daqui, todo signup dispara o `email-hook`.
 
 ## 7. QA ponta a ponta (conta de teste)
-- [ ] Signup novo (: chega `confirmacao-conta` do Resend; botao confirma; cai logado. **Se este e-mail NAO chegar, a verificacao de assinatura HMAC do `email-hook` esta errada** (nao ha teste de vetor conhecido para ela) (: checar `SEND_EMAIL_HOOK_SECRET` igual nos dois lados e os logs da funcao.
-- [ ] Apos confirmar (: chega `boas-vindas` 1x (`select * from email_log where dedupe_key like 'welcome:%'`).
-- [ ] `ForgotPassword` (: chega `recuperacao-senha`; link cai em `/reset`; troca de senha ok.
+- [ ] Signup novo -> chega `confirmacao-conta` do Resend; botao confirma; cai logado. **Se este e-mail NAO chegar, a verificacao de assinatura HMAC do `email-hook` esta errada** (nao ha teste de vetor conhecido para ela) -> checar `SEND_EMAIL_HOOK_SECRET` igual nos dois lados e os logs da funcao.
+- [ ] Apos confirmar -> chega `boas-vindas` 1x (`select * from email_log where dedupe_key like 'welcome:%'`).
+- [ ] `ForgotPassword` -> chega `recuperacao-senha`; link cai em `/reset`; troca de senha ok.
 - [ ] Trial: `update profiles set trial_ends_at = now() + interval '3 days' where id = '<id>'`;
-      rodar o corpo do cron `trial_email_reminders` na mao (: 1 e-mail `trial-acabando`;
-      rodar de novo (: sem 2o e-mail.
-- [ ] Trial expirado: `trial_ends_at = now() - interval '1 hour'` (: `trial-expirado` 1x.
+      rodar o corpo do cron `trial_email_reminders` na mao -> 1 e-mail `trial-acabando`;
+      rodar de novo -> sem 2o e-mail.
+- [ ] Trial expirado: `trial_ends_at = now() - interval '1 hour'` -> `trial-expirado` 1x.
 - [ ] Billing: POST manual no `cakto-webhook` (secret valido) com payloads de
       `purchase_approved`, `subscription_renewal_refused`, `subscription_canceled`
-      (: e-mails 6/7/8; webhook responde 200 mesmo com `RESEND_API_KEY` invalida;
-      reenviar o mesmo evento (: nao duplica (`email_log`).
-- [ ] mail-tester.com em 1 e-mail transacional (: score >= 8, SPF/DKIM/DMARC pass.
+      -> e-mails 6/7/8; webhook responde 200 mesmo com `RESEND_API_KEY` invalida;
+      reenviar o mesmo evento -> nao duplica (`email_log`).
+- [ ] mail-tester.com em 1 e-mail transacional -> score >= 8, SPF/DKIM/DMARC pass.
 
 ## Rollback
-- Desligar o Send Email Hook (: Supabase volta ao template default do dashboard.
+- Desligar o Send Email Hook -> Supabase volta ao template default do dashboard.
 - `select cron.unschedule('trial_email_reminders');` para o cron.
 - `drop trigger trg_email_confirmed_welcome on auth.users;` para boas-vindas.
 - As Edge Functions podem ficar no ar (inertes sem o hook / sem o cron).
