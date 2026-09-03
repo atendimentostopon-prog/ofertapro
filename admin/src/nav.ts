@@ -45,8 +45,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Integrações',
     items: [
-      { label: 'Cakto', permission: 'cakto.read', icon: Plug, comingSoon: true },
-      { label: 'Webhooks', permission: 'webhooks.read', icon: Plug, comingSoon: true },
+      { label: 'Cakto', to: '/cakto', permission: 'cakto.read', icon: Plug },
     ],
   },
   {
