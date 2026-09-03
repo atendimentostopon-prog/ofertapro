@@ -218,3 +218,126 @@ export const webhooksRemoteHistory: Handler = async (params) => {
   }
   return { items };
 };
+
+// ---------------------------------------------------------------------------
+// acoes (Fase B)
+// ---------------------------------------------------------------------------
+
+export type NormalizedApply = {
+  status: 'active' | 'past_due' | 'canceled' | 'expired';
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  plan_code: string | null;
+  amount: number;
+};
+
+export function assertNormalized(x: unknown): NormalizedApply {
+  if (!x || typeof x !== 'object') throw new RbacError('validation', 'remote invalido.');
+  const o = x as Record<string, unknown>;
+  const status = String(o.status ?? '');
+  if (!['active', 'past_due', 'canceled', 'expired'].includes(status)) {
+    throw new RbacError('validation', `status invalido no remote: ${status}`);
+  }
+  return {
+    status: status as NormalizedApply['status'],
+    current_period_end: typeof o.current_period_end === 'string' ? o.current_period_end : null,
+    cancel_at_period_end: Boolean(o.cancel_at_period_end),
+    plan_code: typeof o.plan_code === 'string' && o.plan_code ? o.plan_code : null,
+    amount: Number.isFinite(Number(o.amount)) ? Number(o.amount) : 0,
+  };
+}
+
+export const applyRemote: Handler = async (params, identity, ctx) => {
+  const id = reqId(params);
+  const remote = assertNormalized(params.remote);
+  const svc = serviceClient();
+  const { data, error } = await svc.rpc('admin_cakto_apply', {
+    p_actor: identity.adminId, p_id: id, p_remote: remote, p_ctx: ctx,
+  });
+  if (error) throw error;
+  return data;
+};
+
+export const importRemote: Handler = async (params, identity, ctx) => {
+  const r = params.remote;
+  if (!r || typeof r !== 'object') throw new RbacError('validation', 'remote invalido.');
+  const o = r as Record<string, unknown>;
+  const remote = {
+    provider_subscription_id: String(o.provider_subscription_id ?? ''),
+    customer_email: String(o.customer_email ?? ''),
+    plan_code: typeof o.plan_code === 'string' ? o.plan_code : null,
+    billing_cycle: typeof o.billing_cycle === 'string' ? o.billing_cycle : null,
+    status: typeof o.status === 'string' ? o.status : 'active',
+    amount: Number.isFinite(Number(o.amount)) ? Number(o.amount) : 0,
+    current_period_start: typeof o.current_period_start === 'string' ? o.current_period_start : null,
+    current_period_end: typeof o.current_period_end === 'string' ? o.current_period_end : null,
+  };
+  if (!remote.provider_subscription_id) throw new RbacError('validation', 'provider_subscription_id e obrigatorio.');
+  const svc = serviceClient();
+  const { data, error } = await svc.rpc('admin_cakto_import', {
+    p_actor: identity.adminId, p_remote: remote, p_ctx: ctx,
+  });
+  if (error) throw error;
+  return data;
+};
+
+async function postToCaktoWebhook(event: string, data: unknown): Promise<{ status: number; body: string }> {
+  const url = `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/cakto-webhook`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+    },
+    body: JSON.stringify({ secret: Deno.env.get('CAKTO_WEBHOOK_SECRET') ?? '', event, data }),
+  });
+  return { status: res.status, body: await res.text() };
+}
+
+export const reprocessWebhook: Handler = async (params, identity, ctx) => {
+  const source = params.source === 'cakto' ? 'cakto' : 'local';
+  const svc = serviceClient();
+  let event = '';
+  let data: unknown = null;
+  let providerEventId = '';
+
+  if (source === 'local') {
+    const rowId = reqId(params);
+    const { data: row, error } = await svc
+      .from('webhook_events')
+      .select('provider_event_id, event_type, payload')
+      .eq('id', rowId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new RbacError('not_found', 'Evento nao encontrado.');
+    providerEventId = String((row as { provider_event_id: string }).provider_event_id);
+    const payload = (row as { payload: { event?: string; data?: unknown } }).payload;
+    event = payload.event ?? String((row as { event_type: string }).event_type);
+    data = payload.data ?? {};
+    await svc.from('webhook_events').delete().eq('provider_event_id', providerEventId);
+  } else {
+    providerEventId = reqId(params, 'providerEventId');
+    type HistItem = { id?: unknown; event_id?: string; payload?: { data?: unknown; event?: string } };
+    let found: HistItem | undefined;
+    for (let page = 1; page <= 3 && !found; page++) {
+      const { status, body } = await caktoJson(`/webhook/event_history/?limit=100&page=${page}`);
+      if (status < 200 || status >= 300) throw new Error(`Cakto event_history -> ${status}`);
+      const b = body as { results?: HistItem[]; next?: string | null };
+      found = (b.results ?? []).find((it) => String(it.id) === providerEventId);
+      if (!b.next) break;
+    }
+    if (!found) throw new RbacError('not_found', 'Evento nao encontrado no historico da Cakto.');
+    event = found.payload?.event ?? String(found.event_id ?? '');
+    data = found.payload?.data ?? found.payload ?? {};
+  }
+
+  const result = await postToCaktoWebhook(event, data);
+  await svc.rpc('admin_webhook_reprocess_audit', {
+    p_actor: identity.adminId, p_provider_event_id: providerEventId, p_source: source,
+    p_result: { status: result.status, body: result.body.slice(0, 500) }, p_ctx: ctx,
+  });
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`cakto-webhook respondeu ${result.status}: ${result.body.slice(0, 200)}`);
+  }
+  return { status: result.status, body: result.body };
+};

@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { normalizeCaktoStatus, normalizeCaktoSubscription, reqId } from './integrations.ts';
+import { assertNormalized, normalizeCaktoStatus, normalizeCaktoSubscription, reqId } from './integrations.ts';
 
 Deno.test('reqId devolve o id', () => {
   assertEquals(reqId({ id: ' s1 ' }), 's1');
@@ -35,4 +35,17 @@ Deno.test('normalizeCaktoSubscription extrai os campos', () => {
   assertEquals(n.billing_cycle, 'monthly');
   assertEquals(n.amount, 47.9);
   assertEquals(n.current_period_end, '2026-10-01T00:00:00-03:00');
+});
+
+Deno.test('assertNormalized aceita shape valido', () => {
+  const x = assertNormalized({ status: 'active', current_period_end: '2026-10-01', cancel_at_period_end: false, plan_code: 'pro', amount: 47.9 });
+  assertEquals(x.status, 'active');
+  assertEquals(x.plan_code, 'pro');
+});
+Deno.test('assertNormalized rejeita status fora do enum', () => {
+  assertThrows(() => assertNormalized({ status: 'weird', cancel_at_period_end: false, amount: 0 }));
+});
+Deno.test('assertNormalized rejeita nao-objeto', () => {
+  assertThrows(() => assertNormalized(null));
+  assertThrows(() => assertNormalized('x'));
 });
