@@ -12,6 +12,9 @@ const BY_HINT: Record<string, { code: ErrorCode; message: string }> = {
   INVALID_TAG: { code: 'validation', message: 'Tag invalida (minusculas, numeros, hifen; ate 30 chars; max 20 tags).' },
   NOTE_EMPTY: { code: 'validation', message: 'A nota nao pode ficar vazia.' },
   HAS_SUBSCRIPTION: { code: 'conflict', message: 'Essa conta tem assinatura paga; ajuste pela Cakto, nao por cortesia.' },
+  USER_NOT_FOUND: { code: 'not_found', message: 'Nenhuma conta com esse e-mail.' },
+  ALREADY_LINKED: { code: 'conflict', message: 'Ja existe uma assinatura local com esse id da Cakto.' },
+  CAKTO_STATUS_UNKNOWN: { code: 'validation', message: 'Status da Cakto nao reconhecido.' },
 };
 
 export function mapPgError(err: unknown): { code: ErrorCode; message: string } | null {
