@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { callAdminApi } from '../../lib/admin-api';
+import { callAdminApi, AdminApiError } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useToast } from '../../context/ToastContext';
+import { hasPermission } from '../../lib/permissions';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -18,6 +21,9 @@ function fmt(v: string | null): string {
 }
 
 export default function WebhooksTab() {
+  const { identity } = useAdminAuth();
+  const toast = useToast();
+  const canRetry = hasPermission(identity?.permissions ?? [], 'webhooks.retry');
   const [params, setParams] = useSearchParams();
   const page = Math.max(1, Number(params.get('wpage')) || 1);
   const type = params.get('etype') ?? '';
@@ -31,6 +37,19 @@ export default function WebhooksTab() {
     () => (openId ? callAdminApi<EvFull>('webhooks', 'event', { id: openId }) : Promise.resolve(null)),
     [openId],
   );
+
+  const reprocess = async (source: 'local' | 'cakto', id: string) => {
+    try {
+      await callAdminApi(
+        'webhooks', 'reprocess',
+        source === 'local' ? { source, id } : { source, providerEventId: id },
+      );
+      toast('Reprocessado.');
+      list.reload();
+    } catch (e) {
+      toast(e instanceof AdminApiError ? e.message : 'Falha ao reprocessar.');
+    }
+  };
 
   const setParam = useCallback((k: string, v: string) => {
     const next = new URLSearchParams(params);
@@ -77,7 +96,18 @@ export default function WebhooksTab() {
         <div className="rounded-xl border border-line bg-surface-0 p-4 shadow-card">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-sm font-bold text-ink">Payload do evento</h3>
-            <button type="button" onClick={() => setOpenId(null)} className="text-xs font-semibold text-ink-secondary">fechar</button>
+            <div className="flex items-center gap-2">
+              {canRetry && (
+                <button
+                  type="button"
+                  onClick={() => reprocess('local', openId)}
+                  className="rounded-lg border border-line bg-ink px-2 py-1 text-[11px] font-semibold text-surface-0"
+                >
+                  reprocessar
+                </button>
+              )}
+              <button type="button" onClick={() => setOpenId(null)} className="text-xs font-semibold text-ink-secondary">fechar</button>
+            </div>
           </div>
           {detail.loading && <Skeleton className="mt-3 h-40 w-full" />}
           {detail.data && (
@@ -88,12 +118,15 @@ export default function WebhooksTab() {
         </div>
       )}
 
-      <RemoteHistory />
+      <RemoteHistory
+        canRetry={canRetry}
+        onReprocess={(id) => reprocess('cakto', id)}
+      />
     </div>
   );
 }
 
-function RemoteHistory() {
+function RemoteHistory({ canRetry, onReprocess }: { canRetry: boolean; onReprocess: (id: string) => void }) {
   const { data, loading, error, reload } = useAsync(
     () => callAdminApi<Remote>('webhooks', 'remote-history', {}),
     [],
@@ -124,9 +157,20 @@ function RemoteHistory() {
                   <td className="px-3 py-1.5">{it.event_status ?? '-'}</td>
                   <td className="px-3 py-1.5">{fmt(it.dispatched_at)}</td>
                   <td className="px-3 py-1.5">
-                    <Badge tone={it.processed_locally ? 'success' : 'danger'}>
-                      {it.processed_locally ? 'ok' : 'faltando'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge tone={it.processed_locally ? 'success' : 'danger'}>
+                        {it.processed_locally ? 'ok' : 'faltando'}
+                      </Badge>
+                      {!it.processed_locally && canRetry && (
+                        <button
+                          type="button"
+                          onClick={() => onReprocess(String(it.id))}
+                          className="rounded-lg border border-line bg-ink px-2 py-0.5 text-[11px] font-semibold text-surface-0"
+                        >
+                          reprocessar da Cakto
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -1,7 +1,10 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { callAdminApi, AdminApiError } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useToast } from '../../context/ToastContext';
+import { hasPermission } from '../../lib/permissions';
 import { Badge } from '../../components/ui/Badge';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { ErrorState } from '../../components/ui/ErrorState';
@@ -101,6 +104,13 @@ export default function SubscriptionDetail() {
             </table>
           </div>
         )}
+        {r && (
+          <ApplyButton
+            subscriptionId={l.id}
+            normalized={r}
+            onDone={() => { local.reload(); remote.reload(); }}
+          />
+        )}
       </Card>
 
       <Card title="Acesso do usuário">
@@ -112,6 +122,48 @@ export default function SubscriptionDetail() {
 
       <BillingCycles providerSubscriptionId={l.provider_subscription_id} />
     </section>
+  );
+}
+
+function ApplyButton({ subscriptionId, normalized, onDone }: {
+  subscriptionId: string;
+  normalized: Normalized;
+  onDone: () => void;
+}) {
+  const { identity } = useAdminAuth();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  if (!hasPermission(identity?.permissions ?? [], 'cakto.sync')) return null;
+  const run = async () => {
+    setBusy(true);
+    try {
+      const res = await callAdminApi<{ applied: string }>('cakto', 'apply', {
+        id: subscriptionId,
+        remote: {
+          status: normalized.status,
+          current_period_end: normalized.current_period_end,
+          cancel_at_period_end: normalized.cancel_at_period_end,
+          plan_code: normalized.plan_code,
+          amount: normalized.amount,
+        },
+      });
+      toast(`Aplicado: ${res.applied}`);
+      onDone();
+    } catch (e) {
+      toast(e instanceof AdminApiError ? e.message : 'Falha ao aplicar.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={run}
+      disabled={busy}
+      className="mt-3 rounded-lg border border-line bg-ink px-3 py-1.5 text-xs font-semibold text-surface-0 disabled:opacity-50"
+    >
+      {busy ? 'Aplicando...' : 'Aplicar o que a Cakto diz'}
+    </button>
   );
 }
 

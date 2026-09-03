@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { callAdminApi } from '../../lib/admin-api';
+import { callAdminApi, AdminApiError } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useToast } from '../../context/ToastContext';
+import { hasPermission } from '../../lib/permissions';
 import { Badge } from '../../components/ui/Badge';
 import { Skeleton } from '../../components/ui/Skeleton';
 
@@ -30,8 +33,21 @@ function Empty() {
 }
 
 export default function ReconciliacaoTab() {
+  const { identity } = useAdminAuth();
+  const toast = useToast();
+  const canSync = hasPermission(identity?.permissions ?? [], 'cakto.sync');
   const local = useAsync(() => callAdminApi<Local>('cakto', 'reconcile-local', {}), []);
   const remote = useAsync(() => callAdminApi<Remote>('cakto', 'reconcile-remote', {}), []);
+
+  const importOrfa = async (normalized: unknown) => {
+    try {
+      await callAdminApi('cakto', 'import', { remote: normalized });
+      toast('Assinatura importada.');
+      remote.reload();
+    } catch (e) {
+      toast(e instanceof AdminApiError ? e.message : 'Falha ao importar.');
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -48,6 +64,15 @@ export default function ReconciliacaoTab() {
                 <span>{o.customer_email ?? '(sem e-mail)'}</span>
                 <Badge>{o.plan_code ?? '?'}</Badge>
                 <span className="text-xs text-ink-secondary">{o.provider_subscription_id}</span>
+                {canSync && (
+                  <button
+                    type="button"
+                    onClick={() => importOrfa(o.normalized)}
+                    className="rounded-lg border border-line bg-ink px-2 py-1 text-[11px] font-semibold text-surface-0"
+                  >
+                    importar
+                  </button>
+                )}
               </li>
             ))}
           </ul>
