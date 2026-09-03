@@ -16,6 +16,12 @@ Deno.test('reconhece CANNOT_SUSPEND_SELF', () => {
 Deno.test('pg P0002 sem hint -> not_found', () => {
   assertEquals(mapPgError({ code: 'P0002', message: 'x' })?.code, 'not_found');
 });
+Deno.test('reconhece HAS_SUBSCRIPTION via hint', () => {
+  assertEquals(mapPgError({ hint: 'HAS_SUBSCRIPTION', message: 'x' })?.code, 'conflict');
+});
+Deno.test('reconhece INVALID_PLAN via hint', () => {
+  assertEquals(mapPgError({ hint: 'INVALID_PLAN', message: 'x' })?.code, 'validation');
+});
 Deno.test('desconhecido -> null', () => {
   assertEquals(mapPgError({ message: 'boom' }), null);
 });

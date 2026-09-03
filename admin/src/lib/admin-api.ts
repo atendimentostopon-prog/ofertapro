@@ -33,7 +33,7 @@ export async function callAdminApi<T = unknown>(
 ): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
-  if (!token) throw new AdminApiError('unauthenticated', 'Sessao ausente.', 401);
+  if (!token) throw new AdminApiError('unauthenticated', 'Sessão ausente.', 401);
 
   let res: Response;
   try {
