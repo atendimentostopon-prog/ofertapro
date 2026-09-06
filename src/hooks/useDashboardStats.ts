@@ -8,6 +8,7 @@ export function useDashboardStats() {
     totalClicksToday: 0,
     totalClicks7d: 0,
     totalClicks30d: 0,
+    dispatches30d: 0,
     activeOffers: 0,
     connectedChannels: 0,
     topOffers: [],
@@ -60,7 +61,7 @@ export function useDashboardStats() {
       const [offersRes, channelsRes, historyRes, clicksRes] = await Promise.all([
         fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers', 4000),
         fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels', 4000),
-        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history', 4000),
+        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()).order('sent_at', { ascending: false }), 'history', 4000),
         // offer_id incluído pra poder ranquear "produtos mais clicados" a partir
         // do evento real em vez do contador denormalizado offers.clicks (ver nota
         // abaixo) -- ainda leve, mesma tabela/período já buscados.
@@ -192,6 +193,7 @@ export function useDashboardStats() {
         totalClicksToday,
         totalClicks7d,
         totalClicks30d,
+        dispatches30d: recentHistory.length,
         activeOffers: activeOffersCount,
         connectedChannels: connectedChannelsCount,
         topOffers: sortedOffers,
