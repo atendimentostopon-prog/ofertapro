@@ -179,7 +179,7 @@ export function useBotStatus(): BotStatusState {
 
 - Trocar a busca de histórico de `.order('sent_at', { ascending: false }).limit(5)` para a janela de 30 dias: `.gte('sent_at', thirtyDaysAgo.toISOString()).order('sent_at', { ascending: false })`.
 - No `setStats`, adicionar `dispatches30d: recentHistory.length` (a lista agora é 30d) e continuar retornando `recentHistory` para o card "Disparos Recentes" (o consumo aplica `.slice(0, 4)`).
-- Expor `activeOffers` (já calculado internamente como `activeOffersCount`, hoje não retornado). `channelLimit` **não** entra no hook — o Dashboard já o deriva de `getPlanLimits` e repassa.
+- `activeOffers` e `connectedChannels` **já são retornados** pelo hook hoje (linhas ~195-196) — nada a fazer neles. `channelLimit` é derivado no Dashboard a partir de `getPlanLimits` e repassado.
 - `recentHistory` já vem de `select('*')`, então traz os campos usados hoje (`id`, `offer_name`, `channel_count`, `successful_channels`, `sent_at`, `status`). Nenhuma mudança no `select`.
 
 ### 3. `src/components/dashboard/BotStatusCard.tsx` (novo)
