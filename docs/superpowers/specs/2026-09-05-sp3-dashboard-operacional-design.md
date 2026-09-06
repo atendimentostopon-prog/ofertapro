@@ -34,7 +34,19 @@ Repaginar o Dashboard num **painel operacional** — o que o bot está fazendo a
 Dois hooks alimentam a página:
 
 - **`useDashboardStats`** (existente, estendido) — ofertas, canais, histórico, cliques. Muda: janela de `history` de `.limit(5)` para os últimos 30 dias (usa `.slice(0, 4)` pra lista "Disparos Recentes" e `.length` pra métrica "Disparos (30d)"); passa a expor `activeOffers` e `channelLimit` (já calcula `activeOffers` internamente, só não retorna).
-- **`useBotStatus`** (novo) — lê `bot_configs` (`status`, `grupos_origem`) do usuário; expõe `setPaused(boolean)` que faz o `update` de `bot_configs.status` (`active` ↔ `paused`) com toast, e um flag `toggling`. O "último disparo" não vem daqui — o Dashboard passa `lastDispatchAt` a partir de `recentHistory[0]?.sent_at` (`useDashboardStats`).
+- **`useBotStatus`** (novo) — lê `bot_configs` (`status`, `ativo`, `grupos_origem`, `paused_reason`, `error_message`) do usuário e deriva um `view` (a "cara" do bot pro usuário). Expõe `setMonitoring(boolean)` que faz o `update` de `bot_configs.ativo` com toast (espelha o `handleToggleAtivo` do `BotTab`), e um flag `toggling`. O "último disparo" não vem daqui — o Dashboard passa `lastDispatchAt` a partir de `recentHistory[0]?.sent_at` (`useDashboardStats`).
+
+**Importante:** no `bot_configs`, `status` é o ciclo de **conexão** com o Telegram (`active` = conectado; `paused` com `paused_reason` = pausa do servidor, ex. `access_revoked` quando o trial acaba; `error` = falha de sessão; sem linha / `pending` = nunca conectou). O toggle de "pausar o bot" que o usuário controla é a coluna booleana `ativo` — é ela que o `BotTab` liga/desliga e é ela que o card do Dashboard mexe inline. Não confundir os dois.
+
+`view` derivado (precedência de cima pra baixo):
+
+| `view` | condição |
+|---|---|
+| `'not_connected'` | sem linha, ou `status` ∈ (`pending`, qualquer coisa ≠ `active`/`error`/`paused`) |
+| `'error'` | `status === 'error'` |
+| `'access_revoked'` | `status === 'paused'` (independente do `paused_reason`) |
+| `'paused_by_user'` | `status === 'active'` e `ativo === false` |
+| `'monitoring'` | `status === 'active'` e `ativo !== false` |
 
 Nenhuma outra tela consome `useBotStatus`. A duplicação com `BotTab` é ~1 statement de `update`; aceitável e mais seguro que retrofitar o `BotTab`.
 
@@ -62,22 +74,44 @@ import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 
-export type BotStatus = 'pending' | 'active' | 'paused' | 'error' | 'none';
+export type BotView =
+  | 'not_connected'
+  | 'error'
+  | 'access_revoked'
+  | 'paused_by_user'
+  | 'monitoring';
+
+interface BotConfigRow {
+  status?: string | null;
+  ativo?: boolean | null;
+  grupos_origem?: string[] | null;
+  paused_reason?: string | null;
+  error_message?: string | null;
+}
 
 interface BotStatusState {
-  status: BotStatus;
+  view: BotView;
   groupsCount: number;
+  errorMessage: string | null;
   loading: boolean;
   toggling: boolean;
-  setPaused: (paused: boolean) => Promise<void>;
+  setMonitoring: (on: boolean) => Promise<void>;
   refresh: () => Promise<void>;
+}
+
+function deriveView(row: BotConfigRow | null): BotView {
+  if (!row || row.status !== 'active') {
+    if (row?.status === 'error') return 'error';
+    if (row?.status === 'paused') return 'access_revoked';
+    return 'not_connected';
+  }
+  return row.ativo === false ? 'paused_by_user' : 'monitoring';
 }
 
 export function useBotStatus(): BotStatusState {
   const { user } = useUser();
   const { toast } = useToast();
-  const [status, setStatus] = useState<BotStatus>('none');
-  const [groupsCount, setGroupsCount] = useState(0);
+  const [row, setRow] = useState<BotConfigRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const activeRef = useRef(true);
@@ -88,13 +122,11 @@ export function useBotStatus(): BotStatusState {
     try {
       const { data } = await supabase
         .from('bot_configs')
-        .select('status, grupos_origem')
+        .select('status, ativo, grupos_origem, paused_reason, error_message')
         .eq('user_id', user.id)
         .maybeSingle();
       if (!activeRef.current) return;
-      const row = data as { status?: string | null; grupos_origem?: string[] | null } | null;
-      setStatus((row?.status as BotStatus) || 'none');
-      setGroupsCount(Array.isArray(row?.grupos_origem) ? row.grupos_origem.length : 0);
+      setRow((data as BotConfigRow) ?? null);
     } catch (err) {
       console.error('[useBotStatus] erro ao carregar:', err);
     } finally {
@@ -102,18 +134,22 @@ export function useBotStatus(): BotStatusState {
     }
   }, [user?.id]);
 
-  const setPaused = useCallback(async (paused: boolean) => {
+  const setMonitoring = useCallback(async (on: boolean) => {
     if (!user?.id) return;
     setToggling(true);
-    const next = paused ? 'paused' : 'active';
     try {
       const { error } = await supabase
         .from('bot_configs')
-        .update({ status: next })
+        .update({ ativo: on })
         .eq('user_id', user.id);
       if (error) throw error;
-      setStatus(next);
-      toast(paused ? 'Bot pausado.' : 'Bot reativado.', 'success');
+      setRow(prev => (prev ? { ...prev, ativo: on } : prev));
+      toast(
+        on
+          ? 'Bot reativado.'
+          : 'Bot pausado. Você para de receber novas ofertas até reativar.',
+        'success',
+      );
     } catch (err: any) {
       toast(err.message || 'Erro ao atualizar o status do bot.', 'error');
     } finally {
@@ -127,7 +163,15 @@ export function useBotStatus(): BotStatusState {
     return () => { activeRef.current = false; };
   }, [load]);
 
-  return { status, groupsCount, loading, toggling, setPaused, refresh: load };
+  return {
+    view: deriveView(row),
+    groupsCount: Array.isArray(row?.grupos_origem) ? row!.grupos_origem!.length : 0,
+    errorMessage: row?.error_message ?? null,
+    loading,
+    toggling,
+    setMonitoring,
+    refresh: load,
+  };
 }
 ```
 
@@ -140,17 +184,19 @@ export function useBotStatus(): BotStatusState {
 
 ### 3. `src/components/dashboard/BotStatusCard.tsx` (novo)
 
-Card de largura total. Props: `{ status, groupsCount, lastDispatchAt, toggling, onToggle, isExpired }` — `status`/`groupsCount`/`toggling` vêm de `useBotStatus`, `lastDispatchAt` do Dashboard (via `useDashboardStats.recentHistory[0]?.sent_at`), `isExpired` de `useAccountAccess`.
+Card de largura total. Props: `{ view, groupsCount, lastDispatchAt, toggling, onToggle, isExpired }` — `view`/`groupsCount`/`toggling` vêm de `useBotStatus`, `lastDispatchAt` do Dashboard (via `useDashboardStats.recentHistory[0]?.sent_at`), `isExpired` de `useAccountAccess`. `onToggle` é `useBotStatus.setMonitoring`.
+
+O componente resolve o estado assim: se `isExpired` **ou** `view === 'access_revoked'` → linha "acesso expirado"; senão despacha pelo `view`.
 
 | Estado | Cor | Título | Subtexto | Ação primária |
 |---|---|---|---|---|
-| `isExpired` (qualquer status) | danger | "Bot parado" | "Seu acesso expirou. Assine um plano e o bot volta a monitorar." | **Ver planos** → `/pricing` |
-| `none` / `pending` | neutro (surface-1 / line) | "Bot não conectado" | "Conecte o bot do Telegram pra ele monitorar seus grupos." | **Conectar bot** → `/integrations` |
-| `active` | mint | "Bot ativo" | "Monitorando {N} {grupo/grupos} de origem · último disparo {relativo}" | **Pausar bot** (chama `onToggle(true)`, `disabled={toggling}`) |
-| `paused` | warning | "Bot pausado" | "O bot não está monitorando seus grupos de origem." | **Reativar bot** (chama `onToggle(false)`, `disabled={toggling}`) |
-| `error` | danger | "Bot com erro" | "Reconecte o bot na tela de integrações." | **Gerenciar** → `/integrations` |
+| `isExpired` ou `access_revoked` | danger | "Bot parado" | "Seu acesso expirou. Assine um plano e o bot volta a monitorar." | **Ver planos** → `/pricing` |
+| `not_connected` | neutro (surface-1 / line) | "Bot não conectado" | "Conecte o bot do Telegram pra ele monitorar seus grupos." | **Conectar bot** → `/integrations` |
+| `monitoring` | mint | "Bot ativo" | "Monitorando {N} {grupo/grupos} de origem · último disparo {relativo}" | **Pausar bot** (chama `onToggle(false)`, `disabled={toggling}`) |
+| `paused_by_user` | warning | "Bot pausado" | "O bot não está monitorando seus grupos de origem." | **Reativar bot** (chama `onToggle(true)`, `disabled={toggling}`) |
+| `error` | danger | "Bot com erro" | `errorMessage` ?? "Reconecte o bot na tela de integrações." | **Gerenciar** → `/integrations` |
 
-- Ação secundária "Gerenciar" (link → `/integrations`) presente em `active`, `paused`, `error`.
+- Ação secundária "Gerenciar" (link → `/integrations`) presente em `monitoring`, `paused_by_user`, `error`.
 - `lastDispatchAt` relativo: "há X min / h / dias" com um helper simples; se `null`, subtexto vira "nenhum disparo ainda".
 - Pluralização de "grupo" via `pluralize` (`src/lib/format.ts`).
 - Sem "próxima varredura".
@@ -206,12 +252,12 @@ Recebe `showAnalytics = getPlanLimits(plan).advancedAnalytics` e o objeto `stats
 - QA no navegador (`npm run dev`):
   - **Conta Starter** (`UPDATE profiles SET plan='starter'` numa conta de teste, reverter depois): Dashboard mostra card do bot, atalhos, 4 métricas sem clique com números reais, **1 card** "Analytics completo no Profissional" (nenhum card borrado de gráfico), Top Ofertas com número borrado + cadeado. Nenhuma área "morta".
   - **Conta Pro**: mesma página, mas a zona de analytics traz os dois gráficos + a tirinha Hoje/7d/30d; nada borrado.
-  - **Card do bot**: com `bot_configs.status='active'` aparece "Bot ativo" + "Pausar bot"; clicar pausa (toast, vira "Bot pausado" + "Reativar bot") e o `BotTab` em `/settings` reflete `paused`; reativar volta. Sem `bot_configs` → "Bot não conectado" + "Conectar bot". Conta expirada → "Bot parado" + "Ver planos".
+  - **Card do bot**: com `bot_configs.status='active'` e `ativo=true` aparece "Bot ativo" + "Pausar bot"; clicar pausa (toast, vira "Bot pausado" + "Reativar bot") e grava `bot_configs.ativo=false` — o toggle "Bot ativo/pausado" do `BotTab` em `/settings` reflete o mesmo valor; reativar volta. Sem `bot_configs` → "Bot não conectado" + "Conectar bot". `status='error'` → "Bot com erro" + "Gerenciar". `status='paused'` (ex. trial revogado) ou conta expirada → "Bot parado" + "Ver planos".
   - **Métricas**: "Disparos (30d)" bate com a contagem de `history` no mês; "Grupos monitorados" bate com `bot_configs.grupos_origem`.
   - Estados de `loading` / `error` / onboarding incompleto continuam corretos.
 
 ## Riscos
 
-- `bot_configs` sem linha para o usuário é comum (nunca conectou o bot) — o hook trata como `status='none'`, sem erro.
+- `bot_configs` sem linha para o usuário é comum (nunca conectou o bot) — o hook trata como `view='not_connected'`, sem erro.
 - A janela de 30 dias de `history` pode crescer o payload; ainda é pequeno (dezenas a centenas de linhas) e a query já existe. Se virar problema, trocar a métrica por um `count` `head:true` separado — fora de escopo agora.
 - Nenhuma mudança de dado/permissão: rollback é reverter o front.
