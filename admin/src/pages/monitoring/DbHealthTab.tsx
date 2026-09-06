@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { callAdminApi } from '../../lib/admin-api';
 import { useAsync } from '../../lib/use-async';
+import { Badge } from '../../components/ui/Badge';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { ErrorState } from '../../components/ui/ErrorState';
 
@@ -11,6 +12,7 @@ type Payload = {
   connections: Array<{ state: string; count: number }>;
   db_size: string; stats_since: string | null;
 };
+type Advisors = { groups: Array<{ name: string; title: string; level: string; category: string; count: number; remediation: string; examples: string[] }> };
 
 function Card({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
@@ -83,6 +85,43 @@ export default function DbHealthTab() {
           ))}
         </ul>
       </Card>
+      <AdvisorsCard />
     </div>
+  );
+}
+
+function AdvisorsCard() {
+  const { data, loading, error } = useAsync(
+    () => callAdminApi<Advisors>('monitoring', 'advisors', {}),
+    [],
+  );
+  const notConfigured = !!error && /Management API/i.test(error);
+  return (
+    <Card title="Advisors (WARN/ERROR)" hint="Recomendacoes de seguranca e performance do Supabase">
+      {loading && <Skeleton className="h-16 w-full" />}
+      {notConfigured && (
+        <p className="text-xs text-ink-secondary">Configure SUPABASE_MGMT_TOKEN na admin-api pra ver advisors.</p>
+      )}
+      {error && !notConfigured && <p className="text-xs text-ink-secondary">Nao foi possivel consultar os advisors.</p>}
+      {data && (data.groups.length === 0 ? (
+        <p className="text-xs text-ink-secondary">Nenhum advisor WARN/ERROR.</p>
+      ) : (
+        <ul className="space-y-2 text-sm">
+          {data.groups.map((g) => (
+            <li key={g.name} className="border-b border-line-subtle pb-2 last:border-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone={g.level === 'ERROR' ? 'danger' : 'warning'}>{g.level}</Badge>
+                <span className="text-ink">{g.title}</span>
+                <span className="text-xs text-ink-secondary">{g.count}x</span>
+                {g.remediation && (
+                  <a href={g.remediation} target="_blank" rel="noreferrer" className="text-xs underline">como corrigir</a>
+                )}
+              </div>
+              {g.examples[0] && <p className="mt-0.5 text-[11px] text-ink-secondary">{g.examples[0]}</p>}
+            </li>
+          ))}
+        </ul>
+      ))}
+    </Card>
   );
 }

@@ -53,6 +53,31 @@ export default function AuthTab() {
           ))}
         </ul>
       </div>
+      <LoginFailures />
+    </div>
+  );
+}
+
+function LoginFailures() {
+  const { data, error } = useAsync(
+    () => callAdminApi<{ items: Array<Record<string, unknown>> }>('monitoring', 'logs', { source: 'auth', hours: 24 }),
+    [],
+  );
+  if (error || !data) return null; // sem Management API: card nao aparece
+  const fails = data.items.filter((r) =>
+    /login|password|invalid|denied|fail/i.test(String(r.event_message ?? '')),
+  );
+  return (
+    <div className="rounded-xl border border-line bg-surface-0 p-4 shadow-card">
+      <h3 className="font-display text-sm font-bold text-ink">Sinais de auth (24h)</h3>
+      <p className="mt-1 text-sm text-ink">
+        {fails.length} linha(s) de log de falha de login / senha
+      </p>
+      <ul className="mt-2 space-y-1 text-[11px] font-mono text-ink-secondary">
+        {fails.slice(0, 10).map((r, i) => (
+          <li key={i}>{String(r.timestamp ?? '')} - {String(r.event_message ?? '')}</li>
+        ))}
+      </ul>
     </div>
   );
 }
