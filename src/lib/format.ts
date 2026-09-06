@@ -51,3 +51,24 @@ export function toDisplayName(raw?: string | null): string {
     )
     .join(' ');
 }
+
+/**
+ * Tempo relativo curto em PT-BR pra "último disparo".
+ *   timeAgo(Date.now())              -> "agora"
+ *   timeAgo(Date.now() - 5*60_000)   -> "há 5 min"
+ *   timeAgo(Date.now() - 3*3_600_000)-> "há 3 h"
+ *   timeAgo(Date.now() - 2*86_400_000) -> "há 2 dias"
+ */
+export function timeAgo(value: string | number | Date | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '';
+  const then = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  if (Number.isNaN(then)) return '';
+  const diffMs = Date.now() - then;
+  if (diffMs < 60_000) return 'agora';
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 60) return `há ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `há ${h} h`;
+  const d = Math.floor(h / 24);
+  return `há ${pluralize(d, 'dia', 'dias')}`;
+}
