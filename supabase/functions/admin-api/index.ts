@@ -83,6 +83,9 @@ const HANDLERS: HandlerMap = {
     'dispatch-errors': { permission: 'errors.read',        handler: monitoring.dispatchErrors },
     'db-health':       { permission: 'system_health.read', handler: monitoring.dbHealth },
     'auth-overview':   { permission: 'system_health.read', handler: monitoring.authOverview },
+    'run-job':         { permission: 'jobs.retry',         handler: monitoring.runJob },
+    advisors:          { permission: 'system_health.read', handler: monitoring.advisors },
+    logs:              { permission: 'logs.read',          handler: monitoring.logsQuery },
   },
 };
 
