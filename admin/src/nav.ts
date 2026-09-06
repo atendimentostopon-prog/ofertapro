@@ -51,8 +51,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Monitoramento',
     items: [
-      { label: 'Jobs e filas', permission: 'jobs.read', icon: Activity, comingSoon: true },
-      { label: 'Erros e logs', permission: 'logs.read', icon: Activity, comingSoon: true },
+      { label: 'Monitoramento', to: '/monitoring', permission: 'system_health.read', icon: Activity },
     ],
   },
   {

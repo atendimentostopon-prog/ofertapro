@@ -21,6 +21,7 @@ import PromotionDetail from './pages/operation/PromotionDetail';
 import SendsList from './pages/operation/SendsList';
 import CaktoArea from './pages/integrations/CaktoArea';
 import SubscriptionDetail from './pages/integrations/SubscriptionDetail';
+import MonitoringArea from './pages/monitoring/MonitoringArea';
 
 function Gate() {
   const { phase } = useAdminAuth();
@@ -47,6 +48,7 @@ function Gate() {
           <Route path="/sends" element={<RequirePermission permission="sends.read"><SendsList /></RequirePermission>} />
           <Route path="/cakto" element={<RequirePermission permission="cakto.read"><CaktoArea /></RequirePermission>} />
           <Route path="/cakto/subscriptions/:id" element={<RequirePermission permission="cakto.read"><SubscriptionDetail /></RequirePermission>} />
+          <Route path="/monitoring" element={<RequirePermission permission="system_health.read"><MonitoringArea /></RequirePermission>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
