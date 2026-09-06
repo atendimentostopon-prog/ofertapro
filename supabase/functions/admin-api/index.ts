@@ -10,6 +10,7 @@ import * as session from './handlers/session.ts';
 import * as users from './handlers/users.ts';
 import * as operation from './handlers/operation.ts';
 import * as integrations from './handlers/integrations.ts';
+import * as monitoring from './handlers/monitoring.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -75,6 +76,13 @@ const HANDLERS: HandlerMap = {
     event:            { permission: 'webhooks.read',  handler: integrations.webhookEventGet },
     'remote-history': { permission: 'webhooks.read',  handler: integrations.webhooksRemoteHistory },
     reprocess:        { permission: 'webhooks.retry', handler: integrations.reprocessWebhook },
+  },
+  monitoring: {
+    'cron-jobs':       { permission: 'jobs.read',          handler: monitoring.cronJobs },
+    'cron-runs':       { permission: 'jobs.read',          handler: monitoring.cronRuns },
+    'dispatch-errors': { permission: 'errors.read',        handler: monitoring.dispatchErrors },
+    'db-health':       { permission: 'system_health.read', handler: monitoring.dbHealth },
+    'auth-overview':   { permission: 'system_health.read', handler: monitoring.authOverview },
   },
 };
 
