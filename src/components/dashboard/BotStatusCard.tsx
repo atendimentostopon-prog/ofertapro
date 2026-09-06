@@ -12,14 +12,28 @@ interface Props {
   toggling: boolean;
   onToggle: (on: boolean) => void;
   isExpired: boolean;
+  isLoading?: boolean;
 }
 
 const BASE = 'rounded-2xl border p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4';
 
 export const BotStatusCard: React.FC<Props> = ({
-  view, groupsCount, errorMessage, lastDispatchAt, toggling, onToggle, isExpired,
+  view, groupsCount, errorMessage, lastDispatchAt, toggling, onToggle, isExpired, isLoading,
 }) => {
   const navigate = useNavigate();
+
+  if (isLoading) {
+    return (
+      <div className={`${BASE} border-line bg-surface-1`}>
+        <div className="w-11 h-11 rounded-xl bg-surface-2 animate-pulse flex-shrink-0" />
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="h-4 w-28 bg-surface-2 rounded animate-pulse" />
+          <div className="h-3 w-52 max-w-full bg-surface-2 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   const resolved = isExpired || view === 'access_revoked' ? 'expired' : view;
 
   if (resolved === 'monitoring' || resolved === 'paused_by_user') {

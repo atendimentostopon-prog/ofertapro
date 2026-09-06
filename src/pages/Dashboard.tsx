@@ -137,6 +137,7 @@ const Dashboard: React.FC = () => {
         toggling={bot.toggling}
         onToggle={bot.setMonitoring}
         isExpired={access.isExpired}
+        isLoading={bot.loading}
       />
 
       <QuickActions />

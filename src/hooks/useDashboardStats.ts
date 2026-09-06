@@ -48,20 +48,21 @@ export function useDashboardStats() {
           ]);
           if (res.error) {
             console.error(`[DASHBOARD_STATS_ERROR] Erro ao buscar dados da tabela ${tableName}:`, res.error);
-            return { data: [], error: res.error, isFallback: true };
+            return { data: [], error: res.error, isFallback: true, count: 0 };
           }
-          return { data: res.data || [], error: null, isFallback: false };
+          return { data: res.data || [], error: null, isFallback: false, count: res.count ?? 0 };
         } catch (e: any) {
           console.error(`[DASHBOARD_STATS_ERROR] Exceção ou timeout na busca da tabela ${tableName}:`, e);
-          return { data: [], error: e, isFallback: true };
+          return { data: [], error: e, isFallback: true, count: 0 };
         }
       };
 
       // Buscar ofertas, canais, histórico recente e cliques dos últimos 30 dias em paralelo com timeouts individuais
-      const [offersRes, channelsRes, historyRes, clicksRes] = await Promise.all([
+      const [offersRes, channelsRes, historyRes, dispatchCountRes, clicksRes] = await Promise.all([
         fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers', 4000),
         fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels', 4000),
-        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()).order('sent_at', { ascending: false }), 'history', 4000),
+        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history', 4000),
+        fetchWithFallback(supabase.from('history').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()), 'history_count', 4000),
         // offer_id incluído pra poder ranquear "produtos mais clicados" a partir
         // do evento real em vez do contador denormalizado offers.clicks (ver nota
         // abaixo) -- ainda leve, mesma tabela/período já buscados.
@@ -193,7 +194,7 @@ export function useDashboardStats() {
         totalClicksToday,
         totalClicks7d,
         totalClicks30d,
-        dispatches30d: recentHistory.length,
+        dispatches30d: dispatchCountRes.count,
         activeOffers: activeOffersCount,
         connectedChannels: connectedChannelsCount,
         topOffers: sortedOffers,
