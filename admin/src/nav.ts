@@ -57,7 +57,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Segurança',
     items: [
-      { label: 'Risco e bloqueios', permission: 'security.read', icon: ShieldAlert, comingSoon: true },
+      { label: 'Risco e bloqueios', to: '/security', permission: 'security.read', icon: ShieldAlert },
     ],
   },
   {
