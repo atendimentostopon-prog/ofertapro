@@ -16,6 +16,8 @@ const BY_HINT: Record<string, { code: ErrorCode; message: string }> = {
   ALREADY_LINKED: { code: 'conflict', message: 'Ja existe uma assinatura local com esse id da Cakto.' },
   CAKTO_STATUS_UNKNOWN: { code: 'validation', message: 'Status da Cakto nao reconhecido.' },
   JOB_NOT_FOUND: { code: 'not_found', message: 'Cron job nao encontrado.' },
+  COMMON_DOMAIN: { code: 'validation', message: 'Esse dominio e comum demais; nao da pra bloquear todo cadastro dele.' },
+  INVALID_KIND: { code: 'validation', message: 'Tipo invalido (use email ou domain).' },
 };
 
 export function mapPgError(err: unknown): { code: ErrorCode; message: string } | null {

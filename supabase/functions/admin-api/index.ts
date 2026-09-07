@@ -11,6 +11,7 @@ import * as users from './handlers/users.ts';
 import * as operation from './handlers/operation.ts';
 import * as integrations from './handlers/integrations.ts';
 import * as monitoring from './handlers/monitoring.ts';
+import * as security from './handlers/security.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -86,6 +87,15 @@ const HANDLERS: HandlerMap = {
     'run-job':         { permission: 'jobs.retry',         handler: monitoring.runJob },
     advisors:          { permission: 'system_health.read', handler: monitoring.advisors },
     logs:              { permission: 'logs.read',          handler: monitoring.logsQuery },
+  },
+  security: {
+    posture:            { permission: 'security.read', handler: security.posture },
+    'risk-accounts':    { permission: 'risk.read',     handler: security.riskAccounts },
+    blocklist:          { permission: 'security.read', handler: security.blocklistList },
+    ban:                { permission: 'risk.manage',   handler: security.ban },
+    unban:              { permission: 'risk.manage',   handler: security.unban },
+    'blocklist-add':    { permission: 'risk.manage',   handler: security.blocklistAdd },
+    'blocklist-remove': { permission: 'risk.manage',   handler: security.blocklistRemove },
   },
 };
 
