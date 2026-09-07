@@ -8,7 +8,8 @@ export type BotView =
   | 'error'
   | 'access_revoked'
   | 'paused_by_user'
-  | 'monitoring';
+  | 'monitoring'
+  | 'unknown';
 
 interface BotConfigRow {
   status?: string | null;
@@ -43,21 +44,28 @@ export function useBotStatus(): BotStatusState {
   const [row, setRow] = useState<BotConfigRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [errored, setErrored] = useState(false);
   const activeRef = useRef(true);
 
   const load = useCallback(async () => {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('bot_configs')
         .select('status, ativo, grupos_origem, paused_reason, error_message')
         .eq('user_id', user.id)
         .maybeSingle();
       if (!activeRef.current) return;
+      // maybeSingle() devolve error:null quando simplesmente nao ha linha —
+      // isso e "nao conectado", nao falha. So um erro de verdade (RLS, rede,
+      // 4xx/5xx) chega aqui com error != null.
+      if (error) throw error;
       setRow((data as BotConfigRow) ?? null);
+      setErrored(false);
     } catch (err) {
       console.error('[useBotStatus] erro ao carregar:', err);
+      if (activeRef.current) setErrored(true);
     } finally {
       if (activeRef.current) setLoading(false);
     }
@@ -93,7 +101,7 @@ export function useBotStatus(): BotStatusState {
   }, [load]);
 
   return {
-    view: deriveView(row),
+    view: errored ? 'unknown' : deriveView(row),
     groupsCount: Array.isArray(row?.grupos_origem) ? row!.grupos_origem!.length : 0,
     errorMessage: row?.error_message ?? null,
     loading,
