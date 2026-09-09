@@ -18,6 +18,10 @@ const BY_HINT: Record<string, { code: ErrorCode; message: string }> = {
   JOB_NOT_FOUND: { code: 'not_found', message: 'Cron job nao encontrado.' },
   COMMON_DOMAIN: { code: 'validation', message: 'Esse dominio e comum demais; nao da pra bloquear todo cadastro dele.' },
   INVALID_KIND: { code: 'validation', message: 'Tipo invalido (use email ou domain).' },
+  INVALID_LIMIT: { code: 'validation', message: 'Limite invalido (use inteiro maior ou igual a zero).' },
+  INVALID_KEY: { code: 'validation', message: 'Chave invalida (minusculas, numeros, underscore; 2 a 40 chars).' },
+  INVALID_LEVEL: { code: 'validation', message: 'Nivel invalido (info, warning ou danger).' },
+  MESSAGE_EMPTY: { code: 'validation', message: 'A mensagem nao pode ficar vazia.' },
 };
 
 export function mapPgError(err: unknown): { code: ErrorCode; message: string } | null {

@@ -12,6 +12,7 @@ import * as operation from './handlers/operation.ts';
 import * as integrations from './handlers/integrations.ts';
 import * as monitoring from './handlers/monitoring.ts';
 import * as security from './handlers/security.ts';
+import * as system from './handlers/system.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -96,6 +97,17 @@ const HANDLERS: HandlerMap = {
     unban:              { permission: 'risk.manage',   handler: security.unban },
     'blocklist-add':    { permission: 'risk.manage',   handler: security.blocklistAdd },
     'blocklist-remove': { permission: 'risk.manage',   handler: security.blocklistRemove },
+  },
+  system: {
+    'plan-limits':         { permission: 'system_settings.read',   handler: system.planLimits },
+    flags:                 { permission: 'feature_flags.read',     handler: system.flags },
+    announcements:         { permission: 'announcements.read',     handler: system.announcements },
+    'active-announcement': { permission: null,                     handler: system.activeAnnouncement },
+    'plan-limits-update':  { permission: 'system_settings.manage', handler: system.planLimitsUpdate },
+    'flag-set':            { permission: 'feature_flags.manage',   handler: system.flagSet },
+    'flag-delete':         { permission: 'feature_flags.manage',   handler: system.flagDelete },
+    'announcement-upsert': { permission: 'announcements.manage',   handler: system.announcementUpsert },
+    'announcement-delete': { permission: 'announcements.manage',   handler: system.announcementDelete },
   },
 };
 
