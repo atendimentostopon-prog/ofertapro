@@ -63,7 +63,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Sistema',
     items: [
-      { label: 'Configurações', permission: 'system_settings.read', icon: Settings, comingSoon: true },
+      { label: 'Configurações', to: '/system', permission: 'system_settings.read', icon: Settings },
     ],
   },
   {
