@@ -23,7 +23,7 @@ describe('App gates', () => {
   it('phase not_admin -> acesso nao autorizado', async () => {
     phaseRef.current = 'not_admin';
     render(<App />);
-    await waitFor(() => expect(screen.getByText(/nao autorizado|nao tem acesso/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/não autorizado|não tem acesso/i)).toBeInTheDocument());
   });
   it('phase ready -> shell com Dashboard', async () => {
     phaseRef.current = 'ready';

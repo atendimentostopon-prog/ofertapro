@@ -14,6 +14,17 @@ import AdminsList from './pages/admins/AdminsList';
 import InviteAdmin from './pages/admins/InviteAdmin';
 import RolesList from './pages/roles/RolesList';
 import AuditList from './pages/audit/AuditList';
+import UsersList from './pages/users/UsersList';
+import UserDetail from './pages/users/UserDetail';
+import PromotionsList from './pages/operation/PromotionsList';
+import PromotionDetail from './pages/operation/PromotionDetail';
+import SendsList from './pages/operation/SendsList';
+import CaktoArea from './pages/integrations/CaktoArea';
+import SubscriptionDetail from './pages/integrations/SubscriptionDetail';
+import MonitoringArea from './pages/monitoring/MonitoringArea';
+import SecurityArea from './pages/security/SecurityArea';
+import SystemArea from './pages/system/SystemArea';
+import Bot from './pages/Bot';
 
 function Gate() {
   const { phase } = useAdminAuth();
@@ -33,6 +44,17 @@ function Gate() {
           <Route path="/admins/invite" element={<RequirePermission permission="admins.manage"><InviteAdmin /></RequirePermission>} />
           <Route path="/roles" element={<RequirePermission permission="roles.read"><RolesList /></RequirePermission>} />
           <Route path="/audit" element={<RequirePermission permission="audit.read"><AuditList /></RequirePermission>} />
+          <Route path="/users" element={<RequirePermission permission="users.read"><UsersList /></RequirePermission>} />
+          <Route path="/users/:id" element={<RequirePermission permission="users.read"><UserDetail /></RequirePermission>} />
+          <Route path="/promotions" element={<RequirePermission permission="promotions.read"><PromotionsList /></RequirePermission>} />
+          <Route path="/promotions/:id" element={<RequirePermission permission="promotions.read"><PromotionDetail /></RequirePermission>} />
+          <Route path="/sends" element={<RequirePermission permission="sends.read"><SendsList /></RequirePermission>} />
+          <Route path="/cakto" element={<RequirePermission permission="cakto.read"><CaktoArea /></RequirePermission>} />
+          <Route path="/cakto/subscriptions/:id" element={<RequirePermission permission="cakto.read"><SubscriptionDetail /></RequirePermission>} />
+          <Route path="/monitoring" element={<RequirePermission permission="system_health.read"><MonitoringArea /></RequirePermission>} />
+          <Route path="/security" element={<RequirePermission permission="security.read"><SecurityArea /></RequirePermission>} />
+          <Route path="/system" element={<RequirePermission permission="system_settings.read"><SystemArea /></RequirePermission>} />
+          <Route path="/bot" element={<RequirePermission permission="system_settings.manage"><Bot /></RequirePermission>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

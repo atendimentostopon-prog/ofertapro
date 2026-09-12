@@ -35,7 +35,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         className="fixed bottom-6 right-6 z-[9999] flex w-[calc(100%-48px)] max-w-sm flex-col gap-3"
         role="region"
-        aria-label="Notificacoes"
+        aria-label="Notificações"
         aria-live="polite"
       >
         {toasts.map((t) => (

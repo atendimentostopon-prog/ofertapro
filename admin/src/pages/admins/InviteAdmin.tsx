@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROLES } from '@shared/admin-permissions';
+import { ROLES } from '../../lib/roles';
 import { callAdminApi, AdminApiError } from '../../lib/admin-api';
 import { useToast } from '../../context/ToastContext';
 
 const CODE_MESSAGES: Record<string, string> = {
   not_found: 'Essa pessoa precisa criar uma conta no Aflyo primeiro.',
-  conflict: 'Ja e administrador.',
+  conflict: 'Já é administrador.',
 };
 
 export default function InviteAdmin() {
@@ -45,7 +45,7 @@ export default function InviteAdmin() {
       <header>
         <h1 className="font-display text-xl font-bold text-ink">Convidar admin</h1>
         <p className="mt-1 text-sm text-ink-secondary">
-          A pessoa ja precisa ter uma conta no Aflyo. Ela recebe os cargos escolhidos na hora.
+          A pessoa já precisa ter uma conta no Aflyo. Ela recebe os cargos escolhidos na hora.
         </p>
       </header>
 

@@ -22,7 +22,7 @@ export function StatCard({
           {nf.format(value)}{suffix ?? ''}
         </p>
       ) : (
-        <p className="mt-1 text-sm font-semibold text-ink-tertiary">Dados indisponiveis</p>
+        <p className="mt-1 text-sm font-semibold text-ink-tertiary">Dados indisponíveis</p>
       )}
     </div>
   );

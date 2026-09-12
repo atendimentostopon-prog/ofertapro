@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  LayoutDashboard, Users, Megaphone, Link2, Send, LifeBuoy,
-  Plug, Activity, ShieldAlert, Settings, UserCog, KeyRound, ScrollText,
+  LayoutDashboard, Users, Megaphone, Send, LifeBuoy,
+  Plug, Activity, ShieldAlert, Settings, UserCog, KeyRound, ScrollText, Bot,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -18,23 +18,22 @@ export type NavSection = { title: string; items: NavItem[] };
 // menu (secao 14 do spec) entra como "Em breve", sem rota.
 export const NAV: NavSection[] = [
   {
-    title: 'Visao geral',
+    title: 'Visão geral',
     items: [
       { label: 'Dashboard', to: '/', permission: 'dashboard.read', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Usuarios',
+    title: 'Usuários',
     items: [
-      { label: 'Usuarios', permission: 'users.read', icon: Users, comingSoon: true },
+      { label: 'Usuários', to: '/users', permission: 'users.read', icon: Users },
     ],
   },
   {
-    title: 'Operacao',
+    title: 'Operação',
     items: [
-      { label: 'Promocoes', permission: 'promotions.read', icon: Megaphone, comingSoon: true },
-      { label: 'Links', permission: 'links.read', icon: Link2, comingSoon: true },
-      { label: 'Envios', permission: 'sends.read', icon: Send, comingSoon: true },
+      { label: 'Promoções', to: '/promotions', permission: 'promotions.read', icon: Megaphone },
+      { label: 'Envios', to: '/sends', permission: 'sends.read', icon: Send },
     ],
   },
   {
@@ -44,33 +43,32 @@ export const NAV: NavSection[] = [
     ],
   },
   {
-    title: 'Integracoes',
+    title: 'Integrações',
     items: [
-      { label: 'Cakto', permission: 'cakto.read', icon: Plug, comingSoon: true },
-      { label: 'Webhooks', permission: 'webhooks.read', icon: Plug, comingSoon: true },
+      { label: 'Cakto', to: '/cakto', permission: 'cakto.read', icon: Plug },
     ],
   },
   {
     title: 'Monitoramento',
     items: [
-      { label: 'Jobs e filas', permission: 'jobs.read', icon: Activity, comingSoon: true },
-      { label: 'Erros e logs', permission: 'logs.read', icon: Activity, comingSoon: true },
+      { label: 'Monitoramento', to: '/monitoring', permission: 'system_health.read', icon: Activity },
     ],
   },
   {
-    title: 'Seguranca',
+    title: 'Segurança',
     items: [
-      { label: 'Risco e bloqueios', permission: 'security.read', icon: ShieldAlert, comingSoon: true },
+      { label: 'Risco e bloqueios', to: '/security', permission: 'security.read', icon: ShieldAlert },
     ],
   },
   {
     title: 'Sistema',
     items: [
-      { label: 'Configuracoes', permission: 'system_settings.read', icon: Settings, comingSoon: true },
+      { label: 'Configurações', to: '/system', permission: 'system_settings.read', icon: Settings },
+      { label: 'Bot', to: '/bot', permission: 'system_settings.manage', icon: Bot },
     ],
   },
   {
-    title: 'Administracao',
+    title: 'Administração',
     items: [
       { label: 'Administradores', to: '/admins', permission: 'admins.read', icon: UserCog },
       { label: 'Cargos', to: '/roles', permission: 'roles.read', icon: KeyRound },

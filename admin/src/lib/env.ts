@@ -8,5 +8,7 @@ export const ENV = {
   supabaseAnonKey: required('VITE_SUPABASE_ANON_KEY', import.meta.env.VITE_SUPABASE_ANON_KEY),
   adminApiUrl: required('VITE_ADMIN_API_URL', import.meta.env.VITE_ADMIN_API_URL),
   adminHostname: import.meta.env.VITE_ADMIN_HOSTNAME || 'admin.aflyo.com.br',
+  botAdminUrl: required('VITE_BOT_ADMIN_URL', import.meta.env.VITE_BOT_ADMIN_URL),
+  botAdminToken: required('VITE_BOT_ADMIN_TOKEN', import.meta.env.VITE_BOT_ADMIN_TOKEN),
   isProd: import.meta.env.PROD,
 };

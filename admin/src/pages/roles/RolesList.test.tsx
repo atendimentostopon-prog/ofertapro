@@ -17,7 +17,9 @@ it('lista os cargos e suas permissoes', async () => {
   });
   render(<RolesList />);
   await waitFor(() => expect(screen.getByText('Analista')).toBeInTheDocument());
-  expect(screen.getByText('dashboard.read')).toBeInTheDocument();
+  // a permissao aparece com rotulo amigavel; a chave tecnica vai no title
+  expect(screen.getByText('Ver o dashboard')).toBeInTheDocument();
+  expect(screen.getByTitle('dashboard.read')).toBeInTheDocument();
 });
 
 it('sem roles.manage nao mostra o formulario de atribuir', async () => {

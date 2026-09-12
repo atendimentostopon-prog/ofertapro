@@ -8,6 +8,7 @@ const RAW = {
   users: [
     'users.read', 'users.suspend', 'users.reactivate', 'users.sessions.read',
     'users.sessions.revoke', 'users.notes.manage', 'users.tags.manage', 'users.impersonate',
+    'users.billing.manage',
   ],
   operation: [
     'promotions.read', 'promotions.retry', 'promotions.cancel',
@@ -47,7 +48,7 @@ export const ROLES: readonly { key: RoleKey; label: string; description: string 
 
 const SUPPORT: PermissionKey[] = [
   'dashboard.read', 'users.read', 'users.suspend', 'users.reactivate', 'users.sessions.read',
-  'users.sessions.revoke', 'users.notes.manage', 'users.tags.manage',
+  'users.sessions.revoke', 'users.notes.manage', 'users.tags.manage', 'users.billing.manage',
   'promotions.read', 'promotions.retry', 'promotions.cancel',
   'links.read', 'links.test', 'links.retry', 'links.disable', 'shortener.read',
   'sends.read', 'sends.retry', 'sends.cancel', 'cakto.read', 'webhooks.read', 'audit.read',

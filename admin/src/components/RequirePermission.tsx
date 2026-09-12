@@ -13,7 +13,7 @@ export default function RequirePermission({
   const { identity } = useAdminAuth();
   const granted = identity?.permissions ?? [];
   if (!hasPermission(granted, permission)) {
-    return <ErrorState title="Sem permissao" message="Voce nao tem permissao para ver esta area." />;
+    return <ErrorState title="Sem permissão" message="Você não tem permissão para ver esta área." />;
   }
   return <>{children}</>;
 }

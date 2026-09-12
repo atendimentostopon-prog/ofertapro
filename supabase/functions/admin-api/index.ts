@@ -7,6 +7,12 @@ import * as admins from './handlers/admins.ts';
 import * as roles from './handlers/roles.ts';
 import * as audit from './handlers/audit.ts';
 import * as session from './handlers/session.ts';
+import * as users from './handlers/users.ts';
+import * as operation from './handlers/operation.ts';
+import * as integrations from './handlers/integrations.ts';
+import * as monitoring from './handlers/monitoring.ts';
+import * as security from './handlers/security.ts';
+import * as system from './handlers/system.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -39,6 +45,69 @@ const HANDLERS: HandlerMap = {
   },
   audit: {
     list: { permission: 'audit.read', handler: audit.list },
+  },
+  users: {
+    list:          { permission: 'users.read',            handler: users.list },
+    get:           { permission: 'users.read',            handler: users.get },
+    suspend:       { permission: 'users.suspend',         handler: users.suspend },
+    reactivate:    { permission: 'users.reactivate',      handler: users.reactivate },
+    'set-plan':    { permission: 'users.billing.manage',  handler: users.setPlan },
+    'extend-trial':{ permission: 'users.billing.manage',  handler: users.extendTrial },
+    'add-note':    { permission: 'users.notes.manage',    handler: users.addNote },
+    'set-tags':    { permission: 'users.tags.manage',     handler: users.setTags },
+  },
+  promotions: {
+    list: { permission: 'promotions.read', handler: operation.promotionsList },
+    get:  { permission: 'promotions.read', handler: operation.promotionGet },
+  },
+  sends: {
+    list: { permission: 'sends.read', handler: operation.sendsList },
+  },
+  cakto: {
+    subscriptions:           { permission: 'cakto.read', handler: integrations.subscriptionsList },
+    subscription:            { permission: 'cakto.read', handler: integrations.subscriptionGet },
+    'reconcile-local':       { permission: 'cakto.read', handler: integrations.reconcileLocal },
+    'remote-subscription':   { permission: 'cakto.read', handler: integrations.remoteSubscription },
+    'remote-billing-cycles': { permission: 'cakto.read', handler: integrations.remoteBillingCycles },
+    'reconcile-remote':      { permission: 'cakto.read', handler: integrations.reconcileRemote },
+    apply:                   { permission: 'cakto.sync', handler: integrations.applyRemote },
+    import:                  { permission: 'cakto.sync', handler: integrations.importRemote },
+  },
+  webhooks: {
+    events:           { permission: 'webhooks.read',  handler: integrations.webhookEventsList },
+    event:            { permission: 'webhooks.read',  handler: integrations.webhookEventGet },
+    'remote-history': { permission: 'webhooks.read',  handler: integrations.webhooksRemoteHistory },
+    reprocess:        { permission: 'webhooks.retry', handler: integrations.reprocessWebhook },
+  },
+  monitoring: {
+    'cron-jobs':       { permission: 'jobs.read',          handler: monitoring.cronJobs },
+    'cron-runs':       { permission: 'jobs.read',          handler: monitoring.cronRuns },
+    'dispatch-errors': { permission: 'errors.read',        handler: monitoring.dispatchErrors },
+    'db-health':       { permission: 'system_health.read', handler: monitoring.dbHealth },
+    'auth-overview':   { permission: 'system_health.read', handler: monitoring.authOverview },
+    'run-job':         { permission: 'jobs.retry',         handler: monitoring.runJob },
+    advisors:          { permission: 'system_health.read', handler: monitoring.advisors },
+    logs:              { permission: 'logs.read',          handler: monitoring.logsQuery },
+  },
+  security: {
+    posture:            { permission: 'security.read', handler: security.posture },
+    'risk-accounts':    { permission: 'risk.read',     handler: security.riskAccounts },
+    blocklist:          { permission: 'security.read', handler: security.blocklistList },
+    ban:                { permission: 'risk.manage',   handler: security.ban },
+    unban:              { permission: 'risk.manage',   handler: security.unban },
+    'blocklist-add':    { permission: 'risk.manage',   handler: security.blocklistAdd },
+    'blocklist-remove': { permission: 'risk.manage',   handler: security.blocklistRemove },
+  },
+  system: {
+    'plan-limits':         { permission: 'system_settings.read',   handler: system.planLimits },
+    flags:                 { permission: 'feature_flags.read',     handler: system.flags },
+    announcements:         { permission: 'announcements.read',     handler: system.announcements },
+    'active-announcement': { permission: null,                     handler: system.activeAnnouncement },
+    'plan-limits-update':  { permission: 'system_settings.manage', handler: system.planLimitsUpdate },
+    'flag-set':            { permission: 'feature_flags.manage',   handler: system.flagSet },
+    'flag-delete':         { permission: 'feature_flags.manage',   handler: system.flagDelete },
+    'announcement-upsert': { permission: 'announcements.manage',   handler: system.announcementUpsert },
+    'announcement-delete': { permission: 'announcements.manage',   handler: system.announcementDelete },
   },
 };
 

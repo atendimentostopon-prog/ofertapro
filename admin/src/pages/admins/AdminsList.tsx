@@ -91,14 +91,14 @@ export default function AdminsList() {
           <span className="text-ink-tertiary">nenhum</span>
         ),
     },
-    { key: 'mfaEnrolled', header: 'MFA', render: (r) => (r.mfaEnrolled ? 'Sim' : 'Nao') },
+    { key: 'mfaEnrolled', header: 'MFA', render: (r) => (r.mfaEnrolled ? 'Sim' : 'Não') },
     { key: 'createdAt', header: 'Criado em', render: (r) => fmtDate(r.createdAt) },
   ];
 
   if (canManage) {
     columns.push({
       key: 'acoes',
-      header: 'Acoes',
+      header: 'Ações',
       render: (r) =>
         r.status === 'active' ? (
           <button
@@ -121,7 +121,7 @@ export default function AdminsList() {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-xl font-bold text-ink">Administradores</h1>

@@ -2,12 +2,12 @@ type Variant = 'wrong-host' | 'no-access';
 
 const TEXT: Record<Variant, { title: string; body: string }> = {
   'wrong-host': {
-    title: 'Acesso nao autorizado',
-    body: 'Este endereco nao expoe o painel administrativo.',
+    title: 'Acesso não autorizado',
+    body: 'Este endereço não expõe o painel administrativo.',
   },
   'no-access': {
-    title: 'Sua conta nao tem acesso',
-    body: 'Voce esta autenticado, mas nao e da equipe administrativa do Aflyo.',
+    title: 'Sua conta não tem acesso',
+    body: 'Você está autenticado, mas não é da equipe administrativa do Aflyo.',
   },
 };
 

@@ -2,8 +2,9 @@ import { defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
 
 export default defineConfig({
-  resolve: { alias: { '@shared': resolve(__dirname, '../shared') } },
-  // shared/ e irmao de admin/, fora do root do Vitest: liberar leitura.
+  // shared/ e irmao de admin/, fora do root do Vitest: liberar leitura pro
+  // teste compartilhado shared/admin-permissions.test.ts (so local; o build da
+  // Vercel nao depende de ../shared).
   server: { fs: { allow: [resolve(__dirname, '..')] } },
   test: {
     environment: 'jsdom',
