@@ -6,10 +6,10 @@ import { useAsync } from '../../lib/use-async';
 type Tone = 'success' | 'warning' | 'danger' | 'neutral';
 
 const TONE_CLASSES: Record<Tone, string> = {
-  success: 'border-success/25 bg-success-bg text-success-ink',
-  warning: 'border-warning/25 bg-warning-bg text-warning-ink',
-  danger: 'border-danger/25 bg-danger-bg text-danger-ink',
-  neutral: 'border-line bg-surface-1 text-ink-secondary',
+  success: 'border-success/30 bg-success/10 text-success',
+  warning: 'border-warning/30 bg-warning/10 text-warning',
+  danger: 'border-danger/30 bg-danger/10 text-danger',
+  neutral: 'border-white/10 bg-white/5 text-white/50',
 };
 
 function Pill({ tone, label, onClick }: { tone: Tone; label: string; onClick: () => void }) {
