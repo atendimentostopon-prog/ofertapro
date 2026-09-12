@@ -10,6 +10,7 @@ function Sparkline({ series }: { series: KpiSeriesPoint[] }) {
   return (
     <svg
       data-testid="kpi-sparkline"
+      aria-hidden="true"
       viewBox={`0 0 100 ${height}`}
       preserveAspectRatio="none"
       className="mt-2 w-full"
@@ -63,7 +64,10 @@ export function KpiCard({
               {nf.format(value)}{suffix ?? ''}
             </p>
             {delta != null && (
-              <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${up ? 'bg-success-bg text-success-ink' : 'bg-danger-bg text-danger-ink'}`}>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${up ? 'bg-success-bg text-success-ink' : 'bg-danger-bg text-danger-ink'}`}
+                aria-label={`${up ? 'aumento' : 'queda'} de ${pctFmt.format(Math.abs(delta))}%`}
+              >
                 {up ? '▲' : '▼'} {pctFmt.format(Math.abs(delta))}%
               </span>
             )}
