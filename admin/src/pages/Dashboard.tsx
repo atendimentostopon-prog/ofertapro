@@ -1,14 +1,16 @@
 import { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { UserPlus, Megaphone, Send, Plug, ScrollText, Activity } from 'lucide-react';
 import { callAdminApi } from '../lib/admin-api';
 import { useAsync } from '../lib/use-async';
-import { StatCard } from '../components/ui/StatCard';
+import { KpiCard, type KpiSeriesPoint } from '../components/ui/KpiCard';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
 
 type Range = 'today' | '7d' | '30d' | '90d';
 
-type Metric = { value: number | null; available: boolean };
+type Metric = { value: number | null; available: boolean; previous?: number | null; series?: KpiSeriesPoint[] };
 type FeedItem = { id: string; type: string; title: string; at: string; href: string | null };
 type DashboardSummary = {
   range: { from: string; to: string };
@@ -17,16 +19,11 @@ type DashboardSummary = {
   feed: FeedItem[];
 };
 
-const DASHBOARD_SECTIONS: { title: string; muted?: boolean; keys: string[] }[] = [
-  { title: 'Usuários', keys: ['users_total', 'users_active', 'users_new'] },
+const DASHBOARD_SECTIONS: { title: string; keys: string[] }[] = [
+  { title: 'Usuários', keys: ['users_new', 'users_total'] },
   { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'] },
   { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'] },
   { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'] },
-  {
-    title: 'Infraestrutura',
-    muted: true,
-    keys: ['webhooks_failed', 'jobs_failed', 'jobs_pending', 'queue_depth', 'errors_24h', 'services_degraded'],
-  },
 ];
 
 const METRIC_LABELS_FALLBACK: Record<string, string> = {
@@ -41,12 +38,14 @@ const METRIC_LABELS_FALLBACK: Record<string, string> = {
   sends: 'Envios',
   sends_success_rate: 'Taxa de sucesso de envio',
   webhooks_received: 'Webhooks recebidos',
-  webhooks_failed: 'Webhooks falhos',
-  jobs_failed: 'Jobs falhos',
-  jobs_pending: 'Jobs pendentes',
-  queue_depth: 'Fila (queue depth)',
-  errors_24h: 'Erros nas últimas 24h',
-  services_degraded: 'Serviços degradados',
+};
+
+const FEED_ICONS: Record<string, typeof UserPlus> = {
+  user_registered: UserPlus,
+  promotion_created: Megaphone,
+  send: Send,
+  webhook_received: Plug,
+  admin_action: ScrollText,
 };
 
 const FEED_TYPE_LABELS: Record<string, string> = {
@@ -55,6 +54,11 @@ const FEED_TYPE_LABELS: Record<string, string> = {
   send: 'Envio',
   webhook_received: 'Webhook recebido',
   admin_action: 'Ação de admin',
+};
+
+const FEED_HREF: Record<string, (id: string) => string> = {
+  user_registered: (id) => `/users/${id}`,
+  promotion_created: (id) => `/promotions/${id}`,
 };
 
 const RANGES: { key: Range; label: string }[] = [
@@ -84,6 +88,7 @@ export default function Dashboard() {
     [range],
   );
   const { data, loading, error, reload } = useAsync(fetcher, [range]);
+  const activeUsers = data?.metrics.users_active;
 
   return (
     <section className="space-y-6">
@@ -120,27 +125,33 @@ export default function Dashboard() {
 
       {!error && !loading && data && (
         <>
+          {activeUsers && (
+            <KpiCard
+              label={data.labels.users_active ?? METRIC_LABELS_FALLBACK.users_active}
+              value={activeUsers.value}
+              available={activeUsers.available}
+              size="hero"
+            />
+          )}
+
           <div className="space-y-6">
             {DASHBOARD_SECTIONS.map((section) => {
               const keys = section.keys.filter((k) => k in data.metrics);
               if (keys.length === 0) return null;
               return (
                 <div key={section.title}>
-                  <h2 className={`font-display text-sm font-bold ${section.muted ? 'text-ink-tertiary' : 'text-ink'}`}>
-                    {section.title}
-                    {section.muted && (
-                      <span className="ml-2 text-[11px] font-normal text-ink-tertiary">sem fonte no SP1</span>
-                    )}
-                  </h2>
+                  <h2 className="font-display text-sm font-bold text-ink">{section.title}</h2>
                   <div className="mt-2 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
                     {keys.map((key) => {
                       const m = data.metrics[key];
                       return (
-                        <StatCard
+                        <KpiCard
                           key={key}
                           label={data.labels[key] ?? METRIC_LABELS_FALLBACK[key] ?? key}
                           value={m.value}
                           available={m.available}
+                          previous={m.previous}
+                          series={m.series}
                           suffix={key === 'sends_success_rate' ? '%' : undefined}
                         />
                       );
@@ -149,6 +160,29 @@ export default function Dashboard() {
                 </div>
               );
             })}
+
+            <Link
+              to="/monitoring"
+              className="flex items-center gap-3 rounded-xl border border-line bg-surface-0 p-4 transition-colors hover:bg-surface-1"
+            >
+              <Activity className="h-5 w-5 shrink-0 text-ink-secondary" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-ink">Monitoramento</p>
+                <p className="text-xs text-ink-secondary">Jobs, erros e saúde do banco em tempo real.</p>
+              </div>
+            </Link>
+
+            {(() => {
+              const shownKeys = new Set(['users_active', ...DASHBOARD_SECTIONS.flatMap((s) => s.keys)]);
+              const restKeys = Object.keys(data.metrics).filter((k) => !shownKeys.has(k));
+              if (restKeys.length === 0) return null;
+              const allAvailable = restKeys.every((k) => data.metrics[k].available);
+              return (
+                <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
+                  <KpiCard label="Outras métricas" value={null} available={allAvailable} />
+                </div>
+              );
+            })()}
           </div>
 
           <div>
@@ -159,15 +193,31 @@ export default function Dashboard() {
               </div>
             ) : (
               <ul className="mt-3 divide-y divide-line-subtle rounded-xl border border-line bg-surface-0">
-                {data.feed.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-ink">{item.title || 'Sem título'}</p>
-                      <p className="text-xs text-ink-tertiary">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
-                    </div>
-                    <span className="shrink-0 text-xs text-ink-tertiary">{relative(item.at)}</span>
-                  </li>
-                ))}
+                {data.feed.map((item) => {
+                  const Icon = FEED_ICONS[item.type] ?? ScrollText;
+                  const href = FEED_HREF[item.type]?.(item.id);
+                  const content = (
+                    <>
+                      <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" aria-hidden />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-ink">{item.title || 'Sem título'}</p>
+                        <p className="text-xs text-ink-tertiary">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
+                      </div>
+                      <span className="shrink-0 text-xs text-ink-tertiary">{relative(item.at)}</span>
+                    </>
+                  );
+                  return (
+                    <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                      {href ? (
+                        <Link to={href} className="flex flex-1 items-center gap-3 hover:opacity-80">
+                          {content}
+                        </Link>
+                      ) : (
+                        <div className="flex flex-1 items-center gap-3">{content}</div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
