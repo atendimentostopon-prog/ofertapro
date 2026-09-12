@@ -189,9 +189,9 @@ export default function Dashboard() {
                       <Icon className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm text-white">{item.title || 'Sem título'}</p>
-                        <p className="text-xs text-white/40">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
+                        <p className="text-xs text-white/50">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
                       </div>
-                      <span className="shrink-0 text-xs text-white/40">{relative(item.at)}</span>
+                      <span className="shrink-0 text-xs text-white/50">{relative(item.at)}</span>
                     </>
                   );
                   return (

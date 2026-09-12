@@ -42,7 +42,7 @@ export default function MonitoringArea() {
         {TABS.map((t) => (
           <button key={t.key} type="button" onClick={() => setTab(t.key)}
             className={`px-3 py-2 text-sm font-semibold transition-colors ${
-              active === t.key ? 'border-b-2 border-mint text-white' : 'text-white/40 hover:text-white/70'
+              active === t.key ? 'border-b-2 border-mint text-white' : 'text-white/55 hover:text-white/70'
             }`}>
             {t.label}
           </button>
