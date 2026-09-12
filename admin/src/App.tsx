@@ -24,6 +24,7 @@ import SubscriptionDetail from './pages/integrations/SubscriptionDetail';
 import MonitoringArea from './pages/monitoring/MonitoringArea';
 import SecurityArea from './pages/security/SecurityArea';
 import SystemArea from './pages/system/SystemArea';
+import Bot from './pages/Bot';
 
 function Gate() {
   const { phase } = useAdminAuth();
@@ -53,6 +54,7 @@ function Gate() {
           <Route path="/monitoring" element={<RequirePermission permission="system_health.read"><MonitoringArea /></RequirePermission>} />
           <Route path="/security" element={<RequirePermission permission="security.read"><SecurityArea /></RequirePermission>} />
           <Route path="/system" element={<RequirePermission permission="system_settings.read"><SystemArea /></RequirePermission>} />
+          <Route path="/bot" element={<RequirePermission permission="system_settings.manage"><Bot /></RequirePermission>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

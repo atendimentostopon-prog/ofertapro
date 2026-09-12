@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Users, Megaphone, Send, LifeBuoy,
-  Plug, Activity, ShieldAlert, Settings, UserCog, KeyRound, ScrollText,
+  Plug, Activity, ShieldAlert, Settings, UserCog, KeyRound, ScrollText, Bot,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -64,6 +64,7 @@ export const NAV: NavSection[] = [
     title: 'Sistema',
     items: [
       { label: 'Configurações', to: '/system', permission: 'system_settings.read', icon: Settings },
+      { label: 'Bot', to: '/bot', permission: 'system_settings.manage', icon: Bot },
     ],
   },
   {
