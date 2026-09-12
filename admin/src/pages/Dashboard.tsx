@@ -171,18 +171,6 @@ export default function Dashboard() {
                 <p className="text-xs text-ink-secondary">Jobs, erros e saúde do banco em tempo real.</p>
               </div>
             </Link>
-
-            {(() => {
-              const shownKeys = new Set(['users_active', ...DASHBOARD_SECTIONS.flatMap((s) => s.keys)]);
-              const restKeys = Object.keys(data.metrics).filter((k) => !shownKeys.has(k));
-              if (restKeys.length === 0) return null;
-              const allAvailable = restKeys.every((k) => data.metrics[k].available);
-              return (
-                <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
-                  <KpiCard label="Outras métricas" value={null} available={allAvailable} />
-                </div>
-              );
-            })()}
           </div>
 
           <div>

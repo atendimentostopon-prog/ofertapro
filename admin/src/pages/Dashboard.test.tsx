@@ -49,11 +49,10 @@ const basePayload = {
 };
 
 describe('Dashboard', () => {
-  it('mostra metrica real e indisponivel', async () => {
+  it('mostra metrica real', async () => {
     mockImpl = () => Promise.resolve(basePayload);
     renderDashboard();
     await waitFor(() => expect(screen.getByText('1.200')).toBeInTheDocument());
-    expect(screen.getByText('Dados indisponíveis')).toBeInTheDocument();
   });
 
   it('mostra erro com retry', async () => {
