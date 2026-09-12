@@ -111,6 +111,42 @@ describe('StatusStrip', () => {
     expect(screen.getByText('Jobs · OK')).toBeInTheDocument();
   });
 
+  it('mostra Jobs indisponivel quando o fetch de cron-jobs falha, sem quebrar os outros pills', async () => {
+    mockImpl = router({
+      'cron-jobs': () => Promise.reject(new Error('falhou')),
+      'dispatch-errors': () => Promise.resolve({ totals: { error_rate: 0 } }),
+      'db-health': () => Promise.resolve({ slow_by_mean: [] }),
+      'logs': () => Promise.resolve({ items: [] }),
+    });
+    render(<StatusStrip onJumpTo={() => {}} />);
+    await waitFor(() => expect(screen.getByText('Jobs · indisponível')).toBeInTheDocument());
+    expect(screen.getByText('Erros · OK')).toBeInTheDocument();
+  });
+
+  it('mostra Erros indisponivel quando o fetch de dispatch-errors falha, sem quebrar os outros pills', async () => {
+    mockImpl = router({
+      'cron-jobs': () => Promise.resolve({ items: [] }),
+      'dispatch-errors': () => Promise.reject(new Error('falhou')),
+      'db-health': () => Promise.resolve({ slow_by_mean: [] }),
+      'logs': () => Promise.resolve({ items: [] }),
+    });
+    render(<StatusStrip onJumpTo={() => {}} />);
+    await waitFor(() => expect(screen.getByText('Erros · indisponível')).toBeInTheDocument());
+    expect(screen.getByText('Jobs · OK')).toBeInTheDocument();
+  });
+
+  it('mostra Banco indisponivel quando o fetch de db-health falha, sem quebrar os outros pills', async () => {
+    mockImpl = router({
+      'cron-jobs': () => Promise.resolve({ items: [] }),
+      'dispatch-errors': () => Promise.resolve({ totals: { error_rate: 0 } }),
+      'db-health': () => Promise.reject(new Error('falhou')),
+      'logs': () => Promise.resolve({ items: [] }),
+    });
+    render(<StatusStrip onJumpTo={() => {}} />);
+    await waitFor(() => expect(screen.getByText('Banco · indisponível')).toBeInTheDocument());
+    expect(screen.getByText('Jobs · OK')).toBeInTheDocument();
+  });
+
   it('clicar num pill chama onJumpTo com a key da aba', async () => {
     mockImpl = router({
       'cron-jobs': () => Promise.resolve({ items: [{ jobid: 1, fails_24h: 1 }] }),

@@ -29,10 +29,11 @@ function isAuthFailureLine(row: Record<string, unknown>): boolean {
 }
 
 function JobsPill({ onJumpTo }: { onJumpTo: (tab: string) => void }) {
-  const { data, loading } = useAsync(
+  const { data, loading, error } = useAsync(
     () => callAdminApi<{ items: Array<{ fails_24h: number }> }>('monitoring', 'cron-jobs', {}),
     [],
   );
+  if (error) return <Pill tone="neutral" label="Jobs · indisponível" onClick={() => onJumpTo('jobs')} />;
   if (loading || !data) return <Pill tone="neutral" label="Jobs · ..." onClick={() => onJumpTo('jobs')} />;
   const fails = data.items.reduce((sum, j) => sum + j.fails_24h, 0);
   return fails > 0
@@ -41,13 +42,14 @@ function JobsPill({ onJumpTo }: { onJumpTo: (tab: string) => void }) {
 }
 
 function ErrorsPill({ onJumpTo }: { onJumpTo: (tab: string) => void }) {
-  const { data, loading } = useAsync(() => {
+  const { data, loading, error } = useAsync(() => {
     const to = new Date();
     const from = new Date(to.getTime() - 24 * 3600_000);
     return callAdminApi<{ totals: { error_rate: number } }>('monitoring', 'dispatch-errors', {
       from: from.toISOString(), to: to.toISOString(),
     });
   }, []);
+  if (error) return <Pill tone="neutral" label="Erros · indisponível" onClick={() => onJumpTo('erros')} />;
   if (loading || !data) return <Pill tone="neutral" label="Erros · ..." onClick={() => onJumpTo('erros')} />;
   const rate = data.totals.error_rate;
   const tone: Tone = rate > 5 ? 'danger' : rate >= 1 ? 'warning' : 'success';
@@ -56,10 +58,11 @@ function ErrorsPill({ onJumpTo }: { onJumpTo: (tab: string) => void }) {
 }
 
 function BancoPill({ onJumpTo }: { onJumpTo: (tab: string) => void }) {
-  const { data, loading } = useAsync(
+  const { data, loading, error } = useAsync(
     () => callAdminApi<{ slow_by_mean: Array<{ mean_ms: number }> }>('monitoring', 'db-health', {}),
     [],
   );
+  if (error) return <Pill tone="neutral" label="Banco · indisponível" onClick={() => onJumpTo('saude')} />;
   if (loading || !data) return <Pill tone="neutral" label="Banco · ..." onClick={() => onJumpTo('saude')} />;
   const meanMs = data.slow_by_mean[0]?.mean_ms;
   if (meanMs == null || meanMs < 200) return <Pill tone="success" label="Banco · OK" onClick={() => onJumpTo('saude')} />;
