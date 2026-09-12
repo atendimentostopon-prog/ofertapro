@@ -91,20 +91,20 @@ export default function Dashboard() {
   const activeUsers = data?.metrics.users_active;
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 rounded-2xl bg-graphite-900 p-6 shadow-lg">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl font-bold text-ink">Dashboard</h1>
-          <p className="mt-1 text-sm text-ink-secondary">Visão executiva do Aflyo.</p>
+          <h1 className="font-display text-xl font-bold text-white">Dashboard</h1>
+          <p className="mt-1 text-sm text-white/60">Visão executiva do Aflyo.</p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-line bg-surface-0 p-1">
+        <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
           {RANGES.map((r) => (
             <button
               key={r.key}
               type="button"
               onClick={() => setRange(r.key)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                range === r.key ? 'bg-graphite-900 text-ink-inverse' : 'text-ink-secondary hover:bg-surface-1'
+                range === r.key ? 'bg-mint text-graphite-900' : 'text-white/60 hover:bg-white/10'
               }`}
             >
               {r.label}
@@ -140,7 +140,7 @@ export default function Dashboard() {
               if (keys.length === 0) return null;
               return (
                 <div key={section.title}>
-                  <h2 className="font-display text-sm font-bold text-ink">{section.title}</h2>
+                  <h2 className="font-display text-sm font-bold text-white">{section.title}</h2>
                   <div className="mt-2 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
                     {keys.map((key) => {
                       const m = data.metrics[key];
@@ -163,35 +163,35 @@ export default function Dashboard() {
 
             <Link
               to="/monitoring"
-              className="flex items-center gap-3 rounded-xl border border-line bg-surface-0 p-4 transition-colors hover:bg-surface-1"
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-graphite-800 p-4 transition-colors hover:bg-white/5"
             >
-              <Activity className="h-5 w-5 shrink-0 text-ink-secondary" aria-hidden />
+              <Activity className="h-5 w-5 shrink-0 text-mint" aria-hidden />
               <div>
-                <p className="text-sm font-semibold text-ink">Monitoramento</p>
-                <p className="text-xs text-ink-secondary">Jobs, erros e saúde do banco em tempo real.</p>
+                <p className="text-sm font-semibold text-white">Monitoramento</p>
+                <p className="text-xs text-white/60">Jobs, erros e saúde do banco em tempo real.</p>
               </div>
             </Link>
           </div>
 
           <div>
-            <h2 className="font-display text-sm font-bold text-ink">Atividade recente</h2>
+            <h2 className="font-display text-sm font-bold text-white">Atividade recente</h2>
             {data.feed.length === 0 ? (
               <div className="mt-3">
                 <EmptyState title="Sem atividade no período" />
               </div>
             ) : (
-              <ul className="mt-3 divide-y divide-line-subtle rounded-xl border border-line bg-surface-0">
+              <ul className="mt-3 divide-y divide-white/10 rounded-xl border border-white/10 bg-graphite-800">
                 {data.feed.map((item) => {
                   const Icon = FEED_ICONS[item.type] ?? ScrollText;
                   const href = FEED_HREF[item.type]?.(item.id);
                   const content = (
                     <>
-                      <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" aria-hidden />
+                      <Icon className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-ink">{item.title || 'Sem título'}</p>
-                        <p className="text-xs text-ink-tertiary">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
+                        <p className="truncate text-sm text-white">{item.title || 'Sem título'}</p>
+                        <p className="text-xs text-white/40">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
                       </div>
-                      <span className="shrink-0 text-xs text-ink-tertiary">{relative(item.at)}</span>
+                      <span className="shrink-0 text-xs text-white/40">{relative(item.at)}</span>
                     </>
                   );
                   return (
