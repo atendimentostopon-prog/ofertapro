@@ -6,6 +6,7 @@ import ErrorsTab from './ErrorsTab';
 import DbHealthTab from './DbHealthTab';
 import AuthTab from './AuthTab';
 import LogsTab from './LogsTab';
+import StatusStrip from './StatusStrip';
 
 const TABS = [
   { key: 'jobs', label: 'Jobs' },
@@ -36,6 +37,7 @@ export default function MonitoringArea() {
         <h1 className="font-display text-xl font-bold text-ink">Monitoramento</h1>
         <p className="mt-1 text-sm text-ink-secondary">Jobs, erros, saúde do banco, logs e auth.</p>
       </header>
+      <StatusStrip onJumpTo={setTab} />
       <div className="flex gap-1 border-b border-line">
         {TABS.map((t) => (
           <button key={t.key} type="button" onClick={() => setTab(t.key)}
