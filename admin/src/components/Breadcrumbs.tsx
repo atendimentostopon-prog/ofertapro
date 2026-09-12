@@ -11,10 +11,10 @@ export default function Breadcrumbs() {
   const label = match?.label ?? EXTRA_LABELS[pathname] ?? 'Painel';
 
   return (
-    <nav aria-label="Trilha" className="text-xs text-ink-secondary">
-      <span className="text-ink-tertiary">Aflyo Admin</span>
-      <span className="mx-1.5 text-ink-tertiary">/</span>
-      <span className="font-semibold text-ink">{label}</span>
+    <nav aria-label="Trilha" className="text-xs text-white/50">
+      <span className="text-white/40">Aflyo Admin</span>
+      <span className="mx-1.5 text-white/40">/</span>
+      <span className="font-semibold text-white">{label}</span>
     </nav>
   );
 }
