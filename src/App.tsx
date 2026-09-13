@@ -19,6 +19,7 @@ import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminMoved from './pages/AdminMoved';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ThemeProvider } from 'next-themes';
 import { UserProvider } from './context/UserContext';
 import { ToastProvider } from './context/ToastContext';
 import { supabase } from './lib/supabase';
@@ -259,75 +260,77 @@ const App: React.FC = () => {
   const isLoggedIn = !!session;
 
   return (
-    <ToastProvider>
-      <UserProvider onBootError={(err) => setBootError(err)}>
-        <BrowserRouter>
-        <ErrorBoundary>
-        <Routes>
-          {/* Root Redirect */}
-          <Route path="/" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="aflyo-theme">
+      <ToastProvider>
+        <UserProvider onBootError={(err) => setBootError(err)}>
+          <BrowserRouter>
+          <ErrorBoundary>
+          <Routes>
+            {/* Root Redirect */}
+            <Route path="/" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
 
-          {/* Diagnostic route */}
-          <Route path="/debug-boot" element={
-            <div className="min-h-screen flex flex-col items-center justify-center bg-surface-1 p-6 text-center text-ink">
-              <h2 className="text-xl font-bold text-ink mb-2 font-display">React carregou com sucesso.</h2>
-              <p className="text-sm text-ink-secondary">Esta é uma rota pública de diagnóstico que ignora o Supabase e o UserContext.</p>
-            </div>
-          } />
+            {/* Diagnostic route */}
+            <Route path="/debug-boot" element={
+              <div className="min-h-screen flex flex-col items-center justify-center bg-surface-1 p-6 text-center text-ink">
+                <h2 className="text-xl font-bold text-ink mb-2 font-display">React carregou com sucesso.</h2>
+                <p className="text-sm text-ink-secondary">Esta é uma rota pública de diagnóstico que ignora o Supabase e o UserContext.</p>
+              </div>
+            } />
 
-          <Route path="/debug-supabase" element={<DebugSupabase />} />
+            <Route path="/debug-supabase" element={<DebugSupabase />} />
 
-          {/* Legal Pages */}
-          <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-          <Route path="/termos-de-uso" element={<TermosUso />} />
-          <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
-          <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
-          <Route path="/automatizacao-mercadolivre" element={<MercadoLivreAutomationPage />} />
+            {/* Legal Pages */}
+            <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/termos-de-uso" element={<TermosUso />} />
+            <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
+            <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
+            <Route path="/automatizacao-mercadolivre" element={<MercadoLivreAutomationPage />} />
 
-          {/* Public links */}
-          <Route path="/o/:shortCode" element={<RedirectPage />} />
-          <Route path="/l/:id" element={<RedirectPage />} />
-          <Route path="/r/:id" element={<RedirectPage />} />
-          <Route path="/:username" element={<PublicPage />} />
-          <Route path="/u/:username" element={<PublicPage />} />
+            {/* Public links */}
+            <Route path="/o/:shortCode" element={<RedirectPage />} />
+            <Route path="/l/:id" element={<RedirectPage />} />
+            <Route path="/r/:id" element={<RedirectPage />} />
+            <Route path="/:username" element={<PublicPage />} />
+            <Route path="/u/:username" element={<PublicPage />} />
 
-          {/* Auth */}
-          <Route path="/login" element={<Login onLogin={() => {}} />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot" element={<ForgotPassword />} />
-          <Route path="/reset" element={<ResetPassword />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
+            {/* Auth */}
+            <Route path="/login" element={<Login onLogin={() => {}} />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot" element={<ForgotPassword />} />
+            <Route path="/reset" element={<ResetPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Checkout -- página cheia própria, sem o Layout/Sidebar do dashboard
-              (mais parecido com um checkout dedicado do que com uma tela interna).
-              Faz o próprio gate de autenticação dentro do componente. */}
-          <Route path="/checkout" element={<Checkout />} />
+            {/* Checkout -- página cheia própria, sem o Layout/Sidebar do dashboard
+                (mais parecido com um checkout dedicado do que com uma tela interna).
+                Faz o próprio gate de autenticação dentro do componente. */}
+            <Route path="/checkout" element={<Checkout />} />
 
-          {/* /admin saiu do app do cliente: agora e app propria em admin.aflyo.com.br.
-              Este endereco vira um 404 dedicado, sem redirect e sem link. */}
-          <Route path="/admin" element={<AdminMoved />} />
+            {/* /admin saiu do app do cliente: agora e app propria em admin.aflyo.com.br.
+                Este endereco vira um 404 dedicado, sem redirect e sem link. */}
+            <Route path="/admin" element={<AdminMoved />} />
 
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/offers" element={<Offers />} />
-            <Route path="/offers/new" element={<NewOfferPage />} />
-            <Route path="/channels" element={<Channels />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/feedbacks" element={<Feedbacks />} />
-            <Route path="/pricing" element={<Pricing />} />
-          </Route>
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} onLogout={handleLogout} />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/offers" element={<Offers />} />
+              <Route path="/offers/new" element={<NewOfferPage />} />
+              <Route path="/channels" element={<Channels />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/feedbacks" element={<Feedbacks />} />
+              <Route path="/pricing" element={<Pricing />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
-        </Routes>
-        <CookieBanner />
-        </ErrorBoundary>
-        </BrowserRouter>
-      </UserProvider>
-    </ToastProvider>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
+          </Routes>
+          <CookieBanner />
+          </ErrorBoundary>
+          </BrowserRouter>
+        </UserProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 };
 
