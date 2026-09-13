@@ -4,6 +4,8 @@
 // reativacao/revogacao de trial no fluxo de assinatura.
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
 import { mapCaktoOfferId } from "./lib.ts";
+import { sendBillingEmail } from "./emails.ts";
+import { planLabel, planAmount } from "./plan-prices.ts";
 
 type Handler = (data: any) => Promise<void>;
 
@@ -11,6 +13,12 @@ const DAY_MS = 86_400_000;
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function fmtDateBR(d: string | null | undefined): string {
+  if (!d) return "";
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
 // provider_subscription_id da row: o id da subscription quando existe, senao o
@@ -219,10 +227,30 @@ export async function purchaseApproved(data: any): Promise<void> {
 
   await writeSubscription(supabase, userId, data, plan, cycle, "purchase_approved");
   await grantEntitlement(supabase, userId, plan, "purchase_approved");
+
+  await sendBillingEmail(supabase, "assinatura-confirmada", userId, {
+    PLAN_NAME: planLabel(plan),
+    AMOUNT: planAmount(plan),
+    NEXT_BILLING_DATE: fmtDateBR(data.subscription?.next_payment_date ?? data.next_payment_date),
+  }, "sub_confirmed:" + userId);
 }
 
 export async function purchaseRefused(data: any): Promise<void> {
-  console.log("[cakto-webhook] purchase_refused: pagamento recusado, nenhuma acao", data?.id ?? null);
+  console.log("[cakto-webhook] purchase_refused: pagamento recusado", data?.id ?? null);
+  // purchase_refused nao tem efeito de entitlement: falha aqui NAO pode virar 500
+  // (Cakto re-tentaria). Envio de e-mail e best-effort.
+  try {
+    const supabase = getSupabaseAdmin();
+    const userId = await resolveUserId(supabase, data);
+    if (!userId) return;
+    const { plan } = resolvePlan(data);
+    await sendBillingEmail(supabase, "falha-pagamento", userId, {
+      PLAN_NAME: planLabel(plan),
+      AMOUNT: planAmount(plan),
+    }, "payment_failed:" + userId + ":" + nowIso().slice(0, 10));
+  } catch (e) {
+    console.error("[cakto-webhook] purchase_refused: falha ao enviar e-mail:", (e as Error).message);
+  }
 }
 
 export async function subscriptionCreated(data: any): Promise<void> {
@@ -272,6 +300,12 @@ export async function subscriptionCreated(data: any): Promise<void> {
   }
   await writeSubscription(supabase, userId, data, plan, cycle, "subscription_created");
   await grantEntitlement(supabase, userId, plan, "subscription_created");
+
+  await sendBillingEmail(supabase, "assinatura-confirmada", userId, {
+    PLAN_NAME: planLabel(plan),
+    AMOUNT: planAmount(plan),
+    NEXT_BILLING_DATE: fmtDateBR(data.subscription?.next_payment_date ?? data.next_payment_date),
+  }, "sub_confirmed:" + userId);
 }
 
 export async function subscriptionRenewed(data: any): Promise<void> {
@@ -326,6 +360,18 @@ export async function subscriptionRenewalRefused(data: any): Promise<void> {
     .update({ status: "past_due", grace_period_ends_at: graceEnd })
     .eq("provider_subscription_id", subId);
   if (error) console.error("[cakto-webhook] subscription_renewal_refused: falha no update subscriptions:", error.message);
+
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("user_id, plan_code")
+    .eq("provider_subscription_id", subId)
+    .maybeSingle();
+  if (sub?.user_id) {
+    await sendBillingEmail(supabase, "falha-pagamento", sub.user_id, {
+      PLAN_NAME: planLabel(sub.plan_code),
+      AMOUNT: planAmount(sub.plan_code),
+    }, "payment_failed:" + subId + ":" + nowIso().slice(0, 10));
+  }
 }
 
 // subscription_canceled: cliente cancelou de proposito. NAO revoga agora - o
@@ -347,6 +393,18 @@ export async function subscriptionCanceled(data: any): Promise<void> {
     .update({ cancel_at_period_end: true, canceled_at: nowIso() })
     .eq("provider_subscription_id", subId);
   if (error) console.error("[cakto-webhook] subscription_canceled: falha no update subscriptions:", error.message);
+
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("user_id, plan_code, current_period_end")
+    .eq("provider_subscription_id", subId)
+    .maybeSingle();
+  if (sub?.user_id) {
+    await sendBillingEmail(supabase, "cancelamento", sub.user_id, {
+      PLAN_NAME: planLabel(sub.plan_code),
+      ACCESS_UNTIL_DATE: fmtDateBR(sub.current_period_end),
+    }, "sub_canceled:" + subId);
+  }
 }
 
 // refund / chargeback: dinheiro devolvido = acesso vai embora na hora. Cancela a
