@@ -91,7 +91,7 @@ export default function Dashboard() {
   const activeUsers = data?.metrics.users_active;
 
   return (
-    <section className="space-y-6 rounded-2xl bg-graphite-900 p-6 shadow-lg">
+    <section className="-m-6 min-h-full space-y-6 bg-graphite-900 p-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-xl font-bold text-white">Dashboard</h1>

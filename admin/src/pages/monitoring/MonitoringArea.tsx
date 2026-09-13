@@ -32,7 +32,7 @@ export default function MonitoringArea() {
   };
   const can = (perm: string) => hasPermission(perms, perm);
   return (
-    <section className="space-y-6 rounded-2xl bg-graphite-900 p-6 shadow-lg">
+    <section className="-m-6 min-h-full space-y-6 bg-graphite-900 p-6">
       <header>
         <h1 className="font-display text-xl font-bold text-white">Monitoramento</h1>
         <p className="mt-1 text-sm text-white/60">Jobs, erros, saúde do banco, logs e auth.</p>
