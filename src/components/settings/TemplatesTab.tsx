@@ -15,6 +15,7 @@ import { normalizeMarketplace } from '../../lib/marketplace';
 import { SettingsSection, Field } from './shared';
 
 type ChannelKind = 'whatsapp' | 'telegram' | 'discord';
+type MessageKind = 'oferta' | 'cupom';
 
 // Mesma lista de marketplaces válidos do backend (src/lib/marketplace.ts /
 // supabase/functions/public-api). Adicionar um marketplace novo ao sistema
@@ -44,14 +45,32 @@ const mockOffer = {
   affiliateLink: 'https://amzn.to/exemplo',
 };
 
+// Preview do template de "cupom genérico da loja" (sem produto específico)
+// -- sem preço, a lista de cupons vai em {chamada} (mesmo formato que o bot
+// monta quando detecta um "ALERTA DE CUPOM" sem produto único).
+const mockCupomOffer = {
+  name: 'Cupons de desconto — Mercado Livre',
+  description: '🎟️ BELEZA10 — 15% OFF em compras acima de R$ 69, limite de R$ 15 OFF\n🎟️ CASA20 — 20% OFF em compras acima de R$ 99, limite de R$ 25 OFF',
+  originalPrice: '0',
+  salePrice: '0',
+  discount: 0,
+  coupon: '',
+  marketplace: 'mercadolivre',
+  category: '',
+  affiliate_link: 'https://www.mercadolivre.com.br/ofertas',
+  affiliateLink: 'https://www.mercadolivre.com.br/ofertas',
+};
+
 export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) => {
   const { user } = useUser();
   const { toast } = useToast();
 
-  const [whatsappTemplate, setWhatsappTemplate] = useState('');
-  const [telegramTemplate, setTelegramTemplate] = useState('');
-  const [discordTemplate, setDiscordTemplate] = useState('');
+  // Chave do mapa: "<canal>__<tipo>" (ex: "whatsapp__cupom"). Um template de
+  // OFERTA (produto único) e um de CUPOM (cupom genérico da loja, sem
+  // produto -- ver detector no bot) por canal, editados na mesma tela.
+  const [templateTexts, setTemplateTexts] = useState<Record<string, string>>({});
   const [currentEditingTemplateTab, setCurrentEditingTemplateTab] = useState<ChannelKind>('whatsapp');
+  const [messageKind, setMessageKind] = useState<MessageKind>('oferta');
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [savingTemplates, setSavingTemplates] = useState(false);
   const [templatesSaved, setTemplatesSaved] = useState(false);
@@ -64,19 +83,31 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   const [savingTtl, setSavingTtl] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const CHANNELS: ChannelKind[] = ['whatsapp', 'telegram', 'discord'];
+  const templateKey = (channel: ChannelKind, kind: MessageKind) => `${channel}__${kind}`;
+
   const loadTemplates = async () => {
     if (!user) return;
     try {
       setLoadingTemplates(true);
-      const templates = await TemplateService.getTemplates(user.id);
-      setWhatsappTemplate(templates.whatsapp || TemplateService.getDefaultTemplate('whatsapp'));
-      setTelegramTemplate(templates.telegram || TemplateService.getDefaultTemplate('telegram'));
-      setDiscordTemplate(templates.discord || TemplateService.getDefaultTemplate('discord'));
+      const [ofertaTemplates, cupomTemplates] = await Promise.all([
+        TemplateService.getTemplates(user.id, 'oferta'),
+        TemplateService.getTemplates(user.id, 'cupom'),
+      ]);
+      const next: Record<string, string> = {};
+      for (const channel of CHANNELS) {
+        next[templateKey(channel, 'oferta')] = ofertaTemplates[channel] || TemplateService.getDefaultTemplate(channel, 'oferta');
+        next[templateKey(channel, 'cupom')] = cupomTemplates[channel] || TemplateService.getDefaultTemplate(channel, 'cupom');
+      }
+      setTemplateTexts(next);
     } catch (err) {
       console.error('Erro ao carregar templates:', err);
-      setWhatsappTemplate(TemplateService.getDefaultTemplate('whatsapp'));
-      setTelegramTemplate(TemplateService.getDefaultTemplate('telegram'));
-      setDiscordTemplate(TemplateService.getDefaultTemplate('discord'));
+      const next: Record<string, string> = {};
+      for (const channel of CHANNELS) {
+        next[templateKey(channel, 'oferta')] = TemplateService.getDefaultTemplate(channel, 'oferta');
+        next[templateKey(channel, 'cupom')] = TemplateService.getDefaultTemplate(channel, 'cupom');
+      }
+      setTemplateTexts(next);
     } finally {
       setLoadingTemplates(false);
     }
@@ -170,22 +201,20 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   };
 
   const getActiveTemplateContent = () => {
-    if (currentEditingTemplateTab === 'whatsapp') return whatsappTemplate;
-    if (currentEditingTemplateTab === 'telegram') return telegramTemplate;
-    return discordTemplate;
+    return templateTexts[templateKey(currentEditingTemplateTab, messageKind)] || '';
+  };
+
+  const setActiveTemplateContent = (value: string) => {
+    setTemplateTexts(prev => ({ ...prev, [templateKey(currentEditingTemplateTab, messageKind)]: value }));
   };
 
   const getActiveTemplatePlaceholder = () => {
-    return TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+    return TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind);
   };
 
   const handleSaveTemplates = async () => {
     if (!user) return;
-    const currentTemplate = (
-      currentEditingTemplateTab === 'whatsapp' ? whatsappTemplate
-      : currentEditingTemplateTab === 'telegram' ? telegramTemplate
-      : discordTemplate
-    ) || TemplateService.getDefaultTemplate(currentEditingTemplateTab);
+    const currentTemplate = getActiveTemplateContent() || TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind);
     const validation = TemplateService.validateTemplate(currentTemplate);
     if (!validation.valid) {
       toast(`Erro no template de ${currentEditingTemplateTab}: ${validation.error}`, 'error');
@@ -199,7 +228,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
     }, 10000);
 
     try {
-      await TemplateService.saveTemplate(user.id, currentEditingTemplateTab, currentTemplate);
+      await TemplateService.saveTemplate(user.id, currentEditingTemplateTab, currentTemplate, messageKind);
       setTemplatesSaved(true);
       setTimeout(() => setTemplatesSaved(false), 2500);
     } catch (err: any) {
@@ -213,19 +242,14 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
   const handleRestoreDefaultTemplate = async () => {
     if (!user) return;
-    if (!window.confirm(`Restaurar o template de ${currentEditingTemplateTab} para o padrão? Isso apagará as suas customizações.`)) return;
+    if (!window.confirm(`Restaurar o template de ${currentEditingTemplateTab} (${messageKind === 'cupom' ? 'cupom' : 'oferta'}) para o padrão? Isso apagará as suas customizações.`)) return;
     setRestoringTemplate(true);
     try {
-      const defaultText = await TemplateService.restoreDefaultTemplate(user.id, currentEditingTemplateTab);
-      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(defaultText);
-      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(defaultText);
-      else setDiscordTemplate(defaultText);
+      const defaultText = await TemplateService.restoreDefaultTemplate(user.id, currentEditingTemplateTab, messageKind);
+      setActiveTemplateContent(defaultText);
     } catch (err: any) {
       console.error('Erro ao restaurar template:', err);
-      const defaultText = TemplateService.getDefaultTemplate(currentEditingTemplateTab);
-      if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(defaultText);
-      else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(defaultText);
-      else setDiscordTemplate(defaultText);
+      setActiveTemplateContent(TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind));
     } finally {
       setRestoringTemplate(false);
     }
@@ -262,9 +286,10 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         username: user.username || 'bestpromos',
       };
 
+      const activeMockOffer = messageKind === 'cupom' ? mockCupomOffer : mockOffer;
       const rendered = TemplateService.renderTemplate(
         template,
-        mockOffer,
+        activeMockOffer,
         mockProfile,
         trackingLink,
         currentEditingTemplateTab
@@ -272,12 +297,12 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
       if (currentEditingTemplateTab === 'discord') {
         await sender.sendToDiscord(channel.identifier, {
-          offerName: mockOffer.name,
-          salePrice: parseFloat(mockOffer.salePrice),
-          originalPrice: parseFloat(mockOffer.originalPrice),
-          discount: mockOffer.discount,
-          coupon: mockOffer.coupon,
-          marketplace: mockOffer.marketplace,
+          offerName: activeMockOffer.name,
+          salePrice: parseFloat(activeMockOffer.salePrice),
+          originalPrice: parseFloat(activeMockOffer.originalPrice),
+          discount: activeMockOffer.discount,
+          coupon: activeMockOffer.coupon,
+          marketplace: activeMockOffer.marketplace,
           offerImage: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
           customDescription: rendered,
           affiliateLink: trackingLink,
@@ -292,24 +317,30 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
         const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
         await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
       } else if (currentEditingTemplateTab === 'whatsapp') {
+        // Nota: o teste do WhatsApp dispara via offer_id (oferta real
+        // cadastrada abaixo), não pelo objeto { offer_type } que o bot usa --
+        // então mesmo testando o template de cupom aqui, o servidor sempre
+        // renderiza com o template de OFERTA (o de cupom só é exercitado de
+        // verdade no fluxo do bot). O preview ao lado já reflete o template
+        // de cupom corretamente (renderizado no cliente).
         const mockOfferData = {
-          name: mockOffer.name,
-          description: 'Disparo de teste do WhatsApp',
+          name: activeMockOffer.name,
+          description: messageKind === 'cupom' ? activeMockOffer.description : 'Disparo de teste do WhatsApp',
           image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
-          original_price: parseFloat(mockOffer.originalPrice) * 100,
-          sale_price: parseFloat(mockOffer.salePrice) * 100,
-          discount: mockOffer.discount,
-          coupon: mockOffer.coupon || null,
+          original_price: parseFloat(activeMockOffer.originalPrice) * 100,
+          sale_price: parseFloat(activeMockOffer.salePrice) * 100,
+          discount: activeMockOffer.discount,
+          coupon: activeMockOffer.coupon || null,
           affiliate_link: trackingLink,
-          marketplace: normalizeMarketplace(mockOffer.marketplace),
+          marketplace: normalizeMarketplace(activeMockOffer.marketplace),
           category: 'Outros',
           status: 'draft',
           user_id: user.id,
         };
 
         console.log('[TEST_TEMPLATE_PAYLOAD]', {
-          marketplaceOriginal: mockOffer.marketplace,
-          marketplaceNormalized: normalizeMarketplace(mockOffer.marketplace),
+          marketplaceOriginal: activeMockOffer.marketplace,
+          marketplaceNormalized: normalizeMarketplace(activeMockOffer.marketplace),
           channel: channel.name,
         });
 
@@ -361,13 +392,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   const injectVariable = (variable: string) => {
     const textarea = textareaRef.current;
     if (!textarea) {
-      if (currentEditingTemplateTab === 'whatsapp') {
-        setWhatsappTemplate(prev => prev + ' ' + variable);
-      } else if (currentEditingTemplateTab === 'telegram') {
-        setTelegramTemplate(prev => prev + ' ' + variable);
-      } else if (currentEditingTemplateTab === 'discord') {
-        setDiscordTemplate(prev => prev + ' ' + variable);
-      }
+      setActiveTemplateContent((getActiveTemplateContent() || '') + ' ' + variable);
       return;
     }
 
@@ -378,13 +403,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
     const after = text.substring(end, text.length);
     const newValue = before + variable + after;
 
-    if (currentEditingTemplateTab === 'whatsapp') {
-      setWhatsappTemplate(newValue);
-    } else if (currentEditingTemplateTab === 'telegram') {
-      setTelegramTemplate(newValue);
-    } else if (currentEditingTemplateTab === 'discord') {
-      setDiscordTemplate(newValue);
-    }
+    setActiveTemplateContent(newValue);
 
     setTimeout(() => {
       textarea.focus();
@@ -414,13 +433,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
 
     const newValue = text.substring(0, start) + formatted + text.substring(end);
 
-    if (currentEditingTemplateTab === 'whatsapp') {
-      setWhatsappTemplate(newValue);
-    } else if (currentEditingTemplateTab === 'telegram') {
-      setTelegramTemplate(newValue);
-    } else if (currentEditingTemplateTab === 'discord') {
-      setDiscordTemplate(newValue);
-    }
+    setActiveTemplateContent(newValue);
 
     setTimeout(() => {
       textarea.focus();
@@ -447,9 +460,9 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
   };
   const renderedPreview = TemplateService.renderTemplate(
     activeContent || activePlaceholder,
-    mockOffer,
+    messageKind === 'cupom' ? mockCupomOffer : mockOffer,
     mockProfile,
-    'https://amzn.to/exemplo',
+    messageKind === 'cupom' ? mockCupomOffer.affiliate_link : 'https://amzn.to/exemplo',
     currentEditingTemplateTab
   );
   const validation = TemplateService.validateTemplate(activeContent || activePlaceholder);
@@ -491,7 +504,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
           </p>
         </div>
 
-        <div className="w-full overflow-x-auto scrollbar-none mb-4">
+        <div className="w-full overflow-x-auto scrollbar-none mb-2">
           <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 max-w-max">
             {[
               { id: 'whatsapp', label: 'WhatsApp 💬' },
@@ -512,6 +525,35 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
           </div>
         </div>
 
+        <div className="mb-4">
+          <p className="text-[11px] font-bold text-ink-secondary mb-1.5">Tipo de mensagem:</p>
+          <div className="w-full overflow-x-auto scrollbar-none">
+            <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 max-w-max">
+              {[
+                { id: 'oferta', label: '🔥 Oferta (produto único)' },
+                { id: 'cupom', label: '🎟️ Cupom (sem produto específico)' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMessageKind(tab.id as MessageKind)}
+                  className={`tab-item font-bold text-xs ${
+                    messageKind === tab.id ? 'active' : ''
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {messageKind === 'cupom' && (
+            <p className="text-[11px] text-ink-tertiary font-medium mt-1.5">
+              Usado quando o bot detecta um cupom genérico da loja (vários códigos, sem produto específico) --
+              nesse caso a imagem enviada é sempre a padrão do marketplace, nunca a do grupo monitorado.
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-2">
           <div className="md:col-span-8 space-y-3">
             <Field
@@ -525,9 +567,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({ onUpgradeClick }) =>
                   placeholder={getActiveTemplatePlaceholder()}
                   onChange={e => {
                     if (!limits.customTemplates) return;
-                    if (currentEditingTemplateTab === 'whatsapp') setWhatsappTemplate(e.target.value);
-                    else if (currentEditingTemplateTab === 'telegram') setTelegramTemplate(e.target.value);
-                    else setDiscordTemplate(e.target.value);
+                    setActiveTemplateContent(e.target.value);
                   }}
                   disabled={!limits.customTemplates || loadingTemplates}
                   rows={10}
