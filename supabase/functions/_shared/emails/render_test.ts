@@ -1,21 +1,32 @@
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { escapeHtml, renderTemplate } from "./render.ts";
 
-const FIXTURE_DIR = new URL("./__fixtures__/", import.meta.url);
+const FIXTURE_TEMPLATES = { "boas-vindas": `<p>Olá {{USER_NAME}}, tudo bem</p>` };
 
 Deno.test("escapeHtml escapa & < > \"", () => {
   assertEquals(escapeHtml(`a & b < c > d "e"`), `a &amp; b &lt; c &gt; d &quot;e&quot;`);
 });
 
 Deno.test("renderTemplate troca {{CHAVE}} e escapa o valor", async () => {
-  const html = await renderTemplate("boas-vindas", { USER_NAME: `<b>x</b> & y` }, { dir: FIXTURE_DIR });
+  const html = await renderTemplate("boas-vindas", { USER_NAME: `<b>x</b> & y` }, { templates: FIXTURE_TEMPLATES });
   assertStringIncludes(html, "&lt;b&gt;x&lt;/b&gt; &amp; y");
 });
 
 Deno.test("renderTemplate: chave sem valor vira string vazia", async () => {
-  const html = await renderTemplate("boas-vindas", {}, { dir: FIXTURE_DIR });
+  const html = await renderTemplate("boas-vindas", {}, { templates: FIXTURE_TEMPLATES });
   assertEquals(html.includes("{{USER_NAME}}"), false);
   assertStringIncludes(html, "Olá , tudo bem");
+});
+
+Deno.test("renderTemplate: nome desconhecido lanca erro (nao retorna undefined silencioso)", async () => {
+  let threw = false;
+  try {
+    // @ts-expect-error nome invalido de proposito
+    await renderTemplate("nao-existe", {});
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
 });
 
 import { TEMPLATE_NAMES, PLACEHOLDER_KEYS } from "./subjects.ts";

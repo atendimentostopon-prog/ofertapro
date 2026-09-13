@@ -1,4 +1,5 @@
 import type { TemplateName } from "./subjects.ts";
+import { TEMPLATES } from "./templates.ts";
 
 export function escapeHtml(s: string): string {
   return String(s)
@@ -8,19 +9,15 @@ export function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const cache = new Map<string, string>();
-
 export async function renderTemplate(
   name: TemplateName,
   vars: Record<string, string>,
-  opts: { dir?: URL } = {},
+  opts: { templates?: Record<string, string> } = {},
 ): Promise<string> {
-  const dir = opts.dir ?? new URL("./templates/", import.meta.url);
-  const url = new URL(`${name}.html`, dir);
-  let raw = cache.get(url.href);
+  const source = opts.templates ?? TEMPLATES;
+  const raw = source[name];
   if (raw === undefined) {
-    raw = await Deno.readTextFile(url);
-    cache.set(url.href, raw);
+    throw new Error(`template desconhecido: ${name}`);
   }
   return raw.replace(/\{\{(\w+)\}\}/g, (_m, key: string) =>
     key in vars ? escapeHtml(String(vars[key])) : "",
