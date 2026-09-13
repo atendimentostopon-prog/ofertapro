@@ -286,7 +286,7 @@ const AddChannelCard: React.FC<{
     return (
       <div className="w-full text-left p-5 rounded-2xl border-2 border-dashed border-line bg-surface-1 opacity-60 select-none relative overflow-hidden flex-1">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-surface-0 border border-line flex items-center justify-center flex-shrink-0 overflow-hidden p-2.5">
+          <div className="w-12 h-12 rounded-xl bg-white border border-line flex items-center justify-center flex-shrink-0 overflow-hidden p-2.5">
             <img
               src={getChannelLogoSrc(type)}
               alt={type}

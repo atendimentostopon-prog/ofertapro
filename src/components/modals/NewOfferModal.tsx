@@ -240,7 +240,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                 res.success ? 'bg-success-bg/40 border border-success/20' : 'bg-danger-bg/40 border border-danger/20'
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-surface-1 border border-line flex items-center justify-center shadow-sm text-sm">
+              <div className="w-8 h-8 rounded-lg bg-white border border-line flex items-center justify-center shadow-sm text-sm">
                 <ChannelLogo type={res.channelType} size="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
@@ -772,7 +772,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
                     }`}>
                       {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-ink-inverse" />}
                     </div>
-                    <div className="w-5 h-5 rounded bg-surface-1/40 border border-line flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
+                    <div className="w-5 h-5 rounded bg-white/90 border border-line flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
                       <ChannelLogo type={ch.type} size="w-full h-full" />
                     </div>
                     <div className="flex-1 min-w-0">
