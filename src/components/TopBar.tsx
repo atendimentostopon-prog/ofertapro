@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import NotificationsDropdown from './NotificationsDropdown';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { PLAN_LABELS, PlanCode } from '../config/planCatalog';
+import ThemeSwitch from './theme/ThemeSwitch';
 
 interface TopBarProps {
   onNewOffer?: () => void;
@@ -202,6 +203,11 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline font-semibold tracking-tight">Nova Oferta</span>
         </button>
+
+        <div className="w-px h-5 bg-line mx-0.5 hidden sm:block" />
+
+        {/* Theme toggle */}
+        <ThemeSwitch />
 
         <div className="w-px h-5 bg-line mx-0.5 hidden sm:block" />
 
