@@ -58,6 +58,38 @@
   --dur-default:         220ms;
 }
 
+.dark {
+  --surface-0:           #101418;
+  --surface-1:           #151A1F;
+  --surface-2:           #1F2328;
+  --surface-3:           #2F343B;
+  --surface-4:           #4B5259;
+
+  --ink-primary:         #F5F6F7;
+  --ink-secondary:       #9AA1AA;
+  --ink-tertiary:        #6B7280;
+  --ink-inverse:         #101418;
+  --ink-disabled:        #2F343B;
+
+  --line-default:        rgba(255, 255, 255, 0.08);
+  --line-strong:         rgba(255, 255, 255, 0.16);
+  --line-subtle:         rgba(255, 255, 255, 0.04);
+
+  --success-bg:          rgba(34, 192, 120, 0.15);
+  --success-ink:         #5EE7A5;
+  --warning-bg:          rgba(245, 158, 11, 0.15);
+  --warning-ink:         #FBBF24;
+  --danger-bg:           rgba(239, 68, 68, 0.15);
+  --danger-ink:          #F87171;
+  --info-bg:             rgba(59, 130, 246, 0.15);
+  --info-ink:            #60A5FA;
+
+  --shadow-xs:           0 1px 2px 0 rgba(0, 0, 0, 0.24);
+  --shadow-sm:           0 1px 3px 0 rgba(0, 0, 0, 0.32), 0 1px 2px -1px rgba(0, 0, 0, 0.24);
+  --shadow-md:           0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.24);
+  --shadow-lg:           0 12px 24px -6px rgba(0, 0, 0, 0.48);
+}
+
 /* =========================================================================
    BASE
    ========================================================================= */
