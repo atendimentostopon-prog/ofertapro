@@ -34,6 +34,7 @@ const SHORTENER_MARKETPLACES: { id: string; label: string }[] = [
 
 const mockOffer = {
   name: 'Notebook ASUS Vivobook 15',
+  description: '',
   originalPrice: '3000.00',
   salePrice: '2499.00',
   discount: 17,
