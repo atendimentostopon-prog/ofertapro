@@ -49,22 +49,25 @@ export default {
         ice: '#DFF8EE',
 
         // ── Superfícies (light-first, valores reais em index.css :root/.dark) ──
+        // Formato rgb(var(--x-rgb) / <alpha-value>): o Tailwind consegue
+        // parsear e combinar com modificadores de opacidade (bg-surface-0/85).
+        // Um `var(--x)` cru nao gera CSS nenhum quando tem /NN.
         surface: {
-          DEFAULT: 'var(--surface-0)',
-          0: 'var(--surface-0)',
-          1: 'var(--surface-1)',
-          2: 'var(--surface-2)',
-          3: 'var(--surface-3)',
-          4: 'var(--surface-4)',
+          DEFAULT: 'rgb(var(--surface-0-rgb) / <alpha-value>)',
+          0: 'rgb(var(--surface-0-rgb) / <alpha-value>)',
+          1: 'rgb(var(--surface-1-rgb) / <alpha-value>)',
+          2: 'rgb(var(--surface-2-rgb) / <alpha-value>)',
+          3: 'rgb(var(--surface-3-rgb) / <alpha-value>)',
+          4: 'rgb(var(--surface-4-rgb) / <alpha-value>)',
         },
 
         // ── Texto ─────────────────────────────────────────────────────
         ink: {
-          DEFAULT: 'var(--ink-primary)',
-          secondary: 'var(--ink-secondary)',
-          tertiary: 'var(--ink-tertiary)',
-          inverse: 'var(--ink-inverse)',
-          disabled: 'var(--ink-disabled)',
+          DEFAULT: 'rgb(var(--ink-primary-rgb) / <alpha-value>)',
+          secondary: 'rgb(var(--ink-secondary-rgb) / <alpha-value>)',
+          tertiary: 'rgb(var(--ink-tertiary-rgb) / <alpha-value>)',
+          inverse: 'rgb(var(--ink-inverse-rgb) / <alpha-value>)',
+          disabled: 'rgb(var(--ink-disabled-rgb) / <alpha-value>)',
         },
 
         // ── Bordas / divisores ───────────────────────────────────────
@@ -77,23 +80,23 @@ export default {
         // ── Sinais (DEFAULT fixo — cor de marca não muda; bg/ink via var) ──
         success: {
           DEFAULT: '#22C078',
-          bg: 'var(--success-bg)',
-          ink: 'var(--success-ink)',
+          bg: 'rgb(var(--success-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--success-ink-rgb) / <alpha-value>)',
         },
         warning: {
           DEFAULT: '#F59E0B',
-          bg: 'var(--warning-bg)',
-          ink: 'var(--warning-ink)',
+          bg: 'rgb(var(--warning-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--warning-ink-rgb) / <alpha-value>)',
         },
         danger: {
           DEFAULT: '#EF4444',
-          bg: 'var(--danger-bg)',
-          ink: 'var(--danger-ink)',
+          bg: 'rgb(var(--danger-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--danger-ink-rgb) / <alpha-value>)',
         },
         info: {
           DEFAULT: '#3B82F6',
-          bg: 'var(--info-bg)',
-          ink: 'var(--info-ink)',
+          bg: 'rgb(var(--info-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--info-ink-rgb) / <alpha-value>)',
         },
       },
       borderRadius: {

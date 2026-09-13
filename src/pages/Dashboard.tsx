@@ -10,6 +10,7 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Card } from '../components/ui/Card';
 import ProductImage from '../components/shared/ProductImage';
+import { LOGO_CHIP_BG } from '../lib/utils';
 import ChannelLogo from '../components/ui/ChannelLogo';
 import { useUser } from '../context/UserContext';
 import { useAccountAccess } from '../hooks/useAccountAccess';
@@ -235,7 +236,7 @@ const Dashboard: React.FC = () => {
               </div>
             ) : recentHistory.slice(0, 4).map((h: any) => (
               <div key={h.id} className="flex items-start gap-3 text-xs p-2 rounded-md hover:bg-surface-1 transition-colors">
-                <div className="w-9 h-9 rounded-md bg-white border border-line flex items-center justify-center flex-shrink-0">
+                <div className={`w-9 h-9 rounded-md ${LOGO_CHIP_BG} border border-line flex items-center justify-center flex-shrink-0`}>
                   <ChannelLogo name={h.successful_channels?.[0] || 'telegram'} size="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">

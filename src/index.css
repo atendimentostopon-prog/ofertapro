@@ -41,6 +41,31 @@
   --info-bg:             #DBEAFE;
   --info-ink:            #1E40AF;
 
+  /* Canais R G B das mesmas cores acima. O Tailwind consome estes via
+     rgb(var(--x-rgb) / <alpha-value>) para que os modificadores de opacidade
+     (bg-surface-0/85, text-ink-inverse/70, ...) gerem CSS de verdade.
+     As variaveis hex continuam existindo e sao usadas direto no @layer base. */
+  --surface-0-rgb:       255 255 255;
+  --surface-1-rgb:       246 247 249;
+  --surface-2-rgb:       241 243 246;
+  --surface-3-rgb:       231 234 238;
+  --surface-4-rgb:       216 220 226;
+
+  --ink-primary-rgb:     16 20 24;
+  --ink-secondary-rgb:   107 114 128;
+  --ink-tertiary-rgb:    156 163 175;
+  --ink-inverse-rgb:     255 255 255;
+  --ink-disabled-rgb:    192 197 206;
+
+  --success-bg-rgb:      223 248 238;
+  --success-ink-rgb:     18 112 70;
+  --warning-bg-rgb:      254 243 199;
+  --warning-ink-rgb:     146 64 14;
+  --danger-bg-rgb:       254 226 226;
+  --danger-ink-rgb:      153 27 27;
+  --info-bg-rgb:         219 234 254;
+  --info-ink-rgb:        30 64 175;
+
   --radius-xs:           4px;
   --radius-sm:           6px;
   --radius-md:           8px;
@@ -83,6 +108,32 @@
   --danger-ink:          #F87171;
   --info-bg:             rgba(59, 130, 246, 0.15);
   --info-ink:            #60A5FA;
+
+  /* Canais R G B do tema escuro (ver nota no :root).
+     Os *-bg escuros sao rgba(cor, 0.15) sobre a superficie; como o formato
+     de canais nao carrega alfa, aqui vai a cor ja achatada sobre --surface-0
+     escuro (#101418), o que preserva a aparencia atual no uso sem
+     modificador e ainda permite bg-danger-bg/40 e afins. */
+  --surface-0-rgb:       16 20 24;
+  --surface-1-rgb:       21 26 31;
+  --surface-2-rgb:       31 35 40;
+  --surface-3-rgb:       47 52 59;
+  --surface-4-rgb:       75 82 89;
+
+  --ink-primary-rgb:     245 246 247;
+  --ink-secondary-rgb:   154 161 170;
+  --ink-tertiary-rgb:    107 114 128;
+  --ink-inverse-rgb:     16 20 24;
+  --ink-disabled-rgb:    47 52 59;
+
+  --success-bg-rgb:      19 46 38;
+  --success-ink-rgb:     94 231 165;
+  --warning-bg-rgb:      50 41 22;
+  --warning-ink-rgb:     251 191 36;
+  --danger-bg-rgb:       49 27 31;
+  --danger-ink-rgb:      248 113 113;
+  --info-bg-rgb:         22 37 57;
+  --info-ink-rgb:        96 165 250;
 
   --shadow-xs:           0 1px 2px 0 rgba(0, 0, 0, 0.24);
   --shadow-sm:           0 1px 3px 0 rgba(0, 0, 0, 0.32), 0 1px 2px -1px rgba(0, 0, 0, 0.24);
