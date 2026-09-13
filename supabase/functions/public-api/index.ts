@@ -65,6 +65,35 @@ function getDefaultTemplate(channelType: string): string {
   }
 }
 
+// Template pra "cupom genérico da loja" (sem produto específico) -- não usa
+// preço/De-Por (ficaria "R$ 0,00"), mostra os cupons em {chamada} (texto
+// livre com um código por linha, já montado pelo bot).
+function getDefaultCouponTemplate(channelType: string): string {
+  switch (channelType) {
+    case 'whatsapp':
+      return `🎟️ *{titulo}*
+
+{chamada}
+
+🔗 Aproveitar:
+{link}`;
+    case 'telegram':
+      return `🎟️ **{titulo}**
+
+{chamada}
+
+🔗 [Aproveitar]({link})`;
+    case 'discord':
+      return `🎟️ **{titulo}**
+
+{chamada}
+
+🔗 [Aproveitar]({link})`;
+    default:
+      return `{titulo}\n{chamada}\n{link}`;
+  }
+}
+
 function escapeHTML(text: string): string {
   if (!text) return '';
   return String(text)
@@ -887,6 +916,10 @@ serve(async (req) => {
       const { offer_id, channel_ids, offer: rawOffer } = body
 
       let targetOffer: any = null
+      // 'cupom' = cupom genérico da loja, sem produto específico (bot manda
+      // pra revisão manual quando detecta isso) -- usa um template dedicado
+      // por canal em vez do template normal de oferta de produto único.
+      let offerType: 'oferta' | 'cupom' = 'oferta'
 
       // Opção A: Disparar oferta existente
       if (offer_id) {
@@ -928,8 +961,11 @@ serve(async (req) => {
           sale_price,
           original_price,
           coupon,
-          image
+          image,
+          offer_type
         } = rawOffer
+
+        offerType = offer_type === 'cupom' ? 'cupom' : 'oferta'
 
         let finalProductName = product_name || title || name;
         if (!finalProductName || !affiliate_link || !marketplace || sale_price === undefined || !channel_ids || !Array.isArray(channel_ids) || channel_ids.length === 0) {
@@ -956,7 +992,12 @@ serve(async (req) => {
         }
 
         const finalDescription = headline || copy || description || null;
-        finalProductName = normalizeProductTitle(finalProductName, finalDescription || undefined, marketplace);
+        // Cupom genérico: nome já vem pronto do bot ("Cupons de desconto —
+        // Mercado Livre") -- não normaliza, senão o sufixo com o nome do
+        // marketplace é removido como se fosse ruído de título de produto.
+        if (offerType !== 'cupom') {
+          finalProductName = normalizeProductTitle(finalProductName, finalDescription || undefined, marketplace);
+        }
 
         // Gerar short_code
         const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -1078,7 +1119,7 @@ serve(async (req) => {
       // Obter perfil do remetente e templates (prioriza message_templates, fallback para user_settings)
       const [profileRes, msgTemplatesRes, settingsRes] = await Promise.all([
         supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle(),
-        supabaseAdmin.from('message_templates').select('channel_type, template_text').eq('user_id', userId),
+        supabaseAdmin.from('message_templates').select('channel_type, template_text, template_type').eq('user_id', userId),
         supabaseAdmin.from('user_settings').select('telegram_template, discord_template, whatsapp_template, shortener_marketplaces').eq('user_id', userId).maybeSingle()
       ])
       const profile = profileRes.data
@@ -1091,11 +1132,18 @@ serve(async (req) => {
       const settings = settingsRes.data
       const profileName = profile?.public_name || profile?.full_name || 'Afiliado'
 
-      // Montar mapa de templates: message_templates tem prioridade
+      // Montar mapa de templates: message_templates tem prioridade. Template
+      // de cupom (template_type = 'cupom') é separado do de oferta normal --
+      // linhas antigas (sem essa coluna) vêm com o default 'oferta' da
+      // migration, então continuam servindo o fluxo normal sem quebrar nada.
       const templateMap: Record<string, string> = {}
+      const cupomTemplateMap: Record<string, string> = {}
       if (msgTemplatesRes.data) {
         for (const row of msgTemplatesRes.data) {
-          if (row.channel_type && row.template_text) {
+          if (!row.channel_type || !row.template_text) continue
+          if (row.template_type === 'cupom') {
+            cupomTemplateMap[row.channel_type] = row.template_text
+          } else {
             templateMap[row.channel_type] = row.template_text
           }
         }
@@ -1139,6 +1187,17 @@ serve(async (req) => {
         finalAffiliateUrl = targetOffer.affiliate_link || targetOffer.affiliateLink
       }
 
+      // Cupom genérico: o nome já vem pronto do bot ("Cupons de desconto —
+      // Mercado Livre"), não passa pelo normalizador de título de produto
+      // (que removeria o nome do marketplace do final, achando que é ruído).
+      const displayTitle = offerType === 'cupom'
+        ? (targetOffer.name || '')
+        : normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace)
+      const templateFor = (channelType: string): string =>
+        offerType === 'cupom'
+          ? (cupomTemplateMap[channelType] || getDefaultCouponTemplate(channelType))
+          : (templateMap[channelType] || getDefaultTemplate(channelType))
+
       let lastWhatsAppTime = 0
       // Executar envios
       for (const channel of activeChannels) {
@@ -1152,10 +1211,10 @@ serve(async (req) => {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
 
-            const template = templateMap.discord || getDefaultTemplate('discord')
+            const template = templateFor('discord')
             const renderedMessage = renderMessageTemplate(
               template,
-              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
+              { ...targetOffer, name: displayTitle },
               profile,
               purchaseUrl,
               'discord'
@@ -1163,7 +1222,7 @@ serve(async (req) => {
 
             // Embed limpo: usa APENAS template renderizado como description, sem fields duplicados
             const embed: any = {
-              title: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace),
+              title: displayTitle,
               url: purchaseUrl,
               color: 0x4f46e5,
               description: renderedMessage,
@@ -1205,10 +1264,10 @@ serve(async (req) => {
               throw new Error('Link de afiliado ausente. Não foi possível disparar a oferta.')
             }
  
-            const template = templateMap.telegram || getDefaultTemplate('telegram')
+            const template = templateFor('telegram')
             const renderedMessage = renderMessageTemplate(
               template,
-              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
+              { ...targetOffer, name: displayTitle },
               profile,
               purchaseUrl,
               'telegram'
@@ -1302,10 +1361,10 @@ serve(async (req) => {
             }
 
             // Buscar template de WhatsApp ou padrão
-            const template = templateMap.whatsapp || getDefaultTemplate('whatsapp')
+            const template = templateFor('whatsapp')
             const renderedMessage = renderMessageTemplate(
               template,
-              { ...targetOffer, name: normalizeProductTitle(targetOffer.name, undefined, targetOffer.marketplace) },
+              { ...targetOffer, name: displayTitle },
               profile,
               purchaseUrl,
               'whatsapp'

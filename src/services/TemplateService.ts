@@ -84,7 +84,34 @@ export const TemplateService = {
   /**
    * Retorna o template padrão para um tipo de canal
    */
-  getDefaultTemplate(channelType: ChannelType): string {
+  getDefaultTemplate(channelType: ChannelType, templateType: 'oferta' | 'cupom' = 'oferta'): string {
+    if (templateType === 'cupom') {
+      // Cupom genérico da loja (sem produto específico) -- sem preço De/Por
+      // (ficaria "R$ 0,00"), a lista de cupons vai em {chamada}.
+      switch (channelType) {
+        case 'whatsapp':
+          return `🎟️ *{titulo}*
+
+{chamada}
+
+🔗 Aproveitar:
+{link}`;
+        case 'telegram':
+          return `🎟️ **{titulo}**
+
+{chamada}
+
+🔗 [Aproveitar]({link})`;
+        case 'discord':
+          return `🎟️ **{titulo}**
+
+{chamada}
+
+🔗 [Aproveitar]({link})`;
+        default:
+          return `{titulo}\n{chamada}\n{link}`;
+      }
+    }
     switch (channelType) {
       case 'whatsapp':
         return `🔥 *{titulo}*
@@ -97,7 +124,7 @@ export const TemplateService = {
 Link: {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
- 
+
       case 'telegram':
         return `🔥 **{titulo}**
 
@@ -107,7 +134,7 @@ Link: {link}
 
 {marketplace_linha}
 🔗 [Comprar agora]({link})`;
- 
+
       case 'discord':
         return `⚡ **NOVA OFERTA DISPONÍVEL!**
 
@@ -119,7 +146,7 @@ Link: {link}
 
 {marketplace_linha}
 🔗 [Garanta aqui]({link})`;
- 
+
       default:
         return `{titulo} - {preco_promocional} {link}`;
     }
@@ -129,11 +156,11 @@ Link: {link}
    * Recupera todos os templates salvos no banco de dados para o usuário.
    * Se não houver registro, retorna o template padrão de cada canal.
    */
-  async getTemplates(userId: string): Promise<Record<string, string>> {
+  async getTemplates(userId: string, templateType: 'oferta' | 'cupom' = 'oferta'): Promise<Record<string, string>> {
     const templates: Record<string, string> = {
-      telegram: this.getDefaultTemplate('telegram'),
-      discord: this.getDefaultTemplate('discord'),
-      whatsapp: this.getDefaultTemplate('whatsapp')
+      telegram: this.getDefaultTemplate('telegram', templateType),
+      discord: this.getDefaultTemplate('discord', templateType),
+      whatsapp: this.getDefaultTemplate('whatsapp', templateType)
     };
 
     try {
@@ -145,7 +172,9 @@ Link: {link}
 
       if (!result.error && result.data) {
         result.data.forEach((row: any) => {
-          if (row.channel_type && row.template_text) {
+          // Linhas antigas não têm template_type -- tratadas como 'oferta'.
+          const rowType = row.template_type || 'oferta';
+          if (row.channel_type && row.template_text && rowType === templateType) {
             templates[row.channel_type] = row.template_text;
           }
         });
@@ -155,21 +184,23 @@ Link: {link}
       console.warn('message_templates indisponível, tentando user_settings...', err);
     }
 
-    // Fallback: buscar de user_settings (tabela legada)
-    try {
-      const { data } = await supabase
-        .from('user_settings')
-        .select('whatsapp_template, telegram_template, discord_template')
-        .eq('user_id', userId)
-        .maybeSingle();
+    // Fallback: buscar de user_settings (tabela legada, só serve pro tipo 'oferta')
+    if (templateType === 'oferta') {
+      try {
+        const { data } = await supabase
+          .from('user_settings')
+          .select('whatsapp_template, telegram_template, discord_template')
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      if (data) {
-        if (data.whatsapp_template) templates.whatsapp = data.whatsapp_template;
-        if (data.telegram_template) templates.telegram = data.telegram_template;
-        if (data.discord_template) templates.discord = data.discord_template;
+        if (data) {
+          if (data.whatsapp_template) templates.whatsapp = data.whatsapp_template;
+          if (data.telegram_template) templates.telegram = data.telegram_template;
+          if (data.discord_template) templates.discord = data.discord_template;
+        }
+      } catch (err) {
+        console.error('Erro ao buscar templates no fallback user_settings:', err);
       }
-    } catch (err) {
-      console.error('Erro ao buscar templates no fallback user_settings:', err);
     }
 
     return templates;
@@ -201,7 +232,7 @@ Link: {link}
    * Salva o template de um canal específico no banco utilizando upsert.
    * Tenta primeiro em message_templates; se falhar, usa user_settings como fallback.
    */
-  async saveTemplate(userId: string, channelType: string, templateText: string): Promise<void> {
+  async saveTemplate(userId: string, channelType: string, templateText: string, templateType: 'oferta' | 'cupom' = 'oferta'): Promise<void> {
     // Tenta salvar na tabela dedicada com timeout
     try {
       const { error } = await Promise.race([
@@ -212,16 +243,17 @@ Link: {link}
               user_id: userId,
               channel_type: channelType,
               template_text: templateText,
+              template_type: templateType,
               status: 'active',
               updated_at: new Date().toISOString()
             },
-            { onConflict: 'user_id,channel_type' }
+            { onConflict: 'user_id,channel_type,template_type' }
           ),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
       ]) as any;
 
       if (!error) {
-        console.log(`[TemplateService] Template de ${channelType} salvo em message_templates.`);
+        console.log(`[TemplateService] Template de ${channelType} (${templateType}) salvo em message_templates.`);
         return;
       }
       console.warn(`[TemplateService] Erro em message_templates (${error.message}), usando fallback...`);
@@ -229,7 +261,13 @@ Link: {link}
       console.warn('[TemplateService] message_templates indisponível, usando fallback user_settings...', err);
     }
 
-    // Fallback: salvar em user_settings (tabela que sempre existe)
+    // Fallback: salvar em user_settings (tabela legada, só serve pro tipo 'oferta' --
+    // não existe coluna equivalente pra template de cupom, então cupom depende de
+    // message_templates estar disponível/migrada).
+    if (templateType !== 'oferta') {
+      throw new Error('Não foi possível salvar o template de cupom (message_templates indisponível).');
+    }
+
     const col = channelType === 'telegram' ? 'telegram_template'
       : channelType === 'discord' ? 'discord_template'
       : 'whatsapp_template';
@@ -250,7 +288,7 @@ Link: {link}
   /**
    * Remove o template customizado do banco de dados e retorna o padrão.
    */
-  async restoreDefaultTemplate(userId: string, channelType: string): Promise<string> {
+  async restoreDefaultTemplate(userId: string, channelType: string, templateType: 'oferta' | 'cupom' = 'oferta'): Promise<string> {
     // Tenta deletar de message_templates com timeout (sem lançar erro se falhar)
     try {
       await Promise.race([
@@ -258,25 +296,28 @@ Link: {link}
           .from('message_templates')
           .delete()
           .eq('user_id', userId)
-          .eq('channel_type', channelType),
+          .eq('channel_type', channelType)
+          .eq('template_type', templateType),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 6000))
       ]);
     } catch (err) {
       console.warn('[TemplateService] Falha ao deletar de message_templates (ignorado):', err);
     }
 
-    // Limpa também no user_settings fallback
-    try {
-      const col = channelType === 'telegram' ? 'telegram_template'
-        : channelType === 'discord' ? 'discord_template'
-        : 'whatsapp_template';
-      await supabase
-        .from('user_settings')
-        .update({ [col]: null })
-        .eq('user_id', userId);
-    } catch { /* fallback opcional: ignora falha ao limpar user_settings */ }
+    // Limpa também no user_settings fallback (só existe coluna pro tipo 'oferta')
+    if (templateType === 'oferta') {
+      try {
+        const col = channelType === 'telegram' ? 'telegram_template'
+          : channelType === 'discord' ? 'discord_template'
+          : 'whatsapp_template';
+        await supabase
+          .from('user_settings')
+          .update({ [col]: null })
+          .eq('user_id', userId);
+      } catch { /* fallback opcional: ignora falha ao limpar user_settings */ }
+    }
 
-    return this.getDefaultTemplate(channelType as any);
+    return this.getDefaultTemplate(channelType as any, templateType);
   },
 
   /**
