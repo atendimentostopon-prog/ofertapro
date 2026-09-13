@@ -136,6 +136,7 @@ const Dashboard: React.FC = () => {
         lastDispatchAt={recentHistory[0]?.sent_at ?? null}
         toggling={bot.toggling}
         onToggle={bot.setMonitoring}
+        onRetry={bot.refresh}
         isExpired={access.isExpired}
         isLoading={bot.loading}
       />

@@ -11,6 +11,7 @@ interface Props {
   lastDispatchAt: string | null;
   toggling: boolean;
   onToggle: (on: boolean) => void;
+  onRetry?: () => void;
   isExpired: boolean;
   isLoading?: boolean;
 }
@@ -18,7 +19,7 @@ interface Props {
 const BASE = 'rounded-2xl border p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4';
 
 export const BotStatusCard: React.FC<Props> = ({
-  view, groupsCount, errorMessage, lastDispatchAt, toggling, onToggle, isExpired, isLoading,
+  view, groupsCount, errorMessage, lastDispatchAt, toggling, onToggle, onRetry, isExpired, isLoading,
 }) => {
   const navigate = useNavigate();
 
@@ -34,7 +35,33 @@ export const BotStatusCard: React.FC<Props> = ({
     );
   }
 
-  const resolved = isExpired || view === 'access_revoked' ? 'expired' : view;
+  // isExpired ganha do view: quando a conta expirou, o bot esta parado pelo
+  // servidor de qualquer jeito. access_revoked (status='paused' sem a conta
+  // estar expirada) fica separado porque nao tem o banner de expirado acima.
+  const resolved = isExpired ? 'expired' : view;
+
+  if (resolved === 'unknown') {
+    return (
+      <div className={`${BASE} border-line bg-surface-1`}>
+        <div className="w-11 h-11 rounded-xl bg-surface-2 text-ink-secondary flex items-center justify-center flex-shrink-0">
+          <AlertTriangle className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-bold text-ink font-display">Não foi possível verificar o bot</h3>
+          <p className="text-sm text-ink-secondary mt-0.5">Tivemos um problema pra carregar o status do bot agora.</p>
+        </div>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="btn-secondary px-4 py-2 text-xs font-semibold cursor-pointer flex-shrink-0"
+          >
+            Tentar de novo
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (resolved === 'monitoring' || resolved === 'paused_by_user') {
     const monitoring = resolved === 'monitoring';
@@ -79,19 +106,28 @@ export const BotStatusCard: React.FC<Props> = ({
     );
   }
 
-  const cfg: Record<'expired' | 'error' | 'not_connected', {
+  type StaticState = {
     wrap: string;
     chip: string;
     Icon: typeof Clock;
     title: string;
     body: string;
-    cta: string;
-    to: string;
-  }> = {
+    cta?: string;
+    to?: string;
+  };
+  const cfg: Record<'expired' | 'access_revoked' | 'error' | 'not_connected', StaticState> = {
+    // Conta expirada: o banner de "Seu acesso expirou" logo acima ja carrega a
+    // explicacao e o botao "Ver planos". Aqui so o fato do bot, sem repetir CTA.
     expired: {
       wrap: 'border-danger/25 bg-danger-bg/40', chip: 'bg-danger-bg text-danger-ink', Icon: Clock,
       title: 'Bot parado',
-      body: 'Seu acesso expirou. Assine um plano e o bot volta a monitorar.',
+      body: 'O bot não monitora seus grupos enquanto seu acesso estiver expirado.',
+    },
+    // status='paused' sem a conta estar expirada: nao tem banner, entao mantem o CTA.
+    access_revoked: {
+      wrap: 'border-danger/25 bg-danger-bg/40', chip: 'bg-danger-bg text-danger-ink', Icon: Clock,
+      title: 'Bot parado',
+      body: 'Seu acesso foi suspenso e o bot parou de monitorar. Assine um plano e ele volta.',
       cta: 'Ver planos', to: '/pricing',
     },
     error: {
@@ -108,7 +144,8 @@ export const BotStatusCard: React.FC<Props> = ({
     },
   };
 
-  const { wrap, chip, Icon, title, body, cta, to } = cfg[resolved as 'expired' | 'error' | 'not_connected'];
+  const { wrap, chip, Icon, title, body, cta, to } =
+    cfg[resolved as keyof typeof cfg] ?? cfg.not_connected;
   return (
     <div className={`${BASE} ${wrap}`}>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${chip}`}>
@@ -118,13 +155,15 @@ export const BotStatusCard: React.FC<Props> = ({
         <h3 className="text-base font-bold text-ink font-display">{title}</h3>
         <p className="text-sm text-ink-secondary mt-0.5">{body}</p>
       </div>
-      <button
-        type="button"
-        onClick={() => navigate(to)}
-        className="btn-secondary px-4 py-2 text-xs font-semibold cursor-pointer flex-shrink-0"
-      >
-        {cta}
-      </button>
+      {cta && to && (
+        <button
+          type="button"
+          onClick={() => navigate(to)}
+          className="btn-secondary px-4 py-2 text-xs font-semibold cursor-pointer flex-shrink-0"
+        >
+          {cta}
+        </button>
+      )}
     </div>
   );
 };
