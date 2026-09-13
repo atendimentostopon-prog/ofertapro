@@ -35,8 +35,12 @@ function ctEq(a: string, b: string): boolean {
 }
 
 // exportado so pra teste
+function stripSecretPrefix(hookSecret: string): string {
+  return hookSecret.replace(/^v1,/, "").replace(/^whsec_/, "");
+}
+
 export async function signBodyForTest(hookSecret: string, id: string, ts: string, body: string): Promise<string> {
-  const secretB64 = hookSecret.replace(/^whsec_/, "");
+  const secretB64 = stripSecretPrefix(hookSecret);
   const s = await hmacB64(secretB64, `${id}.${ts}.${body}`);
   return `v1,${s}`;
 }
@@ -46,7 +50,7 @@ export async function verifyHookSignature(rawBody: string, headers: Headers, hoo
   const ts = headers.get("webhook-timestamp") ?? "";
   const sigHeader = headers.get("webhook-signature") ?? "";
   if (!id || !ts || !sigHeader || !hookSecret) return false;
-  const secretB64 = hookSecret.replace(/^whsec_/, "");
+  const secretB64 = stripSecretPrefix(hookSecret);
   const expected = await hmacB64(secretB64, `${id}.${ts}.${rawBody}`);
   // header pode ter varias assinaturas separadas por espaco, cada uma "v1,<b64>"
   for (const part of sigHeader.split(" ")) {
