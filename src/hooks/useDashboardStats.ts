@@ -2,6 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
+// Brasil não tem múltiplos fusos relevantes pro produto; fixamos America/Sao_Paulo
+// em vez de usar o fuso do navegador (toISOString é UTC, toLocaleDateString depende
+// do SO do usuário) pra "hoje" e o gráfico baterem sempre com o horário de Brasília.
+const TIMEZONE = 'America/Sao_Paulo';
+
+function toSPDateString(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  // en-CA formata como YYYY-MM-DD, igual ao formato usado nos timestamps ISO
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TIMEZONE }).format(d);
+}
+
+function toSPDayMonth(date: Date): string {
+  return new Intl.DateTimeFormat('pt-BR', { timeZone: TIMEZONE, day: '2-digit', month: '2-digit' }).format(date);
+}
+
 export function useDashboardStats() {
   const { user } = useUser();
   const [stats, setStats] = useState<any>({
@@ -36,7 +51,7 @@ export function useDashboardStats() {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = toSPDateString(new Date());
 
       // Função helper para lidar com erros individuais de tabelas, timeouts e garantir fallback
       const fetchWithFallback = async (queryPromise: any, tableName: string, timeoutMs = 4000) => {
@@ -85,7 +100,7 @@ export function useDashboardStats() {
       const connectedChannelsCount = channels.filter(c => c.status === 'connected' || c.status === 'active').length;
 
       // 2. Cliques por Período
-      const totalClicksToday = clicks.filter(c => c.created_at.startsWith(todayStr)).length;
+      const totalClicksToday = clicks.filter(c => toSPDateString(c.created_at) === todayStr).length;
       const totalClicks7d = clicks.filter(c => new Date(c.created_at) >= sevenDaysAgo).length;
       const totalClicks30d = clicks.length;
 
@@ -150,10 +165,10 @@ export function useDashboardStats() {
       const clicksByDay = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
-        const dayStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        const dateISO = date.toISOString().split('T')[0];
+        const dayStr = toSPDayMonth(date);
+        const dateISO = toSPDateString(date);
 
-        const count = clicks.filter(c => c.created_at.startsWith(dateISO)).length;
+        const count = clicks.filter(c => toSPDateString(c.created_at) === dateISO).length;
         return {
           date: dayStr,
           cliques: count
