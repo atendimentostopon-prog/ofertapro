@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Sparkles } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -43,6 +44,11 @@ export const AnalyticsZone: React.FC<Props> = ({
   clicksByDay, clicksBySource, topSource, topMarketplace,
 }) => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(16, 20, 24, 0.06)';
+  const axisTickColor = isDark ? '#9AA1AA' : '#6B7280';
+  const activeDotStroke = isDark ? '#101418' : '#FFFFFF';
 
   if (!showAnalytics) {
     return (
@@ -109,11 +115,11 @@ export const AnalyticsZone: React.FC<Props> = ({
                     <stop offset="95%" stopColor="#3DD98F" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(16, 20, 24, 0.06)" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: axisTickColor }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: axisTickColor }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="cliques" name="Cliques" stroke="#22C078" strokeWidth={2} fill="url(#colorCliques)" activeDot={{ r: 5, fill: '#22C078', stroke: '#FFFFFF', strokeWidth: 3 }} />
+                <Area type="monotone" dataKey="cliques" name="Cliques" stroke="#22C078" strokeWidth={2} fill="url(#colorCliques)" activeDot={{ r: 5, fill: '#22C078', stroke: activeDotStroke, strokeWidth: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
