@@ -20,6 +20,7 @@
   --surface-1:           #F6F7F9;
   --surface-2:           #F1F3F6;
   --surface-3:           #E7EAEE;
+  --surface-4:           #D8DCE2;
 
   --ink-primary:         #101418;
   --ink-secondary:       #6B7280;
@@ -30,6 +31,40 @@
   --line-default:        rgba(16, 20, 24, 0.08);
   --line-strong:         rgba(16, 20, 24, 0.16);
   --line-subtle:         rgba(16, 20, 24, 0.04);
+
+  --success-bg:          #DFF8EE;
+  --success-ink:         #127046;
+  --warning-bg:          #FEF3C7;
+  --warning-ink:         #92400E;
+  --danger-bg:           #FEE2E2;
+  --danger-ink:          #991B1B;
+  --info-bg:             #DBEAFE;
+  --info-ink:            #1E40AF;
+
+  /* Canais R G B das mesmas cores acima. O Tailwind consome estes via
+     rgb(var(--x-rgb) / <alpha-value>) para que os modificadores de opacidade
+     (bg-surface-0/85, text-ink-inverse/70, ...) gerem CSS de verdade.
+     As variaveis hex continuam existindo e sao usadas direto no @layer base. */
+  --surface-0-rgb:       255 255 255;
+  --surface-1-rgb:       246 247 249;
+  --surface-2-rgb:       241 243 246;
+  --surface-3-rgb:       231 234 238;
+  --surface-4-rgb:       216 220 226;
+
+  --ink-primary-rgb:     16 20 24;
+  --ink-secondary-rgb:   107 114 128;
+  --ink-tertiary-rgb:    156 163 175;
+  --ink-inverse-rgb:     255 255 255;
+  --ink-disabled-rgb:    192 197 206;
+
+  --success-bg-rgb:      223 248 238;
+  --success-ink-rgb:     18 112 70;
+  --warning-bg-rgb:      254 243 199;
+  --warning-ink-rgb:     146 64 14;
+  --danger-bg-rgb:       254 226 226;
+  --danger-ink-rgb:      153 27 27;
+  --info-bg-rgb:         219 234 254;
+  --info-ink-rgb:        30 64 175;
 
   --radius-xs:           4px;
   --radius-sm:           6px;
@@ -46,6 +81,64 @@
   --ease-aflyo:          cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast:            160ms;
   --dur-default:         220ms;
+}
+
+.dark {
+  --surface-0:           #101418;
+  --surface-1:           #151A1F;
+  --surface-2:           #1F2328;
+  --surface-3:           #2F343B;
+  --surface-4:           #4B5259;
+
+  --ink-primary:         #F5F6F7;
+  --ink-secondary:       #9AA1AA;
+  --ink-tertiary:        #6B7280;
+  --ink-inverse:         #101418;
+  --ink-disabled:        #2F343B;
+
+  --line-default:        rgba(255, 255, 255, 0.08);
+  --line-strong:         rgba(255, 255, 255, 0.16);
+  --line-subtle:         rgba(255, 255, 255, 0.04);
+
+  --success-bg:          rgba(34, 192, 120, 0.15);
+  --success-ink:         #5EE7A5;
+  --warning-bg:          rgba(245, 158, 11, 0.15);
+  --warning-ink:         #FBBF24;
+  --danger-bg:           rgba(239, 68, 68, 0.15);
+  --danger-ink:          #F87171;
+  --info-bg:             rgba(59, 130, 246, 0.15);
+  --info-ink:            #60A5FA;
+
+  /* Canais R G B do tema escuro (ver nota no :root).
+     Os *-bg escuros sao rgba(cor, 0.15) sobre a superficie; como o formato
+     de canais nao carrega alfa, aqui vai a cor ja achatada sobre --surface-0
+     escuro (#101418), o que preserva a aparencia atual no uso sem
+     modificador e ainda permite bg-danger-bg/40 e afins. */
+  --surface-0-rgb:       16 20 24;
+  --surface-1-rgb:       21 26 31;
+  --surface-2-rgb:       31 35 40;
+  --surface-3-rgb:       47 52 59;
+  --surface-4-rgb:       75 82 89;
+
+  --ink-primary-rgb:     245 246 247;
+  --ink-secondary-rgb:   154 161 170;
+  --ink-tertiary-rgb:    107 114 128;
+  --ink-inverse-rgb:     16 20 24;
+  --ink-disabled-rgb:    47 52 59;
+
+  --success-bg-rgb:      19 46 38;
+  --success-ink-rgb:     94 231 165;
+  --warning-bg-rgb:      50 41 22;
+  --warning-ink-rgb:     251 191 36;
+  --danger-bg-rgb:       49 27 31;
+  --danger-ink-rgb:      248 113 113;
+  --info-bg-rgb:         22 37 57;
+  --info-ink-rgb:        96 165 250;
+
+  --shadow-xs:           0 1px 2px 0 rgba(0, 0, 0, 0.24);
+  --shadow-sm:           0 1px 3px 0 rgba(0, 0, 0, 0.32), 0 1px 2px -1px rgba(0, 0, 0, 0.24);
+  --shadow-md:           0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.24);
+  --shadow-lg:           0 12px 24px -6px rgba(0, 0, 0, 0.48);
 }
 
 /* =========================================================================

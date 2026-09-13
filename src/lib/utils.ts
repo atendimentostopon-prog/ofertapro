@@ -1,5 +1,9 @@
 import type { Marketplace } from '../types';
 
+// Chip de fundo fixo (sempre claro) para logos de marca de terceiros (marketplace/canal),
+// que dependem de fundo branco para legibilidade/reconhecimento em qualquer tema.
+export const LOGO_CHIP_BG = 'bg-white';
+
 export const CATEGORIES = [
   'Todos',
   'Eletrônicos',
