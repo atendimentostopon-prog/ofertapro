@@ -34,17 +34,17 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`flex shrink-0 flex-col border-r border-line bg-surface-0 transition-[width] duration-200 ${
+      className={`flex shrink-0 flex-col border-r border-white/10 bg-graphite-900 transition-[width] duration-200 ${
         collapsed ? 'w-16' : 'w-60'
       }`}
     >
       <div className="flex items-center justify-between px-4 py-4">
-        {!collapsed && <span className="font-display text-sm font-bold text-ink">Aflyo Admin</span>}
+        {!collapsed && <span className="font-display text-sm font-bold text-white">Aflyo Admin</span>}
         <button
           type="button"
           onClick={toggle}
           aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          className="rounded-md p-1 text-ink-tertiary transition-colors hover:bg-surface-1 hover:text-ink"
+          className="rounded-md p-1 text-white/50 transition-colors hover:bg-white/5 hover:text-white"
         >
           {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </button>
@@ -59,7 +59,7 @@ export default function Sidebar() {
           return (
             <div key={section.title}>
               {!collapsed && (
-                <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
+                <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-white/40">
                   {section.title}
                 </p>
               )}
@@ -71,7 +71,7 @@ export default function Sidebar() {
                       <li key={item.label}>
                         <span
                           aria-disabled
-                          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ink-tertiary opacity-60"
+                          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-white/30"
                           title="Em breve"
                         >
                           <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -93,8 +93,8 @@ export default function Sidebar() {
                         className={({ isActive }) =>
                           `flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                             isActive
-                              ? 'bg-graphite-900 text-ink-inverse'
-                              : 'text-ink-secondary hover:bg-surface-1 hover:text-ink'
+                              ? 'bg-mint text-graphite-900'
+                              : 'text-white/60 hover:bg-white/5 hover:text-white'
                           }`
                         }
                       >

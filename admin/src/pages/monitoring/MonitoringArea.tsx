@@ -17,7 +17,7 @@ const TABS = [
 ] as const;
 
 function NoPerm() {
-  return <p className="text-sm text-ink-secondary">Voce nao tem permissao pra esta aba.</p>;
+  return <p className="text-sm text-white/50">Voce nao tem permissao pra esta aba.</p>;
 }
 
 export default function MonitoringArea() {
@@ -32,17 +32,17 @@ export default function MonitoringArea() {
   };
   const can = (perm: string) => hasPermission(perms, perm);
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 rounded-2xl bg-graphite-900 p-6 shadow-lg">
       <header>
-        <h1 className="font-display text-xl font-bold text-ink">Monitoramento</h1>
-        <p className="mt-1 text-sm text-ink-secondary">Jobs, erros, saúde do banco, logs e auth.</p>
+        <h1 className="font-display text-xl font-bold text-white">Monitoramento</h1>
+        <p className="mt-1 text-sm text-white/60">Jobs, erros, saúde do banco, logs e auth.</p>
       </header>
       <StatusStrip onJumpTo={setTab} />
-      <div className="flex gap-1 border-b border-line">
+      <div className="flex gap-1 border-b border-white/10">
         {TABS.map((t) => (
           <button key={t.key} type="button" onClick={() => setTab(t.key)}
             className={`px-3 py-2 text-sm font-semibold transition-colors ${
-              active === t.key ? 'border-b-2 border-ink text-ink' : 'text-ink-secondary hover:text-ink'
+              active === t.key ? 'border-b-2 border-mint text-white' : 'text-white/55 hover:text-white/70'
             }`}>
             {t.label}
           </button>

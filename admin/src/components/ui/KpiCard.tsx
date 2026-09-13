@@ -25,7 +25,7 @@ function Sparkline({ series }: { series: KpiSeriesPoint[] }) {
             y={height - h}
             width={w * 0.6}
             height={h}
-            className="fill-ink/50"
+            className="fill-mint/70"
           />
         );
       })}
@@ -55,17 +55,21 @@ export function KpiCard({
   const up = delta != null && delta >= 0;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-0 p-4 shadow-card" aria-disabled={!available || undefined}>
-      <p className="text-xs font-semibold text-ink-secondary">{label}</p>
+    <div className="rounded-xl border border-white/10 bg-graphite-800 p-4" aria-disabled={!available || undefined}>
+      <p className="text-xs font-semibold text-white/60">{label}</p>
       {available && value !== null ? (
         <>
           <div className="mt-1 flex items-baseline gap-2">
-            <p className={`font-display font-bold text-ink ${size === 'hero' ? 'text-4xl' : 'text-2xl'}`}>
+            <p
+              className={`font-display font-bold text-white ${
+                size === 'hero' ? 'text-4xl drop-shadow-[0_0_20px_rgba(94,231,165,0.45)]' : 'text-2xl'
+              }`}
+            >
               {nf.format(value)}{suffix ?? ''}
             </p>
             {delta != null && (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${up ? 'bg-success-bg text-success-ink' : 'bg-danger-bg text-danger-ink'}`}
+                className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${up ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}
                 aria-label={`${up ? 'aumento' : 'queda'} de ${pctFmt.format(Math.abs(delta))}%`}
               >
                 {up ? '▲' : '▼'} {pctFmt.format(Math.abs(delta))}%
@@ -75,7 +79,7 @@ export function KpiCard({
           {series && series.length >= 2 && <Sparkline series={series} />}
         </>
       ) : (
-        <p className="mt-1 text-sm font-semibold text-ink-tertiary">Dados indisponíveis</p>
+        <p className="mt-1 text-sm font-semibold text-white/40">Dados indisponíveis</p>
       )}
     </div>
   );
