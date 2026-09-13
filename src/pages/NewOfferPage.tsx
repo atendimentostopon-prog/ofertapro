@@ -9,7 +9,7 @@ import {
 import { useOfferForm } from '../hooks/useOfferForm';
 import { detectMarketplaceFromUrl } from '../lib/marketplace-detect';
 import { ProductEnrichmentService } from '../services/ProductEnrichmentService';
-import { CATEGORIES, MARKETPLACES, MARKETPLACE_LABELS } from '../lib/utils';
+import { CATEGORIES, MARKETPLACES, MARKETPLACE_LABELS, LOGO_CHIP_BG } from '../lib/utils';
 import ChannelLogo from '../components/ui/ChannelLogo';
 import MarketplaceLogo from '../components/ui/MarketplaceLogo';
 import { getMarketplaceLogoSrc } from '../lib/logos';
@@ -241,7 +241,7 @@ const NewOfferPage: React.FC = () => {
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {dispatchResults.map((res) => (
               <div key={res.channelId} className={`flex items-start gap-3 p-3 rounded-xl border ${res.success ? 'bg-success-bg/40 border-success/20' : 'bg-danger-bg/40 border-danger/20'}`}>
-                <div className="w-8 h-8 rounded-lg bg-surface-1 border border-line flex items-center justify-center text-sm">
+                <div className={`w-8 h-8 rounded-lg ${LOGO_CHIP_BG} border border-line flex items-center justify-center text-sm`}>
                   <ChannelLogo type={res.channelType} size="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -808,7 +808,7 @@ const NewOfferPage: React.FC = () => {
                     }`}>
                       {selectedChannels.includes(ch.id) && <Check className="w-2.5 h-2.5 text-ink-inverse" />}
                     </div>
-                    <div className="w-5 h-5 rounded bg-surface-0 border border-line flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0">
+                    <div className={`w-5 h-5 rounded ${LOGO_CHIP_BG} border border-line flex items-center justify-center text-xs overflow-hidden p-0.5 flex-shrink-0`}>
                       <ChannelLogo type={ch.type} size="w-full h-full" />
                     </div>
                     <div className="flex-1 min-w-0">

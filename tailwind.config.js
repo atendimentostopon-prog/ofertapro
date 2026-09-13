@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -47,52 +48,55 @@ export default {
         },
         ice: '#DFF8EE',
 
-        // ── Superfícies (light-first) ────────────────────────────────
+        // ── Superfícies (light-first, valores reais em index.css :root/.dark) ──
+        // Formato rgb(var(--x-rgb) / <alpha-value>): o Tailwind consegue
+        // parsear e combinar com modificadores de opacidade (bg-surface-0/85).
+        // Um `var(--x)` cru nao gera CSS nenhum quando tem /NN.
         surface: {
-          DEFAULT: '#FFFFFF',
-          0: '#FFFFFF',   // canvas branco
-          1: '#F6F7F9',   // cloud — seções secundárias
-          2: '#F1F3F6',   // elevated sutil
-          3: '#E7EAEE',   // hover
-          4: '#D8DCE2',   // pressed
+          DEFAULT: 'rgb(var(--surface-0-rgb) / <alpha-value>)',
+          0: 'rgb(var(--surface-0-rgb) / <alpha-value>)',
+          1: 'rgb(var(--surface-1-rgb) / <alpha-value>)',
+          2: 'rgb(var(--surface-2-rgb) / <alpha-value>)',
+          3: 'rgb(var(--surface-3-rgb) / <alpha-value>)',
+          4: 'rgb(var(--surface-4-rgb) / <alpha-value>)',
         },
 
         // ── Texto ─────────────────────────────────────────────────────
         ink: {
-          DEFAULT: '#101418',    // primary
-          secondary: '#6B7280',  // slate
-          tertiary: '#9CA3AF',
-          inverse: '#FFFFFF',
-          disabled: '#C0C5CE',
+          DEFAULT: 'rgb(var(--ink-primary-rgb) / <alpha-value>)',
+          secondary: 'rgb(var(--ink-secondary-rgb) / <alpha-value>)',
+          tertiary: 'rgb(var(--ink-tertiary-rgb) / <alpha-value>)',
+          inverse: 'rgb(var(--ink-inverse-rgb) / <alpha-value>)',
+          disabled: 'rgb(var(--ink-disabled-rgb) / <alpha-value>)',
         },
 
         // ── Bordas / divisores ───────────────────────────────────────
         line: {
-          DEFAULT: 'rgba(16, 20, 24, 0.08)',
-          strong: 'rgba(16, 20, 24, 0.16)',
-          subtle: 'rgba(16, 20, 24, 0.04)',
+          DEFAULT: 'var(--line-default)',
+          strong: 'var(--line-strong)',
+          subtle: 'var(--line-subtle)',
         },
 
-        // ── Sinais ────────────────────────────────────────────────────
+        // ── Sinais (DEFAULT fixo — cor de marca não muda; bg/ink via var) ──
         success: {
           DEFAULT: '#22C078',
-          bg: '#DFF8EE',
-          ink: '#127046',
+          bg: 'rgb(var(--success-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--success-ink-rgb) / <alpha-value>)',
         },
         warning: {
           DEFAULT: '#F59E0B',
-          bg: '#FEF3C7',
-          ink: '#92400E',
+          bg: 'rgb(var(--warning-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--warning-ink-rgb) / <alpha-value>)',
         },
         danger: {
           DEFAULT: '#EF4444',
-          bg: '#FEE2E2',
-          ink: '#991B1B',
+          bg: 'rgb(var(--danger-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--danger-ink-rgb) / <alpha-value>)',
         },
         info: {
           DEFAULT: '#3B82F6',
-          bg: '#DBEAFE',
-          ink: '#1E40AF',
+          bg: 'rgb(var(--info-bg-rgb) / <alpha-value>)',
+          ink: 'rgb(var(--info-ink-rgb) / <alpha-value>)',
         },
       },
       borderRadius: {
@@ -106,14 +110,14 @@ export default {
         '3xl': '28px',
       },
       boxShadow: {
-        // Sombras minimalistas Aflyo — muito discretas
-        'xs':    '0 1px 2px 0 rgba(16, 20, 24, 0.04)',
-        'sm':    '0 1px 3px 0 rgba(16, 20, 24, 0.06), 0 1px 2px -1px rgba(16, 20, 24, 0.04)',
-        'DEFAULT':'0 2px 6px -1px rgba(16, 20, 24, 0.06), 0 1px 3px -1px rgba(16, 20, 24, 0.04)',
-        'md':    '0 4px 12px -2px rgba(16, 20, 24, 0.08), 0 2px 4px -2px rgba(16, 20, 24, 0.04)',
-        'lg':    '0 12px 24px -6px rgba(16, 20, 24, 0.10), 0 4px 8px -4px rgba(16, 20, 24, 0.06)',
-        'xl':    '0 24px 48px -12px rgba(16, 20, 24, 0.12)',
-        'card':  '0 1px 2px 0 rgba(16, 20, 24, 0.04), 0 1px 3px -1px rgba(16, 20, 24, 0.06)',
+        // Sombras minimalistas Aflyo — valores reais em index.css :root/.dark
+        'xs':    'var(--shadow-xs)',
+        'sm':    'var(--shadow-sm)',
+        'DEFAULT':'var(--shadow-sm)',
+        'md':    'var(--shadow-md)',
+        'lg':    'var(--shadow-lg)',
+        'xl':    'var(--shadow-lg)',
+        'card':  'var(--shadow-xs)',
         'focus': '0 0 0 3px rgba(94, 231, 165, 0.28)',
         'focus-ink': '0 0 0 3px rgba(16, 20, 24, 0.12)',
       },
