@@ -63,7 +63,7 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
   },
   enterprise: {
     name: 'enterprise',
-    label: 'Plano Enterprise', // idem — "Business" vem de PLAN_LABELS
+    label: 'Plano Business',
     maxOffers: Infinity,
     maxWhatsappConnections: 4, // 4 números de WhatsApp
     maxTelegramConnections: 5, // Conexões Telegram
