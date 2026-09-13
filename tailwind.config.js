@@ -42,11 +42,13 @@ export default {
           400: '#5EE7A5',
           500: '#3DD98F',
           600: '#22C078',
-          700: '#199A5F',
-          800: '#127046',
-          900: '#0A4D30',
+          700: 'var(--mint-700)',
+          800: 'var(--mint-800)',
+          900: 'var(--mint-900)',
         },
-        ice: '#DFF8EE',
+        // ice é a mesma cor de success.bg (mint bem claro) — reaproveita o
+        // canal RGB já corrigido pra dark mode em vez de duplicar.
+        ice: 'rgb(var(--success-bg-rgb) / <alpha-value>)',
 
         // ── Superfícies (light-first, valores reais em index.css :root/.dark) ──
         // Formato rgb(var(--x-rgb) / <alpha-value>): o Tailwind consegue

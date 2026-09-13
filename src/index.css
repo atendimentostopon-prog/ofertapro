@@ -41,6 +41,13 @@
   --info-bg:             #DBEAFE;
   --info-ink:            #1E40AF;
 
+  /* mint-700/800/900 só são usados como texto/ícone sobre bg-ice (nunca como
+     botão/CTA) — por isso podem clarear no escuro sem contradizer a regra de
+     "cor de marca não muda de tom" (essa regra vale pro mint de CTA). */
+  --mint-700:            #199A5F;
+  --mint-800:            #127046;
+  --mint-900:            #0A4D30;
+
   /* Canais R G B das mesmas cores acima. O Tailwind consome estes via
      rgb(var(--x-rgb) / <alpha-value>) para que os modificadores de opacidade
      (bg-surface-0/85, text-ink-inverse/70, ...) gerem CSS de verdade.
@@ -108,6 +115,10 @@
   --danger-ink:          #F87171;
   --info-bg:             rgba(59, 130, 246, 0.15);
   --info-ink:            #60A5FA;
+
+  --mint-700:            #5EE7A5;
+  --mint-800:            #88E5B8;
+  --mint-900:            #B4EFD3;
 
   /* Canais R G B do tema escuro (ver nota no :root).
      Os *-bg escuros sao rgba(cor, 0.15) sobre a superficie; como o formato
