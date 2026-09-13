@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -47,52 +48,52 @@ export default {
         },
         ice: '#DFF8EE',
 
-        // ── Superfícies (light-first) ────────────────────────────────
+        // ── Superfícies (light-first, valores reais em index.css :root/.dark) ──
         surface: {
-          DEFAULT: '#FFFFFF',
-          0: '#FFFFFF',   // canvas branco
-          1: '#F6F7F9',   // cloud — seções secundárias
-          2: '#F1F3F6',   // elevated sutil
-          3: '#E7EAEE',   // hover
-          4: '#D8DCE2',   // pressed
+          DEFAULT: 'var(--surface-0)',
+          0: 'var(--surface-0)',
+          1: 'var(--surface-1)',
+          2: 'var(--surface-2)',
+          3: 'var(--surface-3)',
+          4: 'var(--surface-4)',
         },
 
         // ── Texto ─────────────────────────────────────────────────────
         ink: {
-          DEFAULT: '#101418',    // primary
-          secondary: '#6B7280',  // slate
-          tertiary: '#9CA3AF',
-          inverse: '#FFFFFF',
-          disabled: '#C0C5CE',
+          DEFAULT: 'var(--ink-primary)',
+          secondary: 'var(--ink-secondary)',
+          tertiary: 'var(--ink-tertiary)',
+          inverse: 'var(--ink-inverse)',
+          disabled: 'var(--ink-disabled)',
         },
 
         // ── Bordas / divisores ───────────────────────────────────────
         line: {
-          DEFAULT: 'rgba(16, 20, 24, 0.08)',
-          strong: 'rgba(16, 20, 24, 0.16)',
-          subtle: 'rgba(16, 20, 24, 0.04)',
+          DEFAULT: 'var(--line-default)',
+          strong: 'var(--line-strong)',
+          subtle: 'var(--line-subtle)',
         },
 
-        // ── Sinais ────────────────────────────────────────────────────
+        // ── Sinais (DEFAULT fixo — cor de marca não muda; bg/ink via var) ──
         success: {
           DEFAULT: '#22C078',
-          bg: '#DFF8EE',
-          ink: '#127046',
+          bg: 'var(--success-bg)',
+          ink: 'var(--success-ink)',
         },
         warning: {
           DEFAULT: '#F59E0B',
-          bg: '#FEF3C7',
-          ink: '#92400E',
+          bg: 'var(--warning-bg)',
+          ink: 'var(--warning-ink)',
         },
         danger: {
           DEFAULT: '#EF4444',
-          bg: '#FEE2E2',
-          ink: '#991B1B',
+          bg: 'var(--danger-bg)',
+          ink: 'var(--danger-ink)',
         },
         info: {
           DEFAULT: '#3B82F6',
-          bg: '#DBEAFE',
-          ink: '#1E40AF',
+          bg: 'var(--info-bg)',
+          ink: 'var(--info-ink)',
         },
       },
       borderRadius: {

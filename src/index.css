@@ -20,6 +20,7 @@
   --surface-1:           #F6F7F9;
   --surface-2:           #F1F3F6;
   --surface-3:           #E7EAEE;
+  --surface-4:           #D8DCE2;
 
   --ink-primary:         #101418;
   --ink-secondary:       #6B7280;
@@ -30,6 +31,15 @@
   --line-default:        rgba(16, 20, 24, 0.08);
   --line-strong:         rgba(16, 20, 24, 0.16);
   --line-subtle:         rgba(16, 20, 24, 0.04);
+
+  --success-bg:          #DFF8EE;
+  --success-ink:         #127046;
+  --warning-bg:          #FEF3C7;
+  --warning-ink:         #92400E;
+  --danger-bg:           #FEE2E2;
+  --danger-ink:          #991B1B;
+  --info-bg:             #DBEAFE;
+  --info-ink:            #1E40AF;
 
   --radius-xs:           4px;
   --radius-sm:           6px;
