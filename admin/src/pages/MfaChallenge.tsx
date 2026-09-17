@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from 'react';
-import { Check, ShieldCheck } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -118,78 +118,91 @@ export default function MfaChallenge() {
   const code = digits.join('');
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-4"
-      style={{
-        background:
-          'radial-gradient(120% 120% at 50% -10%, rgba(94,231,165,0.35), transparent 60%), linear-gradient(160deg, #101418, #151A1F)',
-      }}
-    >
-      <div className="w-full max-w-sm animate-slide-up rounded-[22px] border border-white/10 bg-white/[0.04] p-9 text-white shadow-xl backdrop-blur-md">
-        {verified ? (
-          <div className="flex flex-col items-center py-4 text-center">
-            <div className="relative flex h-16 w-16 items-center justify-center">
-              <span className="absolute inset-0 animate-ping rounded-full bg-mint-400/40" />
-              <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-mint-500 shadow-[0_0_0_3px_rgba(94,231,165,0.28)]">
-                <Check className="h-8 w-8 text-white" strokeWidth={3} />
-              </span>
-            </div>
-            <h1 className="mt-4 font-display text-lg font-bold">Verificado com sucesso</h1>
-            <p className="mt-1 text-xs text-white/55">Redirecionando para o painel...</p>
-          </div>
-        ) : (
-          <>
-            <div className="mx-auto mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-mint-400 to-mint-700 shadow-[0_0_0_6px_rgba(94,231,165,0.12)]">
-              <ShieldCheck className="h-5 w-5 text-[#0A2015]" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-center font-display text-lg font-bold">Verificação em duas etapas</h1>
-            <p className="mt-1 text-center text-xs text-white/55">
-              Informe o código de 6 dígitos do seu app autenticador.
-            </p>
+    <div className="flex min-h-screen bg-graphite-800">
+      <div className="relative hidden w-[42%] max-w-md flex-col justify-between overflow-hidden bg-graphite-900 p-12 lg:flex">
+        <img
+          src="/brand/symbol-mint.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -right-24 w-80 opacity-[0.06]"
+        />
+        <img src="/brand/logo-white.png" alt="Aflyo" className="relative h-7 w-auto" />
+        <div className="relative">
+          <h2 className="font-display text-2xl font-bold leading-snug text-white">
+            Uma camada a mais de segurança.
+          </h2>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/45">
+            Confirme sua identidade com o app autenticador para acessar o painel.
+          </p>
+        </div>
+      </div>
 
-            {loading && <p className="mt-6 text-center text-xs text-white/40">Carregando...</p>}
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <img src="/brand/logo-white.png" alt="Aflyo" className="mb-8 h-6 w-auto lg:hidden" />
 
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
-              <div
-                className={`flex justify-between gap-2 ${shake ? 'animate-shake' : ''}`}
-                onAnimationEnd={() => setShake(false)}
-              >
-                {digits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => { inputRefs.current[index] = el; }}
-                    inputMode="numeric"
-                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                    maxLength={1}
-                    disabled={busy}
-                    value={digit}
-                    onChange={(e) => handleChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={handlePaste}
-                    className={`h-12 w-11 rounded-lg border bg-white/[0.05] text-center text-lg font-semibold text-white outline-none transition-all duration-160 ease-aflyo focus:border-mint-400 focus:shadow-[0_0_0_3px_rgba(94,231,165,0.2)] ${
-                      shake ? 'border-danger' : digit ? 'border-mint-400 bg-mint-400/10 shadow-[0_0_0_3px_rgba(94,231,165,0.18)]' : 'border-white/12'
-                    }`}
-                  />
-                ))}
+          {verified ? (
+            <div className="flex flex-col items-center py-4 text-center">
+              <div className="relative flex h-16 w-16 items-center justify-center">
+                <span className="absolute inset-0 animate-ping rounded-full bg-mint-400/40" />
+                <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-mint-500 shadow-[0_0_0_3px_rgba(94,231,165,0.28)]">
+                  <Check className="h-8 w-8 text-white" strokeWidth={3} />
+                </span>
               </div>
-              <button
-                type="submit"
-                disabled={busy || !factorId || code.length !== CODE_LENGTH}
-                className="w-full rounded-lg bg-gradient-to-br from-mint-400 to-mint-600 py-3 text-sm font-extrabold text-[#0A2015] shadow-[0_8px_20px_-6px_rgba(94,231,165,0.5)] transition-all duration-160 ease-aflyo hover:-translate-y-px hover:shadow-[0_12px_24px_-6px_rgba(94,231,165,0.6)] disabled:opacity-60 disabled:pointer-events-none"
-              >
-                {busy ? 'Verificando...' : 'Continuar'}
-              </button>
-            </form>
+              <h1 className="mt-4 font-display text-lg font-bold text-white">Verificado com sucesso</h1>
+              <p className="mt-1 text-xs text-white/55">Redirecionando para o painel...</p>
+            </div>
+          ) : (
+            <>
+              <h1 className="font-display text-xl font-bold text-white">Verificação em duas etapas</h1>
+              <p className="mt-1 text-xs text-white/50">
+                Informe o código de 6 dígitos do seu app autenticador.
+              </p>
 
-            <button
-              type="button"
-              onClick={() => { void signOut(); }}
-              className="mt-4 block text-center text-xs font-semibold text-white/45 underline"
-            >
-              Sair
-            </button>
-          </>
-        )}
+              {loading && <p className="mt-6 text-xs text-white/40">Carregando...</p>}
+
+              <form onSubmit={onSubmit} className="mt-7 space-y-4">
+                <div
+                  className={`flex justify-between gap-2 ${shake ? 'animate-shake' : ''}`}
+                  onAnimationEnd={() => setShake(false)}
+                >
+                  {digits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => { inputRefs.current[index] = el; }}
+                      inputMode="numeric"
+                      autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                      maxLength={1}
+                      disabled={busy}
+                      value={digit}
+                      onChange={(e) => handleChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onPaste={handlePaste}
+                      className={`h-12 w-11 rounded-lg border bg-white/[0.04] text-center text-lg font-semibold text-white outline-none transition-all duration-160 ease-aflyo focus:border-mint-500 focus:bg-white/[0.06] ${
+                        shake ? 'border-danger' : digit ? 'border-mint-500 bg-mint-400/10' : 'border-white/12'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="submit"
+                  disabled={busy || !factorId || code.length !== CODE_LENGTH}
+                  className="w-full rounded-lg bg-mint-500 py-2.5 text-sm font-bold text-graphite-900 transition-colors duration-160 ease-aflyo hover:bg-mint-400 disabled:opacity-60 disabled:pointer-events-none"
+                >
+                  {busy ? 'Verificando...' : 'Continuar'}
+                </button>
+              </form>
+
+              <button
+                type="button"
+                onClick={() => { void signOut(); }}
+                className="mt-4 block text-xs font-semibold text-white/45 underline"
+              >
+                Sair
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

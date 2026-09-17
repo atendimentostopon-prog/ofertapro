@@ -27,14 +27,14 @@ import SystemArea from './pages/system/SystemArea';
 import Bot from './pages/Bot';
 
 function Gate() {
-  const { phase } = useAdminAuth();
+  const { phase, signOut } = useAdminAuth();
   if (phase === 'resolving') {
     return <div className="grid min-h-screen place-items-center text-sm text-ink-secondary">Carregando...</div>;
   }
   if (phase === 'anon') return <Login />;
   if (phase === 'needs_mfa_enroll') return <MfaEnroll />;
   if (phase === 'needs_mfa_challenge') return <MfaChallenge />;
-  if (phase === 'not_admin') return <Unauthorized variant="no-access" />;
+  if (phase === 'not_admin') return <Unauthorized variant="no-access" onSignOut={() => { void signOut(); }} />;
   return (
     <BrowserRouter>
       <Routes>
