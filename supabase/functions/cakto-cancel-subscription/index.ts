@@ -59,12 +59,15 @@ serve(async (req: Request) => {
   // Confere que a subscription pertence a este user (RLS + checagem explicita).
   const { data: sub } = await userClient
     .from("subscriptions")
-    .select("id, provider_subscription_id, user_id")
+    .select("id, provider_subscription_id, user_id, cancel_at_period_end")
     .eq("provider_subscription_id", subscription_id)
     .maybeSingle();
   if (!sub || sub.user_id !== user.id) {
     return json({ error: "Assinatura nao encontrada." }, 404);
   }
+  // Uma confirmacao local anterior permite repetir a requisicao sem cobrar
+  // do provedor que aceite um segundo cancelamento.
+  if (sub.cancel_at_period_end) return json({ success: true }, 200);
 
   try {
     const cancelRes = await caktoFetch(
@@ -74,16 +77,13 @@ serve(async (req: Request) => {
     if (!cancelRes.ok) {
       const errText = await cancelRes.text();
       console.error("[cakto-cancel-subscription] Cakto retornou erro:", cancelRes.status, errText);
-      if (cancelRes.status !== 400 && cancelRes.status !== 404) {
-        return json({ error: "Falha ao cancelar na Cakto." }, 502);
-      }
-      console.warn("[cakto-cancel-subscription] tratando", cancelRes.status, "como ja-cancelada (idempotente)");
+      return json({ error: "Falha ao cancelar na Cakto." }, 502);
     }
 
     // Grava o cancelamento local sem esperar o webhook subscription_canceled
     // voltar da Cakto (evita a BillingTab mostrar "proxima cobranca" por
     // segundos/minutos depois do usuario confirmar). O webhook, quando chegar,
-    // faz o revoke completo e reafirma este mesmo estado (idempotente).
+    // reafirma este mesmo estado sem revogar o periodo ja pago.
     const admin = getSupabaseAdmin();
     const { error: updateError } = await admin
       .from("subscriptions")
@@ -94,6 +94,7 @@ serve(async (req: Request) => {
       .eq("provider_subscription_id", subscription_id);
     if (updateError) {
       console.error("[cakto-cancel-subscription] update local falhou:", updateError.message);
+      return json({ error: "Cancelamento enviado a Cakto, mas a confirmacao local falhou. Aguarde a sincronizacao." }, 500);
     }
 
     return json({ success: true }, 200);

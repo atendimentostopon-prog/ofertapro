@@ -94,6 +94,9 @@ function buildSubscriptionRow(
     current_period_start: data.paidAt ?? nowIso(),
     current_period_end: periodEnd(data, cycle),
     paid_payments_quantity: 1,
+    cancel_at_period_end: false,
+    canceled_at: null,
+    grace_period_ends_at: null,
   };
 }
 
@@ -119,19 +122,22 @@ async function writeSubscription(
     return;
   }
 
-  const { data: existing } = await supabase
+  const { data: existing, error: selectError } = await supabase
     .from("subscriptions")
-    .select("id, provider_subscription_id")
+    .select("id, provider_subscription_id, status, cancel_at_period_end")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
+  if (selectError) throw new Error(`[cakto-webhook] ${tag}: subscriptions select: ${selectError.message}`);
+
   if (existing?.id) {
     const patch: Record<string, unknown> = { ...row };
     // subscription_created ja pode ter gravado o id real da subscription;
     // purchase_approved traz o id da order. Nao regrava por cima.
-    if (existing.provider_subscription_id && existing.provider_subscription_id !== row.provider_subscription_id) {
+    if (existing.status === "active" && !existing.cancel_at_period_end &&
+        existing.provider_subscription_id && existing.provider_subscription_id !== row.provider_subscription_id) {
       delete patch.provider_subscription_id;
     }
     const { error } = await supabase.from("subscriptions").update(patch).eq("id", existing.id);
@@ -274,31 +280,43 @@ export async function subscriptionCreated(data: any): Promise<void> {
   // (purchase_approved pode ter criado com o id da order).
   const { data: existing, error: selError } = await supabase
     .from("subscriptions")
-    .select("id")
+    .select("id, plan_code, billing_cycle, status, cancel_at_period_end, amount, installments, current_period_start, current_period_end, provider_customer_id, paid_payments_quantity")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (selError) throw new Error(`[cakto-webhook] subscription_created: buscar subscriptions: ${selError.message}`);
 
-  if (existing?.id) {
-    const { error: updError } = await supabase
-      .from("subscriptions")
-      .update({ provider_subscription_id: subId, status: "active" })
-      .eq("id", existing.id);
-    if (updError) throw new Error(`[cakto-webhook] subscription_created: gravar provider_subscription_id: ${updError.message}`);
-    return;
+  const resolved = resolvePlan(data);
+  // A compra aprovada pode ter chegado primeiro sem metadata no evento de
+  // criacao. So reutiliza o plano de uma assinatura ainda ativa nesse caso.
+  const canReusePlan = existing?.status === "active" && !existing.cancel_at_period_end;
+  const plan = resolved.plan ?? (canReusePlan ? existing.plan_code : undefined);
+  const cycle = resolved.cycle ?? (canReusePlan ? existing.billing_cycle : undefined);
+  if (!plan || !cycle) {
+    throw new Error("[cakto-webhook] subscription_created: plan_code/billing_cycle indefinidos");
   }
 
-  // Sem row previa: cria com os mesmos campos do purchase_approved.
-  const { plan, cycle } = resolvePlan(data);
-  if (!plan || !cycle) {
-    console.error("[cakto-webhook] subscription_created: plan_code/billing_cycle indefinidos e sem row previa", {
-      offerId: data.offer?.id ?? null,
-    });
-    return;
+  if (existing?.id) {
+    const row = buildSubscriptionRow(data, userId, plan, cycle);
+    // Quando purchase_approved chegou primeiro, o evento de criacao pode ser
+    // parcial. Preserva os dados pagos que ele nao informou.
+    if (canReusePlan) {
+      row.amount = data.amount == null ? existing.amount : row.amount;
+      row.installments = resolveInstallments(data) ?? existing.installments;
+      row.provider_customer_id = data.customer?.email ?? existing.provider_customer_id;
+      row.current_period_start = data.paidAt ?? existing.current_period_start;
+      row.current_period_end = data.subscription?.next_payment_date ?? data.next_payment_date ?? existing.current_period_end;
+      row.paid_payments_quantity = existing.paid_payments_quantity;
+    }
+    const { error: updError } = await supabase
+      .from("subscriptions")
+      .update(row)
+      .eq("id", existing.id);
+    if (updError) throw new Error(`[cakto-webhook] subscription_created: gravar provider_subscription_id: ${updError.message}`);
+  } else {
+    await writeSubscription(supabase, userId, data, plan, cycle, "subscription_created");
   }
-  await writeSubscription(supabase, userId, data, plan, cycle, "subscription_created");
   await grantEntitlement(supabase, userId, plan, "subscription_created");
 
   await sendBillingEmail(supabase, "assinatura-confirmada", userId, {
@@ -321,10 +339,9 @@ export async function subscriptionRenewed(data: any): Promise<void> {
     .select("id, user_id, plan_code, billing_cycle, paid_payments_quantity")
     .eq("provider_subscription_id", subId)
     .maybeSingle();
-  if (selError) console.error("[cakto-webhook] subscription_renewed: falha ao buscar subscription:", selError.message);
+  if (selError) throw new Error(`[cakto-webhook] subscription_renewed: buscar subscription: ${selError.message}`);
   if (!sub) {
-    console.error(`[cakto-webhook] subscription_renewed: assinatura nao encontrada: ${subId}`);
-    return;
+    throw new Error(`[cakto-webhook] subscription_renewed: assinatura nao encontrada: ${subId}`);
   }
 
   const { error: subError } = await supabase
@@ -337,7 +354,7 @@ export async function subscriptionRenewed(data: any): Promise<void> {
       grace_period_ends_at: null,
     })
     .eq("id", sub.id);
-  if (subError) console.error("[cakto-webhook] subscription_renewed: falha no update subscriptions:", subError.message);
+  if (subError) throw new Error(`[cakto-webhook] subscription_renewed: update subscriptions: ${subError.message}`);
 
   // Reafirma plan + account_status='active' E religa o bot: se a cobranca so
   // recuperou depois do grace expirar, o cron ja tinha pausado o bot
@@ -359,7 +376,7 @@ export async function subscriptionRenewalRefused(data: any): Promise<void> {
     .from("subscriptions")
     .update({ status: "past_due", grace_period_ends_at: graceEnd })
     .eq("provider_subscription_id", subId);
-  if (error) console.error("[cakto-webhook] subscription_renewal_refused: falha no update subscriptions:", error.message);
+  if (error) throw new Error(`[cakto-webhook] subscription_renewal_refused: update subscriptions: ${error.message}`);
 
   const { data: sub } = await supabase
     .from("subscriptions")
@@ -392,7 +409,7 @@ export async function subscriptionCanceled(data: any): Promise<void> {
     .from("subscriptions")
     .update({ cancel_at_period_end: true, canceled_at: nowIso() })
     .eq("provider_subscription_id", subId);
-  if (error) console.error("[cakto-webhook] subscription_canceled: falha no update subscriptions:", error.message);
+  if (error) throw new Error(`[cakto-webhook] subscription_canceled: update subscriptions: ${error.message}`);
 
   const { data: sub } = await supabase
     .from("subscriptions")
