@@ -31,7 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
-    <div className="min-h-screen bg-surface-1 flex text-ink relative overflow-x-hidden">
+    <div className="h-screen bg-surface-1 flex text-ink relative overflow-hidden">
       {/* Faixa de acesso expirado: fixa no topo da area de conteudo, sempre
           visivel (atravessa troca de rota/aba e scroll), sem botao de fechar --
           so some quando o pagamento reativa a conta (access.isExpired vira
@@ -87,7 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
           onMenuClick={() => setSidebarOpen(true)}
           belowExpiredBar={access.isExpired}
         />
-        <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main className="flex-1 min-w-0 min-h-0 p-4 md:p-6 overflow-y-auto overflow-x-hidden">{children}</main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}

@@ -51,9 +51,12 @@ export function useBotStatus(): BotStatusState {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
+      // select('*') de propósito: BotTab.tsx usa o mesmo padrão contra essa
+      // tabela. Um select nomeado aqui já falhou (error_message não bate
+      // com nenhuma migration que cria essa coluna em bot_configs).
       const { data, error } = await supabase
         .from('bot_configs')
-        .select('status, ativo, grupos_origem, paused_reason, error_message')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
       if (!activeRef.current) return;

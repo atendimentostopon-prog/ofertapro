@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Star, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
+import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
+import { LoadingState } from '../components/ui/LoadingState';
 
 const typeEmojis: Record<string, string> = {
   Bug: '🐛',

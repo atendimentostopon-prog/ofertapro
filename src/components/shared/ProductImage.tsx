@@ -45,7 +45,7 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className = '' })
     <img
       src={src!.trim()}
       alt={alt}
-      className={`block w-full h-full object-cover ${className}`}
+      className={`block object-cover ${className}`}
       onError={() => {
         console.warn(`[ProductImage] Falha ao carregar imagem: ${src}`);
         setError(true);
