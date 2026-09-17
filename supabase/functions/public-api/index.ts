@@ -39,8 +39,7 @@ function getDefaultTemplate(channelType: string): string {
 
 {marketplace_linha}
 
-🔗 Ver oferta:
-{link}
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
     case 'telegram':
@@ -52,7 +51,7 @@ function getDefaultTemplate(channelType: string): string {
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Ver oferta]({link})
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
     case 'discord':
@@ -64,7 +63,7 @@ function getDefaultTemplate(channelType: string): string {
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Ver oferta]({link})
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
     default:

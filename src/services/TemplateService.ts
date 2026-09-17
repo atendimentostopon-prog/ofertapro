@@ -123,8 +123,7 @@ export const TemplateService = {
 
 {marketplace_linha}
 
-🔗 Ver oferta:
-{link}
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
 
@@ -137,7 +136,7 @@ export const TemplateService = {
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Ver oferta]({link})
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
 
@@ -150,7 +149,7 @@ export const TemplateService = {
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Ver oferta]({link})
+🔗 {link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
 
