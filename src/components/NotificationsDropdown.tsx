@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Clock } from 'lucide-react';
 import { HistoryStatus } from '../types';
 import { pluralize } from '../lib/format';
@@ -20,6 +21,7 @@ const statusConfig: Record<HistoryStatus, { icon: React.ElementType; color: stri
 };
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notifications, onClose, loading, lastReadAt }) => {
+  const navigate = useNavigate();
   // Dado principal (resultado + nº de canais) vem primeiro; o nome da oferta,
   // que é o trecho longo, fica no fim onde o line-clamp pode cortar sem prejuízo.
   const getNotificationText = (notif: any) => {
@@ -43,6 +45,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
   const formatNotifTime = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ' - ' + d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  };
+
+  const handleGoToHistory = () => {
+    onClose();
+    navigate('/history');
   };
 
   return (
@@ -76,6 +83,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
             return (
               <div
                 key={n.id}
+                onClick={handleGoToHistory}
                 className={`px-4 py-3 transition-colors flex gap-3 items-start cursor-pointer ${
                   unread ? 'bg-ice hover:bg-mint-200/60' : 'hover:bg-surface-1'
                 }`}
@@ -103,17 +111,13 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
 
       {/* Footer */}
       <div className="px-4 pt-2 pb-1 border-t border-line text-center">
-        <a
-          href="/history"
-          onClick={(e) => {
-            e.preventDefault();
-            onClose();
-            window.location.href = '/history';
-          }}
-          className="text-[11px] font-semibold text-mint-700 hover:text-mint-800 transition-colors"
+        <button
+          type="button"
+          onClick={handleGoToHistory}
+          className="text-[11px] font-semibold text-mint-700 hover:text-mint-800 transition-colors cursor-pointer"
         >
           Ver todo o histórico
-        </a>
+        </button>
       </div>
     </div>
   );
