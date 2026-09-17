@@ -32,34 +32,41 @@ function getDefaultTemplate(channelType: string): string {
     case 'whatsapp':
       return `🔥 *{titulo}*
 
-🔥 *Por apenas:* {preco_promocional}
 {preco_original_linha}
+✅ *Por apenas:* {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
 {marketplace_linha}
 
-🔗 Comprar agora:
-{link}`;
+🔗 Ver oferta:
+{link}
+
+⚠️ Preço e estoque sujeitos a alteração.`;
     case 'telegram':
       return `🔥 **{titulo}**
 
-🔥 **Por apenas:** {preco_promocional}
 {preco_original_linha}
+✅ **Por apenas:** {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Comprar agora]({link})`;
+🔗 [Ver oferta]({link})
+
+⚠️ Preço e estoque sujeitos a alteração.`;
     case 'discord':
-      return `⚡ **NOVA OFERTA DISPONÍVEL!**
+      return `🔥 **{titulo}**
 
-**{titulo}**
-
-🔥 Por apenas: **{preco_promocional}**
 {preco_original_linha}
+✅ **Por apenas:** {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Garanta aqui]({link})`;
+🔗 [Ver oferta]({link})
+
+⚠️ Preço e estoque sujeitos a alteração.`;
     default:
       return `{titulo} - {preco_promocional} {link}`;
   }

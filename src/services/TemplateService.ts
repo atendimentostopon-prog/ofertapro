@@ -116,12 +116,15 @@ export const TemplateService = {
       case 'whatsapp':
         return `🔥 *{titulo}*
 
-❌ {preco_original_linha}
-🔥 *Por apenas:* {preco_promocional}
+{preco_original_linha}
+✅ *Por apenas:* {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
-🛒 *Marketplace:* {marketplace}
-Link: {link}
+{marketplace_linha}
+
+🔗 Ver oferta:
+{link}
 
 ⚠️ Preço e estoque sujeitos a alteração.`;
 
@@ -129,23 +132,27 @@ Link: {link}
         return `🔥 **{titulo}**
 
 {preco_original_linha}
-🔥 **Por apenas:** {preco_promocional}
+✅ **Por apenas:** {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Comprar agora]({link})`;
+🔗 [Ver oferta]({link})
+
+⚠️ Preço e estoque sujeitos a alteração.`;
 
       case 'discord':
-        return `⚡ **NOVA OFERTA DISPONÍVEL!**
-
-**{titulo}**
+        return `🔥 **{titulo}**
 
 {preco_original_linha}
-🔥 Por apenas: **{preco_promocional}**
+✅ **Por apenas:** {preco_promocional}
+{desconto_linha}
 {cupom_linha}
 
 {marketplace_linha}
-🔗 [Garanta aqui]({link})`;
+🔗 [Ver oferta]({link})
+
+⚠️ Preço e estoque sujeitos a alteração.`;
 
       default:
         return `{titulo} - {preco_promocional} {link}`;
