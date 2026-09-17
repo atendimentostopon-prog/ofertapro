@@ -155,7 +155,7 @@ export const BillingTab: React.FC = () => {
                     ))}
                   </ul>
                   <Button
-                    variant={code === "pro" && !isCurrent ? "primary" : "ghost"}
+                    variant={isCurrent ? "ghost" : code === "pro" ? "primary" : "secondary"}
                     size="sm"
                     disabled={isCurrent}
                     onClick={() => nav("/pricing")}

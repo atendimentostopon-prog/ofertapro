@@ -87,7 +87,11 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
           onMenuClick={() => setSidebarOpen(true)}
           belowExpiredBar={access.isExpired}
         />
-        <main className="flex-1 min-w-0 min-h-0 p-4 md:p-6 overflow-y-auto overflow-x-hidden">{children}</main>
+        {/* pb-24 no mobile reserva espaço pro botão flutuante de feedback
+            (fixed bottom-6 w-12 h-12) não cobrir o fim do conteúdo; md:p-6
+            volta ao padding uniforme porque o botão já não fica tão perto
+            do conteúdo em telas maiores. */}
+        <main className="flex-1 min-w-0 min-h-0 p-4 pb-24 md:p-6 overflow-y-auto overflow-x-hidden">{children}</main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}

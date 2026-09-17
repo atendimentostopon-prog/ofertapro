@@ -22,6 +22,15 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootError }) => {
   const [user, setUser] = useState<User | null>(null);
+  // Espelha `user` pra ler sem closure obsoleta em callbacks capturados uma
+  // única vez (ex: o listener de postgres_changes montado dentro de
+  // onAuthStateChange) — sem isso, refreshProfile() chamado por esse
+  // callback via um closure antigo sempre via `user` como null (o valor de
+  // antes do primeiro fetch), derrubando o perfil real pro fallback
+  // temporário (plan: 'starter') em todo timeout, mesmo com o perfil de
+  // verdade já carregado.
+  const userRef = React.useRef<User | null>(null);
+  useEffect(() => { userRef.current = user; }, [user]);
   const [authUser, setAuthUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -267,7 +276,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, onBootErro
           console.error('[BOOT][UserContext] Falha ao carregar perfil do Supabase em refreshProfile:', err);
           
           // Se já temos um perfil carregado anteriormente, mantemos e ignoramos a falha temporária
-          if (user) {
+          if (userRef.current) {
             console.warn('[BOOT][UserContext] Mantendo perfil anterior em cache apesar da falha temporária.');
             setProfileError(null);
             setProfileLoadFailed(false);

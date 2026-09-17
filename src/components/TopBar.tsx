@@ -155,7 +155,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
           className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-all duration-160 cursor-text min-w-0 ${
             searchFocused
               ? 'border-mint-500 bg-surface-0 shadow-focus'
-              : 'border-line bg-surface-1 hover:border-line-strong'
+              : 'border-line-strong bg-surface-1 hover:border-mint-500/40'
           }`}
           onClick={() => setSearchFocused(true)}
         >
