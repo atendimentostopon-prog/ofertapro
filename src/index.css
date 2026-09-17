@@ -100,7 +100,10 @@
   --ink-primary:         #F5F6F7;
   --ink-secondary:       #9AA1AA;
   --ink-tertiary:        #6B7280;
-  --ink-inverse:         #101418;
+  /* ink-inverse NAO inverte aqui de proposito: é usado como texto claro
+     sobre fundos que nunca mudam de tom (bg-graphite, bg-danger, gradientes
+     de marca), nunca sobre uma superficie que vira clara no escuro. Fica
+     igual ao :root (branco) — herda de la por nao ser redefinido aqui. */
   --ink-disabled:        #2F343B;
 
   --line-default:        rgba(255, 255, 255, 0.08);
@@ -134,7 +137,7 @@
   --ink-primary-rgb:     245 246 247;
   --ink-secondary-rgb:   154 161 170;
   --ink-tertiary-rgb:    107 114 128;
-  --ink-inverse-rgb:     16 20 24;
+  /* ink-inverse-rgb idem — nao redefinido aqui, herda 255 255 255 do :root */
   --ink-disabled-rgb:    47 52 59;
 
   --success-bg-rgb:      19 46 38;
