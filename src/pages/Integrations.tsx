@@ -1,75 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Bot, Shield } from 'lucide-react';
 import ApiIntegrationsTab from '../components/settings/ApiIntegrationsTab';
 import { BotTab } from '../components/settings/BotTab';
-
-type TabId = 'bot' | 'api';
-
-const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'bot', label: 'Bot', icon: Bot },
-  { id: 'api', label: 'API & Integrações', icon: Shield },
-];
-
-const isValidTab = (value: string | null): value is TabId =>
-  !!value && TABS.some(t => t.id === value);
+import { PageHeader } from '../components/ui/PageHeader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
 
 const Integrations: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab: TabId = isValidTab(searchParams.get('tab')) ? (searchParams.get('tab') as TabId) : 'bot';
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-
-  useEffect(() => {
-    const paramTab = searchParams.get('tab');
-    if (isValidTab(paramTab) && paramTab !== activeTab) {
-      setActiveTab(paramTab as TabId);
-    }
-  }, [searchParams]);
-
-  const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
-    if (searchParams.get('tab')) {
-      const next = new URLSearchParams(searchParams);
-      next.delete('tab');
-      setSearchParams(next, { replace: true });
-    }
+  const activeTab = searchParams.get('tab') === 'api' ? 'api' : 'bot';
+  const changeTab = (tab: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (tab === 'bot') next.delete('tab');
+    else next.set('tab', tab);
+    setSearchParams(next);
   };
-
   return (
-    <div className="space-y-6 animate-slide-up">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Integrações</h1>
-        <p className="text-[15px] font-medium text-ink-secondary mt-1">
-          Conecte o bot de monitoramento e gerencie chaves de API para automações externas
-        </p>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        <div className="tab-container flex-nowrap w-fit p-1.5 gap-1">
-          {TABS.map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`tab-item flex items-center gap-2 font-bold text-xs flex-shrink-0 ${
-                  activeTab === tab.id ? 'active' : ''
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        {activeTab === 'bot' && <BotTab />}
-        {activeTab === 'api' && <ApiIntegrationsTab />}
-      </div>
+    <div className="mx-auto w-full max-w-4xl space-y-6 animate-slide-up">
+      <PageHeader title="Integrações" description="Configure o bot e conecte suas automações." />
+      <Tabs value={activeTab} onValueChange={changeTab} className="space-y-6">
+        <TabsList scrollable>
+          <TabsTrigger value="bot" icon={Bot}>Bot</TabsTrigger>
+          <TabsTrigger value="api" icon={Shield}>API e integrações</TabsTrigger>
+        </TabsList>
+        <TabsContent value="bot"><BotTab /></TabsContent>
+        <TabsContent value="api"><ApiIntegrationsTab /></TabsContent>
+      </Tabs>
     </div>
   );
 };
-
 export default Integrations;

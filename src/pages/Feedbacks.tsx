@@ -58,9 +58,9 @@ const Feedbacks: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Meus Feedbacks</h1>
+          <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Meus feedbacks</h1>
           <p className="text-[15px] font-medium text-ink-secondary mt-1">
-            Histórico de feedbacks que você enviou durante a fase beta.
+            Acompanhe suas sugestões, dúvidas e relatos de problemas.
           </p>
         </div>
       </div>
@@ -77,10 +77,7 @@ const Feedbacks: React.FC = () => {
           <div>
             <h3 className="text-ink font-bold text-base tracking-tight font-display">Falha ao buscar feedbacks</h3>
             <p className="text-xs text-ink-secondary max-w-xs mx-auto leading-relaxed mt-1">
-              A tabela de feedbacks pode não estar criada no seu banco de dados Supabase. Execute o script SQL <code className="font-mono text-xs bg-surface-1 px-1.5 py-0.5 rounded border border-line text-ink">supabase_beta_feedback.sql</code> no seu editor SQL do Supabase.
-            </p>
-            <p className="text-xs text-danger-ink max-w-xs mx-auto font-mono mt-2 bg-danger-bg p-2 rounded border border-danger/20">
-              {error}
+              Não foi possível carregar seus feedbacks. Verifique sua conexão e tente novamente.
             </p>
           </div>
           <button

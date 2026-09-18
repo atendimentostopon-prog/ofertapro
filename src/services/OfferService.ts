@@ -1,3 +1,4 @@
+import { notifyDataChanged } from '../lib/dataEvents';
 import { supabase } from '../lib/supabase';
 import { Marketplace } from '../types';
 import { withTimeout } from '../lib/utils';
@@ -66,6 +67,7 @@ export const OfferService = {
 
       const data = await withTimeout(queryPromise, 8000, 'Tempo limite esgotado ao salvar oferta.');
       console.timeEnd("[OFFER_SERVICE] createOffer");
+      notifyDataChanged("offers");
       return data;
     } catch (error: any) {
       console.timeEnd("[OFFER_SERVICE] createOffer");
@@ -124,6 +126,7 @@ export const OfferService = {
       })();
 
       await withTimeout(queryPromise, 15000, "Atualizar oferta no Supabase");
+      notifyDataChanged("offers");
       console.timeEnd("[OFFER_SERVICE] updateOffer");
     } catch (error: any) {
       console.timeEnd("[OFFER_SERVICE] updateOffer");
@@ -173,6 +176,7 @@ export const OfferService = {
       .eq('id', id);
     
     if (error) throw error;
+    notifyDataChanged("offers");
   },
 
   async toggleStatus(id: string, currentStatus: string) {
@@ -183,6 +187,7 @@ export const OfferService = {
       .eq('id', id);
     
     if (error) throw error;
+    notifyDataChanged("offers");
     return newStatus;
   }
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Disclosure } from '../components/ui/Disclosure';
 import { ArrowUpRight, Lightbulb, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
@@ -30,7 +31,7 @@ const Dashboard: React.FC = () => {
 
   const {
     totalClicksToday, totalClicks7d, totalClicks30d,
-    dispatches30d, connectedChannels, activeOffers,
+    dispatches30d, activeOffers,
     connectedWhatsappChannels, connectedTelegramChannels,
     topOffers, topMarketplace, topSource,
     clicksByDay, clicksBySource, recentHistory, insights,
@@ -53,14 +54,12 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const plan = stats.profile?.plan || user?.plan || 'free';
+  const plan = user?.plan || 'free';
   const limits = getPlanLimits(plan);
   const showClicks = limits.advancedAnalytics;
 
   const whatsappAtLimit = limits.maxWhatsappGroups !== Infinity && connectedWhatsappChannels >= limits.maxWhatsappGroups;
   const telegramAtLimit = limits.maxTelegramGroups !== Infinity && connectedTelegramChannels >= limits.maxTelegramGroups;
-  const channelLimit = limits.maxWhatsappGroups + limits.maxTelegramGroups;
-  const channelLimited = limits.maxWhatsappGroups !== Infinity || limits.maxTelegramGroups !== Infinity;
   const channelsAtLimit = whatsappAtLimit || telegramAtLimit;
 
   const getFirstName = () => {
@@ -82,7 +81,7 @@ const Dashboard: React.FC = () => {
       >
         <div className="flex items-center gap-1.5 text-[10px] font-medium text-ink-secondary bg-surface-0 border border-line rounded-md px-2.5 py-1.5">
           <Clock className="w-3 h-3 text-ink-tertiary" />
-          <span>Atualizado agora</span>
+          <button type="button" onClick={() => void stats.refresh()}>Atualizar métricas</button>
         </div>
       </PageHeader>
 
@@ -149,9 +148,10 @@ const Dashboard: React.FC = () => {
 
       <OperationalMetrics
         dispatches30d={dispatches30d}
-        connectedChannels={connectedChannels}
-        channelLimit={channelLimit}
-        channelLimited={channelLimited}
+        whatsappChannels={connectedWhatsappChannels}
+        whatsappLimit={limits.maxWhatsappGroups}
+        telegramChannels={connectedTelegramChannels}
+        telegramLimit={limits.maxTelegramGroups}
         channelsAtLimit={channelsAtLimit}
         activeOffers={activeOffers}
         groupsMonitored={bot.groupsCount}
@@ -169,6 +169,7 @@ const Dashboard: React.FC = () => {
       />
 
       {insights.length > 0 && (
+        <Disclosure title="Sugestões para melhorar seus resultados">
         <Card className="p-4 flex flex-col sm:flex-row sm:items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-ice border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
             <Lightbulb className="w-5 h-5" />
@@ -185,12 +186,13 @@ const Dashboard: React.FC = () => {
             </ul>
           </div>
         </Card>
+        </Disclosure>
       )}
 
       <div className="grid grid-cols-12 gap-3">
         <Card className="col-span-12 lg:col-span-8 p-5 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-ink tracking-tight font-display">Top Ofertas por Cliques</h2>
+            <h2 className="text-sm font-semibold text-ink tracking-tight font-display">Ofertas com mais cliques</h2>
             <button onClick={() => navigate('/offers')} className="text-[11px] font-semibold text-mint-800 hover:text-mint-900 flex items-center gap-0.5 cursor-pointer transition-colors">
               Ver Ofertas <ArrowUpRight className="w-3 h-3" />
             </button>
@@ -226,7 +228,7 @@ const Dashboard: React.FC = () => {
 
         <Card className="col-span-12 lg:col-span-4 p-5 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-ink tracking-tight font-display">Disparos Recentes</h2>
+            <h2 className="text-sm font-semibold text-ink tracking-tight font-display">Disparos recentes</h2>
             <button onClick={() => navigate('/history')} className="text-[11px] font-semibold text-mint-800 hover:text-mint-900 flex items-center gap-0.5 cursor-pointer transition-colors">
               Ver Todos <ArrowUpRight className="w-3 h-3" />
             </button>

@@ -31,7 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
-    <div className="h-screen bg-surface-1 flex text-ink relative">
+    <div className="h-dvh overflow-hidden bg-surface-1 flex text-ink relative">
       {/* Faixa de acesso expirado: fixa no topo da area de conteudo, sempre
           visivel (atravessa troca de rota/aba e scroll), sem botao de fechar --
           so some quando o pagamento reativa a conta (access.isExpired vira
@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         <div className="fixed top-0 left-0 right-0 lg:left-64 z-[45] bg-danger-bg border-b border-danger/25 shadow-sm">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-4 py-2.5 text-xs">
             <span className="text-center font-semibold text-danger-ink">
-              Seu teste acabou. O bot está pausado e nada foi apagado.
+              Seu acesso terminou. Seus dados continuam salvos.
             </span>
             <button
               onClick={() => navigate('/pricing')}
@@ -78,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
           menos que o conteúdo). overflow-x-hidden aqui só escondia o
           sintoma (cortava o conteúdo), não corrigia a largura de verdade. */}
       <div
-        className={`flex-1 min-w-0 lg:ml-64 flex flex-col min-h-screen relative z-10 ${
+        className={`flex-1 min-w-0 lg:ml-64 flex flex-col min-h-0 relative z-10 ${
           access.isExpired ? 'pt-[58px] sm:pt-[42px]' : ''
         }`}
       >
@@ -91,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
             (fixed bottom-6 w-12 h-12) não cobrir o fim do conteúdo; md:p-6
             volta ao padding uniforme porque o botão já não fica tão perto
             do conteúdo em telas maiores. */}
-        <main className="flex-1 min-w-0 min-h-0 p-4 pb-24 md:p-6 overflow-y-auto overflow-x-hidden">{children}</main>
+        <main className="flex-1 min-w-0 min-h-0 p-4 pb-24 md:p-6 overflow-y-auto"><div className="mx-auto w-full max-w-7xl">{children}</div></main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}

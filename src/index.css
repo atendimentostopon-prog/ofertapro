@@ -24,7 +24,7 @@
 
   --ink-primary:         #101418;
   --ink-secondary:       #6B7280;
-  --ink-tertiary:        #9CA3AF;
+  --ink-tertiary:        #667085;
   --ink-inverse:         #FFFFFF;
   --ink-disabled:        #C0C5CE;
 
@@ -60,7 +60,7 @@
 
   --ink-primary-rgb:     16 20 24;
   --ink-secondary-rgb:   107 114 128;
-  --ink-tertiary-rgb:    156 163 175;
+  --ink-tertiary-rgb:    102 112 133;
   --ink-inverse-rgb:     255 255 255;
   --ink-disabled-rgb:    192 197 206;
 
@@ -99,7 +99,7 @@
 
   --ink-primary:         #F5F6F7;
   --ink-secondary:       #9AA1AA;
-  --ink-tertiary:        #6B7280;
+  --ink-tertiary:        #9AA1AA;
   /* ink-inverse NAO inverte aqui de proposito: é usado como texto claro
      sobre fundos que nunca mudam de tom (bg-graphite, bg-danger, gradientes
      de marca), nunca sobre uma superficie que vira clara no escuro. Fica
@@ -136,7 +136,7 @@
 
   --ink-primary-rgb:     245 246 247;
   --ink-secondary-rgb:   154 161 170;
-  --ink-tertiary-rgb:    107 114 128;
+  --ink-tertiary-rgb:    154 161 170;
   /* ink-inverse-rgb idem — nao redefinido aqui, herda 255 255 255 do :root */
   --ink-disabled-rgb:    47 52 59;
 

@@ -13,7 +13,7 @@ const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
 const PLAN_HIGHLIGHT: PlanCode = "pro";
 
 export default function Pricing() {
-  const { data: currentSub } = useSubscription();
+  const { data: currentSub, loading, error, refresh } = useSubscription();
   const { user } = useUser();
   const access = useAccountAccess();
   const nav = useNavigate();
@@ -23,7 +23,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-4">
+    <div className="max-w-6xl mx-auto py-4 sm:py-6">
       {/* Banner de Teste Grátis Ativo (7 dias) */}
       {access.isTrialing && (
         <div className="mb-8 mx-auto max-w-3xl p-5 rounded-2xl bg-ice border border-mint-200 text-mint-900 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-slide-up">
@@ -65,18 +65,19 @@ export default function Pricing() {
       {!access.isTrialing && !access.isExpired && user?.plan === 'starter' && !currentSub && (
         <div className="mb-6 mx-auto max-w-3xl p-4 rounded-2xl bg-ice border border-mint-200 text-mint-800">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold">Você já usa o Aflyo Starter por cortesia.</span>
+            <span className="text-sm font-semibold">O plano Starter está liberado na sua conta.</span>
           </div>
-          <p className="text-xs text-mint-700 mt-1">Como usuário fundador, seu acesso é vitalício e não precisa de assinatura.</p>
+          <p className="text-xs text-mint-700 mt-1">Nenhuma assinatura recorrente foi encontrada. Consulte os detalhes em Plano e cobrança.</p>
         </div>
       )}
 
-      <h1 className="text-3xl md:text-4xl font-bold text-ink text-center font-display">Planos</h1>
+      <h1 className="text-2xl font-bold text-ink text-center font-display">Planos</h1>
       <p className="text-base text-ink-secondary text-center mt-2">
-        Escolha o plano ideal pro seu volume de ofertas e canais.
+        Escolha o plano ideal para seu volume de ofertas e canais.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 items-stretch">
+      {error && <div role="alert" className="my-4 rounded-xl border border-danger/20 bg-danger-bg p-4 text-sm text-danger-ink">Não foi possível atualizar sua assinatura. <button onClick={() => void refresh()} className="underline">Tentar novamente</button></div>}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 items-stretch">
         {PLAN_ORDER.map(plan => {
           const sku = PLAN_CATALOG[plan].monthly;
           const isHighlighted = plan === PLAN_HIGHLIGHT;
@@ -130,13 +131,9 @@ export default function Pricing() {
                     nav("/settings?tab=billing");
                     return;
                   }
-                  if (isTrialCurrent) {
-                    nav("/dashboard");
-                    return;
-                  }
                   handleAssinar(plan);
                 }}
-                disabled={!isAvailable || isCurrent || isGrandfathered}
+                disabled={loading || !!error || !isAvailable || isCurrent || isGrandfathered}
               >
                 {!isAvailable
                   ? "Em breve"
@@ -145,7 +142,7 @@ export default function Pricing() {
                   : isGrandfathered
                   ? "Já ativo (cortesia)"
                   : isTrialCurrent
-                  ? "Em teste (Ir ao Painel)"
+                  ? "Assinar Starter"
                   : blockedByActiveSub
                   ? "Gerencie em Configurações"
                   : "Assinar"}

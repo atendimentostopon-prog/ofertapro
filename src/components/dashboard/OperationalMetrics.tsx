@@ -1,19 +1,21 @@
 import React from 'react';
 import { Send, Radio, Package, Radar } from 'lucide-react';
 import { Card } from '../ui/Card';
+import ChannelLogo from '../ui/ChannelLogo';
 
 interface Props {
   dispatches30d: number;
-  connectedChannels: number;
-  channelLimit: number;
-  channelLimited: boolean;
+  whatsappChannels: number;
+  whatsappLimit: number;
+  telegramChannels: number;
+  telegramLimit: number;
   channelsAtLimit: boolean;
   activeOffers: number;
   groupsMonitored: number;
 }
 
 export const OperationalMetrics: React.FC<Props> = ({
-  dispatches30d, connectedChannels, channelLimit, channelLimited, channelsAtLimit,
+  dispatches30d, whatsappChannels, whatsappLimit, telegramChannels, telegramLimit, channelsAtLimit,
   activeOffers, groupsMonitored,
 }) => {
   return (
@@ -38,23 +40,37 @@ export const OperationalMetrics: React.FC<Props> = ({
           <span className="text-[10px] font-semibold text-ink-tertiary uppercase tracking-wider">Canais</span>
           <Radio className={`w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity ${channelsAtLimit ? 'text-warning-ink' : 'text-ink-secondary'}`} />
         </div>
-        <div className="mt-3">
-          <div className="flex items-baseline gap-1">
-            <h3 className="text-2xl font-bold text-ink tracking-tight tabular-nums font-display">{connectedChannels}</h3>
-            <span className="text-[10px] font-medium text-ink-tertiary">/ {channelLimited ? channelLimit : '∞'}</span>
-          </div>
-          {channelLimited && (
-            <div className="w-full bg-surface-1 h-1.5 rounded-full overflow-hidden mt-2 border border-line-subtle">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${channelsAtLimit ? 'bg-warning' : 'bg-mint-500'}`}
-                style={{ width: `${Math.min((connectedChannels / channelLimit) * 100, 100)}%` }}
-              />
-            </div>
-          )}
-          {channelsAtLimit
-            ? <p className="text-[10px] font-semibold text-warning-ink mt-1.5">Limite atingido</p>
-            : <p className="text-[10px] text-ink-tertiary mt-0.5">conectados</p>}
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {[
+            { type: 'whatsapp', count: whatsappChannels, limit: whatsappLimit },
+            { type: 'telegram', count: telegramChannels, limit: telegramLimit },
+          ].map(({ type, count, limit }) => {
+            const limited = limit !== Infinity;
+            const atLimit = limited && count >= limit;
+            return (
+              <div key={type}>
+                <div className="flex items-center gap-1">
+                  <ChannelLogo type={type} size="w-3.5 h-3.5" />
+                  <div className="flex items-baseline gap-0.5">
+                    <h3 className="text-lg font-bold text-ink tracking-tight tabular-nums font-display">{count}</h3>
+                    <span className="text-[10px] font-medium text-ink-tertiary">/ {limited ? limit : '∞'}</span>
+                  </div>
+                </div>
+                {limited && (
+                  <div className="w-full bg-surface-1 h-1.5 rounded-full overflow-hidden mt-1.5 border border-line-subtle">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${atLimit ? 'bg-warning' : 'bg-mint-500'}`}
+                      style={{ width: `${Math.min((count / limit) * 100, 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+        {channelsAtLimit
+          ? <p className="text-[10px] font-semibold text-warning-ink mt-2">Limite atingido</p>
+          : <p className="text-[10px] text-ink-tertiary mt-2">conectados</p>}
       </Card>
 
       <Card variant="metric" className="p-4 flex flex-col justify-between group">

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useId } from 'react';
 
 interface TabsContextValue {
+  id: string;
   value: string;
   setValue: (v: string) => void;
 }
@@ -30,6 +31,7 @@ export const Tabs: React.FC<TabsProps> = ({
   children,
   className = '',
 }) => {
+  const id = useId();
   const [internalValue, setInternalValue] = useState(defaultValue);
   const isControlled = controlledValue !== undefined;
   const value = isControlled ? controlledValue : internalValue;
@@ -40,7 +42,7 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   return (
-    <TabsContext.Provider value={{ value, setValue }}>
+    <TabsContext.Provider value={{ id, value, setValue }}>
       <div className={className}>{children}</div>
     </TabsContext.Provider>
   );
@@ -92,13 +94,26 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   className = '',
   disabled = false,
 }) => {
-  const { value: currentValue, setValue } = useTabs();
+  const { id, value: currentValue, setValue } = useTabs();
   const isActive = currentValue === value;
 
   return (
     <button
       type="button"
       role="tab"
+      id={`${id}-tab-${value}`}
+      aria-controls={`${id}-panel-${value}`}
+      tabIndex={isActive ? 0 : -1}
+      onKeyDown={event => {
+        const list = event.currentTarget.closest('[role="tablist"]');
+        const tabs = Array.from(list?.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)') || []);
+        const index = tabs.indexOf(event.currentTarget);
+        const next = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+        if (next < 0) return;
+        event.preventDefault();
+        tabs[next]?.focus();
+        tabs[next]?.click();
+      }}
       aria-selected={isActive}
       disabled={disabled}
       onClick={() => setValue(value)}
@@ -127,10 +142,10 @@ export const TabsContent: React.FC<TabsContentProps> = ({
   children,
   className = '',
 }) => {
-  const { value: currentValue } = useTabs();
+  const { id, value: currentValue } = useTabs();
   if (currentValue !== value) return null;
   return (
-    <div role="tabpanel" className={className}>
+    <div role="tabpanel" id={`${id}-panel-${value}`} aria-labelledby={`${id}-tab-${value}`} tabIndex={0} className={className}>
       {children}
     </div>
   );

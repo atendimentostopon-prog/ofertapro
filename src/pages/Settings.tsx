@@ -15,11 +15,11 @@ import { BillingTab } from '../components/settings/BillingTab';
 type TabId = 'account' | 'profile' | 'links' | 'templates' | 'billing';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'account', label: 'Minha Conta', icon: UserIcon },
-  { id: 'profile', label: 'Minha Vitrine', icon: Globe },
-  { id: 'links', label: 'Links da Vitrine', icon: Link2 },
-  { id: 'templates', label: 'Templates de Mensagem', icon: MessageSquare },
-  { id: 'billing', label: 'Planos e Cobrança', icon: CreditCard },
+  { id: 'account', label: 'Minha conta', icon: UserIcon },
+  { id: 'profile', label: 'Vitrine', icon: Globe },
+  { id: 'links', label: 'Links da vitrine', icon: Link2 },
+  { id: 'templates', label: 'Mensagens', icon: MessageSquare },
+  { id: 'billing', label: 'Plano e cobrança', icon: CreditCard },
 ];
 
 // Abas que compartilham o mesmo formulário de perfil (useSettingsProfile) e
@@ -128,7 +128,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className={`mx-auto w-full max-w-4xl animate-slide-up ${showSaveButton ? 'pb-24' : 'pb-10'}`}>
-      <header className="text-center">
+      <header>
         <h1 className="text-2xl font-bold text-ink tracking-tight font-display">Configurações</h1>
         <p className="text-[15px] font-medium text-ink-secondary mt-1">
           Gerencie sua conta, sua vitrine, os planos e os templates de disparo
@@ -148,7 +148,7 @@ const Settings: React.FC = () => {
             ref={tablistRef}
             role="tablist"
             aria-label="Seções de configurações"
-            className="tab-container mx-auto w-max flex-nowrap p-1.5 gap-1"
+            className="tab-container w-max flex-nowrap p-1.5 gap-1"
           >
             {TABS.map((tab, index) => {
               const Icon = tab.icon;
@@ -204,7 +204,7 @@ const Settings: React.FC = () => {
             </p>
             <button
               onClick={profile.handleSave}
-              disabled={profile.saving}
+              disabled={profile.saving || profile.uploadingAvatar || profile.uploadingPublicAvatar}
               className="btn-gradient flex items-center justify-center gap-2 text-sm px-4 py-2.5 disabled:opacity-50 flex-shrink-0"
             >
               {profile.saving ? (
@@ -212,7 +212,7 @@ const Settings: React.FC = () => {
               ) : profile.saved ? (
                 <><Check className="w-4 h-4" /> Salvo!</>
               ) : (
-                <><Save className="w-4 h-4" /> Salvar Alterações</>
+                <><Save className="w-4 h-4" /> Salvar alterações</>
               )}
             </button>
           </div>

@@ -1,3 +1,4 @@
+import { notifyDataChanged } from '../lib/dataEvents';
 import { supabase } from '../lib/supabase';
 import { ChannelType } from '../types';
 
@@ -37,6 +38,7 @@ export const ChannelService = {
       .single();
     
     if (error) throw error;
+    notifyDataChanged("channels");
     return data;
   },
 
@@ -47,5 +49,6 @@ export const ChannelService = {
       .eq('id', id);
     
     if (error) throw error;
+    notifyDataChanged("channels");
   }
 };

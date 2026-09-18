@@ -1,4 +1,5 @@
 import React from 'react';
+import { hasSubscriptionAccess } from '../lib/subscription';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Layout from './Layout';
 import { useUser } from '../context/UserContext';
@@ -44,7 +45,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
   // - Não estiver carregando o status da assinatura
   // - Não possuir assinatura paga ativa
   // - O teste de 7 dias já tiver expirado (access.isExpired) OU não tiver acesso ativo (!access.hasAccess)
-  const isBlocked = !isAdmin && !subLoading && !subscription && (access.isExpired || (!access.hasAccess && user?.plan === 'free'));
+  const isBlocked = !isAdmin && !subLoading && !profileLoadFailed && !!user && !hasSubscriptionAccess(subscription) && (access.isExpired || (!access.hasAccess && user?.plan === 'free'));
 
   if (isBlocked && !isAllowedRoute) {
     console.log("[ProtectedRoute] Período de teste expirado ou sem plano ativo, redirecionando para /pricing");
@@ -84,8 +85,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn, children, o
       } catch (e) {
         console.error(e);
       }
-      localStorage.clear();
-      sessionStorage.clear();
       onLogout();
     };
 

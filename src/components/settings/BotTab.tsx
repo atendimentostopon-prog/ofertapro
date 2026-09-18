@@ -1,3 +1,4 @@
+import { Disclosure } from '../ui/Disclosure';
 import React, { useState, useEffect } from 'react';
 import {
   Bot, AlertCircle, Loader2, CheckCircle2,
@@ -699,7 +700,8 @@ export const BotTab: React.FC = () => {
                 />
               </div>
 
-              <div className="border-t border-line pt-4 space-y-4">
+              <Disclosure title="Horário de funcionamento">
+<div className="border-t border-line pt-4 space-y-4">
                 <h4 className="text-sm font-bold text-ink">Horário de funcionamento (opcional)</h4>
                 <p className="text-xs text-ink-secondary">
                   Defina uma janela em que o bot deve processar ofertas (horário de Brasília). Deixe em branco pra rodar o dia todo.
@@ -724,6 +726,7 @@ export const BotTab: React.FC = () => {
                   </Button>
                 </div>
               </div>
+              </Disclosure>
             </Section>
           )}
 
@@ -1013,7 +1016,8 @@ export const BotTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border-t border-line pt-4 space-y-4">
+              <Disclosure title="Credenciais Shopee">
+<div className="border-t border-line pt-4 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="text-sm font-bold text-ink">Credenciais Shopee Affiliate (opcional)</h4>
                   <Link
@@ -1045,8 +1049,10 @@ export const BotTab: React.FC = () => {
                   />
                 </div>
               </div>
+              </Disclosure>
 
-              <div className="border-t border-line pt-4 space-y-4">
+              <Disclosure title="Automação do Mercado Livre">
+<div className="border-t border-line pt-4 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="text-sm font-bold text-ink">Mercado Livre (opcional)</h4>
                   <Link
@@ -1094,6 +1100,7 @@ export const BotTab: React.FC = () => {
                   </div>
                 </div>
               </div>
+              </Disclosure>
             </Section>
           )}
         </>

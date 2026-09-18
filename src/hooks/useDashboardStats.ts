@@ -1,3 +1,4 @@
+import { useDataRefresh } from './useDataRefresh';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
@@ -255,5 +256,6 @@ export function useDashboardStats() {
   }, [loadStats]);
 
 
+  useDataRefresh(user?.id, ['offers', 'channels', 'history'], loadStats);
   return { ...stats, refresh: loadStats };
 }

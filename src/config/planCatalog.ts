@@ -73,6 +73,6 @@ export const FEATURES_BY_PLAN: Record<PlanCode, string[]> = {
     'Personalize o template de mensagem',
     'Remove a marca Aflyo da vitrine',
     'Suporte prioritário',
-    'Tudo do Profissional',
+    'Tudo do Pro',
   ],
 };

@@ -1,3 +1,4 @@
+import { Disclosure } from '../ui/Disclosure';
 import React, { useState, useEffect } from 'react';
 import {
   Key, ShieldAlert, Copy, Check, RefreshCw, Trash2,
@@ -527,6 +528,7 @@ const ApiIntegrationsTab: React.FC = () => {
       )}
 
       {/* 4. Documentação de Endpoints Rápidos */}
+      <Disclosure title="Documentação da API" description="Endpoints e exemplos de integração.">
       <div className="glass-card overflow-hidden border-line shadow-sm">
         <div className="px-6 py-4 border-b border-line bg-surface-1 flex items-center gap-2.5">
           <Terminal className="w-4.5 h-4.5 text-mint-700" />
@@ -622,6 +624,7 @@ const ApiIntegrationsTab: React.FC = () => {
           </div>        </div>
       </div>
 
+      </Disclosure>
       {/* 5. Alerta de Segurança de Boas Práticas */}
       <div className="p-4 bg-surface-1 border border-mint-200/40 rounded-2xl flex gap-3 text-mint-800">
         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
