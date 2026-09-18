@@ -41,19 +41,25 @@ semânticos (`surface-0/1/2/3/4`, `ink`/`ink-secondary`/`ink-tertiary`/`ink-inve
 `line`/`line-strong`/`line-subtle`, `success`/`warning`/`danger`/`info` nas variantes
 `DEFAULT`/`bg`/`ink`) — não precisam de `dark:` em cada classe. Em vez disso:
 
-1. `tailwind.config.js`: os tokens acima passam a resolver para `var(--nome)` em vez
-   do hex/rgba fixo atual. `graphite`, `mint`, `cloud`, `ice` **não mudam** — são
-   cores de marca, iguais nos dois temas.
-2. `src/index.css`: novo bloco definindo cada `--nome` em `:root` com os valores
-   claros atuais (`rgb()`/`rgba()` completos, ex.: `--surface-0: #FFFFFF;
-   --line: rgba(16, 20, 24, 0.08);`), e um bloco `[data-theme="dark"]` com os
-   valores escuros equivalentes (superfícies em tons de `graphite`, texto em tons de
-   branco, bordas em `rgba(255,255,255,N%)`, `success`/`warning`/`danger`/`info` com
-   a mesma lógica DEFAULT+opacidade já usada no shell escuro). Confirmado por
-   varredura: nenhum desses tokens é usado hoje com modificador de opacidade do
-   Tailwind (`text-ink/50` etc.) — por isso cada variável guarda a cor final
-   completa (incluindo alpha quando for o caso) em vez de precisar do técnica
-   `rgb(var(--x) / <alpha-value>)`.
+Varredura em `src/` mostrou dois padrões de uso distintos, então a conversão usa
+duas técnicas diferentes por grupo de token:
+
+1. **`surface`, `ink`, `line`** (e suas variantes): nunca usados com modificador de
+   opacidade do Tailwind (`text-ink/50` etc.) em nenhum arquivo. `tailwind.config.js`
+   passa a resolver cada um para `var(--nome)` puro; `src/index.css` define
+   `--nome` em `:root` com a cor final completa (hex ou `rgba()` já com alpha, ex.:
+   `--surface-0: #FFFFFF; --line: rgba(16, 20, 24, 0.08);`) e um bloco
+   `[data-theme="dark"]` com os equivalentes escuros.
+2. **`success`, `warning`, `danger`, `info`** (`DEFAULT`/`bg`/`ink`): usados **com**
+   modificador de opacidade em vários arquivos (`border-danger/25` em
+   `AnnouncementBanner`/`Badge`/`ToastContext`/etc., `bg-success/10` em `KpiCard`/
+   `StatusStrip`, `bg-danger-bg/80` em `BotControlPanel`). Pra isso continuar
+   funcionando, `tailwind.config.js` resolve esses pra
+   `rgb(var(--nome) / <alpha-value>)`, e cada `--nome` em `index.css` guarda só o
+   triplet RGB sem vírgula (ex.: `--danger: 239 68 68;`), não a cor completa.
+
+`graphite`, `mint`, `cloud`, `ice` **não mudam** — são cores de marca, iguais nos
+dois temas, ficam com o hex fixo que já têm hoje.
 3. O atributo `data-theme` é setado no `<html>` — como o CSS usa seletor de atributo
    plano (não `@media`), a resolução funciona nos três casos (SO claro sem escolha
    manual, SO escuro sem escolha manual, escolha manual do usuário) só alternando
