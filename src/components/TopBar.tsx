@@ -44,6 +44,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
   // destacados no dropdown mesmo depois de marcarmos como lido.
   const [lastReadSnapshot, setLastReadSnapshot] = useState<number | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const loadNotifications = async () => {
     if (!user || !user.id) return;
@@ -86,6 +87,10 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setNotifOpen(false);
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
     };
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -131,7 +136,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
 
   return (
     <header
-      className={`h-16 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky z-35 ${
+      className={`h-16 shrink-0 bg-surface-0/85 backdrop-blur-md border-b border-line flex items-center px-4 md:px-6 gap-3 sticky z-[35] ${
         belowExpiredBar ? 'top-[58px] sm:top-[42px]' : 'top-0'
       }`}
     >
@@ -165,14 +170,15 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
             }`}
           />
           <input
+            ref={searchRef}
             type="text"
-            placeholder="Buscar ofertas, canais..."
+            placeholder="Buscar ofertas..."
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             className="flex-1 text-[13px] bg-transparent outline-none text-ink placeholder:text-ink-tertiary min-w-0"
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            aria-label="Buscar ofertas e canais"
+            aria-label="Buscar ofertas"
           />
           {!searchFocused && (
             <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded border border-line text-ink-tertiary bg-surface-0">
@@ -198,6 +204,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
         {/* New Offer */}
         <button
           onClick={handleNewOffer}
+          aria-label="Nova oferta"
           className="btn-gradient flex items-center gap-1.5 text-[13px] px-3 py-2 sm:px-3.5 sm:py-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -212,11 +219,12 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
         <div className="w-px h-5 bg-line mx-0.5 hidden sm:block" />
 
         {/* Notifications */}
-        <div className="relative" ref={notifRef}>
+        <div className="sm:relative" ref={notifRef}>
           <button
             onClick={handleToggleNotif}
             className="relative w-8 h-8 rounded-md flex items-center justify-center hover:bg-surface-1 transition-colors text-ink-secondary hover:text-ink cursor-pointer"
             aria-label="Notificações"
+            aria-expanded={notifOpen}
           >
             <Bell className="w-[18px] h-[18px]" />
             {hasUnread && (

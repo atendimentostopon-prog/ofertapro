@@ -158,16 +158,16 @@ export const AnalyticsZone: React.FC<Props> = ({
               ))}
             </div>
 
-            <div className="pt-3 border-t border-line flex items-center justify-between">
-              <div className="text-left">
-                <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wider">Destaque</p>
-                <p className="text-xs font-semibold text-mint-800 capitalize mt-0.5">
+            <div className="pt-3 border-t border-line flex items-center justify-between gap-2">
+              <div className="text-left min-w-0">
+                <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wider truncate">Destaque</p>
+                <p className="text-xs font-semibold text-mint-800 capitalize mt-0.5 truncate" title={topSource === 'direct' ? 'Página Pública' : topSource.toUpperCase()}>
                   {topSource === 'direct' ? 'Página Pública' : topSource.toUpperCase()}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wider">Marketplace</p>
-                <p className="text-xs font-semibold text-ink capitalize mt-0.5">{topMarketplace.toUpperCase()}</p>
+              <div className="text-right min-w-0">
+                <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wider truncate">Marketplace</p>
+                <p className="text-xs font-semibold text-ink capitalize mt-0.5 truncate" title={topMarketplace.toUpperCase()}>{topMarketplace.toUpperCase()}</p>
               </div>
             </div>
           </div>

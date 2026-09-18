@@ -53,7 +53,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
   };
 
   return (
-    <div className="absolute right-0 top-12 w-80 max-w-[calc(100vw-2rem)] bg-surface-0 rounded-xl border border-line shadow-lg py-2 z-50 animate-scale-in flex flex-col max-h-96">
+    <div className="absolute right-4 top-full sm:right-0 sm:top-12 w-80 max-w-[calc(100vw-2rem)] bg-surface-0 rounded-xl border border-line shadow-lg py-2 z-50 animate-scale-in flex flex-col max-h-[min(24rem,calc(100dvh-9rem))]">
       {/* Header */}
       <div className="px-4 py-2 border-b border-line flex items-center justify-between">
         <h4 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
@@ -62,7 +62,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto py-1 scrollbar-none">
+      <div className="flex-1 min-h-0 overflow-y-auto py-1 scrollbar-none">
         {loading ? (
           <div className="p-8 text-center text-xs text-ink-tertiary">
             <div className="w-5 h-5 border-2 border-line border-t-mint-500 rounded-full animate-spin mx-auto mb-2" />
@@ -81,10 +81,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
             const Icon = cfg.icon;
             const unread = isUnread(n);
             return (
-              <div
+              <button
+                type="button"
                 key={n.id}
                 onClick={handleGoToHistory}
-                className={`px-4 py-3 transition-colors flex gap-3 items-start cursor-pointer ${
+                className={`w-full text-left px-4 py-3 transition-colors flex gap-3 items-start cursor-pointer ${
                   unread ? 'bg-ice hover:bg-mint-200/60' : 'hover:bg-surface-1'
                 }`}
               >
@@ -103,7 +104,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
                   </p>
                 </div>
                 {unread && <span className="w-1.5 h-1.5 rounded-full bg-mint-500 flex-shrink-0 mt-1.5" />}
-              </div>
+              </button>
             );
           })
         )}

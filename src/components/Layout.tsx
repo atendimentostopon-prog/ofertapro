@@ -31,7 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
-    <div className="h-screen bg-surface-1 flex text-ink relative overflow-hidden">
+    <div className="h-screen bg-surface-1 flex text-ink relative">
       {/* Faixa de acesso expirado: fixa no topo da area de conteudo, sempre
           visivel (atravessa troca de rota/aba e scroll), sem botao de fechar --
           so some quando o pagamento reativa a conta (access.isExpired vira

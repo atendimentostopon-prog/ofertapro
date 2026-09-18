@@ -44,6 +44,16 @@ export function useOffers() {
     }
   }, [user, loadOffers]);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user?.id && lastLoadedUserIdRef.current === user.id) {
+        loadOffers(true);
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, loadOffers]);
+
   const deleteOffer = async (id: string) => {
     try {
       await OfferService.deleteOffer(id);

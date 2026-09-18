@@ -26,6 +26,8 @@ export function useDashboardStats() {
     dispatches30d: 0,
     activeOffers: 0,
     connectedChannels: 0,
+    connectedWhatsappChannels: 0,
+    connectedTelegramChannels: 0,
     topOffers: [],
     topMarketplace: 'Nenhum',
     topSource: 'Nenhuma',
@@ -55,18 +57,23 @@ export function useDashboardStats() {
       const todayStr = toSPDateString(new Date());
 
       // Função helper para lidar com erros individuais de tabelas, timeouts e garantir fallback
-      const fetchWithFallback = async (queryPromise: any, tableName: string, timeoutMs = 4000) => {
+      const fetchWithFallback = async (queryPromise: any, tableName: string, timeoutMs = 10000) => {
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         try {
           const res = await Promise.race([
             Promise.resolve(queryPromise),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Timeout ao obter dados da tabela ${tableName}`)), timeoutMs))
+            new Promise<never>((_, reject) => {
+              timeoutId = setTimeout(() => reject(new Error(`Timeout ao obter dados da tabela ${tableName}`)), timeoutMs);
+            })
           ]);
+          if (timeoutId) clearTimeout(timeoutId);
           if (res.error) {
             console.error(`[DASHBOARD_STATS_ERROR] Erro ao buscar dados da tabela ${tableName}:`, res.error);
             return { data: [], error: res.error, isFallback: true, count: 0 };
           }
           return { data: res.data || [], error: null, isFallback: false, count: res.count ?? 0 };
         } catch (e: any) {
+          if (timeoutId) clearTimeout(timeoutId);
           console.error(`[DASHBOARD_STATS_ERROR] Exceção ou timeout na busca da tabela ${tableName}:`, e);
           return { data: [], error: e, isFallback: true, count: 0 };
         }
@@ -74,14 +81,14 @@ export function useDashboardStats() {
 
       // Buscar ofertas, canais, histórico recente e cliques dos últimos 30 dias em paralelo com timeouts individuais
       const [offersRes, channelsRes, historyRes, dispatchCountRes, clicksRes] = await Promise.all([
-        fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers', 4000),
-        fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels', 4000),
-        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history', 4000),
-        fetchWithFallback(supabase.from('history').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()), 'history_count', 4000),
+        fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers'),
+        fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels'),
+        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history'),
+        fetchWithFallback(supabase.from('history').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()), 'history_count'),
         // offer_id incluído pra poder ranquear "produtos mais clicados" a partir
         // do evento real em vez do contador denormalizado offers.clicks (ver nota
         // abaixo) -- ainda leve, mesma tabela/período já buscados.
-        fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks', 4000)
+        fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks')
       ]);
 
       // Se todas as consultas falharem catastróficamente (ex: erro de rede global), exibe o erro geral
@@ -100,6 +107,12 @@ export function useDashboardStats() {
       // 1. Contagens Básicas
       const activeOffersCount = offers.filter(o => o.status === 'active').length;
       const connectedChannelsCount = channels.filter(c => c.status === 'connected' || c.status === 'active').length;
+      const connectedWhatsappChannels = channels.filter(c =>
+        (c.type === 'whatsapp' || c.type === 'whatsapp_group') && (c.status === 'connected' || c.status === 'active')
+      ).length;
+      const connectedTelegramChannels = channels.filter(c =>
+        (c.type === 'telegram' || c.type === 'telegram_group') && (c.status === 'connected' || c.status === 'active')
+      ).length;
 
       // 2. Cliques por Período
       const totalClicksToday = clicks.filter(c => toSPDateString(c.created_at) === todayStr).length;
@@ -212,6 +225,8 @@ export function useDashboardStats() {
         dispatches30d: dispatchCountRes.count,
         activeOffers: activeOffersCount,
         connectedChannels: connectedChannelsCount,
+        connectedWhatsappChannels,
+        connectedTelegramChannels,
         topOffers: sortedOffers,
         topMarketplace,
         topSource,

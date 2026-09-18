@@ -17,6 +17,33 @@ async function timingSafeEqual(a: string, b: string): Promise<boolean> {
   return diff === 0
 }
 
+async function syncChannelsForInstance(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  instanceId: string,
+  status: 'connected' | 'disconnected',
+) {
+  const { data: localGroups, error: groupsError } = await supabaseAdmin
+    .from('whatsapp_groups')
+    .select('channel_id')
+    .eq('whatsapp_instance_id', instanceId)
+
+  if (groupsError) throw groupsError
+
+  const channelIds = (localGroups || [])
+    .map((group: { channel_id: string | null }) => group.channel_id)
+    .filter((id: string | null): id is string => id !== null)
+
+  if (channelIds.length === 0) return
+
+  const { error: updateError } = await supabaseAdmin
+    .from('channels')
+    .update({ status, last_sync: new Date().toISOString() })
+    .in('id', channelIds)
+
+  if (updateError) throw updateError
+  console.log(`[WEBHOOK] ${channelIds.length} canal(is) sincronizado(s) para '${status}'.`)
+}
+
 serve(async (req) => {
   // Webhooks geralmente são acionados apenas por requisições POST
   if (req.method !== 'POST') {
@@ -131,24 +158,11 @@ serve(async (req) => {
       return new Response('Database update error', { status: 500 })
     }
 
-    // Se a instância desconectar, desabilitar/desconectar os canais associados
-    if (updatePayload.status === 'disconnected' || updatePayload.status === 'error') {
-      const { data: localGroups } = await supabaseAdmin
-        .from('whatsapp_groups')
-        .select('channel_id')
-        .eq('whatsapp_instance_id', instance.id)
-
-      const channelIdsToDisconnect = (localGroups || [])
-        .map(g => g.channel_id)
-        .filter(id => id !== null)
-
-      if (channelIdsToDisconnect.length > 0) {
-        await supabaseAdmin
-          .from('channels')
-          .update({ status: 'disconnected', last_sync: new Date().toISOString() })
-          .in('id', channelIdsToDisconnect)
-        console.log(`[WEBHOOK] Desconectados ${channelIdsToDisconnect.length} canais devido à desconexão da instância.`)
-      }
+    // O status da instância deve refletir nos canais associados nos dois sentidos.
+    if (updatePayload.status === 'connected') {
+      await syncChannelsForInstance(supabaseAdmin, instance.id, 'connected')
+    } else if (updatePayload.status === 'disconnected' || updatePayload.status === 'error') {
+      await syncChannelsForInstance(supabaseAdmin, instance.id, 'disconnected')
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 })

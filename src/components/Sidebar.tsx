@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from 'next-themes';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const { user } = useUser();
   const { toast } = useToast();
   const access = useAccountAccess();
+  const { resolvedTheme } = useTheme();
 
   if (!user) return null;
 
@@ -50,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
       {/* Header / Logo */}
       <div className="px-5 h-16 border-b border-line flex items-center justify-between flex-shrink-0">
         <img
-          src="/brand/logo-primary.png"
+          src={resolvedTheme === 'dark' ? '/brand/logo-white.png' : '/brand/logo-primary.png'}
           alt={APP_NAME}
           className="h-7 w-auto select-none"
           draggable={false}

@@ -16,7 +16,7 @@ interface BotConfigRow {
   ativo?: boolean | null;
   grupos_origem?: string[] | null;
   paused_reason?: string | null;
-  error_message?: string | null;
+  last_error?: string | null;
 }
 
 interface BotStatusState {
@@ -51,9 +51,6 @@ export function useBotStatus(): BotStatusState {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
-      // select('*') de propósito: BotTab.tsx usa o mesmo padrão contra essa
-      // tabela. Um select nomeado aqui já falhou (error_message não bate
-      // com nenhuma migration que cria essa coluna em bot_configs).
       const { data, error } = await supabase
         .from('bot_configs')
         .select('*')
@@ -106,7 +103,7 @@ export function useBotStatus(): BotStatusState {
   return {
     view: errored ? 'unknown' : deriveView(row),
     groupsCount: Array.isArray(row?.grupos_origem) ? row!.grupos_origem!.length : 0,
-    errorMessage: row?.error_message ?? null,
+    errorMessage: row?.last_error ?? null,
     loading,
     toggling,
     setMonitoring,

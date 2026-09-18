@@ -35,7 +35,7 @@ interface BotConfig {
   ativo: boolean;
   horario_inicio: string | null;
   horario_fim: string | null;
-  error_message?: string | null;
+  last_error?: string | null;
   updated_at?: string;
   paused_reason?: string | null;
 }
@@ -604,7 +604,7 @@ export const BotTab: React.FC = () => {
               <div className="flex-1">
                 <h5 className="text-xs font-bold text-danger-ink">Falha na Conexão do Bot</h5>
                 <p className="text-xs text-ink-secondary mt-1">
-                  {config.error_message || 'Houve um problema de autenticação na sessão do Telegram.'}
+                  {config.last_error || 'Houve um problema de autenticação na sessão do Telegram.'}
                 </p>
               </div>
               <Button size="sm" onClick={() => setIsReconnecting(true)}>

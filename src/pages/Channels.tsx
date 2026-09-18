@@ -55,7 +55,8 @@ const ChannelCard: React.FC<{
   channel: any;
   onRemove: (id: string) => void;
   onToggleStatus: (id: string, currentStatus: string) => void;
-}> = ({ channel, onRemove, onToggleStatus }) => {
+  onStatusUpdate: (id: string, status: 'connected' | 'disconnected') => void;
+}> = ({ channel, onRemove, onToggleStatus, onStatusUpdate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
@@ -130,9 +131,24 @@ const ChannelCard: React.FC<{
     const result = await testTelegramConnection(botToken, chatId);
     setTesting(false);
     if (result.success) {
+      const { error } = await supabase
+        .from('channels')
+        .update({ status: 'connected', last_sync: new Date().toISOString() })
+        .eq('id', channel.id);
+      if (error) {
+        setTestResult('error');
+        setTestError('Conexão válida, mas não foi possível atualizar o status salvo.');
+        return;
+      }
+      onStatusUpdate(channel.id, 'connected');
       setTestResult('success');
       setTimeout(() => setTestResult('idle'), 4000);
     } else {
+      await supabase
+        .from('channels')
+        .update({ status: 'disconnected', last_sync: new Date().toISOString() })
+        .eq('id', channel.id);
+      onStatusUpdate(channel.id, 'disconnected');
       setTestResult('error');
       setTestError(result.error ?? 'Erro desconhecido.');
       setTimeout(() => { setTestResult('idle'); setTestError(null); }, 6000);
@@ -438,6 +454,13 @@ const Channels: React.FC = () => {
       console.error('Erro ao atualizar status:', err);
       toast('Erro ao atualizar status.', 'error');
     }
+  };
+
+  const handleStatusUpdate = (id: string, status: 'connected' | 'disconnected') => {
+    setChannels(prev => prev.map(c => c.id === id
+      ? { ...c, status, lastSync: new Date().toISOString() }
+      : c
+    ));
   };
 
   const handleConnect = async (data: { name: string; identifier: string; metadata?: Record<string, string> }) => {
@@ -967,6 +990,7 @@ const Channels: React.FC = () => {
                 channel={ch}
                 onRemove={handleRemove}
                 onToggleStatus={handleToggleStatus}
+                onStatusUpdate={handleStatusUpdate}
               />
             ))}
           </div>
@@ -1001,6 +1025,7 @@ const Channels: React.FC = () => {
                 channel={ch}
                 onRemove={handleRemove}
                 onToggleStatus={handleToggleStatus}
+                onStatusUpdate={handleStatusUpdate}
               />
             ))}
           </div>

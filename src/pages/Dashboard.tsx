@@ -31,6 +31,7 @@ const Dashboard: React.FC = () => {
   const {
     totalClicksToday, totalClicks7d, totalClicks30d,
     dispatches30d, connectedChannels, activeOffers,
+    connectedWhatsappChannels, connectedTelegramChannels,
     topOffers, topMarketplace, topSource,
     clicksByDay, clicksBySource, recentHistory, insights,
     loading, error,
@@ -56,9 +57,11 @@ const Dashboard: React.FC = () => {
   const limits = getPlanLimits(plan);
   const showClicks = limits.advancedAnalytics;
 
-  const channelLimit = limits.maxWhatsappConnections + limits.maxTelegramConnections;
-  const channelLimited = limits.maxWhatsappConnections !== Infinity && channelLimit > 0;
-  const channelsAtLimit = channelLimited && connectedChannels >= channelLimit;
+  const whatsappAtLimit = limits.maxWhatsappGroups !== Infinity && connectedWhatsappChannels >= limits.maxWhatsappGroups;
+  const telegramAtLimit = limits.maxTelegramGroups !== Infinity && connectedTelegramChannels >= limits.maxTelegramGroups;
+  const channelLimit = limits.maxWhatsappGroups + limits.maxTelegramGroups;
+  const channelLimited = limits.maxWhatsappGroups !== Infinity || limits.maxTelegramGroups !== Infinity;
+  const channelsAtLimit = whatsappAtLimit || telegramAtLimit;
 
   const getFirstName = () => {
     if (!user) return 'Usuário';

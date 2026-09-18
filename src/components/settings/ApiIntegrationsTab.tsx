@@ -193,22 +193,22 @@ const ApiIntegrationsTab: React.FC = () => {
       <div className="glass-card overflow-hidden border-line shadow-sm p-6 bg-surface-1">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-4 min-w-0">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-              activeKey
+            <div aria-busy={loading} className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+              loading ? 'bg-surface-2 animate-pulse' : !keysError && activeKey
                 ? 'bg-success-bg border border-success/20 text-success-ink'
                 : 'bg-surface-2 border border-line text-ink-secondary'
             }`}>
-              {activeKey ? <ShieldCheck className="w-6 h-6" /> : <Key className="w-6 h-6" />}
+              {loading ? <Loader2 className="w-6 h-6 animate-spin text-ink-secondary" /> : keysError ? <ShieldAlert className="w-6 h-6" /> : activeKey ? <ShieldCheck className="w-6 h-6" /> : <Key className="w-6 h-6" />}
             </div>
             <div className="space-y-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h3 className="text-[15px] font-bold text-ink tracking-tight">Status da API e Integrações</h3>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
-                  activeKey 
+                  !loading && !keysError && activeKey
                     ? 'bg-success-bg border-success/25 text-success-ink'
                     : 'bg-surface-2 border-line text-ink-secondary'
                 }`}>
-                  {activeKey ? 'Ativo' : 'Não configurado'}
+                  {loading ? 'Carregando...' : keysError ? 'Status indisponível' : activeKey ? 'Ativo' : 'Não configurado'}
                 </span>
               </div>
               <p className="text-xs text-ink-secondary leading-relaxed max-w-xl">
