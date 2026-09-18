@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --surface-0: #FFFFFF;
+  --surface-1: #F6F7F9;
+  --surface-2: #F1F3F6;
+  --surface-3: #E7EAEE;
+  --surface-4: #D8DCE2;
+
+  --ink: #101418;
+  --ink-secondary: #6B7280;
+  --ink-tertiary: #9CA3AF;
+  --ink-inverse: #FFFFFF;
+  --ink-disabled: #C0C5CE;
+
+  --line: rgba(16, 20, 24, 0.08);
+  --line-strong: rgba(16, 20, 24, 0.16);
+  --line-subtle: rgba(16, 20, 24, 0.04);
+}
