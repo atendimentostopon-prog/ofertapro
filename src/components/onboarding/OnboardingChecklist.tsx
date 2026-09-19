@@ -6,24 +6,33 @@ import {
   User, Radio, Package, Send, MousePointerClick
 } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { useUser } from '../../context/UserContext';
 import { APP_NAME } from '../../config/app';
 
 const OnboardingChecklist: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const { steps, percentCompleted, allCompleted, loading, refresh } = useOnboarding();
-  const [dismissed, setDismissed] = useState(false);
+  const dismissalKey = user?.id ? `ofertapro_onboarding_dismissed_${user.id}` : null;
+  const [dismissal, setDismissal] = useState<{ key: string | null; dismissed: boolean }>({
+    key: null,
+    dismissed: false,
+  });
 
   useEffect(() => {
-    const isDismissed = localStorage.getItem('ofertapro_onboarding_dismissed') === 'true';
-    setDismissed(isDismissed);
-  }, []);
+    setDismissal({
+      key: dismissalKey,
+      dismissed: dismissalKey !== null && localStorage.getItem(dismissalKey) === 'true',
+    });
+  }, [dismissalKey]);
 
   const handleDismiss = () => {
-    localStorage.setItem('ofertapro_onboarding_dismissed', 'true');
-    setDismissed(true);
+    if (!dismissalKey) return;
+    localStorage.setItem(dismissalKey, 'true');
+    setDismissal({ key: dismissalKey, dismissed: true });
   };
 
-  if (loading || dismissed) return null;
+  if (loading || !dismissalKey || dismissal.key !== dismissalKey || dismissal.dismissed) return null;
 
   if (allCompleted) {
     return (
