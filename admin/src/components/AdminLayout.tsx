@@ -23,7 +23,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-dvh bg-surface-1 text-ink">
-      <div className="hidden lg:block"><Sidebar /></div>
+      <div className="sticky top-0 hidden h-dvh self-start lg:block"><Sidebar /></div>
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden" role="dialog" aria-modal="true" aria-label="Menu principal">
           <button
