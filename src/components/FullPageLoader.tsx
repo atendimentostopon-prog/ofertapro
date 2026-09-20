@@ -54,7 +54,7 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
         {/* Brand Logo */}
         <div className="flex flex-col items-center">
           <img
-            src="/brand/logo-primary.png"
+            src="/brand/logo-white.png"
             alt={APP_NAME}
             className="h-9 w-auto select-none"
             draggable={false}
