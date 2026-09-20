@@ -68,7 +68,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
         'Clique em "Conectar".',
         'Se ainda não estiver, faça login em mercadolivre.com.br numa aba do mesmo navegador.',
       ],
-      note: 'O status muda para "Conectado" quando a sincronização funciona. A extensão repete essa sincronização sozinha a cada 25 minutos enquanto o Chrome estiver aberto.',
+      note: 'Clique em "Testar e sincronizar agora" para conferir: o popup mostra se você está logado no Mercado Livre, se a chave é válida, se a tag foi preenchida e se o Mercado Livre aceitou a sessão. Depois disso a extensão sincroniza sozinha sempre que seu login no Mercado Livre muda e, por garantia, a cada 25 minutos, enquanto o Chrome estiver aberto.',
       buttonLabel: null,
       url: null,
     },
@@ -82,7 +82,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
         'Preencha o campo "Tag de afiliado Mercado Livre".',
         'Clique em "Salvar configurações".',
       ],
-      note: 'Pronto. A partir daqui, ofertas do Mercado Livre detectadas nos seus grupos de origem geram link de afiliado automaticamente, sem precisar de revisão manual.',
+      note: 'Pronto. A partir daqui, ofertas do Mercado Livre detectadas nos seus grupos de origem geram link de afiliado automaticamente. Quando o produto não pode ser identificado com segurança, a oferta cai na revisão manual em vez de arriscar um link errado.',
       buttonLabel: null,
       url: null,
     },
@@ -95,15 +95,15 @@ export const MercadoLivreAutomationPage: React.FC = () => {
     },
     {
       q: 'Preciso deixar o Chrome aberto o tempo todo?',
-      a: 'A extensão só sincroniza enquanto o Chrome está aberto (ela roda em segundo plano a cada 25 minutos). Se o computador ficar desligado por muito tempo, a sessão do Mercado Livre pode expirar. Nesse caso, basta abrir o Chrome de novo com o Mercado Livre logado que a próxima sincronização resolve sozinha.',
+      a: 'A extensão só sincroniza enquanto o Chrome está aberto. Se o computador ficar desligado por muito tempo, a sessão do Mercado Livre pode expirar. Nesse caso, basta abrir o Chrome de novo com o Mercado Livre logado: a extensão sincroniza sozinha ao abrir o site.',
     },
     {
       q: 'O que fazer se aparecer "sessão expirada" ou erro parecido?',
-      a: 'Abra o mercadolivre.com.br numa aba e confirme que sua conta ainda está logada (às vezes o Mercado Livre desloga sozinho por segurança). Depois de logar de novo, clique no ícone da extensão para forçar uma nova sincronização.',
+      a: 'Você recebe um aviso no Telegram e o painel mostra "O Mercado Livre recusou sua sessão". Abra o mercadolivre.com.br numa aba e confirme que sua conta ainda está logada (às vezes o Mercado Livre desloga sozinho por segurança). Depois de logar de novo, clique no ícone da extensão e em "Testar e sincronizar agora". Enquanto isso, as ofertas do Mercado Livre continuam chegando pra revisão manual.',
     },
     {
       q: 'Isso é seguro? Que dado é enviado?',
-      a: `Só os cookies da sua sessão no mercadolivre.com.br são enviados, direto do seu navegador para os servidores do ${APP_NAME}, nunca para terceiros. Eles ficam associados só à sua conta e são usados exclusivamente para gerar seus próprios links de afiliado.`,
+      a: `Só os cookies de login da sua sessão no mercadolivre.com.br são enviados (cerca de 10, sem cookies de rastreamento ou publicidade), direto do seu navegador para os servidores do ${APP_NAME}, nunca para terceiros. Eles ficam associados só à sua conta e são usados exclusivamente para gerar seus próprios links de afiliado.`,
     },
     {
       q: 'E se eu não quiser usar a extensão?',
@@ -235,7 +235,7 @@ export const MercadoLivreAutomationPage: React.FC = () => {
           <div className="space-y-3 text-xs sm:text-sm text-ink-secondary leading-relaxed font-medium">
             <div className="flex items-start gap-2.5">
               <Puzzle className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
-              <p>A extensão roda em segundo plano no seu Chrome, capturando sua sessão do Mercado Livre a cada 25 minutos.</p>
+              <p>A extensão roda em segundo plano no seu Chrome e atualiza sua sessão do Mercado Livre sempre que o login muda, além de uma verificação a cada 25 minutos.</p>
             </div>
             <div className="flex items-start gap-2.5">
               <Key className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
