@@ -54,3 +54,4 @@ supabase/.temp
 
 # Deno lockfile gerado ao rodar `deno test`/`deno check` nas Edge Functions
 /deno.lock
+.worktrees/
