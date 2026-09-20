@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Clock } from 'lucide-react';
+import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Clock, ArrowRight } from 'lucide-react';
 import { HistoryStatus } from '../types';
 import { pluralize } from '../lib/format';
 
@@ -22,6 +22,7 @@ const statusConfig: Record<HistoryStatus, { icon: React.ElementType; color: stri
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notifications, onClose, loading, lastReadAt }) => {
   const navigate = useNavigate();
+  const [filter, setFilter] = useState<'all' | 'attention'>('all');
   // Dado principal (resultado + nº de canais) vem primeiro; o nome da oferta,
   // que é o trecho longo, fica no fim onde o line-clamp pode cortar sem prejuízo.
   const getNotificationText = (notif: any) => {
@@ -52,6 +53,10 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
     navigate('/history');
   };
 
+  const visibleNotifications = filter === 'attention'
+    ? notifications.filter(item => !['success', 'sent'].includes(item.status))
+    : notifications;
+
   return (
     <div className="absolute right-4 top-full sm:right-0 sm:top-12 w-80 max-w-[calc(100vw-2rem)] bg-surface-0 rounded-xl border border-line shadow-lg py-2 z-50 animate-scale-in flex flex-col max-h-[min(24rem,calc(100dvh-9rem))]">
       {/* Header */}
@@ -59,6 +64,18 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
         <h4 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
           <Bell className="w-3.5 h-3.5 text-mint-700" /> Notificações
         </h4>
+        <div className="flex items-center gap-1" aria-label="Filtrar notificações">
+          {(['all', 'attention'] as const).map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setFilter(option)}
+              className={`px-2 py-1 rounded-md text-[10px] font-semibold ${filter === option ? 'bg-graphite text-ink-inverse' : 'text-ink-tertiary hover:bg-surface-1'}`}
+            >
+              {option === 'all' ? 'Todas' : 'Atenção'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* List */}
@@ -68,15 +85,15 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
             <div className="w-5 h-5 border-2 border-line border-t-mint-500 rounded-full animate-spin mx-auto mb-2" />
             Carregando...
           </div>
-        ) : notifications.length === 0 ? (
+        ) : visibleNotifications.length === 0 ? (
           <div className="p-8 text-center text-xs text-ink-tertiary flex flex-col items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-surface-1 flex items-center justify-center">
               <Bell className="w-5 h-5 text-ink-tertiary" />
             </div>
-            <span>Nenhuma notificação no momento.</span>
+            <span>{filter === 'attention' ? 'Nenhuma pendência no momento.' : 'Nenhuma notificação no momento.'}</span>
           </div>
         ) : (
-          notifications.map(n => {
+          visibleNotifications.map(n => {
             const cfg = statusConfig[n.status as HistoryStatus] || statusConfig.error;
             const Icon = cfg.icon;
             const unread = isUnread(n);
@@ -102,6 +119,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notificat
                     <Clock className="w-3 h-3" />
                     {formatNotifTime(n.sent_at)}
                   </p>
+                  {!['success', 'sent'].includes(n.status) && (
+                    <span className="text-[10px] font-semibold text-danger-ink mt-1.5 inline-flex items-center gap-1">
+                      Revisar falha <ArrowRight className="w-3 h-3" />
+                    </span>
+                  )}
                 </div>
                 {unread && <span className="w-1.5 h-1.5 rounded-full bg-mint-500 flex-shrink-0 mt-1.5" />}
               </button>

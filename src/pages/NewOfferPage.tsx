@@ -16,6 +16,7 @@ import { getMarketplaceLogoSrc } from '../lib/logos';
 import { useToast } from '../context/ToastContext';
 import { pluralize } from '../lib/format';
 import { Card } from '../components/ui/Card';
+import { Stepper } from '../components/ui/Stepper';
 import {
   formatCurrencyInput,
   parseCurrencyInputToCents,
@@ -65,6 +66,20 @@ const NewOfferPage: React.FC = () => {
   } = useOfferForm({ onSuccess: () => navigate('/offers') });
 
   const { toast } = useToast();
+
+  const offerSteps = [
+    { id: 'link', label: 'Produto', description: 'Link da oferta' },
+    { id: 'details', label: 'Oferta', description: 'Dados e preço' },
+    { id: 'channels', label: 'Canais', description: 'Destinos' },
+    { id: 'review', label: 'Revisar', description: 'Publicação' },
+  ];
+  const guidedStep = step === 1
+    ? 0
+    : !form.name.trim() || !form.salePrice.trim()
+      ? 1
+      : selectedChannels.length === 0
+        ? 2
+        : 3;
 
   const allSelected = connectedChannels.length > 0 &&
     connectedChannels.filter(ch => ch.type === 'telegram' || ch.type === 'discord' || ch.type === 'whatsapp')
@@ -293,12 +308,8 @@ const NewOfferPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Voltar para Ofertas
         </button>
-        <div className="flex items-center gap-2 text-xs font-bold text-ink-tertiary">
-          <span className="w-5 h-5 rounded-full bg-graphite text-ink-inverse flex items-center justify-center text-[10px]">1</span>
-          <span className="text-ink">Link</span>
-          <div className="w-8 h-px bg-surface-2" />
-          <span className="w-5 h-5 rounded-full bg-surface-2 text-ink-tertiary flex items-center justify-center text-[10px]">2</span>
-          <span>Dados</span>
+        <div className="w-full max-w-xl order-3 sm:order-none">
+          <Stepper steps={offerSteps} currentStep={guidedStep} />
         </div>
 
       </div>
@@ -432,7 +443,7 @@ const NewOfferPage: React.FC = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-graphite/5 rounded-full blur-[130px] pointer-events-none" />
 
       {/* Nav */}
-      <div className="relative z-10 flex items-center px-6 py-5 border-b border-line bg-surface-1/80 backdrop-blur-xl sticky top-0">
+      <div className="relative z-10 flex flex-wrap items-center gap-3 px-4 sm:px-6 py-4 border-b border-line bg-surface-1/80 backdrop-blur-xl sticky top-0">
         <button
           onClick={() => setStep(1)}
           disabled={loading || imageUploading}
@@ -441,14 +452,10 @@ const NewOfferPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Voltar
         </button>
-        <div className="mx-auto flex items-center gap-2 text-xs font-bold text-ink-tertiary">
-          <span className="w-5 h-5 rounded-full bg-graphite/30 text-mint-700 border border-mint-500/30 flex items-center justify-center text-[10px]">✓</span>
-          <span className="text-ink-tertiary">Link</span>
-          <div className="w-8 h-px bg-graphite/40" />
-          <span className="w-5 h-5 rounded-full bg-graphite text-ink-inverse flex items-center justify-center text-[10px]">2</span>
-          <span className="text-ink">Dados</span>
+        <div className="order-3 sm:order-none mx-auto w-full sm:w-auto sm:flex-1 max-w-2xl sm:px-4">
+          <Stepper steps={offerSteps} currentStep={guidedStep} onStepChange={index => { if (index === 0) setStep(1); }} />
         </div>
-        <div className="w-[140px]" />
+        <div className="hidden sm:block w-[70px]" />
       </div>
 
       {/* Aviso se enrich parcial */}

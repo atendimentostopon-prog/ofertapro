@@ -8,6 +8,7 @@ import NotificationsDropdown from './NotificationsDropdown';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { PLAN_LABELS, PlanCode } from '../config/planCatalog';
 import ThemeSwitch from './theme/ThemeSwitch';
+import CommandMenu from './CommandMenu';
 
 interface TopBarProps {
   onNewOffer?: () => void;
@@ -18,7 +19,7 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, belowExpiredBar }) => {
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const { user } = useUser();
   const access = useAccountAccess();
   const navigate = useNavigate();
@@ -44,7 +45,6 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
   // destacados no dropdown mesmo depois de marcarmos como lido.
   const [lastReadSnapshot, setLastReadSnapshot] = useState<number | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const loadNotifications = async () => {
     if (!user || !user.id) return;
@@ -89,7 +89,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
       if (event.key === 'Escape') setNotifOpen(false);
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        searchRef.current?.focus();
+        setCommandOpen(true);
       }
     };
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,15 +121,6 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
     }
   };
 
-  const [searchValue, setSearchValue] = useState('');
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      navigate(`/offers?q=${encodeURIComponent(searchValue.trim())}`);
-    }
-  };
-
   if (!user) return null;
 
   const handleNewOffer = () => navigate('/offers/new');
@@ -152,42 +143,23 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
       )}
 
       {/* Search */}
-      <form
-        onSubmit={handleSearchSubmit}
-        className={`flex-1 min-w-0 max-w-md relative transition-all duration-220 ${searchFocused ? 'max-w-lg' : ''}`}
+      <button
+        type="button"
+        onClick={() => setCommandOpen(true)}
+        className="flex-1 min-w-0 max-w-md relative text-left"
+        aria-label="Abrir busca global"
       >
         <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-all duration-160 cursor-text min-w-0 ${
-            searchFocused
-              ? 'border-mint-500 bg-surface-0 shadow-focus'
-              : 'border-line-strong bg-surface-1 hover:border-mint-500/40'
-          }`}
-          onClick={() => setSearchFocused(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-md border border-line-strong bg-surface-1 hover:border-mint-500/40 transition-colors cursor-pointer min-w-0"
         >
-          <Search
-            className={`w-4 h-4 flex-shrink-0 transition-colors ${
-              searchFocused ? 'text-mint-700' : 'text-ink-tertiary'
-            }`}
-          />
-          <input
-            ref={searchRef}
-            type="text"
-            placeholder="Buscar ofertas..."
-            value={searchValue}
-            onChange={e => setSearchValue(e.target.value)}
-            className="flex-1 text-[13px] bg-transparent outline-none text-ink placeholder:text-ink-tertiary min-w-0"
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            aria-label="Buscar ofertas"
-          />
-          {!searchFocused && (
-            <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded border border-line text-ink-tertiary bg-surface-0">
-              <Command className="w-3 h-3" />
-              <span className="text-[10px] font-medium">K</span>
-            </div>
-          )}
+          <Search className="w-4 h-4 flex-shrink-0 text-ink-tertiary" />
+          <span className="flex-1 text-[13px] text-ink-tertiary truncate">Buscar ofertas, canais ou ações…</span>
+          <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded border border-line text-ink-tertiary bg-surface-0">
+            <Command className="w-3 h-3" />
+            <span className="text-[10px] font-medium">K</span>
+          </div>
         </div>
-      </form>
+      </button>
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-shrink-0">
@@ -255,6 +227,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
           />
         </button>
       </div>
+      <CommandMenu open={commandOpen} onClose={() => setCommandOpen(false)} />
     </header>
   );
 };

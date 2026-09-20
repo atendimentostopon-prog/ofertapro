@@ -1,7 +1,7 @@
 // src/pages/Pricing.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Minus } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { PLAN_CATALOG, PLAN_LABELS, FEATURES_BY_PLAN, type PlanCode } from "../config/planCatalog";
 import { useSubscription } from "../hooks/useSubscription";
@@ -11,6 +11,17 @@ import { useAccountAccess } from "../hooks/useAccountAccess";
 const PLAN_ORDER: PlanCode[] = ["starter", "pro", "enterprise"];
 
 const PLAN_HIGHLIGHT: PlanCode = "pro";
+
+const COMPARISON_ROWS: { label: string; values: Record<PlanCode, string | boolean> }[] = [
+  { label: 'Grupos de origem monitorados', values: { starter: '2', pro: '6', enterprise: '15' } },
+  { label: 'Números de WhatsApp', values: { starter: '1', pro: '2', enterprise: '4' } },
+  { label: 'Grupos de destino por canal', values: { starter: '5', pro: '12', enterprise: '20' } },
+  { label: 'Ofertas ilimitadas', values: { starter: false, pro: true, enterprise: true } },
+  { label: 'Analytics avançado', values: { starter: false, pro: true, enterprise: true } },
+  { label: 'Encurtador automático', values: { starter: false, pro: true, enterprise: true } },
+  { label: 'Vitrine sem marca Aflyo', values: { starter: false, pro: false, enterprise: true } },
+  { label: 'Suporte prioritário', values: { starter: false, pro: false, enterprise: true } },
+];
 
 export default function Pricing() {
   const { data: currentSub, loading, error, refresh } = useSubscription();
@@ -101,7 +112,7 @@ export default function Pricing() {
               {isHighlighted && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-mint-500 text-graphite text-[10px] font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-sm">
                   <Sparkles className="w-3 h-3" />
-                  Mais popular
+                  Recomendado
                 </span>
               )}
               <h3 className="text-lg font-bold text-ink font-display">{PLAN_LABELS[plan]}</h3>
@@ -151,6 +162,40 @@ export default function Pricing() {
           );
         })}
       </div>
+
+      <section className="mt-10" aria-labelledby="comparison-title">
+        <div className="text-center mb-5">
+          <h2 id="comparison-title" className="text-lg font-bold text-ink font-display">Compare todos os recursos</h2>
+          <p className="text-xs text-ink-secondary mt-1">As mesmas categorias em todos os planos, sem esconder limitações.</p>
+        </div>
+        <div className="rounded-2xl border border-line bg-surface-0 overflow-x-auto shadow-xs">
+          <table className="w-full min-w-[640px] text-xs">
+            <thead className="bg-surface-1 border-b border-line">
+              <tr>
+                <th className="text-left px-5 py-4 font-semibold text-ink-secondary">Recurso</th>
+                {PLAN_ORDER.map(plan => <th key={plan} className="px-4 py-4 text-center font-bold text-ink">{PLAN_LABELS[plan]}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON_ROWS.map(row => (
+                <tr key={row.label} className="border-b border-line last:border-0">
+                  <th scope="row" className="text-left px-5 py-3.5 font-medium text-ink-secondary">{row.label}</th>
+                  {PLAN_ORDER.map(plan => {
+                    const value = row.values[plan];
+                    return (
+                      <td key={plan} className="px-4 py-3.5 text-center font-semibold text-ink">
+                        {value === true ? <Check className="w-4 h-4 text-success-ink mx-auto" aria-label="Incluído" />
+                          : value === false ? <Minus className="w-4 h-4 text-ink-disabled mx-auto" aria-label="Não incluído" />
+                          : value}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

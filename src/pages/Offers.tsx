@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Package, AlertCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Package, AlertCircle, Trash2, Loader2, AlertTriangle, Link, Send } from 'lucide-react';
 import { CATEGORIES } from '../lib/utils';
 import { pluralize } from '../lib/format';
 import type { Marketplace, OfferStatus } from '../types';
@@ -101,6 +101,14 @@ const Offers: React.FC = () => {
     } else {
       setSearchParams({}, { replace: true });
     }
+  };
+
+  const clearFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setMarketplaceFilter('all');
+    setCategoryFilter('Todos');
+    setSearchParams({}, { replace: true });
   };
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
@@ -316,14 +324,16 @@ const Offers: React.FC = () => {
       ) : (
         <EmptyState
           icon={Package}
+          icons={[Link, Send]}
+          variant={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'no-results' : 'first-use'}
           title={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'Nenhuma oferta atende aos filtros' : 'Nenhuma oferta cadastrada'}
           description={
             search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos'
               ? 'Tente remover os filtros de busca para encontrar mais ofertas.'
               : 'Você ainda não cadastrou nenhuma oferta. Crie sua primeira oferta para começar a disparar para seus canais.'
           }
-          actionText={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Criar Primeira Oferta'}
-          onAction={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => {
+          actionText={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'Limpar filtros' : 'Criar primeira oferta'}
+          onAction={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? clearFilters : () => {
             const activeCount = offers.filter(o => o.status === 'active').length;
             if (!canCreateOffer(activeCount, user?.plan)) {
               setPaywallFeature('criar mais ofertas');
@@ -332,6 +342,8 @@ const Offers: React.FC = () => {
             }
             navigate('/offers/new');
           }}
+          secondaryActionText={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Ver como funciona'}
+          onSecondaryAction={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => navigate('/automatizacao-shopee')}
         />
       )}
 
