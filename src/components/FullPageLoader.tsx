@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { APP_NAME } from '../config/app';
@@ -15,6 +16,10 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
   onRetry
 }) => {
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme
+    ? resolvedTheme === 'dark'
+    : typeof window !== 'undefined' && localStorage.getItem('aflyo-theme') === 'dark';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,7 +59,7 @@ export const FullPageLoader: React.FC<FullPageLoaderProps> = ({
         {/* Brand Logo */}
         <div className="flex flex-col items-center">
           <img
-            src="/brand/logo-white.png"
+            src={isDark ? '/brand/logo-white.png' : '/brand/logo-primary.png'}
             alt={APP_NAME}
             className="h-9 w-auto select-none"
             draggable={false}
