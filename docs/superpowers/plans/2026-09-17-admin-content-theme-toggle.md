@@ -1,5 +1,7 @@
 # Toggle claro/escuro nas páginas de conteúdo do admin — Implementation Plan
 
+> **Atualização 2026-09-20:** Dashboard/KpiCard/Monitoramento/StatusStrip passaram a seguir o toggle (commit `720a48b`, confirmado pelo usuário); as menções a eles como "escuros fixos" abaixo estão superadas. Tasks 5 já implementada nesse commit.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Adicionar um toggle claro/escuro que controla as 9 páginas de conteúdo do

@@ -124,3 +124,15 @@ texto/`data-testid`, não classes de cor) continuam passando sem alteração.
 - Login, MfaChallenge, Unauthorized (já escuros fixos, rodada anterior).
 - Qualquer preferência de tema por conta (fica só no `localStorage` do navegador,
   não é sincronizada entre dispositivos nem salva no backend).
+
+## Atualização (2026-09-20): Dashboard e Monitoramento também seguem o toggle
+
+Depois da aprovação desta spec, o commit `720a48b` (reforma responsiva do admin)
+converteu `Dashboard.tsx`, `KpiCard.tsx`, `MonitoringArea.tsx` e `StatusStrip.tsx`
+de classes escuras literais para os tokens semânticos, então essas páginas agora
+alternam claro/escuro junto com as demais. O usuário confirmou que **esse commit
+prevalece** sobre as passagens desta spec que os listam como "escuros fixos".
+Continuam fixos e escuros apenas Sidebar, Topbar e Breadcrumbs (shell), além de
+Login, MfaChallenge e Unauthorized. O mesmo commit adicionou
+`admin/public/theme-init.js` (aplica `data-theme` antes do React montar, evitando
+flash de tema errado) e `color-scheme` no `ThemeContext`.
