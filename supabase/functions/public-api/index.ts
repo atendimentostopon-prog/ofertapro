@@ -9,6 +9,10 @@ const corsHeaders = {
 
 const USE_DIRECT_AFFILIATE_LINK_IN_CHANNELS = true;
 
+// Cookies da sessão do Mercado Livre que a extensão pode enviar (o bot só precisa de
+// `ssid`; os demais são de login e CSRF). Rastreadores/analytics ficam de fora.
+const ML_SESSION_COOKIES = ['ssid', 'orguserid', 'orguseridp', 'orgnickp', '_d2id', 'ftid', 'nsa_rotok', 'cp', '_csrf', '_mldataSessionId']
+
 // SEC-3: só aceita http(s) como link de afiliado. Barra javascript:, data:,
 // vbscript:, file: etc. antes de gravar no banco (o trigger
 // offers_affiliate_link_protocol_guard é a rede de segurança no servidor).
@@ -844,11 +848,37 @@ serve(async (req) => {
     // logada do usuário no Mercado Livre (renovados periodicamente, pois a
     // sessão expira). O bot usa esses cookies pra gerar link de afiliado
     // automático via endpoint privado do painel de afiliados do ML.
-    else if (pathname.endsWith('/ml-session') && req.method === 'POST') {
+    else if (pathname.endsWith('/ml-session') && (req.method === 'POST' || req.method === 'GET')) {
       if (!scopes.includes('dispatch:write')) {
         return new Response(
           JSON.stringify({ error: 'Permissão negada. Escopo dispatch:write é obrigatório.' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // GET: diagnóstico pro popup da extensão (sessão salva, etiqueta e saúde
+      // registrada pelo bot quando o ML recusa a sessão).
+      if (req.method === 'GET') {
+        const { data: cfg, error: cfgError } = await supabaseAdmin
+          .from('bot_configs')
+          .select('mercadolivre_tag, ml_session')
+          .eq('user_id', userId)
+          .maybeSingle()
+        if (cfgError) {
+          return new Response(
+            JSON.stringify({ error: `Erro ao ler sessão do Mercado Livre: ${cfgError.message}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        const session = cfg?.ml_session || null
+        return new Response(
+          JSON.stringify({
+            connected: Boolean(session?.cookies?.length),
+            updated_at: session?.updated_at ?? null,
+            tag: cfg?.mercadolivre_tag || null,
+            health: session?.health ?? null,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
@@ -862,10 +892,14 @@ serve(async (req) => {
         )
       }
 
-      const validCookies = cookies.filter((c: any) => c && typeof c.name === 'string' && typeof c.value === 'string')
-      if (validCookies.length === 0) {
+      // Só guarda cookies de sessão/login (ssid é o indispensável). Versões
+      // antigas da extensão mandavam tudo, inclusive rastreadores.
+      const validCookies = cookies.filter(
+        (c: any) => c && typeof c.name === 'string' && typeof c.value === 'string' && ML_SESSION_COOKIES.includes(c.name)
+      )
+      if (!validCookies.some((c: any) => c.name === 'ssid')) {
         return new Response(
-          JSON.stringify({ error: 'Nenhum cookie válido recebido (esperado {name, value}).' }),
+          JSON.stringify({ error: 'Sessão do Mercado Livre não encontrada (cookie ssid ausente). Faça login no Mercado Livre.', code: 'no_session' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -885,7 +919,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, cookies_saved: validCookies.length }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

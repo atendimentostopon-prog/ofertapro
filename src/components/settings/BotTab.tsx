@@ -33,7 +33,7 @@ interface BotConfig {
   shopee_app_id: string | null;
   shopee_app_secret: string | null;
   mercadolivre_tag: string | null;
-  ml_session: { cookies: { name: string; value: string }[]; updated_at: string } | null;
+  ml_session: { cookies: { name: string; value: string }[]; updated_at: string; health?: { status: 'invalid'; code: number; at: string } | null } | null;
   ativo: boolean;
   horario_inicio: string | null;
   horario_fim: string | null;
@@ -1076,15 +1076,25 @@ export const BotTab: React.FC = () => {
                 />
 
                 <div className={`p-4 border rounded-2xl flex items-start gap-3 ${
-                  config?.ml_session ? 'bg-mint-50 border-mint-200' : 'bg-surface-1 border-line'
+                  config?.ml_session?.health ? 'bg-warning-bg border-warning/30'
+                    : config?.ml_session ? 'bg-mint-50 border-mint-200' : 'bg-surface-1 border-line'
                 }`}>
-                  {config?.ml_session ? (
+                  {config?.ml_session?.health ? (
+                    <AlertTriangle className="w-4 h-4 text-warning-ink mt-0.5 flex-shrink-0" />
+                  ) : config?.ml_session ? (
                     <CheckCircle2 className="w-4 h-4 text-mint-700 mt-0.5 flex-shrink-0" />
                   ) : (
                     <AlertTriangle className="w-4 h-4 text-ink-tertiary mt-0.5 flex-shrink-0" />
                   )}
                   <div className="text-xs leading-relaxed font-medium flex-1">
-                    {config?.ml_session ? (
+                    {config?.ml_session?.health ? (
+                      <>
+                        <strong className="text-ink">O Mercado Livre recusou sua sessão.</strong>{' '}
+                        <span className="text-ink-secondary">
+                          Erro {config.ml_session.health.code} {formatRelativeTime(config.ml_session.health.at)}. Abra o Mercado Livre no Chrome, confirme que está logado e clique em "Testar e sincronizar agora" na extensão. Até lá as ofertas do Mercado Livre vão pra revisão manual.
+                        </span>
+                      </>
+                    ) : config?.ml_session ? (
                       <>
                         <strong className="text-ink">Extensão conectada.</strong>{' '}
                         <span className="text-ink-secondary">
