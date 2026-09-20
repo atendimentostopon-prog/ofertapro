@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -23,6 +23,17 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const { data: subscription } = useSubscription();
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const drawerRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (!sidebarOpen || !drawerRef.current) return;
+    const dialog = drawerRef.current;
+    const previous = document.activeElement as HTMLElement | null;
+    dialog.showModal();
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const closeOnDesktop = () => { if (desktop.matches) setSidebarOpen(false); };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => { dialog.close(); previous?.focus(); desktop.removeEventListener('change', closeOnDesktop); };
+  }, [sidebarOpen]);
   const needsSetup = needsPublicPageSetup(user);
   // Tutorial guiado só faz sentido pra quem já é assinante -- sem essa
   // checagem, o modal aparecia até em cima da tela de Planos pra quem
@@ -60,15 +71,15 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
 
       {/* Sidebar drawer mobile */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
+        <dialog ref={drawerRef} aria-label="Menu de navegação" onCancel={event => { event.preventDefault(); setSidebarOpen(false); }} className="fixed inset-0 m-0 p-0 border-0 h-dvh max-h-none w-full max-w-none bg-transparent z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-graphite/48 backdrop-blur-xs"
+            className="fixed inset-0 bg-graphite/50 backdrop-blur-xs"
             onClick={() => setSidebarOpen(false)}
           />
           <div className="relative w-72 max-w-[85vw] bg-surface-0 h-full flex flex-col z-10 animate-slide-in-right shadow-lg">
             <Sidebar onLogout={onLogout} onCloseMobile={() => setSidebarOpen(false)} />
           </div>
-        </div>
+        </dialog>
       )}
 
       {/* min-w-0 nos dois níveis flex-1 abaixo -- sem isso, um filho largo

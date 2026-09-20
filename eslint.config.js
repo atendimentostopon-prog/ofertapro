@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'supabase']),
+  globalIgnores(['dist', 'admin/dist', 'supabase', '.claude', '.maestri']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -17,6 +17,7 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

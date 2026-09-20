@@ -97,9 +97,9 @@ const Offers: React.FC = () => {
   const handleSearchChange = (val: string) => {
     setSearch(val);
     if (val) {
-      setSearchParams({ q: val });
+      setSearchParams({ q: val }, { replace: true });
     } else {
-      setSearchParams({});
+      setSearchParams({}, { replace: true });
     }
   };
 
@@ -187,7 +187,7 @@ const Offers: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-5 animate-slide-up">
       <PageHeader
-        title="Minhas Ofertas"
+        title="Minhas ofertas"
         description={`${pluralize(filtered.length, 'oferta encontrada', 'ofertas encontradas')}`}
       >
         <div className="flex gap-2">
@@ -198,7 +198,7 @@ const Offers: React.FC = () => {
               onClick={() => setShowDeleteAllModal(true)}
               size="sm"
             >
-              Excluir Todas
+              Excluir ofertas filtradas
             </Button>
           )}
           <Button
@@ -215,7 +215,7 @@ const Offers: React.FC = () => {
             }}
             size="sm"
           >
-            Nova Oferta
+            Nova oferta
           </Button>
         </div>
       </PageHeader>
@@ -245,6 +245,7 @@ const Offers: React.FC = () => {
                   <button
                     key={s}
                     onClick={() => setStatusFilter(s)}
+                    aria-pressed={statusFilter === s}
                     className={`tab-item flex items-center gap-1.5 ${statusFilter === s ? 'active' : ''}`}
                   >
                     {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
@@ -278,24 +279,14 @@ const Offers: React.FC = () => {
             </select>
           </div>
 
-          {/* Category Filter */}
-          <div className="fade-scroll-x min-w-0">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border cursor-pointer ${
-                    categoryFilter === cat
-                      ? 'bg-graphite text-ink-inverse border-graphite'
-                      : 'bg-surface-0 text-ink-secondary border-line hover:text-ink hover:border-line-strong'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+          <select
+            aria-label="Filtrar por categoria"
+            value={categoryFilter}
+            onChange={event => setCategoryFilter(event.target.value)}
+            className="max-w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-xs text-ink focus-visible:shadow-focus"
+          >
+            {CATEGORIES.map(category => <option key={category} value={category}>{category === 'Todos' ? 'Todas as categorias' : category}</option>)}
+          </select>
         </div>
       </Card>
 
@@ -325,14 +316,14 @@ const Offers: React.FC = () => {
       ) : (
         <EmptyState
           icon={Package}
-          title={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'Nenhuma oferta atende aos filtros' : 'Nenhuma oferta cadastrada'}
+          title={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'Nenhuma oferta atende aos filtros' : 'Nenhuma oferta cadastrada'}
           description={
-            search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos'
+            search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos'
               ? 'Tente remover os filtros de busca para encontrar mais ofertas.'
               : 'Você ainda não cadastrou nenhuma oferta. Crie sua primeira oferta para começar a disparar para seus canais.'
           }
-          actionText={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Criar Primeira Oferta'}
-          onAction={search || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => {
+          actionText={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Criar Primeira Oferta'}
+          onAction={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => {
             const activeCount = offers.filter(o => o.status === 'active').length;
             if (!canCreateOffer(activeCount, user?.plan)) {
               setPaywallFeature('criar mais ofertas');

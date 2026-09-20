@@ -6,6 +6,7 @@ import {
   User, Radio, Package, Send, MousePointerClick
 } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { Disclosure } from '../ui/Disclosure';
 import { useUser } from '../../context/UserContext';
 import { APP_NAME } from '../../config/app';
 
@@ -60,13 +61,14 @@ const OnboardingChecklist: React.FC = () => {
   const checklistItems = [
     { id: 'profile',  label: 'Configurar seu perfil público', description: 'Defina uma bio, avatar e um nome público.', completed: steps.profileCompleted, actionLabel: 'Configurar', route: '/settings', icon: User },
     { id: 'channel',  label: 'Conectar primeiro canal',       description: 'Conecte Discord, WhatsApp ou Telegram.',    completed: steps.channelConnected, actionLabel: 'Conectar',   route: '/channels', icon: Radio },
-    { id: 'offer',    label: 'Criar sua primeira oferta',     description: 'Cadastre um produto com link de afiliado.', completed: steps.offerCreated,     actionLabel: 'Criar Oferta', route: '/offers', icon: Package },
+    { id: 'offer',    label: 'Criar sua primeira oferta',     description: 'Cadastre um produto com link de afiliado.', completed: steps.offerCreated,     actionLabel: 'Criar oferta', route: '/offers/new', icon: Package },
     { id: 'dispatch', label: 'Fazer o primeiro disparo',      description: 'Envie sua oferta ativa para os canais.',    completed: steps.firstDispatch,    actionLabel: 'Disparar',   route: '/offers', icon: Send },
-    { id: 'clicks',   label: 'Gerar os primeiros cliques',    description: 'Acompanhe as visitas no Dashboard.',        completed: steps.clicksReceived,   actionLabel: 'Ver Analytics', route: '/dashboard', icon: MousePointerClick },
+    { id: 'clicks',   label: 'Gerar os primeiros cliques',    description: 'Acompanhe as visitas no Dashboard.',        completed: steps.clicksReceived,   actionLabel: 'Ver resultados', route: '/dashboard', icon: MousePointerClick },
   ];
 
   return (
-    <Card variant="default" className="p-6 space-y-5 animate-fade-in relative overflow-hidden">
+    <Disclosure title={`Primeiros passos · ${percentCompleted}% concluído`} description="Consulte as próximas etapas para configurar sua conta." defaultOpen={!user?.onboarded}>
+    <div className="space-y-5">
       {/* Header do Onboarding */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
@@ -139,7 +141,8 @@ const OnboardingChecklist: React.FC = () => {
           );
         })}
       </div>
-    </Card>
+    </div>
+    </Disclosure>
   );
 };
 

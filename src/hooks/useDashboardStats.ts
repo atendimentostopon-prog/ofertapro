@@ -1,5 +1,5 @@
 import { useDataRefresh } from './useDataRefresh';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
@@ -20,6 +20,7 @@ function toSPDayMonth(date: Date): string {
 
 export function useDashboardStats() {
   const { user } = useUser();
+  const requestVersion = useRef(0);
   const [stats, setStats] = useState<any>({
     totalClicksToday: 0,
     totalClicks7d: 0,
@@ -41,6 +42,7 @@ export function useDashboardStats() {
   });
 
   const loadStats = useCallback(async () => {
+    const version = ++requestVersion.current;
     if (!user?.id) {
       setStats(prev => ({ ...prev, loading: false }));
       return;
@@ -91,6 +93,8 @@ export function useDashboardStats() {
         // abaixo) -- ainda leve, mesma tabela/período já buscados.
         fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks')
       ]);
+
+      if (version !== requestVersion.current) return;
 
       // Se todas as consultas falharem catastróficamente (ex: erro de rede global), exibe o erro geral
       const allFailed = offersRes.isFallback && channelsRes.isFallback && historyRes.isFallback && clicksRes.isFallback;
@@ -173,7 +177,7 @@ export function useDashboardStats() {
       });
 
       const clicksBySource = Object.entries(sourceClicks).map(([name, value]) => ({
-        name: name === 'direct' ? 'Direto/Vitrine' : name.toUpperCase(),
+        name: name === 'direct' || name === 'public_page' ? 'Vitrine' : name.toUpperCase(),
         value
       }));
 
@@ -241,6 +245,7 @@ export function useDashboardStats() {
       });
 
     } catch (err: any) {
+      if (version !== requestVersion.current) return;
       console.error('Erro ao calcular estatísticas do Dashboard:', err);
       setStats(prev => ({ 
         ...prev, 
@@ -251,11 +256,16 @@ export function useDashboardStats() {
     }
   }, [user]);
 
+  const invalidateRequests = useCallback(() => {
+    requestVersion.current++;
+  }, []);
+
   useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+    void loadStats();
+    return invalidateRequests;
+  }, [loadStats, invalidateRequests]);
 
 
-  useDataRefresh(user?.id, ['offers', 'channels', 'history'], loadStats);
+  useDataRefresh(user?.id, ['offers', 'channels', 'history', 'clicks'], loadStats);
   return { ...stats, refresh: loadStats };
 }

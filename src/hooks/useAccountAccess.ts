@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useNow } from './useNow';
 import { useUser } from '../context/UserContext';
 
 export type AccountStatus = 'trialing' | 'active' | 'expired' | 'canceled' | 'unknown';
@@ -15,10 +15,9 @@ export interface AccountAccess {
 export function useAccountAccess(): AccountAccess {
   const { user } = useUser();
 
-  return useMemo(() => {
+  const now = useNow();
     const status = (user?.accountStatus ?? 'unknown') as AccountStatus;
     const trialEndsAt = user?.trialEndsAt ? new Date(user.trialEndsAt) : null;
-    const now = Date.now();
 
     const trialActive =
       status === 'trialing' && !!trialEndsAt && trialEndsAt.getTime() > now;
@@ -43,5 +42,5 @@ export function useAccountAccess(): AccountAccess {
       daysLeft,
       trialEndsAt,
     };
-  }, [user?.accountStatus, user?.trialEndsAt]);
+
 }

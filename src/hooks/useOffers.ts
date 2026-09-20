@@ -1,100 +1,66 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { OfferService } from '../services/OfferService';
 import { useUser } from '../context/UserContext';
+import { useDataRefresh } from './useDataRefresh';
 
 export function useOffers() {
   const { user } = useUser();
+  const userId = user?.id;
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
-  const lastLoadedUserIdRef = useRef<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const requestVersion = useRef(0);
 
-  const loadOffers = useCallback(async (force = false) => {
-    if (!user || !user.id) {
-      setLoading(false);
-      return;
-    }
-
-    // Se já carregou para este mesmo usuário e não for um force refresh, ignora para evitar loops
-    if (!force && lastLoadedUserIdRef.current === user.id && offers.length > 0) {
-      setLoading(false);
-      return;
-    }
-    
+  const loadOffers = useCallback(async () => {
+    if (!userId) return;
+    const version = ++requestVersion.current;
     try {
-      setLoading(true);
-      setError(null);
-      const data = await OfferService.getOffers(user.id);
+      const data = await OfferService.getOffers(userId);
+      if (version !== requestVersion.current) return;
       setOffers(data || []);
-      lastLoadedUserIdRef.current = user.id;
+      setError(null);
     } catch (err) {
-      console.error('[useOffers] Erro ao carregar ofertas:', err);
-      setError(err);
-      lastLoadedUserIdRef.current = null;
+      if (version === requestVersion.current) setError(err);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
-  }, [user, offers.length]);
+  }, [userId]);
+
+  const invalidateRequests = useCallback(() => {
+    requestVersion.current++;
+  }, []);
 
   useEffect(() => {
-    if (user && user.id) {
-      loadOffers();
-    } else if (!user) {
-      setLoading(false);
-    }
-  }, [user, loadOffers]);
+    setOffers([]);
+    setError(null);
+    setLoading(!!userId);
+    void loadOffers();
+    return invalidateRequests;
+  }, [userId, loadOffers, invalidateRequests]);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      if (user?.id && lastLoadedUserIdRef.current === user.id) {
-        loadOffers(true);
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [user, loadOffers]);
+  useDataRefresh(userId, ['offers'], loadOffers);
 
   const deleteOffer = async (id: string) => {
-    try {
-      await OfferService.deleteOffer(id);
-      setOffers(prev => prev.filter(o => o.id !== id));
-    } catch (err) {
-      console.error('[useOffers] Erro ao deletar oferta:', err);
-      throw err;
-    }
+    await OfferService.deleteOffer(id);
+    setOffers(previous => previous.filter(offer => offer.id !== id));
   };
-
   const deleteAllOffers = async (ids: string[]) => {
     try {
-      const batchSize = 10;
-      for (let i = 0; i < ids.length; i += batchSize) {
-        const batch = ids.slice(i, i + batchSize);
-        await Promise.all(batch.map(id => OfferService.deleteOffer(id)));
-        setOffers(prev => prev.filter(o => !batch.includes(o.id)));
+      for (let i = 0; i < ids.length; i += 10) {
+        const batch = ids.slice(i, i + 10);
+        const results = await Promise.allSettled(batch.map(id => OfferService.deleteOffer(id)));
+        const deleted = batch.filter((_, index) => results[index].status === 'fulfilled');
+        setOffers(previous => previous.filter(offer => !deleted.includes(offer.id)));
+        const failure = results.find(result => result.status === 'rejected');
+        if (failure?.status === 'rejected') throw failure.reason;
       }
-    } catch (err) {
-      console.error('[useOffers] Erro ao deletar todas as ofertas:', err);
-      throw err;
+    } finally {
+      await loadOffers();
     }
   };
-
   const toggleStatus = async (id: string, currentStatus: string) => {
-    try {
-      const newStatus = await OfferService.toggleStatus(id, currentStatus);
-      setOffers(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
-    } catch (err) {
-      console.error('[useOffers] Erro ao alternar status da oferta:', err);
-      throw err;
-    }
+    const status = await OfferService.toggleStatus(id, currentStatus);
+    setOffers(previous => previous.map(offer => offer.id === id ? { ...offer, status } : offer));
   };
-
-  return { 
-    offers, 
-    loading, 
-    error, 
-    refresh: () => loadOffers(true), 
-    deleteOffer, 
-    deleteAllOffers,
-    toggleStatus 
-  };
+  return { offers, loading, error, refresh: loadOffers, deleteOffer, deleteAllOffers, toggleStatus };
 }

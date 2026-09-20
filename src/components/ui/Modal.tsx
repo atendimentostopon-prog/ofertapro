@@ -66,7 +66,7 @@ export const Modal: React.FC<ModalProps> = ({
       aria-modal="true"
       aria-labelledby={title ? `${id}-title` : undefined}
       aria-describedby={description ? `${id}-description` : undefined}
-      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none border-0 text-ink z-50 flex items-center justify-center p-4 bg-graphite/48 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none border-0 text-ink z-50 flex items-center justify-center p-4 bg-graphite/50 backdrop:bg-transparent backdrop-blur-xs animate-fade-in"
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <div

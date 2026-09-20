@@ -25,8 +25,8 @@ export function normalizeProductTitle(
   let title = String(rawTitle).trim();
   
   // 1. Remover excesso de emojis no início e fim do título
-  title = title.replace(/^[\s🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇]*\s*/, '');
-  title = title.replace(/\s*[🔥⚡💎🎁🚀🎟️💰🛒📢👉✅❌🚨🛒✨🎉⚠️🔴📌🥇\s]*$/, '');
+  title = title.replace(/^(?:\s|[🔥⚡💎🎁🚀🎟💰🛒📢👉✅❌🚨✨🎉⚠🔴📌🥇]\uFE0F?)+/u, '');
+  title = title.replace(/(?:\s|[🔥⚡💎🎁🚀🎟💰🛒📢👉✅❌🚨✨🎉⚠🔴📌🥇]\uFE0F?)+$/u, '');
 
   // 2. Remover frases de marketing / chamadas criativas
   const marketingPhrases = [

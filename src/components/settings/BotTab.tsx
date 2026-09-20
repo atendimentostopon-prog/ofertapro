@@ -1,3 +1,4 @@
+import { useNow } from '../../hooks/useNow';
 import { Disclosure } from '../ui/Disclosure';
 import React, { useState, useEffect } from 'react';
 import {
@@ -79,6 +80,7 @@ const StepIndicator: React.FC<{ current: 1 | 2 | 3 }> = ({ current }) => {
 };
 
 export const BotTab: React.FC = () => {
+  const now = useNow();
   const { user } = useUser();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -533,7 +535,7 @@ export const BotTab: React.FC = () => {
     if (!dateString) return 'nunca';
     try {
       const date = new Date(dateString);
-      const diffMs = Date.now() - date.getTime();
+      const diffMs = now - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
 
       if (diffMins < 1) return 'há instantes';

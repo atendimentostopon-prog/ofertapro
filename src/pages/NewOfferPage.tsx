@@ -285,22 +285,22 @@ const NewOfferPage: React.FC = () => {
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-mint-400/8 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Nav */}
-      <div className="relative z-10 flex items-center px-6 py-5 border-b border-line">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-6 py-5 border-b border-line">
         <button
           onClick={() => navigate('/offers')}
-          className="flex items-center gap-2 text-ink-secondary hover:text-ink transition-colors text-sm font-semibold group"
+          className="flex shrink-0 items-center gap-2 text-ink-secondary hover:text-ink transition-colors text-sm font-semibold group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Voltar para Ofertas
         </button>
-        <div className="mx-auto flex items-center gap-2 text-xs font-bold text-ink-tertiary">
+        <div className="flex items-center gap-2 text-xs font-bold text-ink-tertiary">
           <span className="w-5 h-5 rounded-full bg-graphite text-ink-inverse flex items-center justify-center text-[10px]">1</span>
           <span className="text-ink">Link</span>
           <div className="w-8 h-px bg-surface-2" />
           <span className="w-5 h-5 rounded-full bg-surface-2 text-ink-tertiary flex items-center justify-center text-[10px]">2</span>
           <span>Dados</span>
         </div>
-        <div className="w-[140px]" />
+
       </div>
 
       {/* Conteúdo central */}
@@ -322,30 +322,32 @@ const NewOfferPage: React.FC = () => {
 
           {/* Campo de Link */}
           <div className="space-y-3">
-            <div className={`relative flex items-center rounded-2xl border transition-all duration-300 ${
+            <div className={`relative flex flex-col sm:flex-row items-stretch sm:items-center rounded-2xl border transition-all duration-300 ${
               linkError
                 ? 'border-danger/60 shadow-[0_0_0_3px_rgba(239,68,68,0.1)]'
                 : linkInput
                 ? 'border-mint-500 shadow-focus'
                 : 'border-line-strong hover:border-line-strong'
             } bg-surface-0`}>
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="absolute left-4 top-7 -translate-y-1/2 pointer-events-none">
                 <Link2 className="w-5 h-5 text-ink-tertiary" />
               </div>
               <input
                 type="url"
+                aria-label="Link da promoção"
                 autoFocus
                 value={linkInput}
                 onChange={handleLinkChange}
                 onKeyDown={e => e.key === 'Enter' && !fetchingData && handleContinue()}
                 placeholder="https://amzn.to/... ou outro link de promoção"
-                className="flex-1 bg-transparent pl-12 pr-4 py-4 text-[15px] font-medium text-ink placeholder-ink-tertiary outline-none"
+                className="min-w-0 w-full flex-1 bg-transparent pl-12 pr-12 py-4 text-[15px] font-medium text-ink placeholder-ink-tertiary outline-none"
                 disabled={fetchingData}
               />
               {linkInput && (
                 <button
+                  aria-label="Limpar link"
                   onClick={() => { setLinkInput(''); setLinkError(''); setDetectedMarketplace(null); }}
-                  className="absolute right-16 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink-tertiary hover:text-ink transition-colors"
+                  className="absolute right-4 sm:right-36 top-7 -translate-y-1/2 w-6 h-6 rounded-full bg-surface-1 hover:bg-surface-2 flex items-center justify-center text-ink-tertiary hover:text-ink transition-colors"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -353,7 +355,7 @@ const NewOfferPage: React.FC = () => {
               <button
                 onClick={handleContinue}
                 disabled={fetchingData || !linkInput.trim()}
-                className="m-2 px-5 py-2.5 bg-graphite hover:bg-graphite-800 disabled:opacity-50 disabled:cursor-not-allowed text-ink-inverse text-sm font-bold rounded-xl transition-all flex items-center gap-2 min-w-[120px] justify-center"
+                className="btn-gradient m-2 shrink-0 px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold rounded-xl transition-all flex items-center gap-2 min-w-[120px] justify-center"
               >
                 {fetchingData ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Buscando...</>
@@ -411,8 +413,8 @@ const NewOfferPage: React.FC = () => {
 
           {/* Info */}
           <p className="text-center text-[11px] text-ink-tertiary font-medium leading-relaxed">
-            O sistema tenta extrair dados via Open Graph sem fazer scraping agressivo.
-            Se não encontrar, você preenche manualmente na próxima etapa.
+            Vamos buscar o nome, o preço e a imagem do produto.
+            Você poderá revisar ou preencher os dados na próxima etapa.
           </p>
         </div>
       </div>

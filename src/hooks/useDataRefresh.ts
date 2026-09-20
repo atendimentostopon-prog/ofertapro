@@ -23,11 +23,13 @@ export function useDataRefresh(userId: string | undefined, resources: AccountRes
     window.addEventListener(DATA_CHANGED, onChange);
     window.addEventListener('focus', onVisible);
     window.addEventListener('online', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       void supabase.removeChannel(channel);
       window.removeEventListener(DATA_CHANGED, onChange);
       window.removeEventListener('focus', onVisible);
       window.removeEventListener('online', onVisible);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId, tables]);
 }

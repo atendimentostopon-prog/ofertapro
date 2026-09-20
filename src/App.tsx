@@ -83,7 +83,6 @@ const App: React.FC = () => {
   const [bootError, setBootError] = useState<any>(null);
 
   useEffect(() => {
-    console.time("[BOOT] total");
     console.log("[BOOT] App mounted");
     console.log("[BOOT] Checking Supabase session...");
 
@@ -101,10 +100,8 @@ const App: React.FC = () => {
 
     // Timeout de 5 segundos para a verificação de sessão inicial
     const timeoutId = setTimeout(() => {
-      if (active && loading) {
+      if (active) {
         console.warn("[BOOT] getSession timeout reached! Forcing loading to false.");
-        try { console.timeEnd("[BOOT] getSession"); } catch {}
-        try { console.timeEnd("[BOOT] total"); } catch {}
         if (!isPublicRoute()) {
           setBootError(new Error("Falha ao verificar sessão."));
         }
@@ -114,7 +111,6 @@ const App: React.FC = () => {
 
     const initAuth = async () => {
       try {
-        console.time("[BOOT] getSession");
         console.log("[BOOT] before getSession");
 
         const sessionResult = await Promise.race([
@@ -124,33 +120,29 @@ const App: React.FC = () => {
           )
         ]);
 
-        try { console.timeEnd("[BOOT] getSession"); } catch {}
         console.log("[BOOT] after getSession", { hasSession: !!sessionResult });
 
         if (active) {
           clearTimeout(timeoutId);
+          setBootError(null);
           setSession(sessionResult);
           setLoading(false);
         }
       } catch (err: any) {
         console.error("[BOOT] Error fetching session:", err);
-        try { console.timeEnd("[BOOT] getSession"); } catch {}
-        try { console.timeEnd("[BOOT] total"); } catch {}
 
         if (active) {
           clearTimeout(timeoutId);
 
           // Detectar sessão corrompida e limpar automático
           const isCorruptSession =
-            err?.message?.includes('Timeout') ||
             err?.message?.includes('token') ||
             err?.message?.includes('JWT') ||
-            err?.name === 'AuthRetryableFetchError' ||
             err?.status === 401;
 
           if (isCorruptSession) {
             console.warn('[BOOT] Sessão corrompida detectada — limpando storage...');
-            try { await supabase.auth.signOut(); } catch {}
+            try { await supabase.auth.signOut(); } catch (error) { console.warn('Não foi possível encerrar a sessão inválida.', error); }
             clearSupabaseStorage();
             setSession(null);
             setLoading(false);
@@ -238,8 +230,6 @@ const App: React.FC = () => {
               } catch (e) {
                 console.error(e);
               }
-              localStorage.clear();
-              sessionStorage.clear();
               window.location.href = '/login';
             }}
             className="btn-secondary px-6 py-2.5 font-semibold text-sm"

@@ -35,6 +35,7 @@ export const UserProvider: React.FC<{
   const [subscriptionError, setSubscriptionError] = useState<Error | null>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const requestRef = useRef<AbortController | null>(null);
+  const [settledUserId, setSettledUserId] = useState<string | null>(null);
   const userId = authUser?.id;
   const email = authUser?.email || '';
 
@@ -196,6 +197,7 @@ export const UserProvider: React.FC<{
     } finally {
       window.clearTimeout(timeout);
       if (requestRef.current === controller) {
+        setSettledUserId(userId);
         setLoading(false);
         setSubscriptionLoading(false);
       }
@@ -205,6 +207,7 @@ export const UserProvider: React.FC<{
   useEffect(() => {
     requestRef.current?.abort();
     requestRef.current = null;
+    setSettledUserId(null);
     setUser(null);
     setSubscription(null);
     setIsAdmin(false);
@@ -238,10 +241,10 @@ export const UserProvider: React.FC<{
   const currentUser = user?.id === userId ? user : null;
   return (
     <UserContext.Provider value={{
-      user: currentUser, authUser, loading: authLoading || loading,
+      user: currentUser, authUser, loading: authLoading || loading || (!!userId && settledUserId !== userId),
       isAdmin, profileError, profileLoadFailed: !!profileError && !currentUser,
       refreshProfile, setUser, subscription: subscription?.user_id === userId ? subscription : null,
-      subscriptionLoading: authLoading || subscriptionLoading, subscriptionError,
+      subscriptionLoading: authLoading || subscriptionLoading || (!!userId && settledUserId !== userId), subscriptionError,
     }}>
       {children}
     </UserContext.Provider>

@@ -39,6 +39,8 @@ export const useSettingsProfile = () => {
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const saveInFlight = useRef(false);
+  const initializedUser = useRef<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const publicAvatarInputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +72,8 @@ export const useSettingsProfile = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && initializedUser.current !== user.id) {
+      initializedUser.current = user.id;
       setUsername(user.username || '');
       setFullName(user.full_name || '');
       setAvatarUrl(user.avatar_url || '');
@@ -87,15 +90,17 @@ export const useSettingsProfile = () => {
       setTelegramGroupUrl(user.telegram_group_url || '');
       setDiscordGroupUrl(user.discord_group_url || '');
     }
-  }, [user?.id]);
+    if (!user) initializedUser.current = null;
+  }, [user]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
     setUploadingAvatar(true);
+    const previousUrl = avatarUrl;
+    const localPreview = URL.createObjectURL(file);
     try {
-      const localPreview = URL.createObjectURL(file);
       setAvatarUrl(localPreview);
 
       const compressed = await compressImage(file);
@@ -104,8 +109,11 @@ export const useSettingsProfile = () => {
       setAvatarUrl(publicUrl);
     } catch (err: any) {
       console.error('Erro no upload do avatar:', err);
-      toast('Erro ao carregar avatar. Tente novamente.', 'error');
+      setAvatarUrl(previousUrl);
+      toast('Não foi possível carregar o avatar. Tente novamente.', 'error');
     } finally {
+      URL.revokeObjectURL(localPreview);
+      e.target.value = '';
       setUploadingAvatar(false);
     }
   };
@@ -115,8 +123,9 @@ export const useSettingsProfile = () => {
     if (!file || !user) return;
 
     setUploadingPublicAvatar(true);
+    const previousUrl = publicAvatarUrl;
+    const localPreview = URL.createObjectURL(file);
     try {
-      const localPreview = URL.createObjectURL(file);
       setPublicAvatarUrl(localPreview);
 
       const compressed = await compressImage(file);
@@ -125,14 +134,17 @@ export const useSettingsProfile = () => {
       setPublicAvatarUrl(uploadedUrl);
     } catch (err: any) {
       console.error('Erro no upload da foto pública:', err);
-      toast('Erro ao carregar foto pública. Tente novamente.', 'error');
+      setPublicAvatarUrl(previousUrl);
+      toast('Não foi possível carregar a foto pública. Tente novamente.', 'error');
     } finally {
+      URL.revokeObjectURL(localPreview);
+      e.target.value = '';
       setUploadingPublicAvatar(false);
     }
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || saveInFlight.current || uploadingAvatar || uploadingPublicAvatar) return;
 
     if (!fullName.trim()) {
       toast('Nome da Conta é obrigatório.', 'warning');
@@ -170,14 +182,15 @@ export const useSettingsProfile = () => {
 
     // SEC-2: LIGAR a vitrine (off -> on) exige e-mail confirmado.
     // Desligar, ou salvar com ela já ativa, continua livre.
-    const activatingPublicPage = isPublicActive && !user.public_page_active;
-    if (activatingPublicPage && !(await isCurrentEmailVerified())) {
-      toast(EMAIL_NOT_VERIFIED_MESSAGE, 'warning');
-      return;
-    }
-
+    saveInFlight.current = true;
     setSaving(true);
+    setSaved(false);
     try {
+      const activatingPublicPage = isPublicActive && !user.public_page_active;
+      if (activatingPublicPage && !(await isCurrentEmailVerified())) {
+        toast(EMAIL_NOT_VERIFIED_MESSAGE, 'warning');
+        return;
+      }
       if (cleanUsername !== user.username) {
         const { data: existingUser, error: checkError } = await supabase
           .from('profiles')
@@ -226,20 +239,30 @@ export const useSettingsProfile = () => {
 
       await refreshProfile();
 
+      setUsername(cleanUsername);
+      setWhatsappGroupUrl(wppVal.normalized);
+      setTelegramGroupUrl(telVal.normalized);
+      setDiscordGroupUrl(discVal.normalized);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err: any) {
       console.error('Erro ao salvar configurações:', err);
-      toast(`Erro: ${err.message || 'Falha ao salvar configurações.'}`, 'error');
+      toast('Não foi possível salvar as configurações. Verifique sua conexão e tente novamente.', 'error');
     } finally {
+      saveInFlight.current = false;
       setSaving(false);
     }
   };
 
-  const copyUrl = () => {
-    navigator.clipboard.writeText(`${getShortlinkUrl()}/${username}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(`${getShortlinkUrl()}/${user?.username || username}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+      toast('Não foi possível copiar o link. Copie o endereço manualmente.', 'error');
+    }
   };
 
   return {

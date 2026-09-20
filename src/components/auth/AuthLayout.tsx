@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from 'next-themes';
 import { Shield, Users, TrendingUp } from 'lucide-react';
 import { APP_NAME } from '../../config/app';
 
@@ -17,13 +18,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   showFeatureHighlights = true,
   children,
 }) => {
+  const { resolvedTheme } = useTheme();
   return (
     <div className="min-h-screen bg-surface-1 flex items-center justify-center relative overflow-hidden text-ink p-4 sm:p-6">
       <div className="relative z-10 w-full max-w-[420px] my-8">
         <div className="bg-surface-0 rounded-2xl shadow-lg p-6 sm:p-8 border border-line flex flex-col justify-between">
           <div className="flex items-center justify-between mb-6">
             <img
-              src="/brand/logo-primary.png"
+              src={resolvedTheme === 'dark' ? '/brand/logo-white.png' : '/brand/logo-primary.png'}
               alt={APP_NAME}
               className="h-8 w-auto select-none"
               draggable={false}

@@ -54,6 +54,23 @@ try {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    // Bound network requests so auth/forms cannot spin forever. Respect caller aborts.
+    fetch: async (input, init) => {
+      const controller = new AbortController();
+      const upstream = init?.signal;
+      const abort = () => controller.abort(upstream?.reason);
+      if (upstream?.aborted) abort();
+      else upstream?.addEventListener('abort', abort, { once: true });
+      const timeout = window.setTimeout(() => controller.abort(), 20_000);
+      try {
+        return await fetch(input, { ...init, signal: controller.signal });
+      } finally {
+        window.clearTimeout(timeout);
+        upstream?.removeEventListener('abort', abort);
+      }
+    },
+  },
   auth: {
     autoRefreshToken: true,
     persistSession: true,

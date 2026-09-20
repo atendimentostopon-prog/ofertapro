@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { NavLink } from 'react-router-dom';
 import {
@@ -31,6 +31,7 @@ const navItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
   const { user } = useUser();
+  const [loggingOut, setLoggingOut] = useState(false);
   const { toast } = useToast();
   const access = useAccountAccess();
   const { resolvedTheme } = useTheme();
@@ -138,10 +139,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
           </div>
         </div>
         <button
-          onClick={() => { handleLinkClick(); onLogout(); }}
+          disabled={loggingOut}
+          onClick={async () => {
+            if (loggingOut) return;
+            setLoggingOut(true);
+            try { await onLogout(); handleLinkClick(); }
+            catch { toast('Não foi possível sair. Tente novamente.', 'error'); }
+            finally { setLoggingOut(false); }
+          }}
           className="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium text-ink-secondary hover:text-danger-ink hover:bg-danger-bg transition-colors duration-160 group cursor-pointer"
         >
-          <span>Sair da conta</span>
+          <span>{loggingOut ? "Saindo…" : "Sair da conta"}</span>
           <LogOut className="w-3.5 h-3.5" />
         </button>
       </div>

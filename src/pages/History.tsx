@@ -63,12 +63,21 @@ const TimelineItem: React.FC<{ entry: any; isLast: boolean; onResend: (entry: an
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-6">
+      <div className="flex-1 min-w-0 pb-6">
         <Card
           variant="default"
           hoverable
           className="p-5"
           onClick={() => setExpanded(!expanded)}
+          role="button"
+          tabIndex={0}
+          aria-expanded={expanded}
+          aria-label={'Detalhes de ' + entry.offer_name}
+          onKeyDown={event => {
+            if (event.target !== event.currentTarget || !['Enter', ' '].includes(event.key)) return;
+            event.preventDefault();
+            setExpanded(value => !value);
+          }}
         >
           <div className="flex items-start gap-3">
             {/* Offer Image */}

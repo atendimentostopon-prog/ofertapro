@@ -19,6 +19,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
   const { user, setUser } = useUser();
   const { steps, allDone, loading, refresh } = useOnboardingStatus();
   const [persisting, setPersisting] = useState(false);
+  const [persistError, setPersistError] = useState(false);
   // Trava a auto-persistência em uma única tentativa por sessão do
   // componente -- sem isso, uma falha de rede faria o efeito abaixo
   // reagir à própria mudança de `persisting` (true -> false) e tentar
@@ -27,11 +28,12 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
 
   useEffect(() => {
     if (isOpen) refresh();
-  }, [isOpen, location.pathname]);
+  }, [isOpen, location.pathname, refresh]);
 
   const markOnboarded = async () => {
     if (!user || persisting) return;
     setPersisting(true);
+    setPersistError(false);
     try {
       const { error } = await supabase
         .from('profiles')
@@ -40,6 +42,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
       if (error) throw error;
       setUser(prev => (prev ? { ...prev, onboarded: true } : prev));
     } catch (err) {
+      setPersistError(true);
       console.error('[OnboardingWizardModal] falha ao persistir onboarded:', err);
     } finally {
       setPersisting(false);
@@ -86,6 +89,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
       }
     >
       <div className="space-y-6">
+        {persistError && <p role="alert" className="text-sm text-danger-ink">Não foi possível salvar seu progresso. Tente novamente.</p>}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-ink-secondary">Seu progresso</span>
@@ -169,7 +173,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({ is
           // saída manual o usuário ficaria preso aqui pra sempre, já que o
           // modal não tem botão de fechar.
           const autoPersistFailed =
-            autoPersistAttemptedRef.current && !persisting && user.onboarded !== true;
+            persistError && !persisting && user.onboarded !== true;
           return (
             <div className="p-4 rounded-2xl bg-ice/60 border border-mint-200 flex items-center gap-3 animate-scale-in">
               <PartyPopper className="w-5 h-5 text-mint-700 flex-shrink-0" />

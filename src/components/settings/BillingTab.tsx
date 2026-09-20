@@ -212,7 +212,7 @@ export const BillingTab: React.FC = () => {
         }
       >
         {cancelError && <p role="alert" className="mb-3 text-sm text-danger-ink">{cancelError}</p>}
-        <p className="text-xs text-ink-secondary">A cobrança automática será desligada imediatamente. Reative a qualquer momento em Planos.</p>
+        <p className="text-xs text-ink-secondary">Após a confirmação, a renovação automática será cancelada. Você mantém o acesso pelo período já contratado.</p>
       </Modal>
     </div>
   );

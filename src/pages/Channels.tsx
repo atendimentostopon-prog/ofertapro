@@ -62,6 +62,7 @@ const ChannelCard: React.FC<{
   const [testResult, setTestResult] = useState<'idle' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
   const [copiedIdentifier, setCopiedIdentifier] = useState(false);
+  const { toast } = useToast();
   const cfg = channelTypeConfig[channel.type as ChannelType] || channelTypeConfig.telegram;
   const menuRef = useRef<HTMLDivElement>(null);
   const isActive = channel.status === 'connected' || channel.status === 'active';
@@ -105,14 +106,15 @@ const ChannelCard: React.FC<{
         : rawIdentifier
     : null;
 
-  const handleCopyIdentifier = () => {
+  const handleCopyIdentifier = async () => {
     if (!rawIdentifier) return;
     try {
-      navigator.clipboard.writeText(rawIdentifier);
+      await navigator.clipboard.writeText(rawIdentifier);
       setCopiedIdentifier(true);
       setTimeout(() => setCopiedIdentifier(false), 2000);
     } catch {
-      /* clipboard indisponível; silencioso */
+      setCopiedIdentifier(false);
+      toast('Não foi possível copiar o identificador. Tente novamente.', 'error');
     }
   };
 

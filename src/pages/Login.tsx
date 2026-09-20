@@ -45,7 +45,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError(null);
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
+    const cleanPassword = password;
 
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -70,7 +70,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       } else if (message?.toLowerCase().includes('database error')) {
         message = 'Entramos na sua conta, mas não conseguimos carregar seu perfil. Tente novamente.';
       }
-      if (message?.toLowerCase().includes('load failed') || message?.toLowerCase().includes('fetch')) {
+      if (err.name === 'AbortError' || message?.toLowerCase().includes('aborted') || message?.toLowerCase().includes('load failed') || message?.toLowerCase().includes('fetch')) {
         message = 'Erro de conexão. Verifique sua internet e tente novamente.';
       }
       setError(message || 'Ocorreu um erro na autenticação. Tente novamente.');
@@ -122,6 +122,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             onChange={e => setEmail(e.target.value)}
             placeholder="seuemail@exemplo.com"
             className="input-modern"
+            autoComplete="username"
             autoFocus
           />
         </div>
@@ -136,6 +137,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <div className="relative">
             <input
               id="password"
+              autoComplete="current-password"
               type={showPassword ? 'text' : 'password'}
               required
               value={password}
@@ -160,7 +162,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           className="w-full btn-gradient flex items-center justify-center gap-2 py-2.5 text-sm mt-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
           {loading ? (
-            <div className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />
+            <><div aria-hidden="true" className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin" /><span>Entrando…</span></>
           ) : (
             <>
               <span className="font-semibold tracking-tight">Entrar na plataforma</span>

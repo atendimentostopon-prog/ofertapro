@@ -64,7 +64,13 @@ const Settings: React.FC = () => {
     }
 
     el.addEventListener('scroll', updateTabsScrollState, { passive: true });
-    const ro = new ResizeObserver(updateTabsScrollState);
+    const ro = new ResizeObserver(() => {
+      const selected = tablistRef.current?.querySelector<HTMLButtonElement>('[aria-selected="true"]');
+      if (selected && el.clientWidth < el.scrollWidth) {
+        el.scrollLeft = selected.offsetLeft - (el.clientWidth - selected.offsetWidth) / 2;
+      }
+      updateTabsScrollState();
+    });
     ro.observe(el);
     if (tablistRef.current) ro.observe(tablistRef.current);
 
