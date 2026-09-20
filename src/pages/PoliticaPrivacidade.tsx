@@ -33,7 +33,7 @@ const PoliticaPrivacidade: React.FC = () => {
         <div className="bg-surface-0/60 backdrop-blur-xl border border-line rounded-3xl p-8 sm:p-12 space-y-6 shadow-2xl">
           <div>
             <h1 className="text-3xl font-black text-ink tracking-tight mb-2">Política de Privacidade</h1>
-            <p className="text-xs text-ink-tertiary font-semibold">Última atualização: 17 de junho de 2026</p>
+            <p className="text-xs text-ink-tertiary font-semibold">Última atualização: 20 de setembro de 2026</p>
           </div>
 
           <div className="space-y-6 text-sm text-ink-secondary leading-relaxed">
@@ -113,6 +113,24 @@ const PoliticaPrivacidade: React.FC = () => {
               <h2 className="text-base font-extrabold text-ink">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
               <p>
                 Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo {APP_NAME}, envie um e-mail para <a href="mailto:privacidade@aflyo.com.br" className="text-mint-700 font-bold hover:underline">privacidade@aflyo.com.br</a>.
+              </p>
+            </section>
+
+            <section className="space-y-3" id="extensao-chrome">
+              <h2 className="text-base font-extrabold text-ink">9. Extensão para Chrome (Aflyo – Automação Mercado Livre)</h2>
+              <p>
+                A extensão opcional "Aflyo – Automação Mercado Livre" conecta a sua sessão no Mercado Livre à sua conta {APP_NAME}, para que os links de afiliado das suas ofertas sejam gerados automaticamente. Esta seção descreve os dados que ela trata.
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li><strong>Dados tratados:</strong> apenas cookies de login e de sessão do domínio mercadolivre.com.br (cerca de 10, como o identificador de sessão e o de usuário). A extensão não lê senhas, histórico de navegação, o conteúdo das páginas nem dados de outros sites, e não envia cookies de rastreamento ou de publicidade. O apelido do Mercado Livre é lido apenas para exibir "Logado como..." no popup.</li>
+                <li><strong>Finalidade:</strong> exclusivamente gerar os links de afiliado da sua própria conta, no servidor do {APP_NAME}, quando uma oferta do Mercado Livre é publicada pelo seu bot.</li>
+                <li><strong>Para onde vão:</strong> são enviados por conexão segura (HTTPS) aos servidores do {APP_NAME} e ficam associados somente à sua conta. Não são vendidos, não são compartilhados com terceiros, não são usados para publicidade, análise de crédito ou qualquer finalidade alheia ao funcionamento descrito aqui.</li>
+                <li><strong>Armazenamento no navegador:</strong> a extensão guarda localmente a sua chave de API do {APP_NAME} e o estado da última sincronização (data, situação e uma impressão digital irreversível dos cookies, usada só para saber se algo mudou).</li>
+                <li><strong>Quando envia:</strong> ao conectar, ao clicar em "Testar e sincronizar agora", quando o seu login no Mercado Livre muda, ao abrir o Mercado Livre e periodicamente enquanto o Chrome estiver aberto.</li>
+                <li><strong>Como parar e apagar:</strong> clicar em "Desconectar" na extensão interrompe qualquer envio e apaga os dados locais; remover a extensão faz o mesmo. Para apagar a sessão já guardada nos nossos servidores, solicite ao Encarregado (seção 8) ou exclua sua conta.</li>
+              </ul>
+              <p>
+                O uso das informações recebidas por esta extensão respeita a Política de Dados do Usuário dos Serviços do Chrome Web Store, incluindo os requisitos de Uso Limitado.
               </p>
             </section>
           </div>
