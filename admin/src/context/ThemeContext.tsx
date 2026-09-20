@@ -38,6 +38,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.style.colorScheme = theme;
   }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {

@@ -34,7 +34,11 @@ export default function Login() {
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-24 -right-24 w-80 opacity-[0.06]"
         />
-        <img src="/brand/logo-white.png" alt="Aflyo" className="relative h-7 w-auto" />
+        <img
+          src="/brand/logo-white.png"
+          alt="Aflyo"
+          className="relative h-auto w-36 object-contain object-left"
+        />
         <div className="relative">
           <h2 className="font-display text-2xl font-bold leading-snug text-white">
             Gerencie a operação com clareza.
@@ -47,7 +51,11 @@ export default function Login() {
 
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm">
-          <img src="/brand/logo-white.png" alt="Aflyo" className="mb-8 h-6 w-auto lg:hidden" />
+          <img
+            src="/brand/logo-white.png"
+            alt="Aflyo"
+            className="mb-8 h-auto w-24 object-contain object-left lg:hidden"
+          />
 
           <h1 className="font-display text-xl font-bold text-white">Bem-vindo de volta</h1>
           <p className="mt-1 text-xs text-white/50">Entre com sua conta da equipe.</p>

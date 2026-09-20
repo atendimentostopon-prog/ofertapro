@@ -55,13 +55,13 @@ export function KpiCard({
   const up = delta != null && delta >= 0;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-graphite-800 p-4" aria-disabled={!available || undefined}>
-      <p className="text-xs font-semibold text-white/60">{label}</p>
+    <div className="rounded-xl border border-line bg-surface-0 p-4 shadow-card" aria-disabled={!available || undefined}>
+      <p className="text-xs font-semibold text-ink-secondary">{label}</p>
       {available && value !== null ? (
         <>
           <div className="mt-1 flex items-baseline gap-2">
             <p
-              className={`font-display font-bold text-white ${
+              className={`font-display font-bold text-ink ${
                 size === 'hero' ? 'text-4xl drop-shadow-[0_0_20px_rgba(94,231,165,0.45)]' : 'text-2xl'
               }`}
             >
@@ -79,7 +79,7 @@ export function KpiCard({
           {series && series.length >= 2 && <Sparkline series={series} />}
         </>
       ) : (
-        <p className="mt-1 text-sm font-semibold text-white/40">Dados indisponíveis</p>
+        <p className="mt-1 text-sm font-semibold text-ink-tertiary">Dados indisponíveis</p>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { NAV } from '../nav';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { hasPermission } from '../lib/permissions';
@@ -15,7 +15,9 @@ function readCollapsed(): boolean {
   }
 }
 
-export default function Sidebar() {
+type SidebarProps = { mobile?: boolean; onNavigate?: () => void };
+
+export default function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
   const { identity } = useAdminAuth();
   const granted = identity?.permissions ?? [];
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -34,20 +36,24 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`flex shrink-0 flex-col border-r border-white/10 bg-graphite-900 transition-[width] duration-200 ${
-        collapsed ? 'w-16' : 'w-60'
+      className={`flex h-dvh shrink-0 flex-col border-r border-white/10 bg-graphite-900 transition-[width] duration-200 ${
+        mobile ? 'w-full' : collapsed ? 'w-16' : 'w-60'
       }`}
     >
       <div className="flex items-center justify-between px-4 py-4">
-        {!collapsed && <span className="font-display text-sm font-bold text-white">Aflyo Admin</span>}
-        <button
+        {(mobile || !collapsed) && <span className="font-display text-sm font-bold text-white">Aflyo Admin</span>}
+        {mobile ? (
+          <button type="button" autoFocus onClick={onNavigate} aria-label="Fechar menu" className="rounded-md p-2 text-white/60 hover:bg-white/10 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        ) : <button
           type="button"
           onClick={toggle}
           aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
           className="rounded-md p-1 text-white/50 transition-colors hover:bg-white/5 hover:text-white"
         >
           {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </button>
+        </button>}
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2 pb-6">
@@ -58,7 +64,7 @@ export default function Sidebar() {
           if (items.length === 0) return null;
           return (
             <div key={section.title}>
-              {!collapsed && (
+              {(mobile || !collapsed) && (
                 <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-white/40">
                   {section.title}
                 </p>
@@ -90,6 +96,7 @@ export default function Sidebar() {
                       <NavLink
                         to={item.to}
                         end={item.to === '/'}
+                        onClick={onNavigate}
                         className={({ isActive }) =>
                           `flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                             isActive
@@ -99,7 +106,7 @@ export default function Sidebar() {
                         }
                       >
                         <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                        {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+                        {(mobile || !collapsed) && <span className="flex-1 truncate">{item.label}</span>}
                       </NavLink>
                     </li>
                   );

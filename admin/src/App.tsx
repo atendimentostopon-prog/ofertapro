@@ -3,6 +3,7 @@ import { ENV } from './lib/env';
 import { isAllowedHost } from './lib/hostname-guard';
 import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import AdminLayout from './components/AdminLayout';
 import RequirePermission from './components/RequirePermission';
 import Login from './pages/Login';
@@ -63,14 +64,17 @@ function Gate() {
 }
 
 export default function App() {
-  if (!isAllowedHost(window.location.hostname, ENV.isProd, ENV.adminHostname)) {
-    return <Unauthorized variant="wrong-host" />;
-  }
   return (
-    <ToastProvider>
-      <AdminAuthProvider>
-        <Gate />
-      </AdminAuthProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      {!isAllowedHost(window.location.hostname, ENV.isProd, ENV.adminHostname) ? (
+        <Unauthorized variant="wrong-host" />
+      ) : (
+        <ToastProvider>
+          <AdminAuthProvider>
+            <Gate />
+          </AdminAuthProvider>
+        </ToastProvider>
+      )}
+    </ThemeProvider>
   );
 }
