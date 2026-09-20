@@ -63,7 +63,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({ open, onClose, initialQuery =
         className="w-full max-w-xl bg-surface-0 border border-line rounded-2xl shadow-lg overflow-hidden animate-scale-in"
         onMouseDown={event => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 px-4 border-b border-line">
+        <div className="flex items-center gap-3 px-4 border-b border-line focus-within:border-mint-500 transition-colors">
           <Search className="w-5 h-5 text-ink-tertiary flex-shrink-0" />
           <input
             ref={inputRef}
@@ -77,7 +77,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({ open, onClose, initialQuery =
             }}
             placeholder="Buscar ofertas, canais ou ações…"
             aria-label="Buscar no Aflyo"
-            className="flex-1 min-w-0 py-4 bg-transparent outline-none text-sm text-ink placeholder:text-ink-tertiary"
+            className="flex-1 min-w-0 py-4 bg-transparent outline-none text-sm text-ink placeholder:text-ink-tertiary focus-visible:shadow-none focus-visible:rounded-none"
           />
           <button type="button" onClick={onClose} aria-label="Fechar busca" className="p-2 rounded-lg text-ink-tertiary hover:bg-surface-1 hover:text-ink">
             <X className="w-4 h-4" />
