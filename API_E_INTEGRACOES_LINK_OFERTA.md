@@ -35,7 +35,7 @@ Criada no schema `public` do banco de dados PostgreSQL do Supabase via migration
 ---
 
 ## 5. Edge Functions Criadas
-Desenvolvemos três funções servidas no Deno Deploy do Supabase:
+Desenvolvemos quatro funções servidas no Deno Deploy do Supabase:
 1. **`api-key-generate`**:
    - Autentica o JWT do usuário logado do Link Oferta.
    - Revoga automaticamente qualquer chave ativa anterior para impor a regra de no máximo 1 chave ativa por conta (comportamento de regeneração).
@@ -43,7 +43,11 @@ Desenvolvemos três funções servidas no Deno Deploy do Supabase:
    - Retorna a chave de API limpa uma única vez.
 2. **`api-key-revoke`**:
    - Autentica o JWT do usuário e desativa a chave correspondente marcando-a como `revoked` e registrando a data de revogação.
-3. **`public-api`**:
+3. **`api-key-reveal`**:
+   - Autentica o JWT do usuário e recupera do Vault somente a chave ativa do próprio usuário.
+   - Confere o SHA-256 do segredo contra `api_keys.key_hash` antes de retorná-lo.
+   - Para chaves antigas ou fora de sincronia, retorna `reason: not_synced` e exige regeneração.
+4. **`public-api`**:
    - Atua como a API externa pública. 
    - Valida o token `Bearer lof_live_...` no cabeçalho `Authorization`.
    - Autentica a requisição, atualiza o campo `last_used_at` e roteia dinamicamente as operações com base no pathname:
@@ -145,13 +149,33 @@ dist/assets/index-DY6YcW7F.js                                1,833.00 kB │ gzi
    supabase secrets set SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
    supabase secrets set VITE_PUBLIC_APP_URL=https://linkoferta.vercel.app
    ```
-2. **Deploy das Funções**:
-   Suba as funções criadas para o seu projeto remoto rodando:
+2. **Rollout coordenado do Vault e das funções**:
+   Este procedimento exige uma janela coordenada porque a migration zera
+   `bot_configs.link_oferta_api_key`. Não execute em produção sem autorização
+   explícita do dono. Confirme o projeto alvo antes de cada comando e siga a
+   ordem abaixo:
+
+   - [ ] Atualizar o bot externo para ler `public.get_bot_config_api_key(user_id)` com `service_role`.
+   - [ ] Aplicar a migration `supabase/migrations/20260831010200_bot_configs_api_key_vault.sql`.
+   - [ ] Confirmar, sem consultar o valor dos segredos, que a coluna legada ficou vazia, os nomes esperados existem no Vault e os RPCs aceitam somente `service_role`.
+   - [ ] Implantar as três Edge Functions de API key na mesma janela:
+
    ```bash
    supabase functions deploy api-key-generate
+   supabase functions deploy api-key-reveal
    supabase functions deploy api-key-revoke
+   ```
+
+   - [ ] Implantar a API pública, se houver mudança nela:
+
+   ```bash
    supabase functions deploy public-api
    ```
+
+   - [ ] Executar `npm run check:api-key-rollout` antes do deploy.
+   - [ ] Fazer smoke test autenticado: gerar, revelar e revogar uma chave de teste; validar apenas status, `key_last4` e correspondência de hash, sem registrar/copiar a chave ou o JWT.
+   - [ ] Confirmar que chave anterior à sincronização retorna HTTP 200 com `reason: not_synced`.
+   - [ ] Conferir logs das três funções sem expor tokens ou chaves.
 
 ---
 

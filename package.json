@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "check:plan-limits": "node scripts/check-plan-limits.mjs",
     "check:billing": "node scripts/check-billing-regressions.mjs",
+    "check:api-key-rollout": "node scripts/check-api-key-rollout.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
