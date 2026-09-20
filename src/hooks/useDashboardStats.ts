@@ -176,10 +176,16 @@ export function useDashboardStats() {
         }
       });
 
-      const clicksBySource = Object.entries(sourceClicks).map(([name, value]) => ({
-        name: name === 'direct' || name === 'public_page' ? 'Vitrine' : name.toUpperCase(),
-        value
-      }));
+      const clicksBySource = Object.entries(sourceClicks).reduce<Array<{ name: string; value: number }>>(
+        (sources, [name, value]) => {
+          const displayName = name === 'direct' || name === 'public_page' ? 'Vitrine' : name.toUpperCase();
+          const existing = sources.find(source => source.name === displayName);
+          if (existing) existing.value += value;
+          else sources.push({ name: displayName, value });
+          return sources;
+        },
+        []
+      );
 
       // 6. Cliques nos Últimos 7 Dias ( clicksByDay )
       const clicksByDay = Array.from({ length: 7 }).map((_, i) => {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export const SettingsSection: React.FC<{
   title: string;
@@ -24,10 +24,22 @@ export const Field: React.FC<{
   label: string;
   hint?: string;
   children: React.ReactNode;
-}> = ({ label, hint, children }) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-medium text-ink-secondary">{label}</label>
-    {children}
-    {hint && <p className="text-xs text-ink-tertiary">{hint}</p>}
-  </div>
-);
+}> = ({ label, hint, children }) => {
+  const generatedId = useId();
+  const hintId = hint ? `${generatedId}-hint` : undefined;
+  const control = React.isValidElement<{ id?: string; 'aria-describedby'?: string }>(children)
+    ? React.cloneElement(children, {
+        id: children.props.id || generatedId,
+        'aria-describedby': children.props['aria-describedby'] || hintId,
+      })
+    : children;
+  const controlId = React.isValidElement<{ id?: string }>(control) ? control.props.id : undefined;
+
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={controlId} className="text-sm font-medium text-ink-secondary">{label}</label>
+      {control}
+      {hint && <p id={hintId} className="text-xs text-ink-tertiary">{hint}</p>}
+    </div>
+  );
+};

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   X, Image as ImageIcon, DollarSign, Tag, Link2,
   Send, Check, Eye, Upload, Loader2, Sparkles, CheckCircle2, XCircle, ShieldCheck, RefreshCw
@@ -113,6 +113,20 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
     }
     onClose();
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || showUpgradeModal) return;
+      event.preventDefault();
+      if (progressStep === 'saving' || progressStep === 'sending') {
+        toast('O disparo de ofertas estÃ¡ em andamento. Aguarde a conclusÃ£o do processo para fechar.', 'warning');
+        return;
+      }
+      onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, progressStep, showUpgradeModal, toast]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -285,7 +299,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
   };
 
   return (
-    <div className="modal-overlay" onClick={handleCloseClick}>
+    <div className="modal-overlay" onClick={handleCloseClick} role="dialog" aria-modal="true" aria-labelledby="new-offer-title">
       <div
         className="modal-content w-full max-w-4xl relative overflow-hidden flex flex-col h-[85vh] max-h-[90vh]"
         onClick={e => e.stopPropagation()}
@@ -298,7 +312,7 @@ const NewOfferModal: React.FC<NewOfferModalProps> = ({ onClose, offerToEdit, onS
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-line bg-surface-1 rounded-t-2xl">
           <div>
-            <h2 className="text-lg font-bold text-ink tracking-tight">
+            <h2 id="new-offer-title" className="text-lg font-bold text-ink tracking-tight">
               {offerToEdit ? 'Editar Oferta' : 'Nova Oferta'}
             </h2>
             <p className="text-[11px] font-medium text-ink-secondary mt-0.5">Configure, salve e envie em lote com um clique</p>
