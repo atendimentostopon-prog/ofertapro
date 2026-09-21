@@ -63,7 +63,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({ open, onClose, initialQuery =
         className="w-full max-w-xl bg-surface-0 border border-line rounded-2xl shadow-lg overflow-hidden animate-scale-in"
         onMouseDown={event => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 px-4 border-b border-line focus-within:border-mint-500 transition-colors">
+        <div className="flex items-center gap-3 px-4 border-b border-line">
           <Search className="w-5 h-5 text-ink-tertiary flex-shrink-0" />
           <input
             ref={inputRef}
