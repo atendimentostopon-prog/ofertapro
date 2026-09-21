@@ -430,8 +430,16 @@ const History: React.FC = () => {
         ) : (
           <EmptyState
             icon={Calendar}
+            icons={[Send, Clock]}
+            variant={search || statusFilter !== 'all' || dateFilter !== 'all' ? 'no-results' : 'first-use'}
             title="Nenhum disparo encontrado"
-            description="Todos os seus disparos de ofertas e canais integrados serão exibidos aqui."
+            description={search || statusFilter !== 'all' || dateFilter !== 'all'
+              ? 'Nenhum disparo corresponde aos filtros atuais.'
+              : 'Todos os seus disparos de ofertas e canais integrados serão exibidos aqui.'}
+            actionText={search || statusFilter !== 'all' || dateFilter !== 'all' ? 'Limpar filtros' : 'Ver ofertas'}
+            onAction={search || statusFilter !== 'all' || dateFilter !== 'all'
+              ? () => { setSearch(''); setStatusFilter('all'); setDateFilter('all'); }
+              : () => navigate('/offers')}
           />
         )}
       </div>

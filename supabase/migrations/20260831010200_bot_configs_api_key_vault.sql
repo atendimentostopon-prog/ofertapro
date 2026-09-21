@@ -21,8 +21,9 @@
 --   `bot_configs.link_oferta_api_key` direto. Depois desta migration essa
 --   coluna é NULL. O bot PRECISA passar a chamar, com a service_role:
 --       select public.get_bot_config_api_key('<user_id>'::uuid);
---   Aplique esta migration + o deploy das Edge Functions api-key-* + a
---   atualização do bot na MESMA janela. Ver instrução de rotação no fim.
+--   Aplique esta migration ANTES do deploy coordenado das Edge Functions
+--   api-key-generate, api-key-reveal e api-key-revoke, e atualize o bot na
+--   MESMA janela. Ver instrução de rotação no fim.
 --
 -- Idempotente.
 -- =====================================================================

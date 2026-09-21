@@ -1,6 +1,6 @@
 import React from 'react';
 import { Disclosure } from '../components/ui/Disclosure';
-import { ArrowUpRight, Lightbulb, Clock } from 'lucide-react';
+import { ArrowUpRight, Lightbulb, Clock, PackagePlus, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useBotStatus } from '../hooks/useBotStatus';
@@ -21,6 +21,7 @@ import { BotStatusCard } from '../components/dashboard/BotStatusCard';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { OperationalMetrics } from '../components/dashboard/OperationalMetrics';
 import { AnalyticsZone } from '../components/dashboard/AnalyticsZone';
+import { EmptyState } from '../components/ui/EmptyState';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -200,7 +201,14 @@ const Dashboard: React.FC = () => {
 
           <div className="space-y-1.5">
             {topOffers.length === 0 ? (
-              <p className="text-xs text-ink-tertiary text-center py-6">Nenhuma oferta cadastrada.</p>
+              <EmptyState
+                compact
+                icon={PackagePlus}
+                title="Sua primeira oferta começa aqui"
+                description="Cadastre um produto para acompanhar cliques e disparar para seus canais."
+                actionText="Criar oferta"
+                onAction={() => navigate('/offers/new')}
+              />
             ) : topOffers.map((offer: any, idx: number) => (
               <div key={offer.id} className="flex items-center gap-3 p-3 rounded-xl bg-surface-1 hover:bg-surface-2 transition-all group border border-line-subtle">
                 <div className="w-6 h-6 rounded-md bg-ice border border-mint-200 flex items-center justify-center flex-shrink-0">
@@ -236,9 +244,14 @@ const Dashboard: React.FC = () => {
 
           <div className="space-y-2.5 flex-1">
             {recentHistory.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-center">
-                <p className="text-xs text-ink-tertiary py-6">Nenhum disparo efetuado ainda.</p>
-              </div>
+              <EmptyState
+                compact
+                icon={Send}
+                title="Nenhum disparo ainda"
+                description="Depois do primeiro envio, o resultado aparecerá aqui."
+                actionText="Ver ofertas"
+                onAction={() => navigate('/offers')}
+              />
             ) : recentHistory.slice(0, 4).map((h: any) => (
               <div key={h.id} className="flex items-start gap-3 text-xs p-2 rounded-md hover:bg-surface-1 transition-colors">
                 <div className={`w-9 h-9 rounded-md ${LOGO_CHIP_BG} border border-line flex items-center justify-center flex-shrink-0`}>

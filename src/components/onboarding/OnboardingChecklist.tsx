@@ -66,6 +66,9 @@ const OnboardingChecklist: React.FC = () => {
     { id: 'clicks',   label: 'Gerar os primeiros cliques',    description: 'Acompanhe as visitas no Dashboard.',        completed: steps.clicksReceived,   actionLabel: 'Ver resultados', route: '/dashboard', icon: MousePointerClick },
   ];
 
+  const nextItem = checklistItems.find(item => !item.completed) ?? checklistItems[checklistItems.length - 1];
+  const NextIcon = nextItem.icon;
+
   return (
     <Disclosure title={`Primeiros passos · ${percentCompleted}% concluído`} description="Consulte as próximas etapas para configurar sua conta." defaultOpen={!user?.onboarded}>
     <div className="space-y-5">
@@ -93,53 +96,42 @@ const OnboardingChecklist: React.FC = () => {
         />
       </div>
 
-      {/* Lista de Itens */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5 pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-3.5 pt-1">
+        <div className="rounded-xl border border-mint-200 bg-ice p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-surface-0 border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
+            <NextIcon className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-mint-800">Próxima melhor ação</p>
+            <h3 className="text-sm font-bold text-ink mt-1 font-display">{nextItem.label}</h3>
+            <p className="text-xs text-ink-secondary mt-0.5">{nextItem.description}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate(nextItem.route)}
+            className="btn-gradient px-4 py-2 text-xs font-semibold flex-shrink-0"
+          >
+            {nextItem.actionLabel}<ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-line bg-surface-0 p-3 space-y-1">
         {checklistItems.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.id}
-              className={`flex flex-col justify-between p-4 rounded-xl border transition-all ${
-                item.completed
-                  ? 'bg-surface-1 border-line opacity-70'
-                  : 'bg-surface-0 border-line hover:border-line-strong hover:shadow-sm'
-              }`}
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className={`w-8 h-8 rounded-md flex items-center justify-center border ${
-                    item.completed
-                      ? 'bg-ice border-mint-200 text-mint-700'
-                      : 'bg-surface-1 border-line text-ink-secondary'
-                  }`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  {item.completed ? (
-                    <CheckCircle2 className="w-5 h-5 text-mint-700 fill-ice" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-ink-disabled" />
-                  )}
-                </div>
-
-                <div className="space-y-0.5">
-                  <p className="text-[12px] font-bold text-ink tracking-tight leading-tight">{item.label}</p>
-                  <p className="text-[10px] text-ink-tertiary font-medium leading-snug">{item.description}</p>
-                </div>
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center ${item.completed ? 'bg-ice text-mint-700' : 'bg-surface-1 text-ink-tertiary'}`}>
+                <Icon className="w-3.5 h-3.5" />
               </div>
-
-              {!item.completed && (
-                <button
-                  onClick={() => navigate(item.route)}
-                  className="mt-3 w-full py-1.5 rounded-md bg-graphite hover:bg-graphite-800 text-ink-inverse font-semibold text-[10px] transition-colors flex items-center justify-center gap-1 group cursor-pointer"
-                >
-                  {item.actionLabel}
-                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              )}
+              <span className={`text-[11px] font-medium flex-1 min-w-0 truncate ${item.completed ? 'text-ink-secondary line-through' : 'text-ink'}`}>{item.label}</span>
+              {item.completed ? <CheckCircle2 className="w-4 h-4 text-mint-700" /> : <Circle className="w-4 h-4 text-ink-disabled" />}
             </div>
           );
         })}
+        </div>
       </div>
     </div>
     </Disclosure>

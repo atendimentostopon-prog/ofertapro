@@ -1,0 +1,231 @@
+<div id="aflyo-preview" aria-label="Prévia das melhorias propostas para o Aflyo">
+  <style>
+    #aflyo-preview {
+      --af-bg: light-dark(#f6f7f9, #151a1f);
+      --af-panel: light-dark(#ffffff, #101418);
+      --af-panel-2: light-dark(#f1f3f6, #1f2328);
+      --af-text: light-dark(#101418, #f5f6f7);
+      --af-muted: light-dark(#667085, #9aa1aa);
+      --af-line: light-dark(rgba(16,20,24,.09), rgba(255,255,255,.09));
+      --af-mint: #5ee7a5;
+      --af-mint-strong: #22c078;
+      --af-ice: light-dark(#dff8ee, #132e26);
+      --af-warn: light-dark(#92400e, #fbbf24);
+      --af-warn-bg: light-dark(#fef3c7, #322916);
+      --af-radius: 14px;
+      --af-gap: 14px;
+      color-scheme: light dark;
+      color: var(--af-text);
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      width: 100%;
+    }
+    #aflyo-preview * { box-sizing: border-box; }
+    #aflyo-preview button { font: inherit; }
+    #aflyo-preview .af-chooser { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    #aflyo-preview .af-choice { border:1px solid var(--af-line); background:var(--af-panel); color:var(--af-muted); border-radius:9px; padding:8px 12px; font-weight:600; }
+    #aflyo-preview .af-choice[aria-pressed="true"] { background:#101418; color:white; border-color:#101418; }
+    #aflyo-preview .af-window { display:grid; grid-template-columns:210px minmax(0,1fr); min-height:680px; overflow:hidden; background:var(--af-bg); border:1px solid var(--af-line); border-radius:18px; box-shadow:0 18px 55px rgba(16,20,24,.12); }
+    #aflyo-preview .af-sidebar { background:#101418; color:#fff; padding:20px 14px; display:flex; flex-direction:column; gap:22px; }
+    #aflyo-preview .af-brand { display:flex; align-items:center; gap:9px; padding:0 8px; font-weight:750; letter-spacing:-.03em; }
+    #aflyo-preview .af-mark { width:28px; height:28px; display:grid; place-items:center; border-radius:9px; background:var(--af-mint); color:#101418; }
+    #aflyo-preview .af-nav { display:grid; gap:4px; }
+    #aflyo-preview .af-nav span { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; color:#aab1b9; font-size:13px; }
+    #aflyo-preview .af-nav span.active { background:#dff8ee; color:#101418; font-weight:700; }
+    #aflyo-preview .af-main { min-width:0; }
+    #aflyo-preview .af-topbar { height:62px; background:color-mix(in srgb, var(--af-panel) 88%, transparent); border-bottom:1px solid var(--af-line); display:flex; align-items:center; gap:12px; padding:0 20px; }
+    #aflyo-preview .af-search { flex:1; max-width:430px; min-width:0; border:1px solid var(--af-line); background:var(--af-panel-2); border-radius:10px; padding:9px 11px; color:var(--af-muted); display:flex; align-items:center; gap:8px; font-size:13px; }
+    #aflyo-preview .af-key { margin-left:auto; border:1px solid var(--af-line); background:var(--af-panel); border-radius:5px; padding:1px 5px; font-size:10px; }
+    #aflyo-preview .af-new { margin-left:auto; border:0; border-radius:9px; background:#101418; color:white; padding:9px 13px; font-size:12px; font-weight:700; }
+    #aflyo-preview .af-content { padding:22px; display:grid; gap:var(--af-gap); }
+    #aflyo-preview .af-page { display:none; }
+    #aflyo-preview .af-page.active { display:grid; gap:var(--af-gap); }
+    #aflyo-preview .af-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+    #aflyo-preview h2, #aflyo-preview h3, #aflyo-preview p { margin:0; }
+    #aflyo-preview h2 { font-size:22px; letter-spacing:-.035em; }
+    #aflyo-preview h3 { font-size:13px; }
+    #aflyo-preview .af-sub { color:var(--af-muted); font-size:12px; margin-top:4px; }
+    #aflyo-preview .af-card { background:var(--af-panel); border:1px solid var(--af-line); border-radius:var(--af-radius); padding:16px; }
+    #aflyo-preview .af-command { display:grid; grid-template-columns:1.3fr .7fr; gap:var(--af-gap); }
+    #aflyo-preview .af-command-box { background:var(--af-panel); border:1px solid var(--af-line); border-radius:var(--af-radius); overflow:hidden; box-shadow:0 16px 38px rgba(16,20,24,.14); }
+    #aflyo-preview .af-command-input { padding:14px; display:flex; align-items:center; gap:9px; border-bottom:1px solid var(--af-line); color:var(--af-muted); font-size:13px; }
+    #aflyo-preview .af-results { padding:8px; display:grid; gap:3px; }
+    #aflyo-preview .af-result { padding:9px 10px; border-radius:8px; display:flex; gap:10px; align-items:center; font-size:12px; }
+    #aflyo-preview .af-result:first-child { background:var(--af-ice); }
+    #aflyo-preview .af-result small { color:var(--af-muted); margin-left:auto; }
+    #aflyo-preview .af-note { border-left:3px solid var(--af-mint-strong); }
+    #aflyo-preview .af-note ul { margin:10px 0 0; padding-left:17px; color:var(--af-muted); font-size:12px; line-height:1.65; }
+    #aflyo-preview .af-stage-row { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+    #aflyo-preview .af-stage { padding:11px; border:1px solid var(--af-line); border-radius:11px; background:var(--af-panel); min-width:0; }
+    #aflyo-preview .af-stage b { display:block; font-size:11px; margin-top:7px; }
+    #aflyo-preview .af-stage small { color:var(--af-muted); font-size:10px; }
+    #aflyo-preview .af-stage.done { background:var(--af-ice); }
+    #aflyo-preview .af-progress { height:5px; background:var(--af-panel-2); border-radius:99px; overflow:hidden; margin-top:10px; }
+    #aflyo-preview .af-progress i { display:block; width:40%; height:100%; background:var(--af-mint-strong); }
+    #aflyo-preview .af-empty { min-height:285px; display:grid; place-items:center; text-align:center; border-style:dashed; }
+    #aflyo-preview .af-empty-inner { max-width:370px; display:grid; justify-items:center; gap:10px; }
+    #aflyo-preview .af-icon-stack { display:flex; }
+    #aflyo-preview .af-icon-stack span { width:42px; height:42px; border-radius:13px; border:1px solid var(--af-line); background:var(--af-panel-2); display:grid; place-items:center; margin-left:-7px; }
+    #aflyo-preview .af-icon-stack span:first-child { margin-left:0; transform:rotate(-8deg); }
+    #aflyo-preview .af-icon-stack span:last-child { transform:rotate(8deg); }
+    #aflyo-preview .af-primary { border:0; border-radius:9px; padding:9px 14px; background:#101418; color:#fff; font-weight:700; font-size:12px; }
+    #aflyo-preview .af-filter { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+    #aflyo-preview .af-chip { border:1px solid var(--af-line); background:var(--af-panel); color:var(--af-text); padding:7px 9px; border-radius:8px; font-size:11px; }
+    #aflyo-preview .af-table { overflow:hidden; padding:0; }
+    #aflyo-preview .af-tr { display:grid; grid-template-columns:1.4fr .7fr .7fr .5fr; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--af-line); font-size:11px; }
+    #aflyo-preview .af-tr:last-child { border-bottom:0; }
+    #aflyo-preview .af-tr.header { color:var(--af-muted); font-weight:700; background:var(--af-panel-2); }
+    #aflyo-preview .af-status { display:inline-flex; width:max-content; padding:3px 7px; border-radius:999px; background:var(--af-ice); color:light-dark(#127046,#5ee7a5); font-weight:700; }
+    #aflyo-preview .af-wizard { display:grid; grid-template-columns:220px minmax(0,1fr); padding:0; overflow:hidden; }
+    #aflyo-preview .af-wizard-nav { background:var(--af-panel-2); padding:18px; display:grid; align-content:start; gap:13px; }
+    #aflyo-preview .af-wstep { display:flex; gap:9px; color:var(--af-muted); font-size:11px; }
+    #aflyo-preview .af-wstep strong { color:var(--af-text); display:block; }
+    #aflyo-preview .af-dot { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--af-line); background:var(--af-panel); flex:0 0 auto; }
+    #aflyo-preview .af-wstep.current .af-dot { background:#101418; color:white; }
+    #aflyo-preview .af-form { padding:22px; display:grid; gap:14px; }
+    #aflyo-preview .af-field { border:1px solid var(--af-line); background:var(--af-panel-2); color:var(--af-muted); border-radius:9px; padding:11px; font-size:12px; }
+    #aflyo-preview .af-preview-card { display:grid; grid-template-columns:58px 1fr; gap:11px; padding:12px; background:var(--af-ice); border-radius:11px; }
+    #aflyo-preview .af-preview-img { border-radius:8px; background:linear-gradient(135deg,#ffcf70,#ff7a59); }
+    #aflyo-preview .af-pricing { grid-template-columns:repeat(3,1fr); gap:var(--af-gap); }
+    #aflyo-preview .af-price { position:relative; display:flex; flex-direction:column; gap:12px; }
+    #aflyo-preview .af-price.featured { border:2px solid var(--af-mint-strong); }
+    #aflyo-preview .af-badge { position:absolute; right:12px; top:12px; background:var(--af-mint); color:#101418; padding:4px 7px; border-radius:999px; font-size:9px; font-weight:800; }
+    #aflyo-preview .af-amount { font-size:26px; font-weight:800; letter-spacing:-.04em; }
+    #aflyo-preview .af-price ul { margin:0; padding-left:17px; color:var(--af-muted); font-size:11px; line-height:1.8; flex:1; }
+    #aflyo-preview .af-compare { color:var(--af-muted); text-align:center; font-size:11px; }
+    #aflyo-preview .af-location { display:inline-flex; align-items:center; gap:6px; color:var(--af-warn); background:var(--af-warn-bg); padding:5px 8px; border-radius:7px; font-size:10px; font-weight:700; }
+    @media (max-width:760px) {
+      #aflyo-preview .af-window { grid-template-columns:1fr; min-height:auto; }
+      #aflyo-preview .af-sidebar { display:none; }
+      #aflyo-preview .af-content { padding:14px; }
+      #aflyo-preview .af-command, #aflyo-preview .af-wizard, #aflyo-preview .af-pricing { grid-template-columns:1fr; }
+      #aflyo-preview .af-stage-row { grid-template-columns:repeat(2,1fr); }
+      #aflyo-preview .af-wizard-nav { display:flex; overflow:hidden; }
+      #aflyo-preview .af-wstep div:last-child { display:none; }
+      #aflyo-preview .af-tr { grid-template-columns:1.4fr .7fr .6fr; }
+      #aflyo-preview .af-tr span:nth-child(3) { display:none; }
+      #aflyo-preview .af-new { padding:9px; }
+    }
+  </style>
+
+  <div class="af-chooser" role="group" aria-label="Escolha a tela proposta">
+    <button class="af-choice cursor-interaction" type="button" data-page="dashboard" aria-pressed="true">Dashboard</button>
+    <button class="af-choice cursor-interaction" type="button" data-page="offers" aria-pressed="false">Ofertas</button>
+    <button class="af-choice cursor-interaction" type="button" data-page="wizard" aria-pressed="false">Nova oferta</button>
+    <button class="af-choice cursor-interaction" type="button" data-page="pricing" aria-pressed="false">Planos</button>
+  </div>
+
+  <section class="af-window" aria-label="Aflyo com componentes propostos">
+    <aside class="af-sidebar">
+      <div class="af-brand"><span class="af-mark"><i data-lucide="zap" aria-hidden="true"></i></span>AFLYO</div>
+      <nav class="af-nav" aria-label="Navegação de exemplo">
+        <span class="active"><i data-lucide="layout-dashboard" aria-hidden="true"></i>Dashboard</span>
+        <span><i data-lucide="package" aria-hidden="true"></i>Ofertas</span>
+        <span><i data-lucide="radio" aria-hidden="true"></i>Canais</span>
+        <span><i data-lucide="plug" aria-hidden="true"></i>Integrações</span>
+        <span><i data-lucide="history" aria-hidden="true"></i>Histórico</span>
+        <span><i data-lucide="settings" aria-hidden="true"></i>Configurações</span>
+      </nav>
+    </aside>
+    <div class="af-main">
+      <header class="af-topbar">
+        <div class="af-search"><i data-lucide="search" aria-hidden="true"></i>Buscar ofertas, canais ou ações… <span class="af-key">⌘ K</span></div>
+        <button class="af-new cursor-interaction" type="button">+ Nova oferta</button>
+      </header>
+      <main class="af-content">
+        <section class="af-page active" data-page-panel="dashboard">
+          <div class="af-heading"><div><h2>Olá, João!</h2><p class="af-sub">Seu painel de vendas está pronto para agir.</p></div><span class="af-location"><i data-lucide="map-pin" aria-hidden="true"></i>entra no topo global</span></div>
+          <div class="af-command">
+            <div class="af-command-box">
+              <div class="af-command-input"><i data-lucide="search" aria-hidden="true"></i><span>Buscar “oferta samsung”</span><span class="af-key">Esc</span></div>
+              <div class="af-results">
+                <div class="af-result"><i data-lucide="package" aria-hidden="true"></i>Smart TV Samsung 50” <small>Oferta</small></div>
+                <div class="af-result"><i data-lucide="send" aria-hidden="true"></i>Disparar oferta para WhatsApp <small>Ação</small></div>
+                <div class="af-result"><i data-lucide="radio" aria-hidden="true"></i>Canal Ofertas VIP <small>Canal</small></div>
+              </div>
+            </div>
+            <div class="af-card af-note"><h3>Command Menu com busca global</h3><ul><li>Substitui a busca simples do TopBar.</li><li>Ctrl/Cmd+K encontra e também executa ações.</li><li>Maior ganho para usuários recorrentes.</li></ul></div>
+          </div>
+          <div class="af-card">
+            <div class="af-heading"><div><h3>Configure sua operação</h3><p class="af-sub">2 de 5 etapas concluídas</p></div><span class="af-location">substitui o checklist de 5 cards</span></div>
+            <div class="af-progress"><i></i></div>
+            <div class="af-stage-row" style="margin-top:12px">
+              <div class="af-stage done"><i data-lucide="check" aria-hidden="true"></i><b>Perfil público</b><small>Concluído</small></div>
+              <div class="af-stage done"><i data-lucide="check" aria-hidden="true"></i><b>Conectar canal</b><small>Concluído</small></div>
+              <div class="af-stage"><i data-lucide="package" aria-hidden="true"></i><b>Criar oferta</b><small>Próxima etapa</small></div>
+              <div class="af-stage"><i data-lucide="send" aria-hidden="true"></i><b>Disparar</b><small>Pendente</small></div>
+              <div class="af-stage"><i data-lucide="mouse-pointer-click" aria-hidden="true"></i><b>Gerar cliques</b><small>Pendente</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="af-page" data-page-panel="offers">
+          <div class="af-heading"><div><h2>Ofertas</h2><p class="af-sub">Gerencie seu catálogo e encontre gargalos rapidamente.</p></div><span class="af-location">/offers e /history</span></div>
+          <div class="af-filter"><button class="af-chip cursor-interaction" type="button">Status: Ativas ×</button><button class="af-chip cursor-interaction" type="button">Marketplace +</button><button class="af-chip cursor-interaction" type="button">Preço +</button><button class="af-chip cursor-interaction" type="button">+ Adicionar filtro</button></div>
+          <div class="af-card af-table">
+            <div class="af-tr header"><span>Oferta</span><span>Marketplace</span><span>Cliques</span><span>Status</span></div>
+            <div class="af-tr"><span><b>Smart TV Samsung 50”</b><br><small class="af-sub">Atualizada há 2h</small></span><span>Amazon</span><span>184</span><span class="af-status">Ativa</span></div>
+            <div class="af-tr"><span><b>Air Fryer Mondial</b><br><small class="af-sub">Atualizada ontem</small></span><span>Shopee</span><span>96</span><span class="af-status">Ativa</span></div>
+            <div class="af-tr"><span><b>Notebook Lenovo</b><br><small class="af-sub">Atualizada há 3 dias</small></span><span>Mercado Livre</span><span>71</span><span class="af-status">Ativa</span></div>
+          </div>
+          <div class="af-card af-empty">
+            <div class="af-empty-inner">
+              <div class="af-icon-stack"><span><i data-lucide="link" aria-hidden="true"></i></span><span><i data-lucide="package-plus" aria-hidden="true"></i></span><span><i data-lucide="send" aria-hidden="true"></i></span></div>
+              <h3>Sem resultados para estes filtros</h3><p class="af-sub">Remova um filtro ou crie uma nova oferta para continuar.</p><button class="af-primary cursor-interaction" type="button">Limpar filtros</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="af-page" data-page-panel="wizard">
+          <div class="af-heading"><div><h2>Nova oferta</h2><p class="af-sub">Um fluxo curto, com contexto e validação por etapa.</p></div><span class="af-location">substitui formulário monolítico</span></div>
+          <div class="af-card af-wizard">
+            <aside class="af-wizard-nav">
+              <div class="af-wstep current"><span class="af-dot">1</span><div><strong>Produto</strong>Link e informações</div></div>
+              <div class="af-wstep"><span class="af-dot">2</span><div><strong>Oferta</strong>Preço e cupom</div></div>
+              <div class="af-wstep"><span class="af-dot">3</span><div><strong>Canais</strong>Destinos do disparo</div></div>
+              <div class="af-wstep"><span class="af-dot">4</span><div><strong>Revisar</strong>Prévia e publicação</div></div>
+            </aside>
+            <div class="af-form">
+              <div><h3>Qual produto você quer divulgar?</h3><p class="af-sub">Cole o link; o Aflyo tenta preencher o restante.</p></div>
+              <div class="af-field">https://amazon.com.br/produto...</div>
+              <div class="af-preview-card"><div class="af-preview-img"></div><div><b>Smart TV Samsung 50” 4K</b><p class="af-sub">Dados encontrados automaticamente · confira antes de avançar.</p></div></div>
+              <div class="af-field">Título da oferta</div>
+              <div class="af-field">Imagem do produto</div>
+              <div style="display:flex;justify-content:flex-end"><button class="af-primary cursor-interaction" type="button">Continuar →</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="af-page af-pricing" data-page-panel="pricing">
+          <div class="af-heading" style="grid-column:1/-1"><div><h2>Escolha o plano certo</h2><p class="af-sub">Cards comparáveis primeiro; matriz detalhada depois.</p></div><span class="af-location">/pricing</span></div>
+          <article class="af-card af-price"><h3>Starter</h3><div><span class="af-amount">R$ 49</span><span class="af-sub">/mês</span></div><p class="af-sub">Para começar a automatizar.</p><ul><li>1 conexão WhatsApp</li><li>Analytics essencial</li><li>Limites transparentes</li></ul><button class="af-primary cursor-interaction" type="button">Assinar Starter</button></article>
+          <article class="af-card af-price featured"><span class="af-badge">RECOMENDADO</span><h3>Profissional</h3><div><span class="af-amount">R$ 99</span><span class="af-sub">/mês</span></div><p class="af-sub">Para operação diária de afiliados.</p><ul><li>Mais canais e grupos</li><li>Analytics completo</li><li>API e automações</li></ul><button class="af-primary cursor-interaction" type="button">Assinar Profissional</button></article>
+          <article class="af-card af-price"><h3>Enterprise</h3><div><span class="af-amount">R$ 199</span><span class="af-sub">/mês</span></div><p class="af-sub">Para operações em escala.</p><ul><li>Maior volume</li><li>Recursos avançados</li><li>Suporte prioritário</li></ul><button class="af-primary cursor-interaction" type="button">Assinar Enterprise</button></article>
+          <p class="af-compare" style="grid-column:1/-1">Ver comparação completa de recursos ↓</p>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const root = document.getElementById('aflyo-preview');
+      const state = { radius: 14, density: 'comfortable' };
+      const buttons = [...root.querySelectorAll('[data-page]')];
+      const panels = [...root.querySelectorAll('[data-page-panel]')];
+      buttons.forEach((button) => button.addEventListener('click', () => {
+        buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.pagePanel === button.dataset.page));
+      }));
+      function render() {
+        root.style.setProperty('--af-radius', `${state.radius}px`);
+        root.style.setProperty('--af-gap', state.density === 'compact' ? '9px' : state.density === 'airy' ? '20px' : '14px');
+      }
+      render();
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root, onChange: render });
+        tweak.addSlider(state, 'radius', { label: 'Arredondamento', min: 6, max: 22, unit: 'px', reference: '--af-radius' });
+        tweak.addSelect(state, 'density', { label: 'Densidade', options: [{label:'Compacta',value:'compact'},{label:'Confortável',value:'comfortable'},{label:'Arejada',value:'airy'}], reference: 'layout.density' });
+      }
+    })();
+  </script>
+</div>
