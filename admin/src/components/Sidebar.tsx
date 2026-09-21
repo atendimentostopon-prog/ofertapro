@@ -56,7 +56,7 @@ export default function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
         </button>}
       </div>
 
-      <nav className="flex-1 space-y-4 overflow-y-auto px-2 pb-6">
+      <nav className="flex-1 space-y-4 sidebar-scroll overflow-y-auto px-2 pb-6">
         {NAV.map((section) => {
           const items = section.items.filter(
             (i) => !i.permission || hasPermission(granted, i.permission),

@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UserPlus, Megaphone, Send, Plug, ScrollText, Activity } from 'lucide-react';
+import { UserPlus, Users, CreditCard, Megaphone, Send, Plug, ScrollText, Activity, type LucideIcon } from 'lucide-react';
 import { callAdminApi } from '../lib/admin-api';
 import { useAsync } from '../lib/use-async';
-import { KpiCard, type KpiSeriesPoint } from '../components/ui/KpiCard';
+import { KpiCard, type KpiAccent, type KpiSeriesPoint } from '../components/ui/KpiCard';
+import { TrendChart, type TrendTab } from '../components/ui/TrendChart';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -19,11 +20,18 @@ type DashboardSummary = {
   feed: FeedItem[];
 };
 
-const DASHBOARD_SECTIONS: { title: string; keys: string[] }[] = [
-  { title: 'Usuários', keys: ['users_new', 'users_total'] },
-  { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'] },
-  { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'] },
-  { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'] },
+const DASHBOARD_SECTIONS: { title: string; keys: string[]; icon: LucideIcon; accent: KpiAccent }[] = [
+  { title: 'Usuários', keys: ['users_new', 'users_total'], icon: Users, accent: 'info' },
+  { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'], icon: CreditCard, accent: 'success' },
+  { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'], icon: Megaphone, accent: 'warning' },
+  { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'], icon: Send, accent: 'mint' },
+];
+
+const CHART_METRICS: { key: string; label: string }[] = [
+  { key: 'sends', label: 'Envios' },
+  { key: 'clicks', label: 'Cliques' },
+  { key: 'offers_created', label: 'Promoções' },
+  { key: 'users_new', label: 'Novos usuários' },
 ];
 
 const METRIC_LABELS_FALLBACK: Record<string, string> = {
@@ -89,6 +97,12 @@ export default function Dashboard() {
   );
   const { data, loading, error, reload } = useAsync(fetcher, [range]);
   const activeUsers = data?.metrics.users_active;
+  const chartTabs: TrendTab[] = data
+    ? CHART_METRICS.flatMap(({ key, label }) => {
+        const series = data.metrics[key]?.series;
+        return series && series.length >= 2 ? [{ key, label, series }] : [];
+      })
+    : [];
 
   return (
     <section className="min-h-full space-y-6">
@@ -125,14 +139,23 @@ export default function Dashboard() {
 
       {!error && !loading && data && (
         <>
-          {activeUsers && (
-            <KpiCard
-              label={data.labels.users_active ?? METRIC_LABELS_FALLBACK.users_active}
-              value={activeUsers.value}
-              available={activeUsers.available}
-              size="hero"
-            />
-          )}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {activeUsers && (
+              <KpiCard
+                label={data.labels.users_active ?? METRIC_LABELS_FALLBACK.users_active}
+                value={activeUsers.value}
+                available={activeUsers.available}
+                size="hero"
+                icon={Users}
+                accent="mint"
+              />
+            )}
+            {chartTabs.length > 0 && (
+              <div className="lg:col-span-2">
+                <TrendChart tabs={chartTabs} />
+              </div>
+            )}
+          </div>
 
           <div className="space-y-6">
             {DASHBOARD_SECTIONS.map((section) => {
@@ -152,6 +175,8 @@ export default function Dashboard() {
                           available={m.available}
                           previous={m.previous}
                           series={m.series}
+                          icon={section.icon}
+                          accent={section.accent}
                           suffix={key === 'sends_success_rate' ? '%' : undefined}
                         />
                       );
