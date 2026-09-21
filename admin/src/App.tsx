@@ -3,6 +3,7 @@ import { ENV } from './lib/env';
 import { isAllowedHost } from './lib/hostname-guard';
 import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import AdminLayout from './components/AdminLayout';
 import RequirePermission from './components/RequirePermission';
 import Login from './pages/Login';
@@ -27,14 +28,14 @@ import SystemArea from './pages/system/SystemArea';
 import Bot from './pages/Bot';
 
 function Gate() {
-  const { phase } = useAdminAuth();
+  const { phase, signOut } = useAdminAuth();
   if (phase === 'resolving') {
     return <div className="grid min-h-screen place-items-center text-sm text-ink-secondary">Carregando...</div>;
   }
   if (phase === 'anon') return <Login />;
   if (phase === 'needs_mfa_enroll') return <MfaEnroll />;
   if (phase === 'needs_mfa_challenge') return <MfaChallenge />;
-  if (phase === 'not_admin') return <Unauthorized variant="no-access" />;
+  if (phase === 'not_admin') return <Unauthorized variant="no-access" onSignOut={() => { void signOut(); }} />;
   return (
     <BrowserRouter>
       <Routes>
@@ -63,14 +64,17 @@ function Gate() {
 }
 
 export default function App() {
-  if (!isAllowedHost(window.location.hostname, ENV.isProd, ENV.adminHostname)) {
-    return <Unauthorized variant="wrong-host" />;
-  }
   return (
-    <ToastProvider>
-      <AdminAuthProvider>
-        <Gate />
-      </AdminAuthProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      {!isAllowedHost(window.location.hostname, ENV.isProd, ENV.adminHostname) ? (
+        <Unauthorized variant="wrong-host" />
+      ) : (
+        <ToastProvider>
+          <AdminAuthProvider>
+            <Gate />
+          </AdminAuthProvider>
+        </ToastProvider>
+      )}
+    </ThemeProvider>
   );
 }
