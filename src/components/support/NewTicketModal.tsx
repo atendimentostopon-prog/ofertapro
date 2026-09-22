@@ -38,7 +38,7 @@ export default function NewTicketModal({ open, onClose, onCreated }: Props) {
     try {
       const { data: ticket, error: ticketErr } = await supabase
         .from('support_tickets')
-        .insert({ title: title.trim() })
+        .insert({ title: title.trim(), user_id: user.id })
         .select('id')
         .single();
       if (ticketErr) throw ticketErr;
