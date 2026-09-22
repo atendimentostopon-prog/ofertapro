@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
-import Modal from '../ui/Modal';
+import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 
