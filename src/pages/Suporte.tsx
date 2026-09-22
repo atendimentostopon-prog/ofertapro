@@ -78,22 +78,21 @@ export default function Suporte() {
       <PageHeader
         title="Suporte"
         description="Acompanhe e abra tickets com nossa equipe."
-        action={
-          <button
-            onClick={() => setShowNew(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-mint-500 text-white text-sm font-semibold hover:bg-mint-600 transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Novo ticket
-          </button>
-        }
-      />
+      >
+        <button
+          onClick={() => setShowNew(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-mint-500 text-white text-sm font-semibold hover:bg-mint-600 transition-colors cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          Novo ticket
+        </button>
+      </PageHeader>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState message={error} onRetry={load} />}
       {!loading && !error && tickets.length === 0 && (
         <EmptyState
-          icon={<LifeBuoy className="w-8 h-8 text-ink-tertiary" />}
+          icon={LifeBuoy}
           title="Nenhum ticket ainda"
           description="Abra um ticket quando precisar de ajuda. Nossa equipe responde em breve."
         />
