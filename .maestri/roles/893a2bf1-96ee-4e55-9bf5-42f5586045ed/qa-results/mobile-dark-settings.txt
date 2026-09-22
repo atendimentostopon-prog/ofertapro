@@ -1,0 +1,91 @@
+viewport: 390x844  url: http://127.0.0.1:5173/settings  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 tablist "Seções de configurações" [16,191 656x46]
+@e10 tab "Minha conta" [23,198 124x32]
+@e11 tab "Vitrine" [151,198 91x32]
+@e12 tab "Links da vitrine" [246,198 139x32]
+@e13 tab "Mensagens" [390,198 120x32]
+@e14 tabpanel "Configurações da Conta Suas informações internas e de conta" [16,267 348x891]
+@e15 img "Kaik Givaldo" [60,405 54x54]
+@e16 label "Nome da Conta" [41,500 102x17]
+@e17 input "Kaik Givaldo" type=text [41,526 298x38]
+@e18 label "Como podemos te chamar?" [41,626 180x17]
+@e19 input "Ex: João" type=text [41,652 298x38]
+@e20 label "Telefone de Contato" [41,752 132x17]
+@e21 input "Ex: (11) 99999-9999" type=text [41,778 298x38]
+@e22 button "Salvar alterações" [174,677 173x42]
+@e23 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Configurações
+
+Gerencie sua conta, sua vitrine, os planos e os templates de disparo
+
+Minha conta
+Vitrine
+Links da vitrine
+Mensagens
+Plano e cobrança
+Configurações da Conta
+
+Suas informações internas e de contato no Aflyo
+
+KAIK
+
+contatogivaldo@outlook.com
+
+Nome da Conta
+
+Nome completo usado internamente no seu painel administrativo
+
+Como podemos te chamar?
+
+Será usado nas saudações do painel. Exibimos sempre com a inicial maiúscula.
+
+Telefone de Contato
+
+Seu telefone/WhatsApp comercial com DDD
+
+E-mail de Cadastro
+
+Seu e-mail de acesso de login (somente leitura)
+
+Código do Usuário (ID)
+
+Identificador de segurança da sua conta
+
+Sair da Conta
+
+Salve para aplicar suas mudanças.
+
+Salvar alterações
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

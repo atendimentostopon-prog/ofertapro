@@ -1,0 +1,106 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/settings?tab=links  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 img "Aflyo" [20,18 84x28]
+@e2 a "Dashboard" href=http://127.0.0.1:5173/dashboard [12,80 231x40]
+@e3 a "Ofertas" href=http://127.0.0.1:5173/offers [12,122 231x40]
+@e4 a "Canais" href=http://127.0.0.1:5173/channels [12,163 231x40]
+@e5 a "Integrações" href=http://127.0.0.1:5173/integrations [12,205 231x40]
+@e6 a "Histórico" href=http://127.0.0.1:5173/history [12,246 231x40]
+@e7 a "Configurações" href=http://127.0.0.1:5173/settings [12,288 231x40]
+@e8 a "Feedbacks" href=http://127.0.0.1:5173/feedbacks [12,329 231x40]
+@e9 a "Planos" href=http://127.0.0.1:5173/pricing [12,371 231x40]
+@e10 button "Página Pública" [12,415 231x40]
+@e11 img "Kaik" [21,812 26x26]
+@e12 button "Sair da conta" [12,853 231x36]
+@e13 input "Buscar ofertas" type=text [317,22 353x20]
+@e14 button "Nova oferta" [1096,13 124x38]
+@e15 label "Alternar tema claro/escuro" [1248,31 1x1]
+@e16 switch "Mudar para tema escuro" [1249,20 44x24]
+@e17 button "Notificações" [1344,16 32x32]
+@e18 button "Configurações do perfil" [1388,18 28x28]
+@e19 img "KAIK" [1389,19 26x26]
+@e20 tablist "Seções de configurações" [400,177 656x46]
+@e21 tab "Minha conta" [407,184 124x32]
+@e22 tab "Vitrine" [535,184 91x32]
+@e23 tab "Links da vitrine" [630,184 139x32]
+@e24 tab "Mensagens" [774,184 120x32]
+@e25 tab "Plano e cobrança" [898,184 152x32]
+@e26 tabpanel "Links Públicos da Vitrine Configure os links de convite par" [400,253 896x436]
+@e27 label "Link do Grupo WhatsApp" [425,357 164x17]
+@e28 input "Ex: chat.whatsapp.com/ABC123xyz" type=text [425,383 846x38]
+@e29 label "Link do Canal/Grupo Telegram" [425,467 199x17]
+@e30 input "Ex: t.me/meucanal" type=text [425,493 846x38]
+@e31 label "Link do Convite Discord" [425,577 155x17]
+@e32 input "Ex: discord.gg/abcde" type=text [425,603 846x38]
+@e33 button "Salvar alterações" [1106,725 173x42]
+@e34 button "Enviar Feedback do Beta" [1368,828 48x48]
+
+Dashboard
+Ofertas
+Canais
+Integrações
+Histórico
+Configurações
+Feedbacks
+Planos
+Página Pública
+
+Kaik
+
+contatogivaldo@outlook.com
+
+Sair da conta
+K
+Plano Pro
+Nova Oferta
+Alternar tema claro/escuro
+Configurações
+
+Gerencie sua conta, sua vitrine, os planos e os templates de disparo
+
+Minha conta
+Vitrine
+Links da vitrine
+Mensagens
+Plano e cobrança
+Links Públicos da Vitrine
+
+Configure os links de convite para os seus canais e grupos de ofertas
+
+Link do Grupo WhatsApp
+
+Insira o link de convite do grupo do WhatsApp (wa.me/... ou chat.whatsapp.com/...)
+
+Link do Canal/Grupo Telegram
+
+Insira o link público do seu canal ou grupo no Telegram (t.me/... ou telegram.me/...)
+
+Link do Convite Discord
+
+Insira o link do convite do seu servidor do Discord (discord.gg/... ou discord.com/invite/...)
+
+Salve para aplicar suas mudanças.
+
+Salvar alterações
+Feedbacks & Bugs
+
+{"width":1440,"content":1440,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

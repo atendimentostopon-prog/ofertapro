@@ -526,6 +526,108 @@ Aflyo, ofertas no automático &middot; <a href="https://aflyo.com.br" style="col
 </html>
 `;
 
+const ticketAberto = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Aflyo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#F6F7F9;font-family:'Inter',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F6F7F9;padding:40px 16px;">
+<tr><td align="center">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#FFFFFF;border-radius:20px;overflow:hidden;border:1px solid #ECEDF2;">
+<tr>
+<td style="padding:32px 40px 24px 40px;border-bottom:1px solid #F0F1F5;" align="center">
+<img src="https://app.aflyo.com.br/brand/logo-primary.png" width="130" alt="Aflyo" style="display:block;height:auto;border:0;">
+</td>
+</tr>
+<tr><td style="padding:36px 40px 28px 40px;" align="center">
+<h1 style="margin:0 0 12px 0;font-family:'Space Grotesk',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;color:#101418;line-height:1.3;">Seu ticket foi aberto!</h1>
+<p style="margin:0 0 24px 0;font-size:15px;color:#4B5563;line-height:1.6;">Recebemos seu pedido de suporte. Nossa equipe vai analisar em breve e entrar em contato.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;background:#F6F7F9;border-radius:12px;padding:16px 20px;width:100%;border:1px solid #ECEDF2;">
+<tr><td>
+<p style="margin:0 0 4px 0;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;">Assunto</p>
+<p style="margin:0;font-size:15px;font-weight:600;color:#101418;">{{TICKET_TITLE}}</p>
+</td></tr>
+<tr><td style="padding-top:12px;">
+<p style="margin:0 0 4px 0;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;">Numero do ticket</p>
+<p style="margin:0;font-size:15px;font-weight:600;color:#101418;">#{{TICKET_NUMBER}}</p>
+</td></tr>
+</table>
+<a href="{{TICKET_URL}}" style="display:inline-block;background-color:#1ED8A0;color:#FFFFFF;font-family:'Space Grotesk',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:13px 28px;">Ver ticket</a>
+</td></tr>
+<tr><td style="padding:24px 40px 32px 40px;border-top:1px solid #F0F1F5;" align="center">
+<p style="margin:0 0 8px 0;font-size:12px;font-family:'Inter',sans-serif;color:#6B7280;">
+Enviado para <strong style="color:#101418;">{{USER_EMAIL}}</strong>. Voce tem uma conta na Aflyo.
+</p>
+<p style="margin:0;font-size:12px;font-family:'Inter',sans-serif;">
+<a href="{{SUPPORT_URL}}" style="color:#6B7280;text-decoration:underline;">Suporte</a>
+&nbsp;&middot;&nbsp;
+<a href="{{PREFERENCES_URL}}" style="color:#6B7280;text-decoration:underline;">Preferencias de email</a>
+</p>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+`;
+
+const respostaSupporte = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Aflyo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#F6F7F9;font-family:'Inter',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F6F7F9;padding:40px 16px;">
+<tr><td align="center">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#FFFFFF;border-radius:20px;overflow:hidden;border:1px solid #ECEDF2;">
+<tr>
+<td style="padding:32px 40px 24px 40px;border-bottom:1px solid #F0F1F5;" align="center">
+<img src="https://app.aflyo.com.br/brand/logo-primary.png" width="130" alt="Aflyo" style="display:block;height:auto;border:0;">
+</td>
+</tr>
+<tr><td style="padding:36px 40px 28px 40px;" align="center">
+<h1 style="margin:0 0 12px 0;font-family:'Space Grotesk',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;color:#101418;line-height:1.3;">Voce tem uma nova resposta!</h1>
+<p style="margin:0 0 20px 0;font-size:15px;color:#4B5563;line-height:1.6;">Nossa equipe respondeu ao seu ticket <strong style="color:#101418;">#{{TICKET_NUMBER}}</strong>.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;background:#F6F7F9;border-radius:12px;padding:16px 20px;width:100%;border-left:3px solid #1ED8A0;">
+<tr><td>
+<p style="margin:0 0 6px 0;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;">{{TICKET_TITLE}}</p>
+<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">{{REPLY_PREVIEW}}</p>
+</td></tr>
+</table>
+<a href="{{TICKET_URL}}" style="display:inline-block;background-color:#1ED8A0;color:#FFFFFF;font-family:'Space Grotesk',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:13px 28px;">Ver resposta</a>
+</td></tr>
+<tr><td style="padding:24px 40px 32px 40px;border-top:1px solid #F0F1F5;" align="center">
+<p style="margin:0 0 8px 0;font-size:12px;font-family:'Inter',sans-serif;color:#6B7280;">
+Enviado para <strong style="color:#101418;">{{USER_EMAIL}}</strong>. Voce tem uma conta na Aflyo.
+</p>
+<p style="margin:0;font-size:12px;font-family:'Inter',sans-serif;">
+<a href="{{SUPPORT_URL}}" style="color:#6B7280;text-decoration:underline;">Suporte</a>
+&nbsp;&middot;&nbsp;
+<a href="{{PREFERENCES_URL}}" style="color:#6B7280;text-decoration:underline;">Preferencias de email</a>
+</p>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+`;
+
 export const TEMPLATES: Record<TemplateName, string> = {
   "assinatura-confirmada": assinaturaConfirmada,
   "boas-vindas": boasVindas,
@@ -533,6 +635,8 @@ export const TEMPLATES: Record<TemplateName, string> = {
   "confirmacao-conta": confirmacaoConta,
   "falha-pagamento": falhaPagamento,
   "recuperacao-senha": recuperacaoSenha,
+  "ticket-aberto": ticketAberto,
+  "resposta-suporte": respostaSupporte,
   "trial-acabando": trialAcabando,
   "trial-expirado": trialExpirado,
 };

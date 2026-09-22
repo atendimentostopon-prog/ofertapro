@@ -1,0 +1,1073 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/offers  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 img "Aflyo" [20,18 84x28]
+@e2 a "Dashboard" href=http://127.0.0.1:5173/dashboard [12,80 231x40]
+@e3 a "Ofertas" href=http://127.0.0.1:5173/offers [12,122 231x40]
+@e4 a "Canais" href=http://127.0.0.1:5173/channels [12,163 231x40]
+@e5 a "Integrações" href=http://127.0.0.1:5173/integrations [12,205 231x40]
+@e6 a "Histórico" href=http://127.0.0.1:5173/history [12,246 231x40]
+@e7 a "Configurações" href=http://127.0.0.1:5173/settings [12,288 231x40]
+@e8 a "Feedbacks" href=http://127.0.0.1:5173/feedbacks [12,329 231x40]
+@e9 a "Planos" href=http://127.0.0.1:5173/pricing [12,371 231x40]
+@e10 button "Página Pública" [12,415 231x40]
+@e11 img "Kaik" [21,812 26x26]
+@e12 button "Sair da conta" [12,853 231x36]
+@e13 input "Buscar ofertas" type=text [317,22 353x20]
+@e14 button "Nova oferta" [1096,13 124x38]
+@e15 label "Alternar tema claro/escuro" [1248,31 1x1]
+@e16 switch "Mudar para tema escuro" [1249,20 44x24]
+@e17 button "Notificações" [1344,16 32x32]
+@e18 button "Configurações do perfil" [1388,18 28x28]
+@e19 img "KAIK" [1389,19 26x26]
+@e20 button "Excluir ofertas filtradas" [1093,123 185x34]
+@e21 button "Nova oferta" [1286,123 120x34]
+@e22 input "Buscar ofertas" type=text [297,198 1092x42]
+@e23 button "Todas 124" [301,260 104x36]
+@e24 button "Ativas 124" [407,260 104x36]
+@e25 button "Pausadas 0" [513,260 115x36]
+@e26 button "Rascunhos 0" [630,260 124x36]
+@e27 select "Filtrar por marketplace" options=[Todos|Mercado Livre|Shopee|Amazon|Magalu|AliExpress] [768,261 125x34]
+@e28 select "Filtrar por categoria" options=[Todas as categorias|Eletrônicos|Informática|Celulares|Games|Áudio|Casa|Cozinha|Eletrodomésticos|Bele] [1232,260 157x35]
+@e29 img "Poco F7 5G" [281,337 271x176]
+@e30 button "Menu de ações" [514,347 28x28]
+@e31 img "Shopee" [306,534 12x12]
+@e32 button "Copiar link encurtado" [450,659 26x26]
+@e33 img "Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g" [566,337 271x176]
+@e34 button "Menu de ações" [798,347 28x28]
+@e35 img "Shopee" [591,534 12x12]
+@e36 button "Copiar link encurtado" [734,659 26x26]
+@e37 img "Xiaomi 17T Pro 5G" [850,337 271x176]
+@e38 button "Menu de ações" [1083,347 28x28]
+@e39 img "Shopee" [875,534 12x12]
+@e40 button "Copiar link encurtado" [1019,659 26x26]
+@e41 img "Redmi Note 17 Pro Max 128GB" [1135,337 271x176]
+@e42 button "Menu de ações" [1367,347 28x28]
+@e43 img "Shopee" [1160,534 12x12]
+@e44 button "Copiar link encurtado" [1303,659 26x26]
+@e45 img "Mini Carro Elétrico Infantil Controle Remoto Frente/Ré Bateria 6V Bluetooth Maxi Rover Maxi Toys (Branco)" [281,715 271x176]
+@e46 button "Menu de ações" [514,725 28x28]
+@e47 img "Microfone Condensador Gamer Logitech G Yeti Orb com RGB Lightsync, Captação Cardioide, Conexão USB Plug and Play para Gr" [566,715 271x176]
+@e48 button "Menu de ações" [798,725 28x28]
+@e49 img "Soundcore Q11i da Anker Headphone Bluetooth Over Ear, 60H Fone Gamer Preto" [850,715 271x176]
+@e50 button "Menu de ações" [1083,725 28x28]
+@e51 img "Kit Davidoff Cwm Edt 125ml + As 75ml + Sg 75ml" [1135,715 271x176]
+@e52 button "Menu de ações" [1367,725 28x28]
+@e53 button "Enviar Feedback do Beta" [1368,828 48x48]
+
+Dashboard
+Ofertas
+Canais
+Integrações
+Histórico
+Configurações
+Feedbacks
+Planos
+Página Pública
+
+Kaik
+
+contatogivaldo@outlook.com
+
+Sair da conta
+K
+Plano Pro
+Nova Oferta
+Alternar tema claro/escuro
+Minhas ofertas
+
+124 ofertas encontradas
+
+Excluir ofertas filtradas
+Nova oferta
+Todas
+124
+Ativas
+124
+Pausadas
+0
+Rascunhos
+0
+Todos
+Mercado Livre
+Shopee
+Amazon
+Magalu
+AliExpress
+Todas as categorias
+Eletrônicos
+Informática
+Celulares
+Games
+Áudio
+Casa
+Cozinha
+Eletrodomésticos
+Beleza
+Saúde
+Moda
+Calçados
+Acessórios
+Bebês
+Brinquedos
+Pet Shop
+Esporte
+Ferramentas
+Automotivo
+Livros
+Papelaria
+Mercado
+Importados
+Outros
+Shopee
+Geral
+Poco F7 5G
+R$ 2.556,68
+0
+cliques
+Ativo
+Shopee
+Geral
+Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g
+R$ 1.272,55
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi 17T Pro 5G
+R$ 4.277,08
+0
+cliques
+Ativo
+Shopee
+Geral
+Redmi Note 17 Pro Max 128GB
+R$ 2.345,08
+0
+cliques
+Ativo
+Amazon
+Geral
+Mini Carro Elétrico Infantil Controle Remoto Frente/Ré Bateria 6V Bluetooth Maxi Rover Maxi Toys (Branco)
+R$ 664,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Microfone Condensador Gamer Logitech G Yeti Orb com RGB Lightsync, Captação Cardioide, Conexão USB Plug and Play para Gr
+R$ 279,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Soundcore Q11i da Anker Headphone Bluetooth Over Ear, 60H Fone Gamer Preto
+R$ 199,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Kit Davidoff Cwm Edt 125ml + As 75ml + Sg 75ml
+R$ 243,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Notebook Gamer Alienware 16 AC16250 Intel Core 5 210H Windows 11 Home
+R$ 6.999,00
+GAMER15
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi 17T 5G
+R$ 3.173,08
+0
+cliques
+Ativo
+Shopee
+Geral
+Máquina de Costura Singer Doméstica Facilita Pro 4411
+R$ 1.158,05
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco Pad M1 256GB 8GB
+R$ 1.821,60
+0
+cliques
+Ativo
+Amazon
+Geral
+Soundcore P30i da Anker ANC Fone de Ouvido Bluetooth 5.4 Sem Fio TWS
+R$ 186,77
+0
+cliques
+Ativo
+Amazon
+Geral
+Monitor Gamer AOC Agon G50 27" 144Hz 0,5ms IPS HDR10 G-Sync 27G50F
+R$ 674,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Chapa Cerâmica Preta Taiff Bivolt
+R$ 90,88
+0
+cliques
+Ativo
+Amazon
+Geral
+KitKat Creme Crocante de Chocolate Pasta para Passar, 330 g
+R$ 22,90
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi POCO M8s 5G 128GB/256GB Snapdragon Tela 6,9” 144Hz 50MP Bateria 7000mAh NFC
+R$ 1.293,52
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Notebook Asus Vivobook Go E1504FA AMD Ryzen 5 7520U 8GB RAM 512GB SSD Linux Tela 15,6" FHD NJ732
+R$ 2.901,75
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Celular Xiaomi Redmi Note 15 Pro 512GB ou 256GB com NFC Global Fonte Brasil Original Xiaomi
+R$ 1.572,33
+0
+cliques
+Ativo
+Amazon
+Geral
+Calvin Klein Ck One Eau De Toilette 200Ml
+R$ 274,00
+0
+cliques
+Ativo
+Shopee
+Geral
+Monitor LG UltraWide 34" 34U620B-B WQHD 2K Curvatura 1800R 144Hz HDR 10
+R$ 1.748,83
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Monitor LG UltraWide Curvo 34" QuadHD 2K 100Hz
+R$ 1.735,95
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Monitor Gamer Arzopa M1RC 27" 2K QHD 180Hz IPS 1ms 115% sRGB USB-C HDMI Display Port
+R$ 1.030,45
+5% OFF
+0
+cliques
+Ativo
+Amazon
+Geral
+Controle Sem Fio PlayStation DualSense Edição Limitada Marathon
+R$ 349,00
+GAMER15
+0
+cliques
+Ativo
+Amazon
+Geral
+Kit Sabonete Phebo Amarelo 720g
+R$ 30,99
+0
+cliques
+Ativo
+Shopee
+Geral
+Tablet Xiaomi Poco Pad M1 256GB 8GB Ram Wifi Global
+R$ 1.821,60
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Celular Novo Xiaomi Poco M8 5G 256GB 8GB RAM Com NFC Original Global Lacrado Pronta Entrega Custo Beneficio Com Capinha
+R$ 1.484,93
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Celular Xiaomi Note 15 128GB 6RAM Versão Global com Capinha e Fonte Turbo
+R$ 1.047,93
+5% OFF
+0
+cliques
+Ativo
+Amazon
+Geral
+Monitor Gamer ASUS TUF 25" Full HD 200Hz 0.3ms IPS FreeSync Premium Som Integrado Preto VG259Q5A
+R$ 844,43
+0
+cliques
+Ativo
+Amazon
+Geral
+Celular Samsung Galaxy A57 5G 128GB 8GB RAM Câmera 50MP IP68 Super AMOLED 6.7" Recursos AI Azul Escuro
+R$ 1.698,99
+CELULAR100
+0
+cliques
+Ativo
+Amazon
+Geral
+Mouse Gamer Sem Fio Logitech G305 Lightspeed Com 6 Botões Programáveis E Até 12.000 DPI - Preto
+R$ 179,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Secadora de Roupas Electrolux 12Kg Branca Premium Care com Autosense (SFP12) 220V
+R$ 3.399,00
+0
+cliques
+Ativo
+Shopee
+Geral
+Smart TV 50 50P7K 4K QLED UHD 60Hz com Sistema Operacional Google TV TCL
+R$ 1.920,00
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Mesa Com Regulagem De Altura Elétrica Estrutura Mesa Com Regulagem Eletrônica E Memória 72-120cm
+R$ 495,88
+5% OFF
+0
+cliques
+Ativo
+Amazon
+Geral
+Granado Sabonete Líquido Vintage Suzette 300ml
+R$ 44,69
+0
+cliques
+Ativo
+Shopee
+Geral
+Monitor Samsung 32" FHD 75 Hz Freesync HDMI DP Preto S3
+R$ 1.023,36
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Bicicleta Ergométrica Spinning Magnética Gallant Elite Roda de Inércia 13 kg
+R$ 1.931,08
+5% OFF
+0
+cliques
+Ativo
+Amazon
+Geral
+Hepta World Ventilador De Coluna Resfriamento Silencioso Design Slim Para Casa Escritório Preto 110V 101
+R$ 98,99
+0
+cliques
+Ativo
+Shopee
+Geral
+Monitor Gamer Samsung Odyssey G5 34 Curvo Ultra WQHD 165Hz HDMI FreeSync Premium
+R$ 1.686,82
+5% OFF
+0
+cliques
+Ativo
+Amazon
+Geral
+Basike Mini Power Bank Carregador Portátil 10000mAh Rápido 22,5W Preto
+R$ 77,14
+0
+cliques
+Ativo
+Shopee
+Geral
+Galaxy A57 5G 256GB Cinza + Galaxy Buds Core Preto
+R$ 2.188,68
+5% OFF
+0
+cliques
+Ativo
+Shopee
+Geral
+Smart TV Semp 43 Polegadas S62 4K UHD Google TV 43S62
+R$ 1.482,31
+0
+cliques
+Ativo
+Amazon
+Geral
+Bundle Nintendo Switch + Super Mario Bros. Wonder + 3 Meses de Assinatura Nintendo Switch Online
+R$ 1.994,05
+0
+cliques
+Ativo
+Amazon
+Geral
+Monitor Gamer Duex Pro DXPRO27A52RM 27" QHD 2560x1440 180Hz
+R$ 651,94
+0
+cliques
+Ativo
+Amazon
+Geral
+Power Bank 30000mAh Basike Carregador Portátil com Cabo Amarelo
+R$ 153,40
+0
+cliques
+Ativo
+Amazon
+Geral
+Notebook Asus Vivobook Go 15 AMD Ryzen 5 7520U 8GB 256GB SSD KeepOS Tela 15,6" FHD Mixed Black E1504FA-NJ731
+R$ 2.678,65
+0
+cliques
+Ativo
+Amazon
+Geral
+Sony Câmera Vlog ZV-1F Para Criadores De Conteúdo E Vloggers Preta
+R$ 3.399,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Smart TV TCL 85 Polegadas QLED 4K P8L WiFi Bluetooth Google TV HDR10+ 144 Hz VRR 85P8L
+R$ 6.999,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Smartphone Huawei Pura 80 Pro 12GB+512GB
+R$ 3.890,15
+1
+cliques
+Ativo
+Shopee
+Geral
+Monitor Gamer Acer Nitro KG273 G0bi 27" Full HD IPS 120Hz
+R$ 577,67
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco F9 Ultra 5G Tela Amoled 6.9" 8050mAh
+R$ 5.427,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Teclado Mecânico Gamer Logitech G Pro Com Layout US, RGB Lightsync, Design TKL, Cabo Destacável e Switch Exclusivo GX Bl
+R$ 449,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Monitor Samsung Viewfinity S5 34" WQHD Ultrawide 100Hz
+R$ 1.349,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Câmera Digital Canon R100 18-45 IS STM
+R$ 3.182,50
+0
+cliques
+Ativo
+Amazon
+Geral
+Headset Sony WH-CH520 Bluetooth Com Microfone
+R$ 314,45
+0
+cliques
+Ativo
+Amazon
+Geral
+Processador AMD Ryzen 5 5500 100100000457BOX
+R$ 539,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Freezer Horizontal 140L Philco PFH160B Dupla Função 220V
+R$ 1.076,78
+0
+cliques
+Ativo
+Amazon
+Geral
+Teclado Mecânico Gamer Sem Fio Logitech G515 Com Design TKL, Tecnologia Lightspeed, RGB Lightsync, Conexão USB ou Blueto
+R$ 569,90
+0
+cliques
+Ativo
+Shopee
+Geral
+JBL PartyBox 330 280W Amplificada
+R$ 2.921,92
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco X8 Pro Max 5G
+R$ 3.035,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Huawei Nova 15 Max 8GB 256GB 8.500 mAh
+R$ 1.839,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi 17T Pro 5G
+R$ 4.277,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco Pad M1 256GB 8GB
+R$ 1.821,60
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Geladeira Electrolux Frost Free 380L Duplex Branca AutoSense Inverter 2 Portas
+R$ 2.699,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Phebo Aromáticos Eau de Toilette Folhas de Menta 200ml
+R$ 117,87
+0
+cliques
+Ativo
+Amazon
+Geral
+Micro-ondas Philco 33L Preto Acabamento Inox PMO38T 127V
+R$ 676,04
+0
+cliques
+Ativo
+Amazon
+Geral
+Soundcore V20i da Anker, Fone de Ouvido Bluetooth Aberto e Esportivo, 36H
+R$ 255,55
+0
+cliques
+Ativo
+Amazon
+Geral
+Ariel Sabão Líquido Expert Concentrado 3L
+R$ 46,22
+0
+cliques
+Ativo
+Amazon
+Geral
+Power Bank 20000mAh Basike Carregador Portátil 2 Saídas USB-A (até 22.5W) + Tipo-C (até 22.5W) com Cabo, Carregamento Rá
+R$ 109,25
+0
+cliques
+Ativo
+Amazon
+Geral
+Anker Hub USB-C 5 em 1, HDMI 4K@30Hz, 2 USB, 5Gbps USB 3.0 e USB-C PD 100W
+R$ 122,53
+0
+cliques
+Ativo
+Amazon
+Geral
+Death Stranding 2: On the Beach - PlayStation 5
+R$ 199,90
+0
+cliques
+Ativo
+Mercado Livre
+Geral
+Cupons de desconto — MERCADO LIVRE
+R$ 0,00
+GARIMPEI, OFERTAAQUI, OFERTASMELI, APROVEITAESSA, PECHINCHA, SUPERPROMO20, DESCONTOEMCASA, MEUMELI, PEGAMELI, APROVEITAMUITO, COMPRAESPERTA, ECONOMIALOCAL, GARANTINOTOP, PAGARPOUCO, COMPRAML, SALVEIESSA, AGORAVAI, CUPONZINHO, TACOMVC, VALEAGORA, PEGUEISEU, VIPAQUI, PROMONOMELI, CARRINHOCHEIO, QUEROJA, QUEROMAIS, DESCONTOSML, MIMOTOP, CLIENTETOP, PAGUEMENOS, BATEUPRONTOCUPOM, SAINDOBARRATO, OPAECONOMIZEI, MELIBAIXOU, COMPRINHASML, LEVOUBARATO, PRECINHOAMIGO, BAIXOUTUDO, DESCONTOJA
+4
+cliques
+Ativo
+Amazon
+Geral
+Havit Headphone Fone de Ouvido H2002d Red Gamer com Microfone Falante 53mm Plug 3,5mm Compatível com Xbox One e PS4 HV-H
+R$ 169,98
+0
+cliques
+Ativo
+Amazon
+Geral
+Cafeteira Oster Inox 1,2L 220V
+R$ 125,26
+0
+cliques
+Ativo
+Amazon
+Geral
+Pacote 5 Carros Sortidos Hot Wheels Mattel Multicor
+R$ 49,59
+20BRINCA
+0
+cliques
+Ativo
+Amazon
+Geral
+Philco Aspirador Robô Função Mop PAS29A Bivolt 35W Antiqueda
+R$ 699,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Apple iPhone 18 Pro 256GB Bordô
+R$ 10.799,00
+DEVOLTA1000
+0
+cliques
+Ativo
+Amazon
+Geral
+Caixa de Som Redragon Anvil RGB Preto
+R$ 141,55
+0
+cliques
+Ativo
+Shopee
+Geral
+Realme P4 Power 5G 256GB Dimensity 7400 Ultra
+R$ 2.350,60
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Galaxy A17 128GB 4GB
+R$ 735,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Mochila Lenovo Casual B210 Azul para Notebook 15,6"
+R$ 68,50
+0
+cliques
+Ativo
+Shopee
+Geral
+Lava e Seca Samsung WD11M com Digital Inverter WD11M4473PW Branca 11/7kg
+R$ 2.978,00
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Bola Puma Cumbre Conmebol Libertadores Ms Branco Padrão
+R$ 99,90
+0
+cliques
+Ativo
+Amazon
+Geral
+JBL Caixa de Som com Rádio-relógio FM Horizon 3 5 W RMS Bluetooth USB-C Preto
+R$ 719,90
+0
+cliques
+Ativo
+Amazon
+Geral
+JBL Fone de Ouvido Com Fio Quantum 360 Wireless Headset Gamer Over Ear Microfone Removível Preto
+R$ 393,08
+0
+cliques
+Ativo
+Shopee
+Geral
+Redmi Note 17 Pro Max
+R$ 2.345,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Philco Escova Secadora Bivolt 1300W Íons Tourmaline PES33A
+R$ 119,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Bettdow Smartwatch Feminino 1.27" Ecrã Tátil à Prova d'Água IP68 100+ Modos Esportivos Chamada Bluetooth Compatível com
+R$ 206,98
+0
+cliques
+Ativo
+Shopee
+Geral
+Galaxy A07 Tela 6.7 128GB 4G
+R$ 606,60
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco F9 Pro 5G 256GB
+R$ 4.599,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Poco F7 5G
+R$ 2.483,08
+SHOPEE100AF
+0
+cliques
+Ativo
+Amazon
+Geral
+Barbie Conjunto de Brinquedo Casa Com Escorregador
+R$ 993,47
+0
+cliques
+Ativo
+Amazon
+Geral
+Marvel's Spider-Man: Miles Morales Edição Padrão - PlayStation 5
+R$ 109,90
+0
+cliques
+Ativo
+Amazon
+Geral
+Volante e Pedais Logitech G29 Driving Force com Force Feedback para PS5, PS4, PS3 e PC
+R$ 1.599,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Nível Laser Verde Bosch GCL 2-15 G 15m Com Pontos De Prumo
+R$ 696,00
+0
+cliques
+Ativo
+Amazon
+Geral
+Anker Soundcore 2 Caixa de Som Bluetooth Portátil com 12W de Som Estéreo
+R$ 265,04
+0
+cliques
+Ativo
+Amazon
+Geral
+Relógio Inteligente Amazfit Balance 46mm A2287 Zepp Follow Composição Corporal GPS Step Tracking Alexa Built-In Chamada
+R$ 931,94
+0
+cliques
+Ativo
+Amazon
+Geral
+Filtro de Linha Clamper iClamper Energia 5, 5 Tomadas, Proteção Contra Surtos Elétricos, 10A, Bivolt, Cabo 1m, Transpare
+R$ 64,95
+0
+cliques
+Ativo
+Amazon
+Geral
+Cadeira Ergonômica XTC Mesh Preta ThunderX3
+R$ 1.999,89
+0
+cliques
+Ativo
+Amazon
+Geral
+Amvox Caixa de Som Amplificada ACA 1900 New X SFM-1900W RMS, Bluetooth, Equalizador, USB
+R$ 999,90
+0
+cliques
+Ativo
+Amazon
+Geral
+JBL Microfone Gamer Quantum Stream Impedância (Ohms) > 16 Com Cabo USB
+R$ 379,99
+0
+cliques
+Ativo
+Amazon
+Geral
+Cadeira Gamer EC1 ThunderX3
+R$ 764,97
+0
+cliques
+Ativo
+-30%
+Shopee
+Geral
+Fogão Cooktop 5 Bocas Tripla Chama Itatiaia Trempe Ferro Fundido Itacook Premium
+R$ 355,00
+R$ 509,90
+0
+cliques
+Ativo
+Amazon
+Geral
+L'Oréal Paris Elseve Liso dos Sonhos Kit Shampoo, Condicionador e Sérum
+R$ 77,90
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi 17T 5G
+R$ 3.173,08
+SHOPEE100AF
+0
+cliques
+Ativo
+-31%
+Shopee
+Geral
+Jogo de Panelas de Aço Inox Indução Tramontina 5 Peças Allegra
+R$ 287,00
+R$ 414,14
+0
+cliques
+Ativo
+Amazon
+Geral
+Bike Ergometrica Bicicleta Ergometrica Bike Spinning Silenciosa Vertical Modelo Premium
+R$ 419,05
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi 15T Pro 5G
+R$ 3.808,80
+SHOPEE100AF
+0
+cliques
+Ativo
+Shopee
+Geral
+Celular Xiaomi Redmi Note 17 4G
+R$ 1.360,68
+SHOPEE100AF
+0
+cliques
+Ativo
+-31%
+Shopee
+Geral
+Jogo de Panelas de Aço Inox Indução Tramontina 5 Peças Allegra
+R$ 287,00
+R$ 414,14
+0
+cliques
+Ativo
+Amazon
+Geral
+Kit Rapunzel Shampoo + Tônico + Milk Spray - Lola From Rio
+R$ 58,41
+0
+cliques
+Ativo
+Amazon
+Geral
+Asus Tuf Gaming F16 Intel Core 5 RTX 4050 8GB 512GB SSD KeepOS 16.0'' FHD Mecha Gray FX607VU-RL054
+R$ 5.799,00
+0
+cliques
+Ativo
+Shopee
+Geral
+Ar Condicionado Split Midea Ai Ecomaster 12000 Btu R32 Frio 42ezvca12m5 Branco 220v
+R$ 1.757,00
+0
+cliques
+Ativo
+-78%
+Mercado Livre
+Geral
+NOVOS CUPONS MELI
+R$ 20,00
+R$ 89,00
+0
+cliques
+Ativo
+Mercado Livre
+Geral
+Cupons de desconto — MERCADO LIVRE
+R$ 0,00
+BELEZACOMPRITTAS, MOVEISCOMPRITTAS
+0
+cliques
+Ativo
+Shopee
+Geral
+Xiaomi Redmi Pad 2 Wi-Fi 11 Polegadas 2.5K 90Hz Dolby Atmos Bateria 9000mAh Global Original Lacrado
+R$ 1.091,63
+0
+cliques
+Ativo
+-19%
+Amazon
+Geral
+Soundbar TCL Q65H 5.1 Canais com Subwoofer sem fio
+R$ 1.614,95
+R$ 1.999,00
+0
+cliques
+Ativo
+-29%
+Amazon
+Geral
+Headset Gamer Redragon Zeus Pro Wireless 7.1 H510-PRO
+R$ 317,29
+R$ 447,50
+0
+cliques
+Ativo
+-75%
+Mercado Livre
+Geral
+Anúncio
+R$ 25,00
+R$ 99,00
+BELEZACOMPRITTAS
+0
+cliques
+Ativo
+-39%
+Amazon
+Geral
+Robô Aspirador Electrolux ERB20 Bivolt
+R$ 579,90
+R$ 949,90
+1
+cliques
+Ativo
+-16%
+Amazon
+Geral
+Monitor Dell 27" FHD IPS 240Hz SE2726HG
+R$ 1.049,00
+R$ 1.249,00
+2
+cliques
+Ativo
+-40%
+Amazon
+Geral
+Robô Aspirador Liectroux XR500 Pro 3 em 1
+R$ 1.494,34
+R$ 2.489,00
+1
+cliques
+Ativo
+-12%
+Amazon
+Geral
+Cadeira Gamer ThunderX3 TGC12 Preta
+R$ 998,99
+R$ 1.136,35
+0
+cliques
+Ativo
+-47%
+Amazon
+Geral
+Caixa de Som Anker Soundcore 2 Bluetooth 12W
+R$ 265,04
+R$ 499,00
+0
+cliques
+Ativo
+Feedbacks & Bugs
+
+{"width":1440,"content":1440,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

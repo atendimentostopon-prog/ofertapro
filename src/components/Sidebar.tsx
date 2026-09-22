@@ -3,11 +3,10 @@ import { useTheme } from 'next-themes';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, LogOut, ExternalLink, MessageSquare, X, CreditCard, Plug
+  ChevronRight, LogOut, ExternalLink, LifeBuoy, X, CreditCard, Plug
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
-import { FEATURES } from '../config/features';
 import { APP_NAME, getShortlinkUrl } from '../config/app';
 import { Avatar } from './ui/Avatar';
 import { useAccountAccess } from '../hooks/useAccountAccess';
@@ -25,7 +24,7 @@ const navItems = [
   { to: '/integrations', icon: Plug, label: 'Integrações' },
   { to: '/history', icon: History, label: 'Histórico' },
   { to: '/settings', icon: Settings, label: 'Configurações' },
-  ...(FEATURES.feedback ? [{ to: '/feedbacks', icon: MessageSquare, label: 'Feedbacks' }] : []),
+  { to: '/suporte', icon: LifeBuoy, label: 'Suporte' },
   { to: '/pricing', icon: CreditCard, label: 'Planos' },
 ];
 

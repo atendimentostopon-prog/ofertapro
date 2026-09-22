@@ -13,6 +13,7 @@ import * as integrations from './handlers/integrations.ts';
 import * as monitoring from './handlers/monitoring.ts';
 import * as security from './handlers/security.ts';
 import * as system from './handlers/system.ts';
+import * as support from './handlers/support.ts';
 import { mapPgError } from './handlers/_pg-errors.ts';
 
 export type Handler = (
@@ -108,6 +109,13 @@ const HANDLERS: HandlerMap = {
     'flag-delete':         { permission: 'feature_flags.manage',   handler: system.flagDelete },
     'announcement-upsert': { permission: 'announcements.manage',   handler: system.announcementUpsert },
     'announcement-delete': { permission: 'announcements.manage',   handler: system.announcementDelete },
+  },
+  support: {
+    list:            { permission: 'users.read', handler: support.list },
+    get:             { permission: 'users.read', handler: support.get },
+    reply:           { permission: 'users.read', handler: support.reply },
+    'status-update': { permission: 'users.read', handler: support.statusUpdate },
+    'priority-update':{ permission: 'users.read', handler: support.priorityUpdate },
   },
 };
 

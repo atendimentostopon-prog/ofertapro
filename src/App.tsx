@@ -13,7 +13,8 @@ import Channels from './pages/Channels';
 import Integrations from './pages/Integrations';
 import History from './pages/History';
 import Settings from './pages/Settings';
-import Feedbacks from './pages/Feedbacks';
+import Suporte from './pages/Suporte';
+import SuporteTicket from './pages/SuporteTicket';
 import PublicPage from './pages/PublicPage';
 import RedirectPage from './pages/RedirectPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,7 +37,7 @@ import { APP_NAME } from './config/app';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
-  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/feedbacks'];
+  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/suporte'];
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
 };
 
@@ -306,7 +307,8 @@ const App: React.FC = () => {
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/feedbacks" element={<Feedbacks />} />
+            <Route path="/suporte" element={<Suporte />} />
+            <Route path="/suporte/:id" element={<SuporteTicket />} />
             <Route path="/pricing" element={<Pricing />} />
           </Route>
 

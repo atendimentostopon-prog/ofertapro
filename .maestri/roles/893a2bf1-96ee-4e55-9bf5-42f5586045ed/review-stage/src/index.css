@@ -1,0 +1,546 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================================
+   AFLYO — CSS Custom Properties
+   Fonte da verdade em runtime para consumo fora do Tailwind (SVG, iframes,
+   canvas). Espelha os tokens do tailwind.config.js.
+   ========================================================================= */
+:root {
+  --aflyo-graphite:      #101418;
+  --aflyo-cloud:         #F6F7F9;
+  --aflyo-slate:         #6B7280;
+  --aflyo-mint:          #5EE7A5;
+  --aflyo-mint-strong:   #22C078;
+  --aflyo-ice:           #DFF8EE;
+  --aflyo-white:         #FFFFFF;
+
+  --surface-0:           #FFFFFF;
+  --surface-1:           #F6F7F9;
+  --surface-2:           #F1F3F6;
+  --surface-3:           #E7EAEE;
+  --surface-4:           #D8DCE2;
+
+  --ink-primary:         #101418;
+  --ink-secondary:       #6B7280;
+  --ink-tertiary:        #667085;
+  --ink-inverse:         #FFFFFF;
+  --ink-disabled:        #C0C5CE;
+
+  --line-default:        rgba(16, 20, 24, 0.08);
+  --line-strong:         rgba(16, 20, 24, 0.16);
+  --line-subtle:         rgba(16, 20, 24, 0.04);
+
+  --success-bg:          #DFF8EE;
+  --success-ink:         #127046;
+  --warning-bg:          #FEF3C7;
+  --warning-ink:         #92400E;
+  --danger-bg:           #FEE2E2;
+  --danger-ink:          #991B1B;
+  --info-bg:             #DBEAFE;
+  --info-ink:            #1E40AF;
+
+  /* mint-700/800/900 só são usados como texto/ícone sobre bg-ice (nunca como
+     botão/CTA) — por isso podem clarear no escuro sem contradizer a regra de
+     "cor de marca não muda de tom" (essa regra vale pro mint de CTA). */
+  --mint-700:            #199A5F;
+  --mint-800:            #127046;
+  --mint-900:            #0A4D30;
+
+  /* Canais R G B das mesmas cores acima. O Tailwind consome estes via
+     rgb(var(--x-rgb) / <alpha-value>) para que os modificadores de opacidade
+     (bg-surface-0/85, text-ink-inverse/70, ...) gerem CSS de verdade.
+     As variaveis hex continuam existindo e sao usadas direto no @layer base. */
+  --surface-0-rgb:       255 255 255;
+  --surface-1-rgb:       246 247 249;
+  --surface-2-rgb:       241 243 246;
+  --surface-3-rgb:       231 234 238;
+  --surface-4-rgb:       216 220 226;
+
+  --ink-primary-rgb:     16 20 24;
+  --ink-secondary-rgb:   107 114 128;
+  --ink-tertiary-rgb:    102 112 133;
+  --ink-inverse-rgb:     255 255 255;
+  --ink-disabled-rgb:    192 197 206;
+
+  --success-bg-rgb:      223 248 238;
+  --success-ink-rgb:     18 112 70;
+  --warning-bg-rgb:      254 243 199;
+  --warning-ink-rgb:     146 64 14;
+  --danger-bg-rgb:       254 226 226;
+  --danger-ink-rgb:      153 27 27;
+  --info-bg-rgb:         219 234 254;
+  --info-ink-rgb:        30 64 175;
+
+  --radius-xs:           4px;
+  --radius-sm:           6px;
+  --radius-md:           8px;
+  --radius-lg:           12px;
+  --radius-xl:           16px;
+  --radius-2xl:          20px;
+
+  --shadow-xs:           0 1px 2px 0 rgba(16, 20, 24, 0.04);
+  --shadow-sm:           0 1px 3px 0 rgba(16, 20, 24, 0.06), 0 1px 2px -1px rgba(16, 20, 24, 0.04);
+  --shadow-md:           0 4px 12px -2px rgba(16, 20, 24, 0.08), 0 2px 4px -2px rgba(16, 20, 24, 0.04);
+  --shadow-lg:           0 12px 24px -6px rgba(16, 20, 24, 0.10);
+
+  --ease-aflyo:          cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:            160ms;
+  --dur-default:         220ms;
+}
+
+.dark {
+  --surface-0:           #101418;
+  --surface-1:           #151A1F;
+  --surface-2:           #1F2328;
+  --surface-3:           #2F343B;
+  --surface-4:           #4B5259;
+
+  --ink-primary:         #F5F6F7;
+  --ink-secondary:       #9AA1AA;
+  --ink-tertiary:        #9AA1AA;
+  /* ink-inverse NAO inverte aqui de proposito: é usado como texto claro
+     sobre fundos que nunca mudam de tom (bg-graphite, bg-danger, gradientes
+     de marca), nunca sobre uma superficie que vira clara no escuro. Fica
+     igual ao :root (branco) — herda de la por nao ser redefinido aqui. */
+  --ink-disabled:        #2F343B;
+
+  --line-default:        rgba(255, 255, 255, 0.08);
+  --line-strong:         rgba(255, 255, 255, 0.16);
+  --line-subtle:         rgba(255, 255, 255, 0.04);
+
+  --success-bg:          rgba(34, 192, 120, 0.15);
+  --success-ink:         #5EE7A5;
+  --warning-bg:          rgba(245, 158, 11, 0.15);
+  --warning-ink:         #FBBF24;
+  --danger-bg:           rgba(239, 68, 68, 0.15);
+  --danger-ink:          #F87171;
+  --info-bg:             rgba(59, 130, 246, 0.15);
+  --info-ink:            #60A5FA;
+
+  --mint-700:            #5EE7A5;
+  --mint-800:            #88E5B8;
+  --mint-900:            #B4EFD3;
+
+  /* Canais R G B do tema escuro (ver nota no :root).
+     Os *-bg escuros sao rgba(cor, 0.15) sobre a superficie; como o formato
+     de canais nao carrega alfa, aqui vai a cor ja achatada sobre --surface-0
+     escuro (#101418), o que preserva a aparencia atual no uso sem
+     modificador e ainda permite bg-danger-bg/40 e afins. */
+  --surface-0-rgb:       16 20 24;
+  --surface-1-rgb:       21 26 31;
+  --surface-2-rgb:       31 35 40;
+  --surface-3-rgb:       47 52 59;
+  --surface-4-rgb:       75 82 89;
+
+  --ink-primary-rgb:     245 246 247;
+  --ink-secondary-rgb:   154 161 170;
+  --ink-tertiary-rgb:    154 161 170;
+  /* ink-inverse-rgb idem — nao redefinido aqui, herda 255 255 255 do :root */
+  --ink-disabled-rgb:    47 52 59;
+
+  --success-bg-rgb:      19 46 38;
+  --success-ink-rgb:     94 231 165;
+  --warning-bg-rgb:      50 41 22;
+  --warning-ink-rgb:     251 191 36;
+  --danger-bg-rgb:       49 27 31;
+  --danger-ink-rgb:      248 113 113;
+  --info-bg-rgb:         22 37 57;
+  --info-ink-rgb:        96 165 250;
+
+  --shadow-xs:           0 1px 2px 0 rgba(0, 0, 0, 0.24);
+  --shadow-sm:           0 1px 3px 0 rgba(0, 0, 0, 0.32), 0 1px 2px -1px rgba(0, 0, 0, 0.24);
+  --shadow-md:           0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.24);
+  --shadow-lg:           0 12px 24px -6px rgba(0, 0, 0, 0.48);
+}
+
+/* =========================================================================
+   BASE
+   ========================================================================= */
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--surface-1);
+    color: var(--ink-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+
+  ::selection {
+    background: var(--aflyo-ice);
+    color: var(--aflyo-graphite);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(16, 20, 24, 0.14);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(16, 20, 24, 0.24); background-clip: padding-box; border: 2px solid transparent; }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus, 0 0 0 3px rgba(94, 231, 165, 0.35));
+    border-radius: var(--radius-md);
+  }
+}
+
+/* =========================================================================
+   COMPONENTS — nomes de classe preservados (regra b) com visual Aflyo
+   Migração progressiva: componentes-base do src/components/ui/ vão cobrir
+   os casos de uso e no cleanup final essas classes globais podem sair.
+   ========================================================================= */
+@layer components {
+
+  /* ── Botões ────────────────────────────────────────────────────────── */
+  .btn-gradient {
+    background: var(--aflyo-graphite);
+    color: var(--ink-inverse);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    border: 1px solid var(--aflyo-graphite);
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    transition: background var(--dur-fast) var(--ease-aflyo),
+                transform var(--dur-fast) var(--ease-aflyo),
+                box-shadow var(--dur-fast) var(--ease-aflyo);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-gradient:hover {
+    background: #1F2328;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-gradient:active {
+    background: #000000;
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+  .btn-gradient:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    transform: none;
+  }
+
+  .btn-secondary {
+    background: var(--surface-0);
+    color: var(--ink-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    border: 1px solid var(--line-default);
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    transition: background var(--dur-fast) var(--ease-aflyo),
+                border-color var(--dur-fast) var(--ease-aflyo);
+  }
+  .btn-secondary:hover {
+    background: var(--surface-1);
+    border-color: var(--line-strong);
+    color: var(--ink-primary);
+  }
+
+  .btn-danger {
+    background: #FEE2E2;
+    color: #991B1B;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    border: 1px solid rgba(153, 27, 27, 0.14);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-aflyo);
+  }
+  .btn-danger:hover {
+    background: #FECACA;
+    border-color: rgba(153, 27, 27, 0.24);
+  }
+
+  /* ── Cards ─────────────────────────────────────────────────────────── */
+  .glass-card {
+    /* Preserva nome; deixa de ser "glass" e vira card branco clean. */
+    background: var(--surface-0);
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow var(--dur-default) var(--ease-aflyo),
+                border-color var(--dur-default) var(--ease-aflyo),
+                transform var(--dur-default) var(--ease-aflyo);
+  }
+
+  .card-hover { transition: all var(--dur-default) var(--ease-aflyo); }
+  .card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--line-strong);
+  }
+
+  .mesh-gradient {
+    /* Removido — era decoração dark. Vira no-op transparente. */
+    background: transparent;
+  }
+
+  /* ── Sidebar ───────────────────────────────────────────────────────── */
+  .sidebar-active {
+    background: var(--aflyo-ice);
+    color: var(--aflyo-graphite);
+    font-weight: 600;
+    border-color: transparent !important;
+  }
+
+  /* ── Badges (marketplaces) ─────────────────────────────────────────── */
+  .badge-ml       { background: #FEF9C3; color: #854D0E; border: 1px solid rgba(133, 77, 14, 0.12); }
+  .badge-shopee   { background: #FFEDD5; color: #9A3412; border: 1px solid rgba(154, 52, 18, 0.12); }
+  .badge-amazon   { background: #FFEDD5; color: #9A3412; border: 1px solid rgba(154, 52, 18, 0.12); }
+  .badge-magalu   { background: #DBEAFE; color: #1E40AF; border: 1px solid rgba(30, 64, 175, 0.12); }
+  .badge-aliexpress { background: #FEE2E2; color: #991B1B; border: 1px solid rgba(153, 27, 27, 0.12); }
+
+  /* ── WhatsApp preview ──────────────────────────────────────────────── */
+  .whatsapp-bubble {
+    background: var(--aflyo-ice);
+    border: 1px solid rgba(34, 192, 120, 0.16);
+    border-radius: 14px 14px 4px 14px;
+    padding: 12px 16px;
+    position: relative;
+    max-width: 280px;
+    box-shadow: var(--shadow-xs);
+    line-height: 1.55;
+    color: var(--aflyo-graphite);
+  }
+
+  /* ── Inputs ────────────────────────────────────────────────────────── */
+  .input-modern {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    line-height: 20px;
+    background: var(--surface-0);
+    color: var(--ink-primary);
+    transition: border-color var(--dur-fast) var(--ease-aflyo),
+                box-shadow var(--dur-fast) var(--ease-aflyo);
+    outline: none;
+    box-shadow: var(--shadow-xs);
+  }
+  .input-modern:focus {
+    border-color: var(--aflyo-mint-strong);
+    box-shadow: 0 0 0 3px rgba(94, 231, 165, 0.28);
+  }
+  .input-modern::placeholder { color: var(--ink-tertiary); }
+
+  /* ── Divisor ───────────────────────────────────────────────────────── */
+  .section-divider {
+    height: 1px;
+    background: var(--line-default);
+  }
+
+  /* ── Metric card ───────────────────────────────────────────────────── */
+  .metric-card {
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--dur-default) var(--ease-aflyo);
+  }
+  .metric-card:hover { border-color: var(--line-strong); }
+
+  /* ── Shimmer / skeleton ────────────────────────────────────────────── */
+  .shimmer {
+    background: linear-gradient(90deg,
+      var(--surface-1) 25%,
+      var(--surface-2) 50%,
+      var(--surface-1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite linear;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Modais ────────────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 20, 24, 0.48);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.18s ease-out;
+  }
+  .modal-content {
+    background: var(--surface-0);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--line-default);
+    box-shadow: var(--shadow-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+    color: var(--ink-primary);
+    animation: scaleUp 0.22s var(--ease-aflyo);
+  }
+  @keyframes scaleUp {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── Tabs ──────────────────────────────────────────────────────────── */
+  .tab-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    background: var(--surface-1);
+    border: 1px solid var(--line-subtle);
+    border-radius: var(--radius-lg);
+    padding: 3px;
+  }
+  .tab-item {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-secondary);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-aflyo),
+                background var(--dur-fast) var(--ease-aflyo);
+    white-space: nowrap;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .tab-item:hover {
+    color: var(--ink-primary);
+    background: rgba(16, 20, 24, 0.03);
+  }
+  .tab-item.active {
+    background: var(--surface-0);
+    color: var(--ink-primary);
+    font-weight: 600;
+    box-shadow: var(--shadow-xs);
+  }
+
+  /* ── Gradient text (legado — vira ink primary sólido) ──────────────── */
+  .gradient-text {
+    color: var(--ink-primary);
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+  .gradient-text-brand {
+    /* Preserva nome; vira mint solid (accent Aflyo) */
+    color: var(--aflyo-mint-strong);
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Fade lateral para linhas roláveis horizontalmente (tabs/pills no mobile).
+     Envolve o scroller num wrapper .fade-scroll-x relative; o ::after fica
+     fixo no wrapper e sinaliza que há mais conteúdo à direita.
+     Sobrescreva a cor com --fade-scroll-color quando o fundo não for surface-0. */
+  .fade-scroll-x { position: relative; }
+  .fade-scroll-x::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(to right, transparent, var(--fade-scroll-color, var(--surface-0)));
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* =========================================================================
+   ANIMAÇÕES GLOBAIS
+   ========================================================================= */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes float-delay {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+.animate-float       { animation: float 6s ease-in-out infinite; }
+.animate-float-delay { animation: float-delay 6s ease-in-out infinite 2s; }
+
+/* Legado: era pulse-indigo — vira pulse mint sutil */
+.animate-pulse-indigo {
+  animation: pulse-mint 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-mint {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: .7;  transform: scale(0.98); }
+}
+
+.animate-slide-up { animation: slideUp 0.4s var(--ease-aflyo); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

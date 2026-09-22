@@ -1,0 +1,110 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/automatizacao-shopee  title: Como solicitar a API da Shopee | Aflyo
+@e1 a "Voltar para Integrações" href=http://127.0.0.1:5173/integrations?tab=bot [267,56 156x16]
+@e2 a "Abrir formulário da Shopee" href=https://help.shopee.com.br/portal/webform/bbce78695c364ba18c [486,365 239x46]
+@e3 a "Abrir painel Open API" href=https://affiliate.shopee.com.br/open_api [739,365 205x46]
+
+Voltar para Integrações
+Central de Ajuda · Aflyo
+Integração Shopee Affiliate
+Como pegar suas credenciais da Shopee
+
+Siga este passo a passo para solicitar acesso à API da Shopee Affiliate e depois cadastrar seu App ID e Secret Key no Aflyo.
+
+Abrir formulário da Shopee
+Abrir painel Open API
+AVISO IMPORTANTE
+Este processo é necessário para quem deseja usar a automação da Shopee no Aflyo.
+O acesso de API não é liberado instantaneamente. A Shopee costuma levar alguns dias para analisar e disponibilizar o acesso.
+A ativação depende exclusivamente da aprovação e critérios de parceiro da própria equipe da Shopee.
+Se você prefere trabalhar de forma manual ou com fluxos simples e diretos, o preenchimento da API pode não ser obrigatório.
+Passo a Passo Detalhado
+01
+PASSO 01
+Solicitar o acesso no formulário da Shopee
+
+Acesse o formulário oficial de atendimento de afiliados da Shopee e responda às perguntas da seguinte maneira:
+
+Responda "Sim" para a pergunta se você já é afiliado.
+Selecione "Não, estou com outras dificuldades / dúvidas" na pergunta de login.
+Preencha com o seu ID de Afiliado real e o número de telefone correspondente à sua conta.
+No tema da dificuldade, escolha "Tenhos dúvidas/ dificuldades com meu cadastro / conta".
+No cenário final, selecione "Quero ativar a API".
+
+Preenchimento recomendado para o formulário de ativação de API da Shopee.
+
+Atenção: O ID de afiliado e o telefone informados devem ser exatamente os mesmos cadastrados na sua conta Shopee Affiliate.
+
+Abrir formulário da Shopee
+02
+PASSO 02
+Aguardar o retorno por e-mail
+
+Após o envio do formulário, a Shopee fará a análise do seu caso e enviará um e-mail de resposta. Fique atento às seguintes informações:
+
+A análise e liberação costumam levar até 7 dias úteis.
+Aguarde o e-mail oficial com a confirmação de que o acesso foi estabelecido.
+Após receber o retorno positivo, você poderá prosseguir para o próximo passo no console.
+
+Exemplo de e-mail de confirmação enviado pelo suporte de afiliados da Shopee.
+
+Importante: A resposta por e-mail confirma a liberação do recurso, mas a disponibilização real das credenciais no painel pode levar algumas horas após o recebimento da mensagem.
+
+03
+PASSO 03
+Acessar a área da API da Shopee
+
+Com o acesso liberado, conecte-se ao console de afiliados pelo computador e siga o passo a passo:
+
+Acesse a área "Open API" ou o menu "Meu API" na Shopee.
+Quando a liberação estiver ativa, o botão "Aplicar" ficará habilitado na tela.
+Clique em "Aplicar" para expor e gerar o seu App ID e a Secret Key (token de senha).
+
+Localização do botão "Aplicar" na seção Meu API da Shopee.
+
+Dica: Caso o botão "Aplicar" não apareça imediatamente após receber o e-mail, aguarde um pouco mais ou atualize a página.
+
+Abrir painel Open API
+04
+PASSO 04
+Cadastrar as credenciais no Aflyo
+
+Depois de copiar suas credenciais do console da Shopee, conclua a configuração dentro da sua conta do Aflyo:
+
+No menu lateral do Aflyo, abra "Integrações" e fique na aba "Bot".
+Desça até a seção "Configurações Adicionais".
+Localize "Credenciais Shopee Affiliate (opcional)".
+Insira o seu App ID e a Secret Key nos respectivos campos.
+Clique no botão "Salvar configurações".
+
+Seção de preenchimento das credenciais Shopee Affiliate dentro do painel do Aflyo.
+
+Pronto! Suas credenciais estarão salvas com segurança no Aflyo e prontas para rodar integrações automatizadas.
+
+Depois disso, o que acontece?
+
+Após cadastrar as credenciais da Shopee Affiliate corretamente nas suas configurações, o Aflyo passará a utilizar a integração direta para automatizar e otimizar a substituição e o processamento de links da plataforma Shopee conforme as definições habilitadas no seu painel.
+
+Isso garante maior agilidade no gerenciamento de ofertas e permite que suas publicações automáticas contem com a correta vinculação dos tokens e parâmetros oficiais da Shopee.
+
+Perguntas Frequentes (FAQ)
+Preciso ser afiliado da Shopee antes de solicitar a API?
+Onde encontro meu ID de afiliado?
+Quanto tempo a Shopee leva para liberar a API?
+O que fazer se o botão “Aplicar” não aparecer?
+Onde cadastro o App ID e a Secret Key no Aflyo?
+Posso usar essa integração sem aprovação da Shopee?
+Pronto para configurar sua integração?
+
+Abra "Integrações" no menu lateral do Aflyo, aba "Bot", seção "Configurações Adicionais", para colar o seu App ID e Secret Key.
+
+Ir para Integrações
+
+{"width":1440,"content":1430,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

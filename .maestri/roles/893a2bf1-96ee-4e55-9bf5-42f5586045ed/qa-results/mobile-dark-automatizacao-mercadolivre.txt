@@ -1,0 +1,101 @@
+viewport: 390x844  url: http://127.0.0.1:5173/automatizacao-mercadolivre  title: Como automatizar links do Mercado Livre | Aflyo
+@e1 a "Voltar para Integrações" href=http://127.0.0.1:5173/integrations?tab=bot [16,52 155x32]
+@e2 a "Baixar extensão (.zip)" href=http://127.0.0.1:5173/extensions/aflyo-mercadolivre-extensio [92,427 196x42]
+
+Voltar para Integrações
+Central de Ajuda · Aflyo
+Automação Mercado Livre
+Como automatizar seus links do Mercado Livre
+
+Instale a extensão do Chrome, conecte com sua conta e o Aflyo passa a gerar o link de afiliado do Mercado Livre sozinho, sem revisão manual.
+
+Baixar extensão (.zip)
+AVISO IMPORTANTE
+Esse recurso é opcional. Sem ele, ofertas do Mercado Livre continuam indo pra revisão manual normalmente.
+Não é um recurso oficial do Mercado Livre. Pode parar de funcionar sem aviso se eles mudarem algo no site.
+A extensão precisa do Chrome aberto e você logado no Mercado Livre para sincronizar.
+Ainda não está na Chrome Web Store. A instalação é manual ("carregar sem compactação").
+Passo a Passo
+01
+PASSO 01
+Baixar a extensão do Chrome
+
+A extensão do Aflyo para Mercado Livre ainda não está na Chrome Web Store. Você baixa o arquivo aqui e carrega no Chrome manualmente. É rápido, leva menos de 2 minutos:
+
+Clique no botão abaixo para baixar o arquivo .zip da extensão.
+Descompacte o arquivo numa pasta do seu computador.
+Abra chrome://extensions na barra de endereço do Chrome.
+Ative "Modo do desenvolvedor" no canto superior direito da tela.
+Clique em "Carregar sem compactação" e selecione a pasta descompactada.
+
+O ícone do Aflyo deve aparecer na barra de extensões do Chrome depois desse passo.
+
+Baixar extensão (.zip)
+02
+PASSO 02
+Gerar sua API Key do Aflyo
+
+A extensão precisa de uma credencial para saber que a conta é sua e salvar os dados no lugar certo:
+
+No menu lateral do Aflyo, abra "Integrações" e clique na aba "API & Integrações".
+Clique em "Gerar API Key" (se ainda não tiver uma).
+Copie a chave gerada (começa com lof_live_...).
+
+Guarde essa chave com cuidado, ela dá acesso à sua conta. Se desconfiar de vazamento, regenere a qualquer momento.
+
+03
+PASSO 03
+Conectar a extensão
+
+Com a chave em mãos, ative a sincronização:
+
+Clique no ícone do Aflyo na barra do Chrome para abrir a extensão.
+Cole sua API Key no campo indicado.
+Clique em "Conectar".
+Se ainda não estiver, faça login em mercadolivre.com.br numa aba do mesmo navegador.
+
+O status muda para "Conectado" quando a sincronização funciona. A extensão repete essa sincronização sozinha a cada 25 minutos enquanto o Chrome estiver aberto.
+
+04
+PASSO 04
+Cadastrar sua tag de afiliado no Aflyo
+
+Falta um último dado, a mesma tag que você já usa no painel de afiliados do Mercado Livre:
+
+No menu lateral do Aflyo, abra "Integrações" e fique na aba "Bot".
+Desça até a seção "Configurações Adicionais" e localize "Mercado Livre (opcional)".
+Preencha o campo "Tag de afiliado Mercado Livre".
+Clique em "Salvar configurações".
+
+Pronto. A partir daqui, ofertas do Mercado Livre detectadas nos seus grupos de origem geram link de afiliado automaticamente, sem precisar de revisão manual.
+
+Como funciona, no dia a dia
+
+A extensão roda em segundo plano no seu Chrome, capturando sua sessão do Mercado Livre a cada 25 minutos.
+
+Essa sessão fica salva com segurança na sua conta do Aflyo, associada só ao seu usuário.
+
+Quando o bot encontra uma oferta do Mercado Livre num dos seus grupos de origem, ele usa essa sessão pra gerar o link de afiliado na hora e publicar direto, sem esperar você responder um aviso manual.
+
+Perguntas Frequentes (FAQ)
+Isso é um recurso oficial do Mercado Livre?
+Preciso deixar o Chrome aberto o tempo todo?
+O que fazer se aparecer "sessão expirada" ou erro parecido?
+Isso é seguro? Que dado é enviado?
+E se eu não quiser usar a extensão?
+Onde cadastro minha tag de afiliado?
+Pronto pra automatizar?
+
+Abra "Integrações" no menu lateral para gerar sua API Key (aba "API & Integrações") e cadastrar sua tag de afiliado (aba "Bot").
+
+Ir para Integrações
+
+{"width":390,"content":380,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

@@ -1,0 +1,52 @@
+viewport: 390x844  url: http://127.0.0.1:5173/politica-de-cookies  title: Política de Cookies | Aflyo
+@e1 button "Voltar" [16,66 58x16]
+
+Voltar
+Aflyo
+Política de Cookies
+
+Última atualização: 17 de junho de 2026
+
+1. O que são Cookies?
+
+Cookies são pequenos arquivos de texto armazenados no seu navegador ou dispositivo quando você visita determinados websites. Eles servem para que o sistema se lembre de suas ações e preferências de navegação ao longo do tempo, garantindo uma experiência mais rápida, fluida e personalizada.
+
+2. Como Utilizamos os Cookies?
+
+O Aflyo utiliza cookies e tecnologias similares de armazenamento (como localStorage e cookies de sessão) para garantir o funcionamento adequado dos nossos serviços digitais, em especial:
+
+Manter a segurança e a integridade de sua sessão de usuário logado.
+Lembrar suas configurações de layout e preferências estéticas.
+Verificar se você já deu o consentimento de conformidade com a LGPD para ocultar o banner de aviso.
+3. Categorias de Cookies Usados
+
+Dividimos os cookies que utilizamos nas seguintes categorias:
+
+Cookies Essenciais (Estritamente Necessários): São cookies fundamentais para o funcionamento do painel e login do Aflyo. Sem estes cookies, serviços básicos como autenticação no Supabase ou manutenção do carrinho e segurança das sessões não podem ser prestados. Eles não podem ser desativados.
+Cookies Funcionais: Armazenam informações sobre escolhas que você fez na plataforma (como preferências de idioma ou o fechamento de avisos rápidos), personalizando a sua experiência de uso no painel.
+Cookies Analíticos e de Desempenho: Podem ser ativados opcionalmente para nos ajudar a entender como os usuários interagem com as vitrines, identificando falhas de carregamento e melhorando o fluxo geral da página. Não salvamos informações confidenciais nestes arquivos.
+4. Cookies de Terceiros
+
+Em certas áreas do sistema, o Supabase (nossa plataforma de infraestrutura e autenticação) poderá utilizar cookies específicos de segurança para validar tokens de sessão e proteger contra ataques cibernéticos maliciosos. Tais cookies são regulados pela política do próprio Supabase e possuem fins puramente de segurança e estabilidade.
+
+5. Como Gerenciar Seus Cookies
+
+Você pode optar por aceitar ou rejeitar cookies a qualquer momento:
+
+Na nossa plataforma: Ao abrir o site pela primeira vez, você pode optar por aceitar todos os cookies, rejeitar opcionais ("Somente essenciais") nas configurações do banner.
+No seu navegador: Você pode ajustar as configurações do seu navegador de internet para recusar todos os cookies ou para indicar quando um cookie está sendo enviado. Observe que, ao bloquear cookies essenciais, alguns recursos da nossa área logada deixarão de funcionar corretamente.
+6. Alterações nesta Política
+
+Podemos revisar esta Política de Cookies periodicamente para adequações a novas leis ou mudanças operacionais na plataforma. Recomendamos que você revise esta página de tempos em tempos para se manter informado.
+
+{"width":390,"content":380,"theme":"dark"}
+
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

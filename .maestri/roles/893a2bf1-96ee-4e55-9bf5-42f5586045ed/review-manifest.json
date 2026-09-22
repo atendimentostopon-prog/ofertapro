@@ -1,0 +1,22 @@
+[
+  {
+    "relative": "src\\components\\Layout.tsx",
+    "before": "be193135bb9ab4b13f3143d821c606490f916b7c8d7611b595e8da0e70053c8d",
+    "after": "a49a6ef9dee6dcfe5655cb9d59519f56c1d6ea6a3a4c9fe57eaf9f315a7a13d1"
+  },
+  {
+    "relative": "src\\pages\\Offers.tsx",
+    "before": "9d9f9d891ee7a43da3ab7ae0d9216f903f369f85f1c2ca1831dd4b5923be7919",
+    "after": "c1e1fc2d2fbe0023f6f977c2b8644d1f479ae7e1801404afd9a03e149a7ffa69"
+  },
+  {
+    "relative": "src\\components\\settings\\BillingTab.tsx",
+    "before": "453786684af4b1b45365c768d5411e56d16cb7d6e844067eed98b68523b13975",
+    "after": "a874c84bc66ea65266b5f2694acc498e226b0b12cf2338b721f19b318409eae9"
+  },
+  {
+    "relative": "src\\components\\ui\\Modal.tsx",
+    "before": "08ea0762ad535d65e1fb986235200991518f8846733678dc8980f69f90dffb41",
+    "after": "f17d2101584dcc55a3fb27353b5f70084418b3021beeb3295b88223960cb5ca1"
+  }
+]

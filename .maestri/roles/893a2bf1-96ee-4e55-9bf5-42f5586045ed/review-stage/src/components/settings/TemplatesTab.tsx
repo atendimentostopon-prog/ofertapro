@@ -1,0 +1,709 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  MessageSquare, Save, Loader2, AlertCircle, Sparkles, CheckCircle2, Link2, Lock,
+} from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Toggle } from '../ui/Toggle';
+import { useUser } from '../../context/UserContext';
+import { useToast } from '../../context/ToastContext';
+import { APP_NAME, getShortlinkHost } from '../../config/app';
+import { TemplateService } from '../../services/TemplateService';
+import { sendTelegramPhoto } from '../../lib/telegram';
+import { sender } from '../../lib/sender';
+import { normalizeMarketplace } from '../../lib/marketplace';
+import { getPlanLimits } from '../../config/plans';
+import { PaywallModal } from '../billing/PaywallModal';
+import { sanitizeInlineHtml } from '../../lib/sanitizeHtml';
+import { SettingsSection, Field } from './shared';
+
+type ChannelKind = 'whatsapp' | 'telegram' | 'discord';
+type MessageKind = 'oferta' | 'cupom';
+
+// Mesma lista de marketplaces válidos do backend (src/lib/marketplace.ts /
+// supabase/functions/public-api). Adicionar um marketplace novo ao sistema
+// é só incluir aqui -- chave ausente em shortener_marketplaces já é tratada
+// como "ligado" tanto aqui quanto na Edge Function.
+const SHORTENER_MARKETPLACES: { id: string; label: string }[] = [
+  { id: 'amazon', label: 'Amazon' },
+  { id: 'shopee', label: 'Shopee' },
+  { id: 'mercadolivre', label: 'Mercado Livre' },
+  { id: 'magalu', label: 'Magalu' },
+  { id: 'aliexpress', label: 'AliExpress' },
+];
+
+
+const mockOffer = {
+  name: 'Notebook ASUS Vivobook 15',
+  description: '',
+  originalPrice: '3000.00',
+  salePrice: '2499.00',
+  discount: 17,
+  coupon: 'CUPOM10',
+  marketplace: 'amazon',
+  category: 'Informática',
+  affiliate_link: 'https://amzn.to/exemplo',
+  affiliateLink: 'https://amzn.to/exemplo',
+};
+
+// Preview do template de "cupom genérico da loja" (sem produto específico)
+// -- sem preço, a lista de cupons vai em {chamada} (mesmo formato que o bot
+// monta quando detecta um "ALERTA DE CUPOM" sem produto único).
+const mockCupomOffer = {
+  name: 'Cupons de desconto — Mercado Livre',
+  description: '🎟️ BELEZA10 — 15% OFF em compras acima de R$ 69, limite de R$ 15 OFF\n🎟️ CASA20 — 20% OFF em compras acima de R$ 99, limite de R$ 25 OFF',
+  originalPrice: '0',
+  salePrice: '0',
+  discount: 0,
+  coupon: '',
+  marketplace: 'mercadolivre',
+  category: '',
+  affiliate_link: 'https://www.mercadolivre.com.br/ofertas',
+  affiliateLink: 'https://www.mercadolivre.com.br/ofertas',
+};
+
+export const TemplatesTab: React.FC = () => {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const limits = getPlanLimits(user?.plan);
+  const [showShortenerPaywall, setShowShortenerPaywall] = useState(false);
+
+  // Chave do mapa: "<canal>__<tipo>" (ex: "whatsapp__cupom"). Um template de
+  // OFERTA (produto único) e um de CUPOM (cupom genérico da loja, sem
+  // produto -- ver detector no bot) por canal, editados na mesma tela.
+  const [templateTexts, setTemplateTexts] = useState<Record<string, string>>({});
+  const [currentEditingTemplateTab, setCurrentEditingTemplateTab] = useState<ChannelKind>('whatsapp');
+  const [messageKind, setMessageKind] = useState<MessageKind>('oferta');
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [savingTemplates, setSavingTemplates] = useState(false);
+  const [templatesSaved, setTemplatesSaved] = useState(false);
+  const [restoringTemplate, setRestoringTemplate] = useState(false);
+  const [testingTemplate, setTestingTemplate] = useState(false);
+  const [shortenerMap, setShortenerMap] = useState<Record<string, boolean>>({});
+  const [savingShortenerId, setSavingShortenerId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const CHANNELS: ChannelKind[] = ['whatsapp', 'telegram', 'discord'];
+  const templateKey = (channel: ChannelKind, kind: MessageKind) => `${channel}__${kind}`;
+
+  const loadTemplates = async () => {
+    if (!user) return;
+    try {
+      setLoadingTemplates(true);
+      const [ofertaTemplates, cupomTemplates] = await Promise.all([
+        TemplateService.getTemplates(user.id, 'oferta'),
+        TemplateService.getTemplates(user.id, 'cupom'),
+      ]);
+      const next: Record<string, string> = {};
+      for (const channel of CHANNELS) {
+        next[templateKey(channel, 'oferta')] = ofertaTemplates[channel] || TemplateService.getDefaultTemplate(channel, 'oferta');
+        next[templateKey(channel, 'cupom')] = cupomTemplates[channel] || TemplateService.getDefaultTemplate(channel, 'cupom');
+      }
+      setTemplateTexts(next);
+    } catch (err) {
+      console.error('Erro ao carregar templates:', err);
+      const next: Record<string, string> = {};
+      for (const channel of CHANNELS) {
+        next[templateKey(channel, 'oferta')] = TemplateService.getDefaultTemplate(channel, 'oferta');
+        next[templateKey(channel, 'cupom')] = TemplateService.getDefaultTemplate(channel, 'cupom');
+      }
+      setTemplateTexts(next);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadTemplates();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('user_settings')
+      .select('shortener_marketplaces')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao carregar preferências de encurtador:', error);
+          return;
+        }
+        // Sem linha em user_settings ou coluna vazia -> mapa fica {}, e cada
+        // marketplace é tratado como ligado por padrão (mesma regra da Edge Function).
+        setShortenerMap(data?.shortener_marketplaces || {});
+      });
+  }, [user?.id]);
+
+  const handleToggleShortener = async (marketplaceId: string, next: boolean) => {
+    if (!user) return;
+    const previous = shortenerMap;
+    const updated = { ...shortenerMap, [marketplaceId]: next };
+    setShortenerMap(updated);
+    setSavingShortenerId(marketplaceId);
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({ user_id: user.id, shortener_marketplaces: updated }, { onConflict: 'user_id' });
+      if (error) throw error;
+      const marketplaceLabel = SHORTENER_MARKETPLACES.find(m => m.id === marketplaceId)?.label || marketplaceId;
+      toast(
+        next ? `Encurtador próprio ativado para ${marketplaceLabel}.` : `Encurtador próprio desativado para ${marketplaceLabel}.`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Erro ao salvar preferência de encurtador:', err);
+      setShortenerMap(previous);
+      toast('Não foi possível salvar essa preferência. Tente novamente.', 'error');
+    } finally {
+      setSavingShortenerId(null);
+    }
+  };
+
+
+  const getActiveTemplateContent = () => {
+    return templateTexts[templateKey(currentEditingTemplateTab, messageKind)] || '';
+  };
+
+  const setActiveTemplateContent = (value: string) => {
+    setTemplateTexts(prev => ({ ...prev, [templateKey(currentEditingTemplateTab, messageKind)]: value }));
+  };
+
+  const getActiveTemplatePlaceholder = () => {
+    return TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind);
+  };
+
+  const handleSaveTemplates = async () => {
+    if (!user) return;
+    const currentTemplate = getActiveTemplateContent() || TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind);
+    const validation = TemplateService.validateTemplate(currentTemplate);
+    if (!validation.valid) {
+      toast(`Erro no template de ${currentEditingTemplateTab}: ${validation.error}`, 'error');
+      return;
+    }
+    setSavingTemplates(true);
+
+    const safetyTimer = setTimeout(() => {
+      setSavingTemplates(false);
+      console.warn('[Templates] Timeout de segurança atingido ao salvar template.');
+    }, 10000);
+
+    try {
+      await TemplateService.saveTemplate(user.id, currentEditingTemplateTab, currentTemplate, messageKind);
+      setTemplatesSaved(true);
+      setTimeout(() => setTemplatesSaved(false), 2500);
+    } catch (err: any) {
+      console.error('Erro ao salvar template:', err);
+      toast(`Erro ao salvar template: ${err.message || 'Tente novamente.'}`, 'error');
+    } finally {
+      clearTimeout(safetyTimer);
+      setSavingTemplates(false);
+    }
+  };
+
+  const handleRestoreDefaultTemplate = async () => {
+    if (!user) return;
+    if (!window.confirm(`Restaurar o template de ${currentEditingTemplateTab} (${messageKind === 'cupom' ? 'cupom' : 'oferta'}) para o padrão? Isso apagará as suas customizações.`)) return;
+    setRestoringTemplate(true);
+    try {
+      const defaultText = await TemplateService.restoreDefaultTemplate(user.id, currentEditingTemplateTab, messageKind);
+      setActiveTemplateContent(defaultText);
+    } catch (err: any) {
+      console.error('Erro ao restaurar template:', err);
+      setActiveTemplateContent(TemplateService.getDefaultTemplate(currentEditingTemplateTab, messageKind));
+    } finally {
+      setRestoringTemplate(false);
+    }
+  };
+
+  const handleTestTemplate = async () => {
+    if (!user) return;
+    try {
+      setTestingTemplate(true);
+      const { data: channels, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', currentEditingTemplateTab)
+        .eq('status', 'connected');
+
+      if (error) throw error;
+
+      if (!channels || channels.length === 0) {
+        toast(`Você não possui nenhum canal de ${currentEditingTemplateTab === 'telegram' ? 'Telegram' : currentEditingTemplateTab === 'discord' ? 'Discord' : 'WhatsApp'} conectado e ativo. Conecte um canal para realizar o disparo de teste.`, 'warning');
+        setTestingTemplate(false);
+        return;
+      }
+
+      const channel = channels[0];
+      const trackingLink = 'https://amzn.to/exemplo';
+      const template = getActiveTemplateContent() || getActiveTemplatePlaceholder();
+
+      const mockProfile = {
+        full_name: user.full_name || 'Contato Givaldo',
+        preferred_name: user.preferred_name || 'Contato Givaldo',
+        public_name: user.publicName || user.public_display_name || 'Best Promos',
+        public_display_name: user.public_display_name || 'Best Promos',
+        username: user.username || 'bestpromos',
+      };
+
+      const activeMockOffer = messageKind === 'cupom' ? mockCupomOffer : mockOffer;
+      const rendered = TemplateService.renderTemplate(
+        template,
+        activeMockOffer,
+        mockProfile,
+        trackingLink,
+        currentEditingTemplateTab
+      );
+
+      if (currentEditingTemplateTab === 'discord') {
+        await sender.sendToDiscord(channel.identifier, {
+          offerName: activeMockOffer.name,
+          salePrice: parseFloat(activeMockOffer.salePrice),
+          originalPrice: parseFloat(activeMockOffer.originalPrice),
+          discount: activeMockOffer.discount,
+          coupon: activeMockOffer.coupon,
+          marketplace: activeMockOffer.marketplace,
+          offerImage: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
+          customDescription: rendered,
+          affiliateLink: trackingLink,
+        });
+      } else if (currentEditingTemplateTab === 'telegram') {
+        const botToken = channel.metadata?.bot_token;
+        const chatId = channel.identifier;
+        if (!botToken || !chatId) {
+          throw new Error('Configuração do Telegram incompleta para este canal.');
+        }
+
+        const testImage = 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500';
+        await sendTelegramPhoto(botToken, chatId, testImage, rendered, 'HTML');
+      } else if (currentEditingTemplateTab === 'whatsapp') {
+        // Nota: o teste do WhatsApp dispara via offer_id (oferta real
+        // cadastrada abaixo), não pelo objeto { offer_type } que o bot usa --
+        // então mesmo testando o template de cupom aqui, o servidor sempre
+        // renderiza com o template de OFERTA (o de cupom só é exercitado de
+        // verdade no fluxo do bot). O preview ao lado já reflete o template
+        // de cupom corretamente (renderizado no cliente).
+        const mockOfferData = {
+          name: activeMockOffer.name,
+          description: messageKind === 'cupom' ? activeMockOffer.description : 'Disparo de teste do WhatsApp',
+          image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500',
+          original_price: parseFloat(activeMockOffer.originalPrice) * 100,
+          sale_price: parseFloat(activeMockOffer.salePrice) * 100,
+          discount: activeMockOffer.discount,
+          coupon: activeMockOffer.coupon || null,
+          affiliate_link: trackingLink,
+          marketplace: normalizeMarketplace(activeMockOffer.marketplace),
+          category: 'Outros',
+          status: 'draft',
+          user_id: user.id,
+        };
+
+        console.log('[TEST_TEMPLATE_PAYLOAD]', {
+          marketplaceOriginal: activeMockOffer.marketplace,
+          marketplaceNormalized: normalizeMarketplace(activeMockOffer.marketplace),
+          channel: channel.name,
+        });
+
+        const { data: tempOffer, error: tempOfferErr } = await supabase
+          .from('offers')
+          .insert(mockOfferData)
+          .select()
+          .single();
+
+        if (tempOfferErr) throw tempOfferErr;
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('Sessão expirada.');
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/public-api/dispatch`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              offer_id: tempOffer.id,
+              channel_ids: [channel.id],
+            }),
+          });
+
+          const responseData = await response.json();
+          supabase.from('offers').delete().eq('id', tempOffer.id).then(() => {});
+
+          if (!response.ok || !responseData.success) {
+            throw new Error(responseData?.error || responseData?.message || `Erro ao testar envio do WhatsApp: ${response.statusText}`);
+          }
+        } catch (dispatchErr) {
+          supabase.from('offers').delete().eq('id', tempOffer.id).then(() => {});
+          throw dispatchErr;
+        }
+      }
+
+      toast(`Mensagem de teste enviada com sucesso para o canal "${channel.name}"!`, 'success');
+    } catch (err: any) {
+      console.error('[TEST_TEMPLATE_ERROR_DEBUG]:', err);
+      toast('Não foi possível enviar o teste. Verifique os dados do template e tente novamente.', 'error');
+    } finally {
+      setTestingTemplate(false);
+    }
+  };
+
+  const injectVariable = (variable: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setActiveTemplateContent((getActiveTemplateContent() || '') + ' ' + variable);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end, text.length);
+    const newValue = before + variable + after;
+
+    setActiveTemplateContent(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }, 0);
+  };
+
+  const injectFormat = (formatType: 'bold' | 'italic' | 'strike' | 'link') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    let formatted = '';
+    if (formatType === 'bold') {
+      formatted = `**${selectedText || 'texto'}**`;
+    } else if (formatType === 'italic') {
+      formatted = `_${selectedText || 'texto'}_`;
+    } else if (formatType === 'strike') {
+      formatted = `~${selectedText || 'texto'}~`;
+    } else if (formatType === 'link') {
+      formatted = `[${selectedText || 'Comprar agora'}]({link})`;
+    }
+
+    const newValue = text.substring(0, start) + formatted + text.substring(end);
+
+    setActiveTemplateContent(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      if (selectedText) {
+        textarea.setSelectionRange(start, start + formatted.length);
+      } else {
+        const offset = formatType === 'bold' ? 2 : (formatType === 'italic' || formatType === 'strike' ? 1 : 1);
+        const innerTextLength = formatType === 'link' ? 14 : 5;
+        textarea.setSelectionRange(start + offset, start + offset + innerTextLength);
+      }
+    }, 0);
+  };
+
+  const activeContent = getActiveTemplateContent();
+  const activePlaceholder = getActiveTemplatePlaceholder();
+  const mockProfile = {
+    full_name: user?.full_name || 'Contato Givaldo',
+    preferred_name: user?.preferred_name || 'Contato Givaldo',
+    public_name: user?.publicName || user?.public_display_name || 'Best Promos',
+    public_display_name: user?.public_display_name || 'Best Promos',
+    username: user?.username || 'bestpromos',
+  };
+  const renderedPreview = TemplateService.renderTemplate(
+    activeContent || activePlaceholder,
+    messageKind === 'cupom' ? mockCupomOffer : mockOffer,
+    mockProfile,
+    messageKind === 'cupom' ? mockCupomOffer.affiliate_link : 'https://amzn.to/exemplo',
+    currentEditingTemplateTab
+  );
+  const validation = TemplateService.validateTemplate(activeContent || activePlaceholder);
+
+  return (
+    <div className="space-y-6">
+      <SettingsSection
+        title="Templates de Mensagem"
+        description="Personalize a mensagem de envio para cada canal utilizando variáveis dinâmicas"
+        icon={MessageSquare}
+      >
+        <div className="p-4 bg-surface-1 rounded-2xl border border-line space-y-2 mb-2">
+          <p className="text-[11.5px] text-ink-secondary font-medium leading-relaxed">
+            <strong>Como funciona:</strong> Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{titulo}`}</code>, <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{preco_promocional}`}</code> e <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code>. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{cupom_linha}`}</code>.
+          </p>
+          <p className="text-[11.5px] text-warning-ink font-medium">
+            <strong>Aviso:</strong> Cada canal tem regras próprias de formatação. Você pode usar comandos simples como <strong>**negrito**</strong>, <em>_itálico_</em>, <del>~riscado~</del> e <a>[texto]({`{link}`})</a>. O {APP_NAME} converte automaticamente para Telegram, Discord e WhatsApp.
+          </p>
+          <p className="text-[11.5px] text-warning-ink font-medium">
+            A variável <code className="bg-surface-2 px-1 py-0.5 rounded text-mint-700 font-mono text-[10px]">{`{link}`}</code> usa o link de afiliado direto cadastrado na oferta.
+          </p>
+        </div>
+
+        <div className="w-full overflow-x-auto scrollbar-none mb-2">
+          <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 max-w-max">
+            {[
+              { id: 'whatsapp', label: 'WhatsApp 💬' },
+              { id: 'telegram', label: 'Telegram ✈️' },
+              { id: 'discord', label: 'Discord 🎮' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setCurrentEditingTemplateTab(tab.id as ChannelKind)}
+                className={`tab-item font-bold text-xs ${
+                  currentEditingTemplateTab === tab.id ? 'active' : ''
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-[11px] font-bold text-ink-secondary mb-1.5">Tipo de mensagem:</p>
+          <div className="w-full overflow-x-auto scrollbar-none">
+            <div className="tab-container flex-nowrap min-w-max p-1.5 gap-1 max-w-max">
+              {[
+                { id: 'oferta', label: '🔥 Oferta (produto único)' },
+                { id: 'cupom', label: '🎟️ Cupom (sem produto específico)' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMessageKind(tab.id as MessageKind)}
+                  className={`tab-item font-bold text-xs ${
+                    messageKind === tab.id ? 'active' : ''
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {messageKind === 'cupom' && (
+            <p className="text-[11px] text-ink-tertiary font-medium mt-1.5">
+              Usado quando o bot detecta um cupom genérico da loja (vários códigos, sem produto específico) --
+              nesse caso a imagem enviada é sempre a padrão do marketplace, nunca a do grupo monitorado.
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-2">
+          <div className="md:col-span-8 space-y-3">
+            <Field
+              label={`Estrutura da Mensagem (${currentEditingTemplateTab.toUpperCase()})`}
+              hint="Escreva o texto e clique nas variáveis abaixo para injetá-las no cursor"
+            >
+              <div className="relative">
+                <textarea
+                  ref={textareaRef}
+                  value={getActiveTemplateContent()}
+                  placeholder={getActiveTemplatePlaceholder()}
+                  onChange={e => {
+                    setActiveTemplateContent(e.target.value);
+                  }}
+                  disabled={loadingTemplates}
+                  rows={10}
+                  className="input-modern resize-none font-mono text-xs"
+                />
+              </div>
+            </Field>
+
+            <div className="flex justify-between items-center text-[10px] text-ink-tertiary font-bold px-1">
+              <span>Caracteres no template: {activeContent.length}</span>
+              <span>Preview aproximado: {renderedPreview.length} caracteres</span>
+            </div>
+
+            {!validation.valid && validation.error && (
+              <div className="flex items-center gap-2 p-2.5 bg-danger-bg border border-danger/20 rounded-xl text-danger-ink text-[11px] font-bold">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{validation.error}</span>
+              </div>
+            )}
+
+            <div>
+              <p className="text-xs font-bold text-ink-secondary mb-2">Formatação Rápida:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { id: 'bold', label: 'Negrito 🌟', title: 'Negrito (**texto**)' },
+                  { id: 'italic', label: 'Itálico 💫', title: 'Itálico (_texto_)' },
+                  { id: 'strike', label: 'Riscado ❌', title: 'Riscado (~texto~)' },
+                  { id: 'link', label: 'Link Comprar 🔗', title: 'Link ([Comprar agora]({link}))' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => injectFormat(f.id as any)}
+                    className="px-3 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary transition-all"
+                    title={f.title}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-ink-secondary mb-2">Variáveis Disponíveis:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {TemplateService.listAvailableVariables().map(v => (
+                  <button
+                    key={v.name}
+                    type="button"
+                    onClick={() => injectVariable(v.name)}
+                    className="px-2.5 py-1.5 rounded-lg border border-line bg-surface-1 hover:border-mint-300 hover:bg-surface-2 text-[10px] font-bold text-ink-secondary flex items-center transition-all"
+                    title={v.description}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1.5">
+              <button
+                type="button"
+                disabled={loadingTemplates || restoringTemplate || savingTemplates}
+                onClick={handleRestoreDefaultTemplate}
+                className="px-3.5 py-2 border border-line hover:border-line-strong hover:bg-surface-1 rounded-xl text-[11px] font-bold text-ink-secondary bg-surface-0 transition-all disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {restoringTemplate ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                Restaurar Padrão
+              </button>
+
+              <button
+                type="button"
+                disabled={loadingTemplates || testingTemplate || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                onClick={handleTestTemplate}
+                className="px-3.5 py-2 bg-ice hover:bg-mint-100 border border-mint-200 hover:border-mint-300 text-mint-700 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {testingTemplate ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                {currentEditingTemplateTab === 'whatsapp' ? 'Enviar teste real' : 'Testar no Canal'}
+              </button>
+
+              <button
+                type="button"
+                disabled={loadingTemplates || savingTemplates || !TemplateService.validateTemplate(getActiveTemplateContent() || getActiveTemplatePlaceholder()).valid}
+                onClick={handleSaveTemplates}
+                className="ml-auto px-4 py-2 bg-graphite hover:bg-graphite-800 text-ink-inverse text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingTemplates ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : templatesSaved ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-mint-400" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                {templatesSaved ? 'Template Salvo!' : savingTemplates ? 'Salvando...' : 'Salvar Template'}
+              </button>
+            </div>
+          </div>
+
+          <div className="md:col-span-4 space-y-3 bg-surface-1 rounded-xl p-4 border border-line flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold text-ink-tertiary uppercase tracking-wider mb-2.5">Preview no Canal</p>
+
+              <div className={`text-xs max-w-full min-h-[160px] flex flex-col justify-start bg-surface-0 border border-line p-3.5 shadow-xs rounded-xl text-ink-secondary ${
+                currentEditingTemplateTab === 'discord' ? 'border-l-4 border-l-mint-500' : ''
+              }`}>
+                {currentEditingTemplateTab === 'discord' && (
+                  <div className="text-[11px] font-bold text-mint-700 mb-1.5 truncate">
+                    {mockOffer.name}
+                  </div>
+                )}
+                {currentEditingTemplateTab === 'telegram' ? (
+                  <div
+                    className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all"
+                    // SEC-9: sanitiza antes de injetar (allowlist: a/b/i/s/br).
+                    dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(renderedPreview) }}
+                  />
+                ) : (
+                  <p className="text-[10.5px] leading-relaxed whitespace-pre-wrap select-text select-all">
+                    {renderedPreview}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <p className="text-[9.5px] text-ink-tertiary font-medium text-center leading-normal">As variáveis serão preenchidas com dados da oferta em runtime.</p>
+          </div>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Link de Afiliado"
+        description="Escolha, por marketplace, qual link é enviado nos disparos automáticos das suas ofertas"
+        icon={Link2}
+      >
+        {!limits.allowShortener && (
+          <div className="p-4 bg-ice border border-mint-200 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left mb-4">
+            <div className="w-10 h-10 rounded-xl bg-surface-0 border border-mint-200 flex items-center justify-center text-mint-700 flex-shrink-0">
+              <Link2 className="w-5 h-5" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <h4 className="text-xs font-bold text-ink">Encurtador automático disponível no plano Profissional</h4>
+              <p className="text-[11px] text-ink-secondary font-medium">Assine o Profissional para encurtar os links dos seus disparos e rastrear os cliques.</p>
+            </div>
+            <button
+              onClick={() => setShowShortenerPaywall(true)}
+              className="bg-graphite hover:bg-graphite-800 text-ink-inverse font-bold px-4 py-2 rounded-xl text-[11px] transition-colors flex-shrink-0"
+            >
+              Fazer upgrade
+            </button>
+          </div>
+        )}
+        <div className="divide-y divide-line">
+          {SHORTENER_MARKETPLACES.map(({ id, label }) => {
+            const checked = shortenerMap[id] !== false;
+            return (
+              <div
+                key={id}
+                className="py-3 first:pt-0 last:pb-0"
+                onClick={() => { if (!limits.allowShortener) setShowShortenerPaywall(true); }}
+              >
+                <div className="flex items-center gap-2">
+                  {!limits.allowShortener && (
+                    <Lock className="w-3 h-3 text-ink-tertiary flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <Toggle
+                      id={`use-own-shortener-${id}`}
+                      label={`Usar encurtador próprio para ${label} (${getShortlinkHost()}/o/...)`}
+                      description={
+                        checked
+                          ? 'Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.'
+                          : 'O link de afiliado original é enviado sem encurtar. Não conta clique no seu painel.'
+                      }
+                      checked={checked}
+                      onChange={(next) => handleToggleShortener(id, next)}
+                      disabled={savingShortenerId === id || !limits.allowShortener}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </SettingsSection>
+
+      <PaywallModal
+        open={showShortenerPaywall}
+        onClose={() => setShowShortenerPaywall(false)}
+        featureName="usar o encurtador automático de links"
+        planSuggestion="pro"
+      />
+    </div>
+  );
+};

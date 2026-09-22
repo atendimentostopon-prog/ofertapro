@@ -1,0 +1,127 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Clock } from 'lucide-react';
+import { HistoryStatus } from '../types';
+import { pluralize } from '../lib/format';
+
+interface NotificationsDropdownProps {
+  notifications: any[];
+  onClose: () => void;
+  loading: boolean;
+  /** Timestamp (ms) da última leitura antes desta abertura; itens mais novos ficam destacados. */
+  lastReadAt?: number | null;
+}
+
+const statusConfig: Record<HistoryStatus, { icon: React.ElementType; color: string; bg: string }> = {
+  success: { icon: CheckCircle2, color: 'text-success-ink', bg: 'bg-success-bg' },
+  partial: { icon: AlertTriangle, color: 'text-warning-ink', bg: 'bg-warning-bg' },
+  error:   { icon: AlertCircle,   color: 'text-danger-ink',  bg: 'bg-danger-bg'  },
+  sent:    { icon: CheckCircle2, color: 'text-success-ink', bg: 'bg-success-bg' },
+  failed:  { icon: AlertCircle,   color: 'text-danger-ink',  bg: 'bg-danger-bg'  },
+};
+
+const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ notifications, onClose, loading, lastReadAt }) => {
+  const navigate = useNavigate();
+  // Dado principal (resultado + nº de canais) vem primeiro; o nome da oferta,
+  // que é o trecho longo, fica no fim onde o line-clamp pode cortar sem prejuízo.
+  const getNotificationText = (notif: any) => {
+    const channelCount = notif.channel_count || (notif.channels || []).length;
+    const offer = notif.offer_name ? `: "${notif.offer_name}"` : '';
+    if (notif.status === 'success' || notif.status === 'sent') {
+      return `Enviada para ${pluralize(channelCount, 'canal', 'canais')}${offer}`;
+    }
+    if (notif.status === 'partial') {
+      return `Enviada com falhas parciais${offer}`;
+    }
+    return `Falha ao disparar${offer}`;
+  };
+
+  const isUnread = (notif: any) => {
+    if (!lastReadAt) return true;
+    const sentTime = new Date(notif.sent_at).getTime();
+    return Number.isFinite(sentTime) && sentTime > lastReadAt;
+  };
+
+  const formatNotifTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ' - ' + d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  };
+
+  const handleGoToHistory = () => {
+    onClose();
+    navigate('/history');
+  };
+
+  return (
+    <div className="absolute right-4 top-full sm:right-0 sm:top-12 w-80 max-w-[calc(100vw-2rem)] bg-surface-0 rounded-xl border border-line shadow-lg py-2 z-50 animate-scale-in flex flex-col max-h-[min(24rem,calc(100dvh-9rem))]">
+      {/* Header */}
+      <div className="px-4 py-2 border-b border-line flex items-center justify-between">
+        <h4 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+          <Bell className="w-3.5 h-3.5 text-mint-700" /> Notificações
+        </h4>
+      </div>
+
+      {/* List */}
+      <div className="flex-1 min-h-0 overflow-y-auto py-1 scrollbar-none">
+        {loading ? (
+          <div className="p-8 text-center text-xs text-ink-tertiary">
+            <div className="w-5 h-5 border-2 border-line border-t-mint-500 rounded-full animate-spin mx-auto mb-2" />
+            Carregando...
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="p-8 text-center text-xs text-ink-tertiary flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-lg bg-surface-1 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-ink-tertiary" />
+            </div>
+            <span>Nenhuma notificação no momento.</span>
+          </div>
+        ) : (
+          notifications.map(n => {
+            const cfg = statusConfig[n.status as HistoryStatus] || statusConfig.error;
+            const Icon = cfg.icon;
+            const unread = isUnread(n);
+            return (
+              <button
+                type="button"
+                key={n.id}
+                onClick={handleGoToHistory}
+                className={`w-full text-left px-4 py-3 transition-colors flex gap-3 items-start cursor-pointer ${
+                  unread ? 'bg-ice hover:bg-mint-200/60' : 'hover:bg-surface-1'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-md ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className={`w-4 h-4 ${cfg.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] leading-normal line-clamp-2 ${
+                    unread ? 'font-semibold text-ink' : 'font-medium text-ink-secondary'
+                  }`}>
+                    {getNotificationText(n)}
+                  </p>
+                  <p className="text-[10px] text-ink-tertiary mt-1 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatNotifTime(n.sent_at)}
+                  </p>
+                </div>
+                {unread && <span className="w-1.5 h-1.5 rounded-full bg-mint-500 flex-shrink-0 mt-1.5" />}
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 pt-2 pb-1 border-t border-line text-center">
+        <button
+          type="button"
+          onClick={handleGoToHistory}
+          className="text-[11px] font-semibold text-mint-700 hover:text-mint-800 transition-colors cursor-pointer"
+        >
+          Ver todo o histórico
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default NotificationsDropdown;

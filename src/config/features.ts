@@ -5,7 +5,7 @@ export const FEATURES = {
   whatsapp: true,     // Ativa Evolution API/WhatsApp no frontend
   telegram: true,      // Habilita canal Telegram Bot API
   discord: true,       // Habilita canal Discord Webhooks
-  feedback: true,      // Habilita o sistema de feedbacks e logs do beta
+  feedback: false,     // Substituido pelo sistema de suporte (tickets)
   publicPage: true,     // Habilita a página pública sem restrições de autenticação
   useDirectAffiliateLinkInChannels: true, // Envia o link de afiliado direto nos canais (Telegram/Discord)
   // Encurtador de terceiro (is.gd / tinyurl / bitly) DESLIGADO para sempre.
