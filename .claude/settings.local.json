@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "WebFetch(domain:redirectflow.com.br)",
+      "WebFetch(domain:docs.cakto.com.br)",
+      "Bash(bash *)",
+      "Bash(supabase --version)",
+      "Bash(supabase projects *)",
+      "Bash(git checkout *)",
+      "Bash(supabase link *)",
+      "Bash(npm run *)",
+      "mcp__plugin_superpowers-chrome_chrome__use_browser"
+    ]
+  }
+}

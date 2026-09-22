@@ -1,0 +1,452 @@
+import React, { useState } from 'react';
+import { Search, Plus, Package, AlertCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { CATEGORIES } from '../lib/utils';
+import { pluralize } from '../lib/format';
+import type { Marketplace, OfferStatus } from '../types';
+import NewOfferModal from '../components/modals/NewOfferModal';
+import { useOffers } from '../hooks/useOffers';
+import { useToast } from '../context/ToastContext';
+import OfferCard from '../components/shared/OfferCard';
+import { dispatchOffer } from '../lib/dispatch-service';
+import { supabase } from '../lib/supabase';
+import { Button } from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Card } from '../components/ui/Card';
+import { LoadingState } from '../components/ui/LoadingState';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ErrorState } from '../components/ui/ErrorState';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import { canCreateOffer } from '../config/plans';
+import { PaywallModal } from '../components/billing/PaywallModal';
+
+const marketplaces: { value: Marketplace | 'all'; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'mercadolivre', label: 'Mercado Livre' },
+  { value: 'shopee', label: 'Shopee' },
+  { value: 'amazon', label: 'Amazon' },
+  { value: 'magalu', label: 'Magalu' },
+  { value: 'aliexpress', label: 'AliExpress' },
+];
+
+const Offers: React.FC = () => {
+  const { offers, loading, error, deleteOffer, deleteAllOffers, toggleStatus, refresh } = useOffers();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useUser();
+
+  // Paywall state
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState('');
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') || '';
+  const [search, setSearch] = useState(urlQuery);
+  const [statusFilter, setStatusFilter] = useState<'all' | OfferStatus>('all');
+  const [marketplaceFilter, setMarketplaceFilter] = useState<Marketplace | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState('Todos');
+  const [showNewOffer, setShowNewOffer] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<any>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Estados para exclusão individual e lote
+  const [deletingOffer, setDeletingOffer] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingOffer) return;
+    setIsDeleting(true);
+    try {
+      await deleteOffer(deletingOffer.id);
+      toast('Oferta excluída com sucesso!', 'success');
+      setDeletingOffer(null);
+    } catch (err) {
+      toast('Não foi possível excluir a oferta.', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteAllConfirm = async () => {
+    if (confirmText.toLowerCase() !== 'excluir') {
+      toast('Digite "excluir" para confirmar.', 'error');
+      return;
+    }
+    setIsDeletingAll(true);
+    try {
+      const ids = filtered.map(o => o.id);
+      await deleteAllOffers(ids);
+      toast('Todas as ofertas foram excluídas!', 'success');
+      setShowDeleteAllModal(false);
+      setConfirmText('');
+    } catch (err) {
+      toast('Erro ao excluir todas as ofertas.', 'error');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
+  // Sincronizar busca se a URL mudar (por busca do cabeçalho)
+  React.useEffect(() => {
+    setSearch(urlQuery);
+  }, [urlQuery]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (val) {
+      setSearchParams({ q: val }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    try {
+      await toggleStatus(id, currentStatus);
+      toast('Status da oferta atualizado!', 'success');
+    } catch (err) {
+      toast('Erro ao alternar status da oferta.', 'error');
+    }
+  };
+
+  const handleResend = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const offer = offers.find(o => o.id === id);
+      if (!offer || !offer.channels || offer.channels.length === 0) {
+        toast('Nenhum canal selecionado para esta oferta. Edite-a para selecionar os canais.', 'error');
+        return;
+      }
+
+      const result = await dispatchOffer({
+        userId: user.id,
+        offerId: offer.id,
+        offerName: offer.name,
+        offerImage: offer.image || '',
+        salePrice: offer.sale_price,
+        originalPrice: offer.original_price,
+        discount: offer.discount,
+        coupon: offer.coupon,
+        affiliateLink: offer.affiliate_link,
+        marketplace: offer.marketplace,
+        channelIds: offer.channels,
+        shortCode: offer.short_code
+      });
+
+      if (result.blocked) {
+        toast('Seu acesso expirou. Assine um plano para voltar a disparar ofertas.', 'error');
+        navigate('/pricing');
+        return;
+      }
+
+      toast('Oferta enviada com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao reenviar oferta:', err);
+      toast('Erro ao reenviar oferta.', 'error');
+    }
+  };
+
+  const filtered = offers.filter(o => {
+    const matchSearch = o.name.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'all' || o.status === statusFilter;
+    const matchMarketplace = marketplaceFilter === 'all' || o.marketplace === marketplaceFilter;
+    const matchCategory = categoryFilter === 'Todos' || o.category === categoryFilter;
+    return matchSearch && matchStatus && matchMarketplace && matchCategory;
+  });
+
+  const statusCounts = {
+    all: offers.length,
+    active: offers.filter(o => o.status === 'active').length,
+    paused: offers.filter(o => o.status === 'paused').length,
+    draft: offers.filter(o => o.status === 'draft').length,
+  };
+
+  const mapOfferToType = (o: any) => ({
+    id: o.id,
+    name: o.name,
+    image: o.image,
+    originalPrice: o.original_price,
+    salePrice: o.sale_price,
+    discount: o.discount,
+    coupon: o.coupon,
+    affiliateLink: o.affiliate_link,
+    marketplace: o.marketplace,
+    category: o.category,
+    clicks: o.clicks || 0,
+    status: o.status,
+    createdAt: o.created_at,
+    channels: o.channels || [],
+    shortCode: o.short_code
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-5 animate-slide-up">
+      <PageHeader
+        title="Minhas ofertas"
+        description={`${pluralize(filtered.length, 'oferta encontrada', 'ofertas encontradas')}`}
+      >
+        <div className="flex gap-2">
+          {filtered.length > 0 && (
+            <Button
+              variant="danger"
+              icon={Trash2}
+              onClick={() => setShowDeleteAllModal(true)}
+              size="sm"
+            >
+              Excluir ofertas filtradas
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            icon={Plus}
+            onClick={() => {
+              const activeCount = offers.filter(o => o.status === 'active').length;
+              if (!canCreateOffer(activeCount, user?.plan)) {
+                setPaywallFeature('criar mais ofertas');
+                setPaywallOpen(true);
+                return;
+              }
+              navigate('/offers/new');
+            }}
+            size="sm"
+          >
+            Nova oferta
+          </Button>
+        </div>
+      </PageHeader>
+
+      {/* Filters */}
+      <Card className="p-4 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-tertiary" />
+          <input
+            type="text"
+            placeholder="Buscar ofertas por nome..."
+            value={search}
+            onChange={e => handleSearchChange(e.target.value)}
+            className="input-modern pl-10"
+            aria-label="Buscar ofertas"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+            {/* Status Selector */}
+            <div
+              className="fade-scroll-x min-w-0 max-w-full"
+              style={{ '--fade-scroll-color': 'var(--surface-1)' } as React.CSSProperties}
+            >
+              <div className="tab-container overflow-x-auto scrollbar-none">
+                {(['all', 'active', 'paused', 'draft'] as const).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    aria-pressed={statusFilter === s}
+                    className={`tab-item flex items-center gap-1.5 ${statusFilter === s ? 'active' : ''}`}
+                  >
+                    {{ all: 'Todas', active: 'Ativas', paused: 'Pausadas', draft: 'Rascunhos' }[s]}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+                      statusFilter === s ? 'bg-ice text-mint-800' : 'bg-surface-1 text-ink-tertiary'
+                    }`}>{statusCounts[s]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Marketplace Select */}
+            <select
+              value={marketplaceFilter}
+              onChange={e => setMarketplaceFilter(e.target.value as Marketplace | 'all')}
+              className="text-xs font-medium border border-line rounded-md px-2.5 py-2 bg-surface-0 text-ink outline-none focus:border-mint-500 focus:shadow-focus cursor-pointer appearance-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                backgroundPosition: 'right 0.5rem center',
+                backgroundSize: '1rem',
+                backgroundRepeat: 'no-repeat',
+                paddingRight: '2rem'
+              }}
+              aria-label="Filtrar por marketplace"
+            >
+              {marketplaces.map(m => (
+                <option key={m.value} value={m.value} className="bg-surface-0 text-ink">
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <select
+            aria-label="Filtrar por categoria"
+            value={categoryFilter}
+            onChange={event => setCategoryFilter(event.target.value)}
+            className="max-w-full rounded-md border border-line bg-surface-0 px-3 py-2 text-xs text-ink focus-visible:shadow-focus"
+          >
+            {CATEGORIES.map(category => <option key={category} value={category}>{category === 'Todos' ? 'Todas as categorias' : category}</option>)}
+          </select>
+        </div>
+      </Card>
+
+      {/* Grid Content */}
+      {loading ? (
+        <LoadingState type="skeleton-grid" count={4} />
+      ) : error ? (
+        <ErrorState message="Não foi possível carregar suas ofertas. Tente novamente." onRetry={refresh} />
+      ) : filtered.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {filtered.map(offer => (
+            <OfferCard
+              key={offer.id}
+              offer={mapOfferToType(offer)}
+              onToggleStatus={handleToggleStatus}
+              onDelete={(id) => {
+                const target = offers.find(o => o.id === id);
+                if (target) setDeletingOffer(target);
+              }}
+              onEdit={(o) => { setEditingOffer(o); setShowNewOffer(true); }}
+              onResend={handleResend}
+              activeMenuId={activeMenuId}
+              setActiveMenuId={setActiveMenuId}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={Package}
+          title={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? 'Nenhuma oferta atende aos filtros' : 'Nenhuma oferta cadastrada'}
+          description={
+            search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos'
+              ? 'Tente remover os filtros de busca para encontrar mais ofertas.'
+              : 'Você ainda não cadastrou nenhuma oferta. Crie sua primeira oferta para começar a disparar para seus canais.'
+          }
+          actionText={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : 'Criar Primeira Oferta'}
+          onAction={search || statusFilter !== 'all' || marketplaceFilter !== 'all' || categoryFilter !== 'Todos' ? undefined : () => {
+            const activeCount = offers.filter(o => o.status === 'active').length;
+            if (!canCreateOffer(activeCount, user?.plan)) {
+              setPaywallFeature('criar mais ofertas');
+              setPaywallOpen(true);
+              return;
+            }
+            navigate('/offers/new');
+          }}
+        />
+      )}
+
+      {showNewOffer && (
+        <NewOfferModal
+          offerToEdit={editingOffer}
+          onClose={() => {
+            setShowNewOffer(false);
+            setEditingOffer(null);
+            refresh();
+          }}
+        />
+      )}
+
+      {/* Modal de confirmação de exclusão individual */}
+      {deletingOffer && (
+        <div className="fixed inset-0 bg-graphite/48 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => setDeletingOffer(null)}>
+          <div className="bg-surface-0 rounded-2xl border border-line shadow-lg p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-danger-bg border border-danger/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-danger-ink" />
+              </div>
+              <h4 className="text-sm font-semibold text-ink font-display">Excluir oferta?</h4>
+            </div>
+            <p className="text-xs text-ink-secondary leading-relaxed">
+              Essa ação não poderá ser desfeita. A oferta "{deletingOffer.name}" será removida permanentemente.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setDeletingOffer(null)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-md border border-line bg-surface-0 hover:bg-surface-1 text-ink text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-md bg-danger hover:bg-danger-ink text-ink-inverse text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  'Excluir oferta'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão em lote */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 bg-graphite/48 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-fade-in" onClick={() => { if (!isDeletingAll) setShowDeleteAllModal(false); }}>
+          <div className="bg-surface-0 rounded-2xl border border-line shadow-lg p-6 max-w-sm w-full space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-danger-bg border border-danger/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-danger-ink" />
+              </div>
+              <h4 className="text-sm font-semibold text-ink font-display">Excluir TODAS as ofertas?</h4>
+            </div>
+            <p className="text-xs text-ink-secondary leading-relaxed">
+              Você está prestes a excluir permanentemente <strong>{filtered.length} ofertas</strong> e suas respectivas mídias do storage. Essa ação é irreversível.
+            </p>
+            <div className="space-y-2">
+              <p className="text-[11px] text-ink-tertiary">
+                Digite <strong className="text-ink">excluir</strong> abaixo para confirmar:
+              </p>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                disabled={isDeletingAll}
+                placeholder='Digite "excluir"'
+                className="input-modern"
+                aria-label="Confirmar exclusão em lote"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => { setShowDeleteAllModal(false); setConfirmText(''); }}
+                disabled={isDeletingAll}
+                className="flex-1 px-4 py-2.5 rounded-md border border-line bg-surface-0 hover:bg-surface-1 text-ink text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteAllConfirm}
+                disabled={isDeletingAll || confirmText.toLowerCase() !== 'excluir'}
+                className="flex-1 px-4 py-2.5 rounded-md bg-danger hover:bg-danger-ink text-ink-inverse text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingAll ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Excluindo tudo...
+                  </>
+                ) : (
+                  'Excluir tudo'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        featureName={paywallFeature}
+      />
+    </div>
+  );
+};
+
+export default Offers;

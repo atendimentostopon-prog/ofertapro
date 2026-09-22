@@ -1,0 +1,173 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/integrations  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 img "Aflyo" [20,18 84x28]
+@e2 a "Dashboard" href=http://127.0.0.1:5173/dashboard [12,80 231x40]
+@e3 a "Ofertas" href=http://127.0.0.1:5173/offers [12,122 231x40]
+@e4 a "Canais" href=http://127.0.0.1:5173/channels [12,163 231x40]
+@e5 a "Integrações" href=http://127.0.0.1:5173/integrations [12,205 231x40]
+@e6 a "Histórico" href=http://127.0.0.1:5173/history [12,246 231x40]
+@e7 a "Configurações" href=http://127.0.0.1:5173/settings [12,288 231x40]
+@e8 a "Feedbacks" href=http://127.0.0.1:5173/feedbacks [12,329 231x40]
+@e9 a "Planos" href=http://127.0.0.1:5173/pricing [12,371 231x40]
+@e10 button "Página Pública" [12,415 231x40]
+@e11 img "Kaik" [21,812 26x26]
+@e12 button "Sair da conta" [12,853 231x36]
+@e13 input "Buscar ofertas" type=text [317,22 353x20]
+@e14 button "Nova oferta" [1096,13 124x38]
+@e15 label "Alternar tema claro/escuro" [1248,31 1x1]
+@e16 switch "Mudar para tema escuro" [1249,20 44x24]
+@e17 button "Notificações" [1344,16 32x32]
+@e18 button "Configurações do perfil" [1388,18 28x28]
+@e19 img "KAIK" [1389,19 26x26]
+@e20 tablist "Bot API e integrações" [395,171 244x42]
+@e21 tab "Bot" [400,176 75x32]
+@e22 tab "API e integrações" [479,176 155x32]
+@e23 tabpanel "Bot de Monitoramento Monitora grupos do Telegram e envia of" [395,237 896x1365]
+@e24 label "Bot ativo" [420,460 57x17]
+@e25 switch "Bot ativo" [1222,465 44x24]
+@e26 label [437,683 72x15]
+@e27 input type=time [437,707 398x44]
+@e28 label [851,683 50x15]
+@e29 input type=time [851,707 398x44]
+@e30 button [1116,767 133x34]
+@e31 button "Desconectar Bot" [1142,617 124x34]
+@e32 button "Remover" [769,801 24x24]
+@e33 button "Remover" [769,851 24x24]
+@e34 label "✈️ Best promos 1 Telegram" [880,792 372x58]
+@e35 input "on" type=checkbox checked [893,813 16x16]
+@e36 label "🎮 Discord QA Givaldo Discord" [880,858 372x58]
+@e37 input "on" type=checkbox checked [893,879 16x16]
+@e38 button "Enviar Feedback do Beta" [1368,828 48x48]
+
+Dashboard
+Ofertas
+Canais
+Integrações
+Histórico
+Configurações
+Feedbacks
+Planos
+Página Pública
+
+Kaik
+
+contatogivaldo@outlook.com
+
+Sair da conta
+K
+Plano Pro
+Nova Oferta
+Alternar tema claro/escuro
+Integrações
+
+Configure o bot e conecte suas automações.
+
+Bot
+API e integrações
+Bot de Monitoramento
+
+Monitora grupos do Telegram e envia ofertas para seus canais.
+
+STATUS
+
+Conectado
+
+CONTA TELEGRAM
+
++5511937525469
+
+GRUPOS MONITORADOS
+
+3
+
+ÚLTIMA ATIVIDADE
+
+há 1 dia
+
+Bot ativo
+
+Processando novas ofertas dos grupos monitorados normalmente.
+
+Horário de funcionamento
+Desconectar Bot
+Grupos de Origem
+
+IDs dos grupos do Telegram que o bot monitora.
+
+-1001369806287
+-1001197236241
+-1004295176990
+Adicionar
+Salvar grupos
+Canais de Destino
+
+Selecione quais canais recebem as ofertas do bot.
+
+✈️
+
+Best promos 1
+
+Telegram
+
+🎮
+
+Discord QA Givaldo
+
+Discord
+
+🎮
+
+duarte promos
+
+Discord
+
+💬
+
+Garimpei, Comprei! 🔎🔥
+
+Whatsapp
+
+💬
+
+Best Promos #1
+
+Whatsapp
+
+Salvar canais
+Configurações Adicionais
+
+Associe suas tags e chaves de afiliado para substituição automática de links.
+
+Tag Amazon Associates
+
+Sua tag de afiliado Amazon
+
+Substituição de Links: Quando o bot identificar um link de produto da Amazon ou Shopee, ele tentará converter usando as tags salvas aqui.
+Credenciais Shopee
+Automação do Mercado Livre
+Salvar configurações
+Feedbacks & Bugs
+
+{"width":1440,"content":1440,"theme":"light"}
+
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

@@ -1,0 +1,78 @@
+viewport: 390x844  url: http://127.0.0.1:5173/pricing  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 button "Assinar" [41,543 298x42]
+@e10 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Planos
+
+Escolha o plano ideal para seu volume de ofertas e canais.
+
+Starter
+R$ 47,90/mês
+Monitora até 2 grupos de origem
+Conecta 1 número de WhatsApp
+Dispara para até 5 grupos de WhatsApp
+Dispara para até 5 grupos do Telegram
+Disparo em massa + agendamento
+Personalize o template de mensagem
+Shopee, Amazon, Mercado Livre
+Assinar
+MAIS POPULAR
+Pro
+R$ 97,00/mês
+Monitora até 6 grupos de origem
+Conecta até 2 números de WhatsApp
+Dispara para até 12 grupos de WhatsApp
+Dispara para até 12 grupos do Telegram
+Ofertas ilimitadas
+Analytics avançado
+Encurtador automático de links
+Personalize o template de mensagem
+Tudo do Starter
+Plano atual
+Business
+R$ 197,00/mês
+Monitora até 15 grupos de origem
+Conecta até 4 números de WhatsApp
+Dispara para até 20 grupos de WhatsApp
+Dispara para até 20 grupos do Telegram
+Ofertas ilimitadas
+Analytics avançado
+Encurtador automático de links
+Personalize o template de mensagem
+Remove a marca Aflyo da vitrine
+Suporte prioritário
+Tudo do Pro
+Assinar
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff

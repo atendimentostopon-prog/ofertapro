@@ -1,0 +1,210 @@
+viewport: 390x844  url: http://127.0.0.1:5173/dashboard  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 button "Atualizar métricas" [45,177 84x15]
+@e10 button "Pausar bot" [37,386 115x34]
+@e11 button "Gerenciar" [164,395 55x16]
+@e12 button "Nova oferta" [16,461 168x72]
+@e13 button "Disparar oferta" [196,461 168x72]
+@e14 button "Conectar canal" [16,545 168x72]
+@e15 button "Grupos de origem" [196,545 168x72]
+@e16 img "WhatsApp" [213,689 14x14]
+@e17 img "Telegram" [286,689 14x14]
+@e18 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Olá, Kaik!
+
+Acompanhe seus disparos e o que o bot está fazendo.
+
+Atualizar métricas
+Bot ativo
+
+Monitorando 3 grupos de origem · último disparo há 15 min
+
+Pausar bot
+Gerenciar
+Nova oferta
+Disparar oferta
+Conectar canal
+Grupos de origem
+DISPAROS
+185
+
+nos últimos 30 dias
+
+CANAIS
+2
+/ 12
+1
+/ 12
+
+conectados
+
+OFERTAS ATIVAS
+124
+
+publicadas
+
+GRUPOS
+3
+
+de origem monitorados
+
+Cliques por Dia
+
+Últimos 7 dias
+
+Hoje 1
+7d 9
+30d 9
+13/09
+14/09
+15/09
+16/09
+17/09
+18/09
+19/09
+0
+0.75
+1.5
+2.25
+3
+Origem de Tráfego
+
+Cliques por canal
+
+Direto/Vitrine
+6
+PUBLIC_PAGE
+3
+
+DESTAQUE
+
+Página Pública
+
+MARKETPLACE
+
+AMAZON
+
+Sugestões para melhorar seus resultados
+Ofertas com mais cliques
+Ver Ofertas
+1
+
+Cupons de desconto — MERCADO LIVRE
+
+MERCADOLIVRE
+
+4
+
+CLIQUES
+
+2
+
+Monitor Dell 27" FHD IPS 240Hz SE2726HG
+
+AMAZON
+
+2
+
+CLIQUES
+
+3
+
+Robô Aspirador Electrolux ERB20 Bivolt
+
+AMAZON
+
+1
+
+CLIQUES
+
+4
+
+Robô Aspirador Liectroux XR500 Pro 3 em 1
+
+AMAZON
+
+1
+
+CLIQUES
+
+5
+
+Smartphone Huawei Pura 80 Pro 12GB+512GB
+
+AMAZON
+
+1
+
+CLIQUES
+
+Disparos recentes
+Ver Todos
+
+Poco F7 5G
+
+5 canais
+·
+19/09/2026
+Sucesso
+
+Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g
+
+5 canais
+·
+19/09/2026
+Sucesso
+
+Redmi Note 17 Pro Max 128GB
+
+5 canais
+·
+19/09/2026
+Sucesso
+
+Xiaomi 17T Pro 5G
+
+5 canais
+·
+19/09/2026
+Sucesso
+Feedbacks & Bugs
+0
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

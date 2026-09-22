@@ -1,0 +1,129 @@
+viewport: 390x844  url: http://127.0.0.1:5173/integrations  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 tablist "Bot API e integrações" [16,159 244x42]
+@e10 tab "Bot" [21,164 75x32]
+@e11 tab "API e integrações" [100,164 155x32]
+@e12 tabpanel "Bot de Monitoramento Monitora grupos do Telegram e envia of" [16,225 348x2292]
+@e13 label "Bot ativo" [41,746 57x17]
+@e14 switch "Bot ativo" [295,759 44x24]
+@e15 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Integrações
+
+Configure o bot e conecte suas automações.
+
+Bot
+API e integrações
+Bot de Monitoramento
+
+Monitora grupos do Telegram e envia ofertas para seus canais.
+
+STATUS
+
+Conectado
+
+CONTA TELEGRAM
+
++5511937525469
+
+GRUPOS MONITORADOS
+
+3
+
+ÚLTIMA ATIVIDADE
+
+há 1 dia
+
+Bot ativo
+
+Processando novas ofertas dos grupos monitorados normalmente.
+
+Horário de funcionamento
+Desconectar Bot
+Grupos de Origem
+
+IDs dos grupos do Telegram que o bot monitora.
+
+-1001369806287
+-1001197236241
+-1004295176990
+Adicionar
+Salvar grupos
+Canais de Destino
+
+Selecione quais canais recebem as ofertas do bot.
+
+🎮
+
+Discord QA Givaldo
+
+Discord
+
+✈️
+
+Best promos 1
+
+Telegram
+
+🎮
+
+duarte promos
+
+Discord
+
+💬
+
+Garimpei, Comprei! 🔎🔥
+
+Whatsapp
+
+💬
+
+Best Promos #1
+
+Whatsapp
+
+Salvar canais
+Configurações Adicionais
+
+Associe suas tags e chaves de afiliado para substituição automática de links.
+
+Tag Amazon Associates
+
+Sua tag de afiliado Amazon
+
+Substituição de Links: Quando o bot identificar um link de produto da Amazon ou Shopee, ele tentará converter usando as tags salvas aqui.
+Credenciais Shopee
+Automação do Mercado Livre
+Salvar configurações
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

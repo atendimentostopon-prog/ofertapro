@@ -1,0 +1,79 @@
+viewport: 390x844  url: http://127.0.0.1:5173/settings?tab=links  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 tablist "Seções de configurações" [-110,191 656x46]
+@e10 tab "Minha conta" [-103,198 124x32]
+@e11 tab "Vitrine" [25,198 91x32]
+@e12 tab "Links da vitrine" [120,198 139x32]
+@e13 tab "Mensagens" [264,198 120x32]
+@e14 tab "Plano e cobrança" [388,198 152x32]
+@e15 tabpanel "Links Públicos da Vitrine Configure os links de convite par" [16,267 348x502]
+@e16 label "Link do Grupo WhatsApp" [41,390 164x17]
+@e17 input "Ex: chat.whatsapp.com/ABC123xyz" type=text [41,416 298x38]
+@e18 label "Link do Canal/Grupo Telegram" [41,516 199x17]
+@e19 input "Ex: t.me/meucanal" type=text [41,542 298x38]
+@e20 label "Link do Convite Discord" [41,642 155x17]
+@e21 input "Ex: discord.gg/abcde" type=text [41,668 298x38]
+@e22 button "Salvar alterações" [174,677 173x42]
+@e23 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Configurações
+
+Gerencie sua conta, sua vitrine, os planos e os templates de disparo
+
+Minha conta
+Vitrine
+Links da vitrine
+Mensagens
+Plano e cobrança
+Links Públicos da Vitrine
+
+Configure os links de convite para os seus canais e grupos de ofertas
+
+Link do Grupo WhatsApp
+
+Insira o link de convite do grupo do WhatsApp (wa.me/... ou chat.whatsapp.com/...)
+
+Link do Canal/Grupo Telegram
+
+Insira o link público do seu canal ou grupo no Telegram (t.me/... ou telegram.me/...)
+
+Link do Convite Discord
+
+Insira o link do convite do seu servidor do Discord (discord.gg/... ou discord.com/invite/...)
+
+Salve para aplicar suas mudanças.
+
+Salvar alterações
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

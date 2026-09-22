@@ -1,0 +1,54 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/termos-de-uso  title: Termos de Uso | Aflyo
+@e1 button "Voltar" [331,66 58x16]
+
+Voltar
+Aflyo
+Termos de Uso
+
+Última atualização: 17 de junho de 2026
+
+1. Relação Contratual
+
+Bem-vindo ao Aflyo. Ao se cadastrar ou utilizar nossa plataforma, você concorda expressamente em cumprir e vincular-se a estes Termos de Uso. Caso não concorde com qualquer termo estabelecido, você não deverá acessar ou utilizar nossos serviços.
+
+2. Elegibilidade e Cadastro de Conta
+
+Para utilizar a plataforma, você deve ter capacidade legal plena. O cadastro exige a criação de uma senha segura e e-mail ativo. Você é inteiramente responsável por manter a confidencialidade de sua senha e por todas as atividades que ocorram sob o uso de sua conta pessoal. O compartilhamento de credenciais de login com terceiros é estritamente proibido.
+
+3. Regras de Conduta e Uso Aceitável
+
+O usuário compromete-se a usar o Aflyo de boa-fé. É expressamente vedado:
+
+Publicar ou disseminar links de ofertas falsas, enganosas, ou que configurem golpes financeiros e esquemas de pirâmide.
+Cadastrar links que redirecionem para vírus, malware ou qualquer software nocivo aos usuários finais.
+Utilizar ferramentas automatizadas (scripts, bots) de forma abusiva que afetem a integridade e o desempenho dos nossos servidores ou do banco de dados do Supabase.
+Infringir direitos autorais ou propriedade intelectual de terceiros nas imagens ou nomes de produtos inseridos.
+4. Propriedade Intelectual
+
+Todo o conteúdo visual, códigos de programação, interfaces, designs, marcas, logotipos e patentes relacionados à plataforma são de propriedade exclusiva do Aflyo. O uso do serviço confere a você uma licença temporária, revogável, não-exclusiva e pessoal, limitada ao painel e vitrines providos de acordo com seu plano atual.
+
+5. Limitação de Responsabilidade
+
+O Aflyo funciona como uma plataforma facilitadora de organização de links e vitrines. Nós não garantimos vendas, tráfego ou lucros decorrentes da divulgação de seus links. Também não nos responsabilizamos pelas transações efetuadas entre o seu público final e as lojas parceiras (como Mercado Livre, Amazon, Shopee, Magalu e AliExpress). Qualquer problema relativo à compra do produto deve ser resolvido junto ao respectivo marketplace.
+
+6. Versão Beta e Disponibilidade
+
+A plataforma pode operar em versão Beta ou de testes contínuos para novos recursos. Sendo assim, o sistema é fornecido "como está" e "conforme disponível". Podemos suspender temporariamente o painel para manutenção, atualizações ou correção de falhas críticas sem aviso prévio.
+
+7. Suspensão ou Encerramento de Conta
+
+Reservamo-nos o direito de suspender temporariamente ou encerrar definitivamente a conta de qualquer usuário que viole reiteradamente estes termos, realize fraudes, publique conteúdo impróprio ou infrinja leis vigentes no Brasil, sem direito a qualquer compensação financeira.
+
+8. Modificações dos Termos
+
+Podemos modificar estes termos a qualquer momento para refletir mudanças operacionais, regulatórias ou de segurança. Ao continuar a usar o Aflyo após a data das atualizações, você aceita implicitamente as novas regras contratuais.
+
+{"width":1440,"content":1430,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

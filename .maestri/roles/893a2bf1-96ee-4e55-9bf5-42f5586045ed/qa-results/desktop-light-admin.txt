@@ -1,0 +1,17 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/admin  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+
+
+404
+Página não encontrada
+
+Este endereco saiu do ar. O painel administrativo do Aflyo agora fica em um endereco proprio, acessivel apenas para a equipe.
+
+{"width":1440,"content":1440,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

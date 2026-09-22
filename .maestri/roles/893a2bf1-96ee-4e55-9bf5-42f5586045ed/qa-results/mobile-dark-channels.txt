@@ -1,0 +1,123 @@
+viewport: 390x844  url: http://127.0.0.1:5173/channels  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 button "Conectar WhatsApp" [16,218 165x28]
+@e10 button "Sincronizar Grupos" [37,377 306x34]
+@e11 button "Ver Grupos Vinculados" [37,419 306x34]
+@e12 button "Desconectar Número" [37,461 306x32]
+@e13 img "whatsapp" [48,829 26x26]
+@e14 button "Menu de ações" [315,818 28x28]
+@e15 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Canais de Disparo
+
+Gerencie seus grupos e canais de disparo do WhatsApp, Telegram e Discord
+
+WhatsApp (Evolution API)
+1/2 Conectados
+Conectar WhatsApp
+agendali wpp
+
+lo_ab1620e3_001
+
+Conectado
+Último sync:
+11/09, 21:55
+Sincronizar Grupos
+Ver Grupos Vinculados
+Desconectar Número
+
+3
+
+Canais Telegram/Discord Conectados
+
+0
+
+Canais Desconectados
+
+Todos os Canais Ativos de Disparo
+5
+Best Promos #1
+
+WhatsApp
+
+Conectado
+120363424969915309@g.us
+Último sync: 11/09, 21:55
+Garimpei, Comprei! 🔎🔥
+
+WhatsApp
+
+Conectado
+120363409578608657@g.us
+Último sync: 11/09, 21:55
+duarte promos
+
+Discord
+
+Conectado
+https://discord.com/api/webhoo••••••••yPfob
+Último sync: 01/07, 16:01
+Best promos 1
+
+Telegram
+
+Conectado
+Chat: -1003483177666
+Token: 8346541779:••••••••9Ak
+Último sync: 19/06, 12:13
+Discord QA Givaldo
+
+Discord
+
+Conectado
+https://discord.com/api/webhoo••••••••RTVv0
+Último sync: 16/06, 22:25
+Adicionar Novo Canal
+
+Conectar WhatsApp
+
+Conecte grupos do WhatsApp para disparo automático
+
+Conectar Telegram
+
+Conecte canais e grupos do Telegram via bot
+
+Conectar Discord
+
+Conecte servidores Discord via webhook
+
+Conexão segura de credenciais
+
+Os dados de pareamento do WhatsApp e tokens são protegidos de forma criptografada. Nós garantimos que o envio seja efetuado de forma otimizada para seus canais.
+
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

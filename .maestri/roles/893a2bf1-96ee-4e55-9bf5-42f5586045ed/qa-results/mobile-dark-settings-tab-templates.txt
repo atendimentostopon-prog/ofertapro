@@ -1,0 +1,154 @@
+viewport: 390x844  url: http://127.0.0.1:5173/settings?tab=templates  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 tablist "Seções de configurações" [-244,191 656x46]
+@e10 tab "Links da vitrine" [-14,198 139x32]
+@e11 tab "Mensagens" [130,198 120x32]
+@e12 tab "Plano e cobrança" [254,198 152x32]
+@e13 tabpanel "Templates de Mensagem Personalize a mensagem de envio para" [16,267 348x2585]
+@e14 a "[texto]({link})" [58,558 252x31]
+@e15 button "WhatsApp 💬" [48,695 111x32]
+@e16 button "Telegram ✈️" [163,695 104x32]
+@e17 button "Discord 🎮" [271,695 95x32]
+@e18 button "🔥 Oferta (produto único)" [48,784 177x32]
+@e19 button "🎟️ Cupom (sem produto específico)" [229,784 237x32]
+@e20 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Configurações
+
+Gerencie sua conta, sua vitrine, os planos e os templates de disparo
+
+Minha conta
+Vitrine
+Links da vitrine
+Mensagens
+Plano e cobrança
+Templates de Mensagem
+
+Personalize a mensagem de envio para cada canal utilizando variáveis dinâmicas
+
+Como funciona: Personalize como suas ofertas serão enviadas para cada canal. Use variáveis como {titulo}, {preco_promocional} e {link}. Campos vazios são ocultados automaticamente quando você usa variáveis inteligentes como {cupom_linha}.
+
+Aviso: Cada canal tem regras próprias de formatação. Você pode usar comandos simples como **negrito**, _itálico_, ~riscado~ e [texto]({link}). O Aflyo converte automaticamente para Telegram, Discord e WhatsApp.
+
+A variável {link} usa o link de afiliado direto cadastrado na oferta.
+
+WhatsApp 💬
+Telegram ✈️
+Discord 🎮
+
+Tipo de mensagem:
+
+🔥 Oferta (produto único)
+🎟️ Cupom (sem produto específico)
+Estrutura da Mensagem (WHATSAPP)
+
+Escreva o texto e clique nas variáveis abaixo para injetá-las no cursor
+
+Caracteres no template: 233
+Preview aproximado: 256 caracteres
+
+Formatação Rápida:
+
+Negrito 🌟
+Itálico 💫
+Riscado ❌
+Link Comprar 🔗
+
+Variáveis Disponíveis:
+
+{titulo}
+{chamada}
+{preco_original}
+{preco_promocional}
+{desconto}
+{cupom}
+{marketplace}
+{categoria}
+{link}
+{imagem}
+{nome_afiliado}
+{nome_vitrine}
+{data}
+{hora}
+{preco_original_linha}
+{cupom_linha}
+{desconto_linha}
+{marketplace_linha}
+{categoria_linha}
+{imagem_linha}
+Restaurar Padrão
+Enviar teste real
+Salvar Template
+
+PREVIEW NO CANAL
+
+✅ Notebook ASUS Vivobook 15
+
+❌ De: ~R$ 3.000,00~
+🔥 Por apenas: R$ 2.499,00
+🎟️ *Cupom:* CUPOM10
+
+🛒 Marketplace: AMAZON
+Link: https://amzn.to/exemplo
+
+Grupo de ofertas -> https://shre.ink/grupodeofertaas
+
+⚠️ Anúncio | Preço e estoque sujeitos a alteração.
+
+As variáveis serão preenchidas com dados da oferta em runtime.
+
+Link de Afiliado
+
+Escolha, por marketplace, qual link é enviado nos disparos automáticos das suas ofertas
+
+Usar encurtador próprio para Amazon (go.aflyo.com.br/o/...)
+
+Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.
+
+Usar encurtador próprio para Shopee (go.aflyo.com.br/o/...)
+
+Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.
+
+Usar encurtador próprio para Mercado Livre (go.aflyo.com.br/o/...)
+
+Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.
+
+Usar encurtador próprio para Magalu (go.aflyo.com.br/o/...)
+
+Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.
+
+Usar encurtador próprio para AliExpress (go.aflyo.com.br/o/...)
+
+Os links enviados nos canais contam clique no seu painel (Dashboard e Ofertas). Recomendado.
+
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

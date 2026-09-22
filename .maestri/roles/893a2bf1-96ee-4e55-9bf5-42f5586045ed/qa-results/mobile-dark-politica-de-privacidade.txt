@@ -1,0 +1,65 @@
+viewport: 390x844  url: http://127.0.0.1:5173/politica-de-privacidade  title: Política de Privacidade | Aflyo
+@e1 button "Voltar" [16,66 58x16]
+
+Voltar
+Aflyo
+Política de Privacidade
+
+Última atualização: 17 de junho de 2026
+
+1. Introdução e Escopo
+
+O Aflyo tem o compromisso de proteger sua privacidade e seus dados pessoais. Esta política detalha como coletamos, usamos, armazenamos e compartilhamos os seus dados no uso da nossa plataforma de vitrines e disparos de ofertas.
+
+2. Dados que Coletamos
+
+Coletamos informações essenciais para o funcionamento e a segurança do serviço:
+
+Informações de Registro: Nome completo, endereço de e-mail e credenciais de login criadas no momento do cadastro.
+Informações do Perfil: Biografia, nome de exibição, foto do avatar, links de canais sociais (WhatsApp, Telegram, Discord) fornecidos voluntariamente por você para compor sua vitrine pública.
+Dados de Utilização: Cliques nas ofertas cadastradas e logs de disparos de canais de notificação para compor seus relatórios analíticos de desempenho.
+3. Finalidade do Uso dos Dados
+
+Os seus dados são utilizados estritamente para as seguintes finalidades:
+
+Prestar e gerenciar o acesso ao serviço de vitrine e controle de links.
+Gerenciar e autenticar sessões de login de forma segura.
+Habilitar o compartilhamento público de suas ofertas com seus seguidores e audiência.
+Coletar estatísticas agregadas de cliques e acessos para análise interna e exibição de relatórios no seu dashboard.
+Cumprimento de obrigações legais e manutenção de segurança do sistema.
+4. Provedores de Serviços Terceirizados
+
+Compartilhamos dados exclusivamente com serviços terceirizados essenciais que garantem a infraestrutura e segurança do Aflyo:
+
+Supabase: Infraestrutura de banco de dados, armazenamento de perfis e serviço de autenticação com segurança de dados de ponta a ponta.
+Vercel / Cloudflare: Hospedagem web e entrega de conteúdo segura e otimizada globalmente.
+Cakto: Processamento de pagamentos e gestão de assinaturas. Recebe nome, CPF, telefone e dados do cartão para autorizar a cobrança; o Aflyo não armazena dados de cartão.
+5. Cookies
+
+Utilizamos cookies de sessão essenciais para mantê-lo autenticado de forma segura no painel e salvar suas preferências de exibição de layout. O consentimento e gerenciamento de cookies podem ser definidos por meio do nosso banner de cookies. Detalhes estão disponíveis em nossa Política de Cookies.
+
+6. Retenção e Exclusão de Dados
+
+Os dados são mantidos pelo tempo que sua conta estiver ativa na plataforma. Você pode solicitar a exclusão total de sua conta e dados pessoais diretamente pelo painel de configurações ou entrando em contato conosco pelo e-mail de suporte. Uma vez solicitada, a remoção do seu perfil e ofertas do banco de dados do Supabase é imediata e definitiva.
+
+7. Direitos do Titular (LGPD)
+
+Nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/18 - LGPD), você possui o direito de:
+
+Confirmar a existência do tratamento de seus dados pessoais.
+Acessar seus dados armazenados na plataforma de forma simplificada.
+Corrigir dados incompletos, inexatos ou desatualizados nas configurações do seu perfil.
+Revogar o consentimento e solicitar a eliminação dos dados tratados a qualquer momento.
+8. Contato e Encarregado de Proteção de Dados (DPO)
+
+Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo Aflyo, envie um e-mail para privacidade@aflyo.com.br.
+
+{"width":390,"content":380,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render

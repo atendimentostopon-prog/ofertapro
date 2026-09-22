@@ -1,0 +1,1587 @@
+viewport: 1440x900  url: http://127.0.0.1:5173/history  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 img "Aflyo" [20,18 84x28]
+@e2 a "Dashboard" href=http://127.0.0.1:5173/dashboard [12,80 231x40]
+@e3 a "Ofertas" href=http://127.0.0.1:5173/offers [12,122 231x40]
+@e4 a "Canais" href=http://127.0.0.1:5173/channels [12,163 231x40]
+@e5 a "Integrações" href=http://127.0.0.1:5173/integrations [12,205 231x40]
+@e6 a "Histórico" href=http://127.0.0.1:5173/history [12,246 231x40]
+@e7 a "Configurações" href=http://127.0.0.1:5173/settings [12,288 231x40]
+@e8 a "Feedbacks" href=http://127.0.0.1:5173/feedbacks [12,329 231x40]
+@e9 a "Planos" href=http://127.0.0.1:5173/pricing [12,371 231x40]
+@e10 button "Página Pública" [12,415 231x40]
+@e11 img "Kaik" [21,812 26x26]
+@e12 button "Sair da conta" [12,853 231x36]
+@e13 input "Buscar ofertas" type=text [317,22 353x20]
+@e14 button "Nova oferta" [1096,13 124x38]
+@e15 label "Alternar tema claro/escuro" [1248,31 1x1]
+@e16 switch "Mudar para tema escuro" [1249,20 44x24]
+@e17 button "Notificações" [1344,16 32x32]
+@e18 button "Configurações do perfil" [1388,18 28x28]
+@e19 img "KAIK" [1389,19 26x26]
+@e20 input "Buscar por nome da oferta..." type=text [416,320 319x42]
+@e21 button "Todos" [755,323 70x36]
+@e22 button "Sucesso" [827,323 84x36]
+@e23 button "Parcial" [913,323 73x36]
+@e24 button "Erro" [988,323 57x36]
+@e25 button "Todos" [1065,323 70x36]
+@e26 button "Hoje" [1137,323 60x36]
+@e27 button "7 dias" [1198,323 68x36]
+@e28 button "Detalhes de Poco F7 5G" [447,408 844x116]
+@e29 img "Poco F7 5G" [468,429 48x48]
+@e30 img "Shopee" [537,460 12x12]
+@e31 button "Detalhes de Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g" [447,547 844x116]
+@e32 img "Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g" [468,568 48x48]
+@e33 img "Shopee" [537,600 12x12]
+@e34 button "Detalhes de Redmi Note 17 Pro Max 128GB" [447,687 844x116]
+@e35 img "Redmi Note 17 Pro Max 128GB" [468,708 48x48]
+@e36 img "Shopee" [537,739 12x12]
+@e37 button "Detalhes de Xiaomi 17T Pro 5G" [447,827 844x116]
+@e38 img "Xiaomi 17T Pro 5G" [468,848 48x48]
+@e39 img "Shopee" [537,879 12x12]
+@e40 button "Enviar Feedback do Beta" [1368,828 48x48]
+
+Dashboard
+Ofertas
+Canais
+Integrações
+Histórico
+Configurações
+Feedbacks
+Planos
+Página Pública
+
+Kaik
+
+contatogivaldo@outlook.com
+
+Sair da conta
+K
+Plano Pro
+Nova Oferta
+Alternar tema claro/escuro
+Histórico de Disparos
+
+Todos os seus disparos de ofertas multicanal
+
+185
+
+Total Disparos
+
+0
+
+Cliques Gerados
+
+99%
+
+Taxa de Sucesso
+
+Todos
+Sucesso
+Parcial
+Erro
+Todos
+Hoje
+7 dias
+Poco F7 5G
+Shopee
+Enviado
+19 de set. às 09:48
+0
+cliques
+5
+canais
+Tv Smart 43 Polegadas Aoc Roku Hd Wi-Fi 43s5155/78g
+Shopee
+Enviado
+19 de set. às 09:48
+0
+cliques
+5
+canais
+Redmi Note 17 Pro Max 128GB
+Shopee
+Enviado
+19 de set. às 09:03
+0
+cliques
+5
+canais
+Xiaomi 17T Pro 5G
+Shopee
+Enviado
+19 de set. às 09:03
+0
+cliques
+5
+canais
+Mini Carro Elétrico Infantil Controle Remoto Frente/Ré Bateria 6V Bluetooth Maxi Rover Maxi Toys (Branco)
+Amazon
+Enviado
+19 de set. às 09:03
+0
+cliques
+5
+canais
+Microfone Condensador Gamer Logitech G Yeti Orb com RGB Lightsync, Captação Cardioide, Conexão USB Plug and Play para Gr
+Amazon
+Enviado
+19 de set. às 08:48
+0
+cliques
+5
+canais
+Soundcore Q11i da Anker Headphone Bluetooth Over Ear, 60H Fone Gamer Preto
+Amazon
+Enviado
+19 de set. às 08:48
+0
+cliques
+5
+canais
+Xiaomi 17T 5G
+Shopee
+Enviado
+19 de set. às 08:48
+0
+cliques
+5
+canais
+Notebook Gamer Alienware 16 AC16250 Intel Core 5 210H Windows 11 Home
+Amazon
+Enviado
+19 de set. às 08:48
+0
+cliques
+5
+canais
+Kit Davidoff Cwm Edt 125ml + As 75ml + Sg 75ml
+Amazon
+Enviado
+19 de set. às 08:48
+0
+cliques
+5
+canais
+Máquina de Costura Singer Doméstica Facilita Pro 4411
+Shopee
+Enviado
+19 de set. às 08:33
+0
+cliques
+5
+canais
+Soundcore P30i da Anker ANC Fone de Ouvido Bluetooth 5.4 Sem Fio TWS
+Amazon
+Enviado
+19 de set. às 08:33
+0
+cliques
+5
+canais
+Poco Pad M1 256GB 8GB
+Shopee
+Enviado
+19 de set. às 08:33
+0
+cliques
+5
+canais
+Monitor Gamer AOC Agon G50 27" 144Hz 0,5ms IPS HDR10 G-Sync 27G50F
+Amazon
+Enviado
+19 de set. às 08:33
+0
+cliques
+5
+canais
+Chapa Cerâmica Preta Taiff Bivolt
+Amazon
+Enviado
+19 de set. às 08:18
+0
+cliques
+5
+canais
+KitKat Creme Crocante de Chocolate Pasta para Passar, 330 g
+Amazon
+Enviado
+19 de set. às 08:18
+0
+cliques
+5
+canais
+Xiaomi POCO M8s 5G 128GB/256GB Snapdragon Tela 6,9” 144Hz 50MP Bateria 7000mAh NFC
+Shopee
+Enviado
+18 de set. às 20:48
+0
+cliques
+5
+canais
+Notebook Asus Vivobook Go E1504FA AMD Ryzen 5 7520U 8GB RAM 512GB SSD Linux Tela 15,6" FHD NJ732
+Shopee
+Enviado
+18 de set. às 20:18
+0
+cliques
+5
+canais
+Celular Xiaomi Redmi Note 15 Pro 512GB ou 256GB com NFC Global Fonte Brasil Original Xiaomi
+Shopee
+Enviado
+18 de set. às 20:18
+0
+cliques
+5
+canais
+Calvin Klein Ck One Eau De Toilette 200Ml
+Amazon
+Enviado
+18 de set. às 20:03
+0
+cliques
+5
+canais
+Monitor LG UltraWide 34" 34U620B-B WQHD 2K Curvatura 1800R 144Hz HDR 10
+Shopee
+Enviado
+18 de set. às 19:33
+0
+cliques
+5
+canais
+Monitor Gamer Arzopa M1RC 27" 2K QHD 180Hz IPS 1ms 115% sRGB USB-C HDMI Display Port
+Shopee
+Enviado
+18 de set. às 19:18
+0
+cliques
+5
+canais
+Monitor LG UltraWide Curvo 34" QuadHD 2K 100Hz
+Shopee
+Enviado
+18 de set. às 19:18
+0
+cliques
+5
+canais
+Controle Sem Fio PlayStation DualSense Edição Limitada Marathon
+Amazon
+Enviado
+18 de set. às 19:03
+0
+cliques
+5
+canais
+Kit Sabonete Phebo Amarelo 720g
+Amazon
+Enviado
+18 de set. às 18:18
+0
+cliques
+5
+canais
+Tablet Xiaomi Poco Pad M1 256GB 8GB Ram Wifi Global
+Shopee
+Enviado
+18 de set. às 17:48
+0
+cliques
+5
+canais
+Celular Xiaomi Note 15 128GB 6RAM Versão Global com Capinha e Fonte Turbo
+Shopee
+Enviado
+18 de set. às 17:18
+0
+cliques
+5
+canais
+Celular Novo Xiaomi Poco M8 5G 256GB 8GB RAM Com NFC Original Global Lacrado Pronta Entrega Custo Beneficio Com Capinha
+Shopee
+Enviado
+18 de set. às 17:18
+0
+cliques
+5
+canais
+Monitor Gamer ASUS TUF 25" Full HD 200Hz 0.3ms IPS FreeSync Premium Som Integrado Preto VG259Q5A
+Amazon
+Enviado
+18 de set. às 17:03
+0
+cliques
+5
+canais
+Celular Samsung Galaxy A57 5G 128GB 8GB RAM Câmera 50MP IP68 Super AMOLED 6.7" Recursos AI Azul Escuro
+Amazon
+Enviado
+18 de set. às 16:33
+0
+cliques
+5
+canais
+Mouse Gamer Sem Fio Logitech G305 Lightspeed Com 6 Botões Programáveis E Até 12.000 DPI - Preto
+Amazon
+Enviado
+18 de set. às 16:33
+0
+cliques
+5
+canais
+Secadora de Roupas Electrolux 12Kg Branca Premium Care com Autosense (SFP12) 220V
+Amazon
+Enviado
+18 de set. às 16:18
+0
+cliques
+5
+canais
+Smart TV 50 50P7K 4K QLED UHD 60Hz com Sistema Operacional Google TV TCL
+Shopee
+Enviado
+18 de set. às 16:03
+0
+cliques
+5
+canais
+Mesa Com Regulagem De Altura Elétrica Estrutura Mesa Com Regulagem Eletrônica E Memória 72-120cm
+Shopee
+Enviado
+18 de set. às 15:35
+0
+cliques
+5
+canais
+Granado Sabonete Líquido Vintage Suzette 300ml
+Amazon
+Enviado
+18 de set. às 15:35
+0
+cliques
+5
+canais
+Monitor Samsung 32" FHD 75 Hz Freesync HDMI DP Preto S3
+Shopee
+Enviado
+18 de set. às 15:05
+0
+cliques
+5
+canais
+Bicicleta Ergométrica Spinning Magnética Gallant Elite Roda de Inércia 13 kg
+Shopee
+Enviado
+18 de set. às 14:50
+0
+cliques
+5
+canais
+Hepta World Ventilador De Coluna Resfriamento Silencioso Design Slim Para Casa Escritório Preto 110V 101
+Amazon
+Enviado
+18 de set. às 14:35
+0
+cliques
+5
+canais
+Monitor Gamer Samsung Odyssey G5 34 Curvo Ultra WQHD 165Hz HDMI FreeSync Premium
+Shopee
+Enviado
+18 de set. às 14:20
+0
+cliques
+5
+canais
+Basike Mini Power Bank Carregador Portátil 10000mAh Rápido 22,5W Preto
+Amazon
+Enviado
+18 de set. às 14:05
+0
+cliques
+5
+canais
+Galaxy A57 5G 256GB Cinza + Galaxy Buds Core Preto
+Shopee
+Enviado
+18 de set. às 13:50
+0
+cliques
+5
+canais
+Smart TV Semp 43 Polegadas S62 4K UHD Google TV 43S62
+Shopee
+Enviado
+18 de set. às 13:50
+0
+cliques
+5
+canais
+Bundle Nintendo Switch + Super Mario Bros. Wonder + 3 Meses de Assinatura Nintendo Switch Online
+Amazon
+Enviado
+18 de set. às 08:50
+0
+cliques
+5
+canais
+Monitor Gamer Duex Pro DXPRO27A52RM 27" QHD 2560x1440 180Hz
+Amazon
+Enviado
+18 de set. às 08:50
+0
+cliques
+5
+canais
+Power Bank 30000mAh Basike Carregador Portátil com Cabo Amarelo
+Amazon
+Enviado
+18 de set. às 08:20
+0
+cliques
+5
+canais
+Notebook Asus Vivobook Go 15 AMD Ryzen 5 7520U 8GB 256GB SSD KeepOS Tela 15,6" FHD Mixed Black E1504FA-NJ731
+Amazon
+Enviado
+17 de set. às 21:35
+0
+cliques
+5
+canais
+Sony Câmera Vlog ZV-1F Para Criadores De Conteúdo E Vloggers Preta
+Amazon
+Enviado
+17 de set. às 21:05
+0
+cliques
+5
+canais
+Smartphone Huawei Pura 80 Pro 12GB+512GB
+Amazon
+Enviado
+17 de set. às 21:05
+0
+cliques
+5
+canais
+Monitor Gamer Acer Nitro KG273 G0bi 27" Full HD IPS 120Hz
+Shopee
+Enviado
+17 de set. às 20:50
+0
+cliques
+5
+canais
+Poco F9 Ultra 5G Tela Amoled 6.9" 8050mAh
+Shopee
+Enviado
+17 de set. às 20:20
+0
+cliques
+5
+canais
+Monitor Samsung Viewfinity S5 34" WQHD Ultrawide 100Hz
+Amazon
+Enviado
+17 de set. às 20:05
+0
+cliques
+5
+canais
+Teclado Mecânico Gamer Logitech G Pro Com Layout US, RGB Lightsync, Design TKL, Cabo Destacável e Switch Exclusivo GX Bl
+Amazon
+Enviado
+17 de set. às 20:05
+0
+cliques
+5
+canais
+Câmera Digital Canon R100 18-45 IS STM
+Amazon
+Enviado
+17 de set. às 20:05
+0
+cliques
+5
+canais
+Processador AMD Ryzen 5 5500 100100000457BOX
+Amazon
+Enviado
+17 de set. às 19:50
+0
+cliques
+4
+canais
+Headset Sony WH-CH520 Bluetooth Com Microfone
+Amazon
+Enviado
+17 de set. às 19:50
+0
+cliques
+4
+canais
+Teclado Mecânico Gamer Sem Fio Logitech G515 Com Design TKL, Tecnologia Lightspeed, RGB Lightsync, Conexão USB ou Blueto
+Amazon
+Enviado
+17 de set. às 19:50
+0
+cliques
+4
+canais
+Freezer Horizontal 140L Philco PFH160B Dupla Função 220V
+Amazon
+Enviado
+17 de set. às 19:50
+0
+cliques
+4
+canais
+JBL PartyBox 330 280W Amplificada
+Shopee
+Enviado
+17 de set. às 18:50
+0
+cliques
+4
+canais
+Huawei Nova 15 Max 8GB 256GB 8.500 mAh
+Shopee
+Parcial
+17 de set. às 18:35
+0
+cliques
+4
+canais
+Poco X8 Pro Max 5G
+Shopee
+Enviado
+17 de set. às 18:35
+0
+cliques
+4
+canais
+Poco Pad M1 256GB 8GB
+Shopee
+Enviado
+17 de set. às 18:35
+0
+cliques
+4
+canais
+Xiaomi 17T Pro 5G
+Shopee
+Enviado
+17 de set. às 18:35
+0
+cliques
+4
+canais
+Geladeira Electrolux Frost Free 380L Duplex Branca AutoSense Inverter 2 Portas
+Amazon
+Enviado
+17 de set. às 18:20
+0
+cliques
+4
+canais
+Micro-ondas Philco 33L Preto Acabamento Inox PMO38T 127V
+Amazon
+Enviado
+17 de set. às 18:20
+0
+cliques
+4
+canais
+Phebo Aromáticos Eau de Toilette Folhas de Menta 200ml
+Amazon
+Enviado
+17 de set. às 18:20
+0
+cliques
+4
+canais
+Soundcore V20i da Anker, Fone de Ouvido Bluetooth Aberto e Esportivo, 36H
+Amazon
+Enviado
+17 de set. às 17:50
+0
+cliques
+4
+canais
+Ariel Sabão Líquido Expert Concentrado 3L
+Amazon
+Enviado
+17 de set. às 17:50
+0
+cliques
+4
+canais
+Death Stranding 2: On the Beach - PlayStation 5
+Amazon
+Enviado
+17 de set. às 17:46
+0
+cliques
+5
+canais
+Power Bank 20000mAh Basike Carregador Portátil 2 Saídas USB-A (até 22.5W) + Tipo-C (até 22.5W) com Cabo, Carregamento Rá
+Amazon
+Enviado
+17 de set. às 17:46
+0
+cliques
+5
+canais
+Anker Hub USB-C 5 em 1, HDMI 4K@30Hz, 2 USB, 5Gbps USB 3.0 e USB-C PD 100W
+Amazon
+Enviado
+17 de set. às 17:46
+0
+cliques
+5
+canais
+Cupons de desconto — MERCADO LIVRE
+Mercado Livre
+Enviado
+17 de set. às 17:34
+0
+cliques
+5
+canais
+Havit Headphone Fone de Ouvido H2002d Red Gamer com Microfone Falante 53mm Plug 3,5mm Compatível com Xbox One e PS4 HV-H
+Amazon
+Enviado
+17 de set. às 17:31
+0
+cliques
+5
+canais
+Cafeteira Oster Inox 1,2L 220V
+Amazon
+Enviado
+17 de set. às 17:31
+0
+cliques
+5
+canais
+Philco Aspirador Robô Função Mop PAS29A Bivolt 35W Antiqueda
+Amazon
+Enviado
+17 de set. às 17:18
+0
+cliques
+5
+canais
+Pacote 5 Carros Sortidos Hot Wheels Mattel Multicor
+Amazon
+Enviado
+17 de set. às 17:18
+0
+cliques
+5
+canais
+Caixa de Som Redragon Anvil RGB Preto
+Amazon
+Enviado
+17 de set. às 17:03
+0
+cliques
+5
+canais
+Apple iPhone 18 Pro 256GB Bordô
+Amazon
+Enviado
+17 de set. às 17:03
+0
+cliques
+5
+canais
+Realme P4 Power 5G 256GB Dimensity 7400 Ultra
+Shopee
+Enviado
+17 de set. às 17:03
+0
+cliques
+5
+canais
+Mochila Lenovo Casual B210 Azul para Notebook 15,6"
+Amazon
+Enviado
+17 de set. às 16:49
+0
+cliques
+5
+canais
+Galaxy A17 128GB 4GB
+Shopee
+Enviado
+17 de set. às 16:49
+0
+cliques
+5
+canais
+Lava e Seca Samsung WD11M com Digital Inverter WD11M4473PW Branca 11/7kg
+Shopee
+Enviado
+17 de set. às 16:34
+0
+cliques
+5
+canais
+Bola Puma Cumbre Conmebol Libertadores Ms Branco Padrão
+Amazon
+Enviado
+17 de set. às 16:17
+0
+cliques
+5
+canais
+JBL Caixa de Som com Rádio-relógio FM Horizon 3 5 W RMS Bluetooth USB-C Preto
+Amazon
+Enviado
+17 de set. às 16:17
+0
+cliques
+5
+canais
+Bettdow Smartwatch Feminino 1.27" Ecrã Tátil à Prova d'Água IP68 100+ Modos Esportivos Chamada Bluetooth Compatível com
+Amazon
+Enviado
+17 de set. às 16:02
+0
+cliques
+5
+canais
+Philco Escova Secadora Bivolt 1300W Íons Tourmaline PES33A
+Amazon
+Enviado
+17 de set. às 16:02
+0
+cliques
+5
+canais
+Redmi Note 17 Pro Max
+Shopee
+Enviado
+17 de set. às 16:02
+0
+cliques
+5
+canais
+JBL Fone de Ouvido Com Fio Quantum 360 Wireless Headset Gamer Over Ear Microfone Removível Preto
+Amazon
+Enviado
+17 de set. às 16:02
+0
+cliques
+5
+canais
+Galaxy A07 Tela 6.7 128GB 4G
+Shopee
+Enviado
+17 de set. às 15:47
+0
+cliques
+5
+canais
+Poco F9 Pro 5G 256GB
+Shopee
+Enviado
+17 de set. às 15:47
+0
+cliques
+5
+canais
+Poco F7 5G
+Shopee
+Enviado
+17 de set. às 15:32
+0
+cliques
+5
+canais
+Barbie Conjunto de Brinquedo Casa Com Escorregador
+Amazon
+Enviado
+17 de set. às 15:32
+0
+cliques
+5
+canais
+Marvel's Spider-Man: Miles Morales Edição Padrão - PlayStation 5
+Amazon
+Enviado
+17 de set. às 15:17
+0
+cliques
+5
+canais
+Volante e Pedais Logitech G29 Driving Force com Force Feedback para PS5, PS4, PS3 e PC
+Amazon
+Enviado
+17 de set. às 15:17
+0
+cliques
+5
+canais
+Anker Soundcore 2 Caixa de Som Bluetooth Portátil com 12W de Som Estéreo
+Amazon
+Enviado
+17 de set. às 15:02
+0
+cliques
+5
+canais
+Nível Laser Verde Bosch GCL 2-15 G 15m Com Pontos De Prumo
+Amazon
+Enviado
+17 de set. às 15:02
+0
+cliques
+5
+canais
+Cadeira Ergonômica XTC Mesh Preta ThunderX3
+Amazon
+Enviado
+17 de set. às 14:47
+0
+cliques
+5
+canais
+Relógio Inteligente Amazfit Balance 46mm A2287 Zepp Follow Composição Corporal GPS Step Tracking Alexa Built-In Chamada
+Amazon
+Enviado
+17 de set. às 14:47
+0
+cliques
+5
+canais
+Filtro de Linha Clamper iClamper Energia 5, 5 Tomadas, Proteção Contra Surtos Elétricos, 10A, Bivolt, Cabo 1m, Transpare
+Amazon
+Enviado
+17 de set. às 14:47
+0
+cliques
+5
+canais
+Amvox Caixa de Som Amplificada ACA 1900 New X SFM-1900W RMS, Bluetooth, Equalizador, USB
+Amazon
+Enviado
+17 de set. às 14:32
+0
+cliques
+5
+canais
+JBL Microfone Gamer Quantum Stream Impedância (Ohms) > 16 Com Cabo USB
+Amazon
+Enviado
+17 de set. às 14:32
+0
+cliques
+5
+canais
+Cadeira Gamer EC1 ThunderX3
+Amazon
+Enviado
+17 de set. às 14:24
+0
+cliques
+5
+canais
+L'Oréal Paris Elseve Liso dos Sonhos Kit Shampoo, Condicionador e Sérum
+Amazon
+Enviado
+17 de set. às 14:21
+0
+cliques
+5
+canais
+Fogão Cooktop 5 Bocas Tripla Chama Itatiaia Trempe Ferro Fundido Itacook Premium
+Shopee
+Enviado
+17 de set. às 14:21
+0
+cliques
+5
+canais
+Xiaomi 17T 5G
+Shopee
+Enviado
+17 de set. às 14:21
+0
+cliques
+5
+canais
+Celular Xiaomi Redmi Note 17 4G
+Shopee
+Enviado
+17 de set. às 14:16
+0
+cliques
+5
+canais
+Jogo de Panelas de Aço Inox Indução Tramontina 5 Peças Allegra
+Shopee
+Parcial
+17 de set. às 14:15
+0
+cliques
+5
+canais
+Xiaomi 15T Pro 5G
+Shopee
+Enviado
+17 de set. às 14:15
+0
+cliques
+5
+canais
+Bike Ergometrica Bicicleta Ergometrica Bike Spinning Silenciosa Vertical Modelo Premium
+Amazon
+Enviado
+17 de set. às 14:15
+0
+cliques
+5
+canais
+Jogo de Panelas de Aço Inox Indução Tramontina 5 Peças Allegra
+Shopee
+Enviado
+17 de set. às 14:15
+0
+cliques
+5
+canais
+Kit Rapunzel Shampoo + Tônico + Milk Spray - Lola From Rio
+Amazon
+Enviado
+17 de set. às 14:15
+0
+cliques
+5
+canais
+Ar Condicionado Split Midea Ai Ecomaster 12000 Btu R32 Frio 42ezvca12m5 Branco 220v
+Shopee
+Enviado
+17 de set. às 14:02
+0
+cliques
+5
+canais
+Asus Tuf Gaming F16 Intel Core 5 RTX 4050 8GB 512GB SSD KeepOS 16.0'' FHD Mecha Gray FX607VU-RL054
+Amazon
+Enviado
+17 de set. às 14:02
+0
+cliques
+5
+canais
+NOVOS CUPONS MELI
+Mercado Livre
+Enviado
+13 de set. às 15:25
+0
+cliques
+5
+canais
+Cupons de desconto — MERCADO LIVRE
+Mercado Livre
+Enviado
+13 de set. às 14:30
+0
+cliques
+5
+canais
+Xiaomi Redmi Pad 2 Wi-Fi 11 Polegadas 2.5K 90Hz Dolby Atmos Bateria 9000mAh Global Original Lacrado
+Shopee
+Enviado
+13 de set. às 12:33
+0
+cliques
+5
+canais
+Soundbar TCL Q65H 5.1 Canais com Subwoofer sem fio
+Amazon
+Enviado
+12 de set. às 20:07
+0
+cliques
+5
+canais
+Headset Gamer Redragon Zeus Pro Wireless 7.1 H510-PRO
+Amazon
+Enviado
+12 de set. às 19:33
+0
+cliques
+5
+canais
+Anúncio
+Mercado Livre
+Enviado
+12 de set. às 19:30
+0
+cliques
+5
+canais
+Robô Aspirador Electrolux ERB20 Bivolt
+Amazon
+Enviado
+12 de set. às 19:18
+0
+cliques
+5
+canais
+Monitor Dell 27" FHD IPS 240Hz SE2726HG
+Amazon
+Enviado
+12 de set. às 18:48
+0
+cliques
+5
+canais
+Robô Aspirador Liectroux XR500 Pro 3 em 1
+Amazon
+Enviado
+12 de set. às 18:48
+0
+cliques
+5
+canais
+Cadeira Gamer ThunderX3 TGC12 Preta
+Amazon
+Enviado
+12 de set. às 18:33
+0
+cliques
+5
+canais
+Caixa de Som Anker Soundcore 2 Bluetooth 12W
+Amazon
+Enviado
+12 de set. às 18:03
+0
+cliques
+5
+canais
+Samsung Lava e Seca 11kg WD11M4473PW 127V
+Amazon
+Enviado
+12 de set. às 17:48
+0
+cliques
+5
+canais
+Smart TV TCL 55" QLED 4K T6C Google TV
+Amazon
+Enviado
+12 de set. às 17:18
+0
+cliques
+5
+canais
+Monitor Gamer AOC Agon G50 24" 144Hz 0,5ms IPS HDR10 G-Sync
+Shopee
+Enviado
+12 de set. às 17:03
+0
+cliques
+5
+canais
+Câmbio Logitech G Driving Force para G29, G920 e G923
+Amazon
+Enviado
+12 de set. às 16:48
+0
+cliques
+5
+canais
+Controle DualSense PS5 Edição Limitada Grand Theft Auto VI Preto
+Amazon
+Enviado
+12 de set. às 16:33
+0
+cliques
+5
+canais
+Notebook ASUS Vivobook 15 Ryzen 7 5825U 8GB RAM 512GB SSD
+Shopee
+Enviado
+12 de set. às 16:33
+0
+cliques
+5
+canais
+Samsung Smart TV 55" MiniLED 4K M75H
+Amazon
+Enviado
+12 de set. às 16:18
+0
+cliques
+5
+canais
+Controle DualSense PS5 Edição Limitada Grand Theft Auto VI
+Amazon
+Enviado
+12 de set. às 16:18
+0
+cliques
+5
+canais
+Apple iPhone 18 Pro 256GB Preto
+Amazon
+Enviado
+12 de set. às 15:48
+0
+cliques
+5
+canais
+Smart TV Hisense 65" Hi-QLED 4K 65Q6QV
+Amazon
+Enviado
+12 de set. às 15:48
+0
+cliques
+5
+canais
+Aparador Philips Série 3000 All-in-One 9 em 1
+Amazon
+Enviado
+12 de set. às 15:33
+0
+cliques
+5
+canais
+Caixa de Som Soundcore Select 4 Go Anker Bluetooth
+Amazon
+Enviado
+12 de set. às 15:03
+0
+cliques
+5
+canais
+Ar-Condicionado Electrolux Color Adapt 24.000 BTUs Inverter Wi-Fi
+Amazon
+Enviado
+12 de set. às 15:03
+0
+cliques
+5
+canais
+Notebook Gamer Acer Nitro V15 Ryzen 7 7735HS RTX 4050 8GB RAM 512GB SSD
+Amazon
+Enviado
+12 de set. às 14:48
+0
+cliques
+5
+canais
+Power Bank I2GO Pocket 5000mAh USB-C
+Amazon
+Enviado
+12 de set. às 14:33
+0
+cliques
+5
+canais
+Smart TV LG 32" HD LB650 AI 2026
+Amazon
+Enviado
+12 de set. às 14:18
+0
+cliques
+5
+canais
+Samsung Galaxy A57 5G 128GB Cinza + Galaxy Watch8 40mm Grafite
+Amazon
+Enviado
+12 de set. às 13:18
+0
+cliques
+5
+canais
+Electrolux ERB20 Aspirador Robô 2h20min Controle Remoto Preto
+Amazon
+Enviado
+12 de set. às 13:03
+0
+cliques
+5
+canais
+Black+Decker Vaporizador de Roupas BDV2200 1500W Display Digital
+Amazon
+Enviado
+12 de set. às 13:03
+0
+cliques
+5
+canais
+Acer Nitro V15 Ryzen 7 7735HS RTX 4050 512GB 8GB RAM
+Amazon
+Enviado
+12 de set. às 13:03
+0
+cliques
+5
+canais
+Fujifilm Instax Mini 12 Câmera Instantânea Azul Candy
+Amazon
+Enviado
+12 de set. às 12:48
+0
+cliques
+5
+canais
+Soundcore Boom 2 da Anker - 80W - Subwoofer, IPX7, RGB - Preto
+Amazon
+Enviado
+12 de set. às 12:48
+0
+cliques
+5
+canais
+Canon R50 18-45mm IS STM Câmera Digital com Lente
+Amazon
+Enviado
+12 de set. às 12:33
+0
+cliques
+5
+canais
+JBL Live Buds 3 Cancelamento de Ruído Resistente À Água Preto
+Amazon
+Enviado
+12 de set. às 12:33
+0
+cliques
+5
+canais
+JBL Grip 16W RMS IP68 Portátil Preto
+Amazon
+Enviado
+12 de set. às 12:18
+0
+cliques
+5
+canais
+JBL Grip 16W RMS IP68 Portátil Preto
+Amazon
+Enviado
+12 de set. às 12:18
+0
+cliques
+5
+canais
+ThunderX3 Cadeira Ergonômica XTC Mesh - Até 150kg - Gamer Preta
+Amazon
+Enviado
+12 de set. às 12:03
+0
+cliques
+5
+canais
+Logitech C920s Webcam Full HD 1080p Microfone e Tampa Privacidade Preto
+Amazon
+Enviado
+12 de set. às 12:03
+0
+cliques
+5
+canais
+Xiaomi 15T Pro
+Shopee
+Enviado
+12 de set. às 11:48
+0
+cliques
+5
+canais
+JBL PartyBox 330 280W Branca
+Shopee
+Enviado
+12 de set. às 11:48
+0
+cliques
+5
+canais
+Dell SE2726HG 27 FHD 240Hz IPS 0,5ms 99% sRGB
+Amazon
+Enviado
+12 de set. às 11:33
+0
+cliques
+5
+canais
+Soundcore Q11i Anker Bluetooth Over Ear 60H Bateria Preto
+Amazon
+Enviado
+12 de set. às 11:33
+0
+cliques
+5
+canais
+TCL 55 Polegadas QLED 4K Google TV HDR10+ WiFi Bluetooth
+Amazon
+Enviado
+12 de set. às 11:18
+0
+cliques
+5
+canais
+Anker Soundcore 2 12W Som Estéreo IPX7 à Prova d'Água
+Amazon
+Enviado
+12 de set. às 11:18
+0
+cliques
+5
+canais
+Hisense Smart TV FHD 40" HDR10 DTS Virtual X Alexa
+Amazon
+Enviado
+12 de set. às 11:18
+0
+cliques
+5
+canais
+Mizuno Edo Cross Tênis Esportivo
+Amazon
+Enviado
+12 de set. às 10:45
+0
+cliques
+5
+canais
+Redragon Hylas H260RGB Headset Gamer RGB Preto
+Amazon
+Enviado
+12 de set. às 10:45
+0
+cliques
+5
+canais
+Starlink Mini Internet via Satélite Wifi 5 Dual Band Branco
+Amazon
+Enviado
+12 de set. às 10:30
+0
+cliques
+5
+canais
+Carro Elétrico Infantil Policial 6V Frente/Ré Maxi Toys - Azul
+Amazon
+Enviado
+12 de set. às 10:30
+0
+cliques
+5
+canais
+Elg F80N Suporte Articulado Mesa Pistão a Gás Monitores 17'' a 35'' Preto
+Amazon
+Enviado
+12 de set. às 10:30
+0
+cliques
+5
+canais
+Apple iPhone 18 Pro 256GB - Preto
+Amazon
+Enviado
+12 de set. às 10:15
+0
+cliques
+5
+canais
+Redragon Zeus Pro Sem Fio 7.1 Headset Gamer Preto
+Amazon
+Enviado
+12 de set. às 10:15
+0
+cliques
+5
+canais
+Soundcore Liberty 4 NC - Fone Bluetooth ANC - 50H Bateria - Áudio Hi-Res
+Amazon
+Enviado
+12 de set. às 09:11
+0
+cliques
+5
+canais
+Philco Roku TV 43" HDR10 Dolby Áudio
+Amazon
+Enviado
+12 de set. às 08:56
+0
+cliques
+5
+canais
+Huawei Band 11 - Tela Amoled 1,62" - Bateria 14 Dias - Preto
+Amazon
+Enviado
+12 de set. às 08:56
+0
+cliques
+5
+canais
+Calvin Klein Euphoria Feminino Eau De Parfum 100ml
+Amazon
+Enviado
+12 de set. às 08:56
+0
+cliques
+5
+canais
+Samsung Smart HD 32'' LS32H5000FGXZD Smart TV
+Amazon
+Enviado
+12 de set. às 08:56
+0
+cliques
+5
+canais
+GoPro HERO13 Black - 5.3K60 27MP - HyperSmooth 6.0 GPS
+Amazon
+Enviado
+12 de set. às 08:56
+0
+cliques
+5
+canais
+Samsung Galaxy A57 5G 128GB - Cinza + Galaxy Watch8 40mm - Grafite
+Amazon
+Enviado
+12 de set. às 08:41
+0
+cliques
+5
+canais
+Jovi Y19s - 256GB 8GB Ram - Câmera 50MP Tela 90Hz - Azul Glacial
+Amazon
+Enviado
+12 de set. às 08:41
+0
+cliques
+5
+canais
+Samsung Galaxy SmartTag2 - Rastreador Bluetooth - Preto
+Amazon
+Enviado
+12 de set. às 08:41
+0
+cliques
+5
+canais
+Calvin Klein CKIN2U Feminino EDT 100ml - Perfume Sofisticado
+Amazon
+Enviado
+12 de set. às 08:41
+0
+cliques
+5
+canais
+TP-Link Tapo C510W - Câmera 2K 3MP - Rotação 360° - Visão Noturna Colorida
+Amazon
+Enviado
+12 de set. às 08:41
+0
+cliques
+5
+canais
+Mondial Aparador Super Groom 10 - 6W Bivolt - Preto/Azul
+Amazon
+Enviado
+12 de set. às 08:26
+0
+cliques
+5
+canais
+GameSir G8 Plus MFi - Controle iOS/Android - 2 Botões Pro - Design Ergonômico
+Amazon
+Enviado
+12 de set. às 08:26
+0
+cliques
+5
+canais
+Anker Soundcore R50i - Fone Bluetooth 5.3 - 30H Bateria - IPX5
+Amazon
+Enviado
+12 de set. às 08:26
+0
+cliques
+5
+canais
+JBL Endurance Race 2 - Fone Intra Auricular - À Prova D'Água - Roxo
+Amazon
+Enviado
+12 de set. às 08:26
+0
+cliques
+5
+canais
+Mondial Climatizador Flash Air 80W - Branco/Preto
+Amazon
+Enviado
+12 de set. às 08:26
+0
+cliques
+5
+canais
+Taiff Style 333 - 2000W 127V - Secador Preto Pequeno
+Amazon
+Enviado
+12 de set. às 08:11
+0
+cliques
+5
+canais
+Clamper iClamper Energia 5 - 5 Tomadas - Proteção Contra Surtos - Bivolt
+Amazon
+Enviado
+12 de set. às 08:11
+0
+cliques
+5
+canais
+Philips Oneblade Qp220/51 - Lâminas Reposição Aço Inoxidável - Pacote 2 Unidades
+Amazon
+Enviado
+12 de set. às 08:11
+0
+cliques
+5
+canais
+Maxi Rover Mini Carro Elétrico Infantil 6V Controle Remoto Bluetooth - Rosa
+Amazon
+Enviado
+12 de set. às 08:11
+0
+cliques
+5
+canais
+Feedbacks & Bugs
+
+{"width":1440,"content":1440,"theme":"light"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

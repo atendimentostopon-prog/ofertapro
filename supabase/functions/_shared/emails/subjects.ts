@@ -7,6 +7,8 @@ export const TEMPLATE_NAMES = [
   "assinatura-confirmada",
   "falha-pagamento",
   "cancelamento",
+  "ticket-aberto",
+  "resposta-suporte",
 ] as const;
 
 export type TemplateName = (typeof TEMPLATE_NAMES)[number];
@@ -20,12 +22,15 @@ export const SUBJECTS: Record<TemplateName, string> = {
   "assinatura-confirmada": "Assinatura confirmada",
   "falha-pagamento": "Não conseguimos processar seu pagamento",
   "cancelamento": "Sua assinatura foi cancelada",
+  "ticket-aberto": "Ticket #{{TICKET_NUMBER}} aberto com sucesso",
+  "resposta-suporte": "Você tem uma nova resposta no ticket #{{TICKET_NUMBER}}",
 };
 
 export const PLACEHOLDER_KEYS = [
   "APP_URL", "SUPPORT_URL", "PREFERENCES_URL", "UNSUBSCRIBE_URL",
   "USER_NAME", "USER_EMAIL", "CONFIRMATION_URL",
   "PLAN_NAME", "AMOUNT", "NEXT_BILLING_DATE", "ACCESS_UNTIL_DATE", "DAYS_LEFT",
+  "TICKET_NUMBER", "TICKET_TITLE", "TICKET_URL", "REPLY_PREVIEW",
 ] as const;
 
 export function isTemplateName(v: unknown): v is TemplateName {

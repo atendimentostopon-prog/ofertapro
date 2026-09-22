@@ -1,0 +1,68 @@
+viewport: 390x844  url: http://127.0.0.1:5173/offers/new  title: Aflyo | Disparo de Ofertas em Múltiplos Canais
+@e1 button "Abrir menu" [16,14 36x36]
+@e2 input "Buscar ofertas" type=text [101,22 56x20]
+@e3 button "Nova oferta" [182,15 42x34]
+@e4 label "Alternar tema claro/escuro" [231,31 1x1]
+@e5 switch "Mudar para tema claro" [232,20 44x24]
+@e6 button "Notificações" [306,16 32x32]
+@e7 button "Configurações do perfil" [346,18 28x28]
+@e8 img "KAIK" [347,19 26x26]
+@e9 button "Voltar para Ofertas" [40,100 74x60]
+@e10 input "https://amzn.to/... ou outro link de promoção" type=url *focused* [33,483 265x55]
+@e11 button "Continuar" disabled [306,491 120x40]
+@e12 img "Amazon" [89,608 14x14]
+@e13 img "Mercado Livre" [190,608 14x14]
+@e14 img "Shopee" [54,646 14x14]
+@e15 img "Magalu" [151,646 14x14]
+@e16 img "AliExpress" [247,646 14x14]
+@e17 button "Enviar Feedback do Beta" [318,772 48x48]
+
+Alternar tema claro/escuro
+Voltar para Ofertas
+1
+Link
+2
+Dados
+Publicação Inteligente
+Publicar nova oferta
+
+Cole o link da promoção. O sistema tentará extrair os dados automaticamente.
+
+Continuar
+
+MARKETPLACES SUPORTADOS
+
+Amazon
+Mercado Livre
+Shopee
+Magalu
+AliExpress
+🧡
+Kabum
++ mais lojas em breve
+
+O sistema tenta extrair dados via Open Graph sem fazer scraping agressivo. Se não encontrar, você preenche manualmente na próxima etapa.
+
+Feedbacks & Bugs
+
+{"width":390,"content":390,"theme":"dark"}
+
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] after getSession {"hasSession":true}
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [BOOT] Auth state changed, new session: true
+[log] [BOOT] main render
+[log] [BOOT] main render
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[warn] [ProtectedRoute] Usuário autenticado mas falha ao carregar perfil do banco.
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [ProtectedRoute] Perfil de usuário carregando no UserContext...
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] invalid (menos de 3 caracteres) 
+[log] [SLUG_CHECK] start checking bestpromosoff
+[log] [SLUG_CHECK] available bestpromosoff

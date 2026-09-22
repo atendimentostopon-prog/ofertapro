@@ -39,7 +39,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Suporte',
     items: [
-      { label: 'Fila de suporte', permission: 'users.read', icon: LifeBuoy, comingSoon: true },
+      { label: 'Fila de suporte', to: '/support', permission: 'users.read', icon: LifeBuoy },
     ],
   },
   {
