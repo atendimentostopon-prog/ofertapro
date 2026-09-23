@@ -1,81 +1,85 @@
-const connectForm = document.getElementById('connectForm');
-const apiKeyInput = document.getElementById('apiKey');
-const connectBtn = document.getElementById('connectBtn');
-const statusDiv = document.getElementById('status');
-const cookieCountDiv = document.getElementById('cookieCount');
-const actionsDiv = document.getElementById('actions');
-const syncBtn = document.getElementById('syncBtn');
-const disconnectBtn = document.getElementById('disconnectBtn');
+import { relativeTime } from './lib.js';
 
-function renderStatus({ apiKey, lastSync, lastStatus, lastCookieCount }) {
-  const isConnected = Boolean(apiKey && lastStatus === 'Conectado');
+const $ = (id) => document.getElementById(id);
+const connectForm = $('connectForm'), apiKeyInput = $('apiKey'), connectBtn = $('connectBtn');
+const statusDiv = $('status'), headerDiv = $('loginHeader'), checklist = $('checklist');
+const actionsDiv = $('actions'), syncBtn = $('syncBtn'), disconnectBtn = $('disconnectBtn'), lastSyncDiv = $('lastSync');
 
-  connectForm.style.display = isConnected ? 'none' : 'block';
-  actionsDiv.classList.toggle('visible', isConnected);
+const ICONS = { true: '✓', false: '✗', warn: '⚠' };
 
-  if (!lastSync) {
-    statusDiv.textContent = 'Ainda não conectado. Cole sua API key e clique em Conectar.';
-    statusDiv.className = '';
-    cookieCountDiv.textContent = '';
-    return;
+function setStatus(text, cls = '') { statusDiv.textContent = text; statusDiv.className = cls; statusDiv.style.display = text ? 'block' : 'none'; }
+
+function renderChecklist(items) {
+  checklist.replaceChildren();
+  for (const it of items || []) {
+    const li = document.createElement('li');
+    li.className = it.ok === true ? 'ok' : it.ok === 'warn' ? 'warn' : 'bad';
+    const row = document.createElement('div');
+    row.className = 'row';
+    const icon = document.createElement('span');
+    icon.className = 'icon';
+    icon.textContent = ICONS[String(it.ok)];
+    const label = document.createElement('span');
+    label.textContent = it.label;
+    row.append(icon, label);
+    li.append(row);
+    if (it.ok !== true && it.hint) {
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = it.hint;
+      li.append(hint);
+    }
+    checklist.append(li);
   }
+}
 
-  const formatted = new Date(lastSync).toLocaleString('pt-BR');
-  statusDiv.textContent = `${lastStatus} — última sincronização: ${formatted}`;
-  statusDiv.className = isConnected ? 'ok' : 'error';
-  cookieCountDiv.textContent = isConnected && lastCookieCount
-    ? `${lastCookieCount} cookies sincronizados`
-    : '';
+async function loadDiagnostics() {
+  setStatus('Verificando...');
+  const d = await chrome.runtime.sendMessage({ type: 'GET_DIAGNOSTICS' });
+  setStatus('');
+  headerDiv.textContent = d?.nick ? `Logado como ${d.nick}` : '';
+  headerDiv.style.display = d?.nick ? 'block' : 'none';
+  renderChecklist(d?.items);
+  lastSyncDiv.textContent = d?.lastSync
+    ? `Última sincronização: ${relativeTime(d.lastSync)}${d.cookieCount ? ` · ${d.cookieCount} cookies` : ''}`
+    : 'Ainda não sincronizado';
 }
 
 async function refreshUI() {
-  const state = await chrome.storage.local.get(['apiKey', 'lastSync', 'lastStatus', 'lastCookieCount']);
-  if (state.apiKey) apiKeyInput.value = state.apiKey;
-  renderStatus(state);
+  const { apiKey } = await chrome.storage.local.get('apiKey');
+  connectForm.style.display = apiKey ? 'none' : 'block';
+  actionsDiv.classList.toggle('visible', Boolean(apiKey));
+  if (!apiKey) {
+    checklist.replaceChildren(); headerDiv.style.display = 'none'; lastSyncDiv.textContent = '';
+    setStatus('Ainda não conectado. Cole sua API key e clique em Conectar.');
+    return;
+  }
+  await loadDiagnostics();
 }
 
 connectBtn.addEventListener('click', async () => {
   const apiKey = apiKeyInput.value.trim();
-  if (!apiKey) {
-    statusDiv.textContent = 'Cole sua API key primeiro.';
-    statusDiv.className = 'error';
-    return;
-  }
-
+  if (!apiKey) { setStatus('Cole sua API key primeiro.', 'error'); return; }
   connectBtn.disabled = true;
   connectBtn.textContent = 'Conectando...';
-  statusDiv.textContent = 'Sincronizando...';
-  statusDiv.className = '';
-
   await chrome.storage.local.set({ apiKey });
-  const result = await chrome.runtime.sendMessage({ type: 'SYNC_NOW' });
-
+  await chrome.runtime.sendMessage({ type: 'SYNC_NOW' });
   connectBtn.disabled = false;
   connectBtn.textContent = 'Conectar';
-
   await refreshUI();
-  if (!result?.ok) console.error('Falha ao sincronizar:', result?.error);
 });
 
 syncBtn.addEventListener('click', async () => {
   syncBtn.disabled = true;
   syncBtn.textContent = 'Sincronizando...';
-  statusDiv.textContent = 'Sincronizando...';
-  statusDiv.className = '';
-
-  const result = await chrome.runtime.sendMessage({ type: 'SYNC_NOW' });
-
+  await chrome.runtime.sendMessage({ type: 'SYNC_NOW' });
+  await loadDiagnostics();
   syncBtn.disabled = false;
-  syncBtn.textContent = 'Sincronizar agora';
-
-  await refreshUI();
-  if (!result?.ok) console.error('Falha ao sincronizar:', result?.error);
+  syncBtn.textContent = 'Testar e sincronizar agora';
 });
 
 disconnectBtn.addEventListener('click', async () => {
-  if (!confirm('Desconectar a extensão? O Mercado Livre volta a exigir revisão manual até você conectar de novo.')) {
-    return;
-  }
+  if (!confirm('Desconectar a extensão? O Mercado Livre volta a exigir revisão manual até você conectar de novo.')) return;
   await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
   apiKeyInput.value = '';
   await refreshUI();

@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
-# Gera o .zip da extensão do Mercado Livre servido em /automatizacao-mercadolivre.
-# Rode sempre que mudar algo em browser-extension/mercadolivre/.
+# Gera os dois pacotes da extensão do Mercado Livre. Rode sempre que mudar algo em
+# browser-extension/mercadolivre/.
+#  1) public/extensions/aflyo-mercadolivre-extension.zip -> download manual em
+#     /automatizacao-mercadolivre (pasta aflyo-mercadolivre/ dentro do zip).
+#  2) browser-extension/store/aflyo-mercadolivre-chrome-web-store.zip -> upload na Chrome
+#     Web Store, que exige o manifest.json na RAIZ do zip.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-OUT="public/extensions/aflyo-mercadolivre-extension.zip"
-mkdir -p "$(dirname "$OUT")"
-
-python3 - "$OUT" <<'PY'
-import os, sys, zipfile
-out = sys.argv[1]
+python3 - <<'PY'
+import os, zipfile
 src = "browser-extension/mercadolivre"
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-    for root, _, files in os.walk(src):
-        for f in sorted(files):
-            full = os.path.join(root, f)
-            rel = os.path.join("aflyo-mercadolivre", os.path.relpath(full, src))
-            z.write(full, rel)
-print("gerado:", out)
+def build(out, prefix):
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for root, _, files in os.walk(src):
+            for f in sorted(files):
+                full = os.path.join(root, f)
+                rel = os.path.relpath(full, src)
+                z.write(full, os.path.join(prefix, rel) if prefix else rel)
+    print("gerado:", out)
+build("public/extensions/aflyo-mercadolivre-extension.zip", "aflyo-mercadolivre")
+build("browser-extension/store/aflyo-mercadolivre-chrome-web-store.zip", "")
 PY

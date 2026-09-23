@@ -65,7 +65,7 @@ export function DataTable<Row>({
           <thead className="border-b border-line bg-surface-1">
             <tr>
               {columns.map((c) => (
-                <th key={c.key} className={`px-4 py-2.5 text-xs font-semibold text-ink-secondary ${c.className ?? ''}`}>
+                <th scope="col" key={c.key} className={`px-4 py-2.5 text-xs font-semibold text-ink-secondary ${c.className ?? ''}`}>
                   {c.header}
                 </th>
               ))}
@@ -76,8 +76,16 @@ export function DataTable<Row>({
               <tr
                 key={rowKey(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
+                onKeyDown={onRowClick ? (event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onRowClick(row);
+                  }
+                } : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={onRowClick ? 'Abrir detalhes' : undefined}
                 className={`border-b border-line-subtle last:border-0 ${
-                  onRowClick ? 'cursor-pointer hover:bg-surface-1' : ''
+                  onRowClick ? 'cursor-pointer hover:bg-surface-1 focus:bg-surface-1 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-mint-500' : ''
                 }`}
               >
                 {columns.map((c) => (
@@ -92,7 +100,7 @@ export function DataTable<Row>({
       </div>
 
       {pagination && (
-        <div className="flex items-center justify-between text-xs text-ink-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-ink-secondary">
           <span>
             página {pagination.page} de {totalPages}
           </span>

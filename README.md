@@ -1,73 +1,43 @@
-# React + TypeScript + Vite
+# Aflyo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aflyo é um SaaS para afiliados criarem e divulgarem ofertas em WhatsApp, Telegram e Discord, manterem uma vitrine pública e acompanharem cliques e disparos. O produto roda como SPA React; autenticação, banco, Storage, funções de backend e tarefas agendadas ficam no Supabase.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19, TypeScript e Vite 8
+- Tailwind CSS 3
+- React Router 7
+- Supabase (Auth, PostgreSQL, RLS, Storage, Realtime e Edge Functions)
+- Cakto para checkout e assinaturas
+- Evolution API para WhatsApp e Resend para e-mail
+- Vercel para hospedagem do front-end
 
-## React Compiler
+## Rodar localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Instale Node.js compatível com Vite 8 e execute `npm ci`.
+2. Copie `.env.example` para `.env.local` e preencha as variáveis públicas necessárias. Não versione segredos.
+3. Execute `npm run dev` e abra `http://localhost:5173`.
 
-## Expanding the ESLint configuration
+O front-end local usa um projeto Supabase configurado nas variáveis `VITE_SUPABASE_*`. O repositório não contém uma configuração completa do Supabase CLI para subir toda a pilha local: veja [Desenvolvimento](docs/DEVELOPMENT.md).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Scripts
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Comando | Finalidade |
+|---|---|
+| `npm run dev` | servidor Vite com recarga automática |
+| `npm run build` | TypeScript (`tsc -b`) e build de produção |
+| `npm run lint` | ESLint em todo o repositório |
+| `npm run preview` | serve o build localmente |
+| `npm run check:plan-limits` | confere o espelho dos limites de planos |
+| `npm run check:billing` | regressões de cobrança e expiração |
+| `npm run check:api-key-rollout` | confere o rollout das funções de chave de API |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Documentação
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Banco de dados](docs/DATABASE.md)
+- [APIs e webhooks](docs/API.md)
+- [Variáveis de ambiente](docs/ENVIRONMENT.md)
+- [Desenvolvimento e deploy](docs/DEVELOPMENT.md)
+- [Regras de negócio](docs/BUSINESS-RULES.md)
+- [Decisões técnicas](docs/DECISIONS.md)

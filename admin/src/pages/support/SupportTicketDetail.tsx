@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send } from 'lucide-react';
 import { callAdminApi } from '../../lib/admin-api';
 import { Badge } from '../../components/ui/Badge';
+import { supabase } from '../../lib/supabase';
 
 type Ticket = {
   id: string;
@@ -82,6 +83,25 @@ export default function SupportTicketDetail() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [detail?.messages]);
+
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`admin-ticket:${id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'support_messages',
+        filter: `ticket_id=eq.${id}`,
+      }, (payload) => {
+        const m = payload.new as Message;
+        setDetail((d) =>
+          d ? { ...d, messages: d.messages.some((x) => x.id === m.id) ? d.messages : [...d.messages, m] } : d
+        );
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id]);
 
   const handleStatusChange = async (status: string) => {
     if (!id || updatingStatus) return;

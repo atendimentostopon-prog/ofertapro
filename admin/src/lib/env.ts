@@ -6,7 +6,9 @@ function required(name: string, value: string | undefined): string {
 export const ENV = {
   supabaseUrl: required('VITE_SUPABASE_URL', import.meta.env.VITE_SUPABASE_URL),
   supabaseAnonKey: required('VITE_SUPABASE_ANON_KEY', import.meta.env.VITE_SUPABASE_ANON_KEY),
-  adminApiUrl: required('VITE_ADMIN_API_URL', import.meta.env.VITE_ADMIN_API_URL),
+  adminApiUrl: import.meta.env.DEV
+    ? '/admin-api'
+    : required('VITE_ADMIN_API_URL', import.meta.env.VITE_ADMIN_API_URL),
   adminHostname: import.meta.env.VITE_ADMIN_HOSTNAME || 'admin.aflyo.com.br',
   botAdminUrl: required('VITE_BOT_ADMIN_URL', import.meta.env.VITE_BOT_ADMIN_URL),
   botAdminToken: required('VITE_BOT_ADMIN_TOKEN', import.meta.env.VITE_BOT_ADMIN_TOKEN),

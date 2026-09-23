@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UserPlus, Megaphone, Send, Plug, ScrollText, Activity } from 'lucide-react';
+import { UserPlus, Users, CreditCard, Megaphone, Send, Plug, ScrollText, Activity, type LucideIcon } from 'lucide-react';
 import { callAdminApi } from '../lib/admin-api';
 import { useAsync } from '../lib/use-async';
-import { KpiCard, type KpiSeriesPoint } from '../components/ui/KpiCard';
+import { KpiCard, type KpiAccent, type KpiSeriesPoint } from '../components/ui/KpiCard';
+import { TrendChart, type TrendTab } from '../components/ui/TrendChart';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -19,11 +20,18 @@ type DashboardSummary = {
   feed: FeedItem[];
 };
 
-const DASHBOARD_SECTIONS: { title: string; keys: string[] }[] = [
-  { title: 'Usuários', keys: ['users_new', 'users_total'] },
-  { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'] },
-  { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'] },
-  { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'] },
+const DASHBOARD_SECTIONS: { title: string; keys: string[]; icon: LucideIcon; accent: KpiAccent }[] = [
+  { title: 'Usuários', keys: ['users_new', 'users_total'], icon: Users, accent: 'info' },
+  { title: 'Assinaturas', keys: ['subs_active', 'subs_canceled'], icon: CreditCard, accent: 'success' },
+  { title: 'Conteúdo', keys: ['offers_created', 'links_processed', 'clicks'], icon: Megaphone, accent: 'warning' },
+  { title: 'Envios', keys: ['sends', 'sends_success_rate', 'webhooks_received'], icon: Send, accent: 'mint' },
+];
+
+const CHART_METRICS: { key: string; label: string }[] = [
+  { key: 'sends', label: 'Envios' },
+  { key: 'clicks', label: 'Cliques' },
+  { key: 'offers_created', label: 'Promoções' },
+  { key: 'users_new', label: 'Novos usuários' },
 ];
 
 const METRIC_LABELS_FALLBACK: Record<string, string> = {
@@ -89,22 +97,28 @@ export default function Dashboard() {
   );
   const { data, loading, error, reload } = useAsync(fetcher, [range]);
   const activeUsers = data?.metrics.users_active;
+  const chartTabs: TrendTab[] = data
+    ? CHART_METRICS.flatMap(({ key, label }) => {
+        const series = data.metrics[key]?.series;
+        return series && series.length >= 2 ? [{ key, label, series }] : [];
+      })
+    : [];
 
   return (
-    <section className="-m-6 min-h-full space-y-6 bg-graphite-900 p-6">
+    <section className="min-h-full space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-white/60">Visão executiva do Aflyo.</p>
+          <h1 className="font-display text-xl font-bold text-ink">Dashboard</h1>
+          <p className="mt-1 text-sm text-ink-secondary">Visão executiva do Aflyo.</p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+        <div className="flex gap-1 rounded-lg border border-line bg-surface-0 p-1">
           {RANGES.map((r) => (
             <button
               key={r.key}
               type="button"
               onClick={() => setRange(r.key)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                range === r.key ? 'bg-mint text-graphite-900' : 'text-white/60 hover:bg-white/10'
+                range === r.key ? 'bg-mint text-graphite-900' : 'text-ink-secondary hover:bg-surface-2'
               }`}
             >
               {r.label}
@@ -125,14 +139,23 @@ export default function Dashboard() {
 
       {!error && !loading && data && (
         <>
-          {activeUsers && (
-            <KpiCard
-              label={data.labels.users_active ?? METRIC_LABELS_FALLBACK.users_active}
-              value={activeUsers.value}
-              available={activeUsers.available}
-              size="hero"
-            />
-          )}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {activeUsers && (
+              <KpiCard
+                label={data.labels.users_active ?? METRIC_LABELS_FALLBACK.users_active}
+                value={activeUsers.value}
+                available={activeUsers.available}
+                size="hero"
+                icon={Users}
+                accent="mint"
+              />
+            )}
+            {chartTabs.length > 0 && (
+              <div className="lg:col-span-2">
+                <TrendChart tabs={chartTabs} />
+              </div>
+            )}
+          </div>
 
           <div className="space-y-6">
             {DASHBOARD_SECTIONS.map((section) => {
@@ -140,7 +163,7 @@ export default function Dashboard() {
               if (keys.length === 0) return null;
               return (
                 <div key={section.title}>
-                  <h2 className="font-display text-sm font-bold text-white">{section.title}</h2>
+                  <h2 className="font-display text-sm font-bold text-ink">{section.title}</h2>
                   <div className="mt-2 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
                     {keys.map((key) => {
                       const m = data.metrics[key];
@@ -152,6 +175,8 @@ export default function Dashboard() {
                           available={m.available}
                           previous={m.previous}
                           series={m.series}
+                          icon={section.icon}
+                          accent={section.accent}
                           suffix={key === 'sends_success_rate' ? '%' : undefined}
                         />
                       );
@@ -163,35 +188,35 @@ export default function Dashboard() {
 
             <Link
               to="/monitoring"
-              className="flex items-center gap-3 rounded-xl border border-white/10 bg-graphite-800 p-4 transition-colors hover:bg-white/5"
+              className="flex items-center gap-3 rounded-xl border border-line bg-surface-0 p-4 shadow-card transition-colors hover:bg-surface-2"
             >
               <Activity className="h-5 w-5 shrink-0 text-mint" aria-hidden />
               <div>
-                <p className="text-sm font-semibold text-white">Monitoramento</p>
-                <p className="text-xs text-white/60">Jobs, erros e saúde do banco em tempo real.</p>
+                <p className="text-sm font-semibold text-ink">Monitoramento</p>
+                <p className="text-xs text-ink-secondary">Jobs, erros e saúde do banco em tempo real.</p>
               </div>
             </Link>
           </div>
 
           <div>
-            <h2 className="font-display text-sm font-bold text-white">Atividade recente</h2>
+            <h2 className="font-display text-sm font-bold text-ink">Atividade recente</h2>
             {data.feed.length === 0 ? (
               <div className="mt-3">
                 <EmptyState title="Sem atividade no período" />
               </div>
             ) : (
-              <ul className="mt-3 divide-y divide-white/10 rounded-xl border border-white/10 bg-graphite-800">
+              <ul className="mt-3 divide-y divide-line rounded-xl border border-line bg-surface-0 shadow-card">
                 {data.feed.map((item) => {
                   const Icon = FEED_ICONS[item.type] ?? ScrollText;
                   const href = FEED_HREF[item.type]?.(item.id);
                   const content = (
                     <>
-                      <Icon className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+                      <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" aria-hidden />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-white">{item.title || 'Sem título'}</p>
-                        <p className="text-xs text-white/50">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
+                        <p className="truncate text-sm text-ink">{item.title || 'Sem título'}</p>
+                        <p className="text-xs text-ink-secondary">{FEED_TYPE_LABELS[item.type] ?? item.type}</p>
                       </div>
-                      <span className="shrink-0 text-xs text-white/50">{relative(item.at)}</span>
+                      <span className="shrink-0 text-xs text-ink-secondary">{relative(item.at)}</span>
                     </>
                   );
                   return (
