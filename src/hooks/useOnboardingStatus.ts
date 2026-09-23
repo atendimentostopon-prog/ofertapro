@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bot, Radar, Send, Package } from 'lucide-react';
+import { Bot, KeyRound, Radio, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
-export type OnboardingStepId = 'telegram_bot' | 'grupo_origem' | 'canal_destino' | 'primeira_oferta';
+export type OnboardingStepId = 'telegram_session' | 'marketplaces' | 'telegram_source' | 'destinations';
 
 export interface OnboardingStep {
   id: OnboardingStepId;
@@ -12,111 +12,74 @@ export interface OnboardingStep {
   route: string;
   icon: React.ElementType;
   done: boolean;
+  locked: boolean;
+  validatedAt: string | null;
 }
 
-interface OnboardingStatusState {
-  steps: OnboardingStep[];
-  allDone: boolean;
-  loading: boolean;
-  refresh: () => Promise<void>;
+interface ProgressRow {
+  current_step: number;
+  completed_at: string | null;
+  step_1_validated_at: string | null;
+  step_2_validated_at: string | null;
+  step_3_validated_at: string | null;
+  step_4_validated_at: string | null;
 }
 
-const CONNECTED_CHANNEL_STATUSES = new Set(['connected', 'active']);
+const EMPTY: ProgressRow = {
+  current_step: 1, completed_at: null, step_1_validated_at: null,
+  step_2_validated_at: null, step_3_validated_at: null, step_4_validated_at: null,
+};
 
-export const useOnboardingStatus = (): OnboardingStatusState => {
+export const useOnboardingStatus = () => {
   const { user } = useUser();
+  const userId = user?.id;
+  const [progress, setProgress] = useState<ProgressRow>(EMPTY);
   const [loading, setLoading] = useState(true);
-  const [botActive, setBotActive] = useState(false);
-  const [gruposCount, setGruposCount] = useState(0);
-  const [hasConnectedChannel, setHasConnectedChannel] = useState(false);
-  const [hasOffer, setHasOffer] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const activeRef = useRef(true);
 
   const load = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
+    if (!userId) { setProgress(EMPTY); setLoading(false); return; }
+    setLoading(true); setError(null);
     try {
-      const [botRes, channelsRes, offersRes] = await Promise.all([
-        supabase
-          .from('bot_configs')
-          .select('status, grupos_origem')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('channels')
-          .select('status')
-          .eq('user_id', user.id),
-        supabase
-          .from('offers')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id),
-      ]);
-
-      if (!activeRef.current) return;
-
-      const botData = botRes.data as { status?: string | null; grupos_origem?: string[] | null } | null;
-      setBotActive(botData?.status === 'active');
-      setGruposCount(Array.isArray(botData?.grupos_origem) ? botData.grupos_origem.length : 0);
-
-      const channels = (channelsRes.data || []) as Array<{ status?: string | null }>;
-      setHasConnectedChannel(channels.some(c => c.status && CONNECTED_CHANNEL_STATUSES.has(c.status)));
-
-      setHasOffer((offersRes.count ?? 0) > 0);
-    } catch (err) {
-      console.error('[useOnboardingStatus] erro ao carregar status:', err);
-    } finally {
-      if (activeRef.current) setLoading(false);
-    }
-  }, [user?.id]);
+      const result = await supabase.from('onboarding_progress')
+        .select('current_step, completed_at, step_1_validated_at, step_2_validated_at, step_3_validated_at, step_4_validated_at')
+        .eq('user_id', userId).maybeSingle();
+      if (result.error) throw result.error;
+      let nextProgress = result.data as ProgressRow | null;
+      if (!nextProgress) {
+        const created = await supabase.from('onboarding_progress')
+          .insert({ user_id: userId })
+          .select('current_step, completed_at, step_1_validated_at, step_2_validated_at, step_3_validated_at, step_4_validated_at')
+          .single();
+        if (created.error) throw created.error;
+        nextProgress = created.data as ProgressRow;
+      }
+      if (activeRef.current) setProgress(nextProgress);
+    } catch (loadError) {
+      console.error('[useOnboardingStatus] erro ao carregar progresso:', loadError);
+      if (activeRef.current) setError('Não foi possível carregar o progresso do onboarding. Tente novamente.');
+    } finally { if (activeRef.current) setLoading(false); }
+  }, [userId]);
 
   useEffect(() => {
-    activeRef.current = true;
-    load();
-    return () => {
-      activeRef.current = false;
-    };
+    activeRef.current = true; load();
+    return () => { activeRef.current = false; };
   }, [load]);
 
-  const steps: OnboardingStep[] = [
-    {
-      id: 'telegram_bot',
-      title: 'Conectar o bot do Telegram',
-      description: 'Faça login com seu número no Telegram para o bot monitorar suas fontes.',
-      route: '/integrations',
-      icon: Bot,
-      done: botActive,
-    },
-    {
-      id: 'grupo_origem',
-      title: 'Adicionar um grupo de origem',
-      description: 'Informe pelo menos um grupo do Telegram para o bot monitorar em busca de ofertas.',
-      route: '/integrations',
-      icon: Radar,
-      done: gruposCount >= 1,
-    },
-    {
-      id: 'canal_destino',
-      title: 'Conectar um canal de destino',
-      description: 'Conecte ao menos um canal (Telegram, WhatsApp ou Discord) que vai receber os disparos.',
-      route: '/channels',
-      icon: Send,
-      done: hasConnectedChannel,
-    },
-    {
-      id: 'primeira_oferta',
-      title: 'Criar sua primeira oferta',
-      description: 'Cadastre um produto com link de afiliado pra começar a disparar.',
-      route: '/offers/new',
-      icon: Package,
-      done: hasOffer,
-    },
+  const validated = [progress.step_1_validated_at, progress.step_2_validated_at,
+    progress.step_3_validated_at, progress.step_4_validated_at];
+  const firstPending = validated.findIndex(value => !value);
+  const currentStep = firstPending === -1 ? 4 : firstPending + 1;
+  const definitions = [
+    { id: 'telegram_session' as const, title: 'Conectar sua conta do Telegram', description: 'Autentique a sessão pessoal e confirme que ela consegue listar seus canais.', route: '/integrations?tab=bot', icon: Bot },
+    { id: 'marketplaces' as const, title: 'Configurar marketplaces', description: 'Configure Amazon, Shopee e Mercado Livre conforme o modo de uso escolhido.', route: '/integrations?tab=bot', icon: KeyRound },
+    { id: 'telegram_source' as const, title: 'Conectar o canal de origem', description: 'Escolha um canal e confirme a leitura de uma mensagem recente.', route: '/integrations?tab=bot', icon: Radio },
+    { id: 'destinations' as const, title: 'Conectar canais de destino', description: 'Configure os destinos e conclua com um disparo de teste real.', route: '/channels', icon: Send },
   ];
+  const steps: OnboardingStep[] = definitions.map((definition, index) => ({
+    ...definition, done: Boolean(validated[index]), locked: index + 1 > currentStep, validatedAt: validated[index],
+  }));
 
-  const allDone = steps.every(s => s.done);
-
-  return { steps, allDone, loading, refresh: load };
+  return { steps, currentStep, allDone: Boolean(progress.completed_at) && validated.every(Boolean), loading, error, refresh: load };
 };

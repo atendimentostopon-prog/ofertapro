@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { callAdminApi } from '../../lib/admin-api';
 import { Badge } from '../../components/ui/Badge';
+import { supabase } from '../../lib/supabase';
 
 type TicketRow = {
   id: string;
@@ -64,6 +65,22 @@ export default function SupportQueue() {
       setLoading(false);
     }
   };
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-support-queue')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, () => {
+        loadRef.current();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, () => {
+        loadRef.current();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   useEffect(() => { load(); }, [status, page]);
 

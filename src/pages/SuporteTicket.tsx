@@ -95,10 +95,13 @@ export default function SuporteTicket() {
     const content = reply.trim();
     setReply('');
     try {
-      const { error: err } = await supabase
+      const { data, error: err } = await supabase
         .from('support_messages')
-        .insert({ ticket_id: id, author_id: user.id, author_role: 'user', content });
+        .insert({ ticket_id: id, author_id: user.id, author_role: 'user', content })
+        .select('id, author_id, author_role, content, created_at')
+        .single();
       if (err) throw err;
+      if (data) setMessages((prev) => prev.some((x) => x.id === data.id) ? prev : [...prev, data]);
     } catch (e: any) {
       toast(e.message ?? 'Erro ao enviar mensagem.', 'error');
       setReply(content);

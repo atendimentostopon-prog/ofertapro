@@ -61,7 +61,7 @@ export const reply: Handler = async (params, identity) => {
   const svc = serviceClient();
   const { data, error } = await svc
     .from('support_messages')
-    .insert({ ticket_id: ticketId, author_id: identity.adminId, author_role: 'support', content })
+    .insert({ ticket_id: ticketId, author_id: identity.userId, author_role: 'support', content })
     .select('id, author_id, author_role, content, created_at')
     .single();
 
