@@ -9,9 +9,9 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useToast } from '../context/ToastContext';
 import { useUser } from '../context/UserContext';
-import type { AutomationFormValues } from '../lib/instagram';
+import type { AutomationFormValues, MediaRef } from '../lib/instagram';
 import { InstagramService } from '../services/InstagramService';
-import type { IgAccount, IgAutomation, IgMedia } from '../types/instagram';
+import type { IgAccount, IgAutomation } from '../types/instagram';
 
 const EMPTY: AutomationFormValues = {
   name: '', igAccountId: '', targetScope: 'specific_media', mediaId: null, matchMode: 'contains',
@@ -36,6 +36,7 @@ const InstagramAutomationEditor: React.FC = () => {
   const [accounts, setAccounts] = useState<IgAccount[]>([]);
   const [initial, setInitial] = useState<AutomationFormValues | null>(null);
   const [activeInitially, setActiveInitially] = useState(false);
+  const [initialMedia, setInitialMedia] = useState<MediaRef | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -52,6 +53,11 @@ const InstagramAutomationEditor: React.FC = () => {
             setAccounts(accs);
             setInitial(toValues(a));
             setActiveInitially(a.status === 'active');
+            setInitialMedia(
+              a.media_id
+                ? { id: a.media_id, permalink: a.media_permalink, thumbnail: a.media_thumbnail_url }
+                : null,
+            );
           }
         } else if (!cancelled) {
           setAccounts(accs);
@@ -64,7 +70,7 @@ const InstagramAutomationEditor: React.FC = () => {
     return () => { cancelled = true; };
   }, [id]);
 
-  const handleSubmit = async (values: AutomationFormValues, media: IgMedia | null, active: boolean) => {
+  const handleSubmit = async (values: AutomationFormValues, media: MediaRef | null, active: boolean) => {
     if (!user) return;
     setSaving(true);
     try {
@@ -96,6 +102,8 @@ const InstagramAutomationEditor: React.FC = () => {
           accounts={accounts.filter((a) => a.status === 'connected' || a.id === initial.igAccountId)}
           initial={initial}
           activeInitially={activeInitially}
+          initialMedia={initialMedia}
+          isEditing={Boolean(id)}
           saving={saving}
           onSubmit={handleSubmit}
         />

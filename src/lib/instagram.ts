@@ -117,3 +117,27 @@ export function validateAutomation(v: AutomationFormValues): Record<string, stri
 
   return errors;
 }
+
+export interface MediaRef {
+  id: string;
+  permalink: string | null;
+  thumbnail: string | null;
+}
+
+// Colunas de midia persistidas. Metadados so valem se a midia conhecida e a
+// mesma do mediaId atual (evita gravar permalink de outro post).
+export function resolveMediaColumns(a: {
+  targetScope: IgTargetScope;
+  mediaId: string | null;
+  media: MediaRef | null;
+}): { media_id: string | null; media_permalink: string | null; media_thumbnail_url: string | null } {
+  if (a.targetScope !== 'specific_media') {
+    return { media_id: null, media_permalink: null, media_thumbnail_url: null };
+  }
+  const match = a.media !== null && a.media.id === a.mediaId ? a.media : null;
+  return {
+    media_id: a.mediaId,
+    media_permalink: match?.permalink ?? null,
+    media_thumbnail_url: match?.thumbnail ?? null,
+  };
+}

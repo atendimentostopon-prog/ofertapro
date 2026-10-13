@@ -1,7 +1,9 @@
 // src/components/instagram/AutomationForm.tsx
 import React, { useMemo, useState } from 'react';
-import { renderDmPreview, validateAutomation, type AutomationFormValues } from '../../lib/instagram';
-import type { IgAccount, IgMedia } from '../../types/instagram';
+import {
+  renderDmPreview, validateAutomation, type AutomationFormValues, type MediaRef,
+} from '../../lib/instagram';
+import type { IgAccount } from '../../types/instagram';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -15,12 +17,18 @@ interface Props {
   initial: AutomationFormValues;
   activeInitially: boolean;
   saving: boolean;
-  onSubmit: (values: AutomationFormValues, media: IgMedia | null, active: boolean) => Promise<void>;
+  /** Metadados do post já salvo (edição), para não perdê-los ao salvar. */
+  initialMedia?: MediaRef | null;
+  /** Edição de automação existente: a conta não pode ser trocada. */
+  isEditing?: boolean;
+  onSubmit: (values: AutomationFormValues, media: MediaRef | null, active: boolean) => Promise<void>;
 }
 
-export const AutomationForm: React.FC<Props> = ({ accounts, initial, activeInitially, saving, onSubmit }) => {
+export const AutomationForm: React.FC<Props> = ({
+  accounts, initial, activeInitially, saving, initialMedia = null, isEditing = false, onSubmit,
+}) => {
   const [values, setValues] = useState<AutomationFormValues>(initial);
-  const [media, setMedia] = useState<IgMedia | null>(null);
+  const [media, setMedia] = useState<MediaRef | null>(initialMedia);
   const [active, setActive] = useState(activeInitially);
   const [showErrors, setShowErrors] = useState(false);
 
@@ -46,7 +54,15 @@ export const AutomationForm: React.FC<Props> = ({ accounts, initial, activeIniti
         />
         <Select
           id="ig-account" label="Conta do Instagram" value={values.igAccountId}
-          onChange={(e) => set('igAccountId', e.target.value)} error={err('igAccountId')}
+          disabled={isEditing}
+          onChange={(e) => {
+            const next = e.target.value;
+            setValues((prev) => (
+              prev.igAccountId === next ? prev : { ...prev, igAccountId: next, mediaId: null }
+            ));
+            setMedia(null);
+          }}
+          error={err('igAccountId')}
           options={[{ value: '', label: 'Selecione' }, ...accounts.map((a) => ({ value: a.id, label: `@${a.username}` }))]}
         />
       </Card>
@@ -67,7 +83,10 @@ export const AutomationForm: React.FC<Props> = ({ accounts, initial, activeIniti
             <MediaPicker
               accountId={values.igAccountId}
               selectedId={values.mediaId}
-              onSelect={(m) => { setMedia(m); set('mediaId', m.id); }}
+              onSelect={(m) => {
+                setMedia({ id: m.id, permalink: m.permalink ?? null, thumbnail: m.thumbnail_url ?? m.media_url ?? null });
+                set('mediaId', m.id);
+              }}
             />
             {err('mediaId') && <p className="text-xs text-danger-ink">{err('mediaId')}</p>}
           </div>

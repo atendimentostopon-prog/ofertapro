@@ -1,6 +1,9 @@
 // src/services/InstagramService.ts
 import { supabase } from '../lib/supabase';
-import { parseKeywords, parseReplies, type AutomationFormValues } from '../lib/instagram';
+import {
+  parseKeywords, parseReplies, resolveMediaColumns,
+  type AutomationFormValues, type MediaRef,
+} from '../lib/instagram';
 import type { IgAccount, IgAutomation, IgAutomationStatus, IgMedia } from '../types/instagram';
 
 const ACCOUNT_COLUMNS =
@@ -79,7 +82,7 @@ export const InstagramService = {
     id?: string;
     userId: string;
     values: AutomationFormValues;
-    media: IgMedia | null;
+    media: MediaRef | null;
     status: IgAutomationStatus;
   }): Promise<IgAutomation> {
     const { values: v, media } = input;
@@ -89,10 +92,7 @@ export const InstagramService = {
       name: v.name.trim(),
       status: input.status,
       target_scope: v.targetScope,
-      media_id: v.targetScope === 'specific_media' ? v.mediaId : null,
-      media_permalink: v.targetScope === 'specific_media' ? (media?.permalink ?? null) : null,
-      media_thumbnail_url:
-        v.targetScope === 'specific_media' ? (media?.thumbnail_url ?? media?.media_url ?? null) : null,
+      ...resolveMediaColumns({ targetScope: v.targetScope, mediaId: v.mediaId, media }),
       match_mode: v.matchMode,
       keywords: v.matchMode === 'any' ? [] : parseKeywords(v.keywordsRaw),
       exclude_keywords: parseKeywords(v.excludeRaw),

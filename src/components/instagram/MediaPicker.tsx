@@ -15,12 +15,18 @@ export const MediaPicker: React.FC<Props> = ({ accountId, selectedId, onSelect }
   const [media, setMedia] = useState<IgMedia[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Contador de requisições: respostas de cargas antigas (outra conta ou retry) são ignoradas.
+  const requestId = React.useRef(0);
+
   const load = React.useCallback(async () => {
+    const mine = ++requestId.current;
     setMedia(null);
     setError(null);
     try {
-      setMedia(await InstagramService.listMedia(accountId));
+      const result = await InstagramService.listMedia(accountId);
+      if (mine === requestId.current) setMedia(result);
     } catch (e) {
+      if (mine !== requestId.current) return;
       const code = (e as { code?: string })?.code;
       setError(
         code === 'reconnect_required'
@@ -32,6 +38,9 @@ export const MediaPicker: React.FC<Props> = ({ accountId, selectedId, onSelect }
 
   useEffect(() => {
     void load();
+    return () => {
+      requestId.current += 1; // invalida a requisição em andamento ao trocar de conta ou desmontar
+    };
   }, [load]);
 
   if (error) return <ErrorState message={error} onRetry={() => void load()} />;
