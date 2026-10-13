@@ -221,3 +221,5 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 - Nomes de chaves sensíveis em pt-BR no sanitize (senha, pwd, credential) antes do `withAlerts`.
 - Alerta quando a gravação em `webhook_events` falha no `cakto-webhook`.
 - Hook de "evento recebido".
+- Os contadores `count(*)` em `auth.users` dentro dos triggers de cadastro e de confirmação devem ser trocados por contador ou consulta indexada antes de ~100 mil usuários (e `query_canceled` não é capturado por `exception when others`).
+- "Faturamento hoje" soma o valor bruto pago pelo cliente (inclui a taxa de R$ 0,99 e é antes do corte da Cakto) e conta eventos de teste.

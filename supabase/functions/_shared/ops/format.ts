@@ -27,6 +27,13 @@ export function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Discord renderiza markdown em description e valores de campo: texto controlado por
+// usuario (nome, user-agent, erro...) nao pode virar link, negrito ou mencao.
+const DISCORD_MD_RE = /([\\*_~`|><\[\]()#])/g;
+export function escapeDiscordMd(s: string): string {
+  return s.replace(DISCORD_MD_RE, "\\$1");
+}
+
 function escapeAttr(s: string): string {
   return escapeHtml(s).replace(/"/g, "&quot;");
 }
@@ -123,14 +130,19 @@ function fmtMinutes(v: unknown): string {
   if (total < 60) return `${total} min`;
   const h = Math.floor(total / 60);
   const m = total % 60;
+  if (h >= 24) {
+    const d = Math.floor(h / 24);
+    const hr = h % 24;
+    return hr === 0 ? `${d} d` : `${d} d ${hr} h`;
+  }
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
 function fmtHoursLeft(v: unknown): string {
   const n = asNumber(v);
   if (n === null) return asText(v);
-  if (n < 1) return `${Math.max(0, Math.round(n * 60))} min`;
-  return `${Math.round(n)} h`;
+  if (n < 1) return `${Math.max(0, Math.floor(n * 60))} min`;
+  return `${Math.floor(n)} h`;
 }
 
 function fmtPercent(v: unknown): string {
@@ -164,6 +176,19 @@ const PAYMENT_LABEL: Record<string, string> = {
   boleto: "Boleto",
 };
 
+const BOT_STATUS_LABEL: Record<string, string> = { active: "ativo", paused: "pausado" };
+
+const EVENT_LABEL: Record<string, string> = {
+  purchase_approved: "Compra aprovada",
+  purchase_refused: "Compra recusada",
+  refund: "Reembolso",
+  chargeback: "Chargeback",
+  subscription_created: "Assinatura criada",
+  subscription_canceled: "Assinatura cancelada",
+  subscription_renewed: "Renovação paga",
+  subscription_renewal_refused: "Renovação recusada",
+};
+
 const ORIGIN_LABEL: Record<string, string> = { email: "E-mail e senha", google: "Google" };
 
 function fmtBool(v: unknown, yes: string, no: string): string {
@@ -190,10 +215,16 @@ const FIELD_ORDER: [string, FieldSpec][] = [
   ],
   ["trial_termina", { label: "Trial termina", format: fmtDateShort }],
   ["confirmou_em_min", { label: "Confirmou em", format: fmtMinutes }],
-  ["onboarding_passo", { label: "Onboarding", format: (v) => `passo ${asText(v)}` }],
+  ["onboarding_passo", {
+      label: "Onboarding",
+      format: (v) => {
+        const t = asText(v);
+        return t.trim().toLowerCase() === "concluído" ? "concluído" : `passo ${t}`;
+      },
+    }],
   ["horas_restantes", { label: "Restam", format: fmtHoursLeft }],
   ["dias_de_uso", { label: "Dias de uso" }],
-  ["bot_status", { label: "Bot" }],
+  ["bot_status", { label: "Bot", format: (v) => BOT_STATUS_LABEL[asText(v).toLowerCase()] ?? asText(v) }],
   ["canais", { label: "Canais" }],
   ["plano", { label: "Plano", format: fmtPlan }],
   ["ciclo", { label: "Ciclo", format: fmtCycle }],
@@ -210,7 +241,7 @@ const FIELD_ORDER: [string, FieldSpec][] = [
   ["cliente_telefone", { label: "Telefone do cliente", format: fmtPhone }],
   ["acesso", { label: "Acesso" }],
   ["motivo", { label: "Motivo" }],
-  ["evento", { label: "Evento" }],
+  ["evento", { label: "Evento", format: (v) => EVENT_LABEL[asText(v).toLowerCase()] ?? asText(v) }],
   ["erro", { label: "Erro" }],
   ["acao", { label: "O que fazer" }],
   ["vendas_hoje", { label: "Vendas hoje" }],
@@ -237,9 +268,10 @@ interface Line {
   value: string;
 }
 
-function buildLines(detail: Record<string, unknown>, ev: OpsEvent): Line[] {
+function buildLines(detail: Record<string, unknown>, ev: OpsEvent, hidden: Set<string>): Line[] {
   const lines: Line[] = [];
   const push = (key: string, spec: FieldSpec | undefined) => {
+    if (hidden.has(key)) return;
     const v = detail[key];
     if (isEmpty(v)) return;
     const text = (spec?.format ? spec.format(v, ev) : asText(v)).slice(0, MAX_FIELD_VALUE);
@@ -254,49 +286,74 @@ function buildLines(detail: Record<string, unknown>, ev: OpsEvent): Line[] {
   return lines;
 }
 
-function buildSummary(detail: Record<string, unknown>, ev: OpsEvent): string | undefined {
+interface Summary {
+  text?: string;
+  // Chaves ja exibidas no resumo; nao se repetem na lista de campos.
+  consumed: Set<string>;
+}
+
+function buildSummary(detail: Record<string, unknown>, ev: OpsEvent): Summary {
   const has = (k: string) => !isEmpty(detail[k]);
   const parts: string[] = [];
+  const consumed = new Set<string>();
   const title = ev.title.trim().toLowerCase();
 
   if (title === "novo cadastro") {
     if (has("cadastro_numero")) parts.push(`Cadastro nº ${asText(detail.cadastro_numero)}`);
     if (has("cadastros_hoje")) parts.push(`${asText(detail.cadastros_hoje)} hoje`);
   } else if (title === "e-mail confirmado") {
-    if (has("confirmaram_hoje")) parts.push(`${asText(detail.confirmaram_hoje)} confirmaram hoje`);
+    if (has("confirmaram_hoje")) {
+      const n = asNumber(detail.confirmaram_hoje);
+      const verb = n === 1 ? "confirmou" : "confirmaram";
+      parts.push(`${asText(detail.confirmaram_hoje)} ${verb} hoje`);
+    }
     if (has("taxa_confirmacao_7d")) {
       parts.push(`confirmação em 7 dias: ${fmtPercent(detail.taxa_confirmacao_7d)}`);
     }
   } else if (ev.category === "billing" && has("valor")) {
-    const plan = has("plano") ? fmtPlan(detail.plano) : "";
-    const cycle = has("ciclo") ? fmtCycle(detail.ciclo).toLowerCase() : "";
-    const head = [plan, cycle].filter(Boolean).join(" ");
-    if (head) parts.push(head);
+    const head: string[] = [];
+    if (has("plano")) {
+      head.push(fmtPlan(detail.plano));
+      consumed.add("plano");
+    }
+    if (has("ciclo")) {
+      head.push(fmtCycle(detail.ciclo).toLowerCase());
+      consumed.add("ciclo");
+    }
+    if (head.length > 0) parts.push(head.join(" "));
     parts.push(fmtBRL(detail.valor));
+    consumed.add("valor");
     if (has("vendas_hoje")) {
       const n = asNumber(detail.vendas_hoje);
       const noun = n === 1 ? "venda" : "vendas";
-      let today = `hoje: ${asText(detail.vendas_hoje)} ${noun}`;
-      if (has("faturamento_hoje")) today += ` · ${fmtBRL(detail.faturamento_hoje)}`;
-      parts.push(today);
+      parts.push(`hoje: ${asText(detail.vendas_hoje)} ${noun}`);
+      consumed.add("vendas_hoje");
+      if (has("faturamento_hoje")) {
+        parts.push(`${fmtBRL(detail.faturamento_hoje)} (bruto)`);
+        consumed.add("faturamento_hoje");
+      }
     }
   }
 
-  if (ev.occurrences > 1) parts.push(`×${ev.occurrences} ocorrências`);
-  return parts.length > 0 ? parts.join(" · ") : undefined;
+  let text = parts.length > 0 ? parts.join(" · ") : undefined;
+  if (ev.occurrences > 1) {
+    const note = `×${ev.occurrences} ocorrências. Os detalhes abaixo são da primeira ocorrência.`;
+    text = text ? `${text}\n${note}` : note;
+  }
+  return { text, consumed };
 }
 
 export function render(ev: OpsEvent): Rendered {
   const detail = (sanitizeDetail(ev.detail, 0, { keepEmails: true }) ?? {}) as Record<string, unknown>;
   const title = `${EMOJI[ev.severity]} ${cleanString(ev.title)}`.slice(0, MAX_TITLE);
-  const summary = buildSummary(detail, ev);
+  const { text: summary, consumed } = buildSummary(detail, ev);
   const timeLine = `${ev.category} · ${fmtDateFull(ev.created_at)}`;
 
   const painelRaw = detail.painel;
   const panelUrl =
     typeof painelRaw === "string" && PANEL_LINK_RE.test(painelRaw) ? painelRaw : null;
 
-  let lines = buildLines(detail, ev);
+  let lines = buildLines(detail, ev, consumed);
   // Valor de "painel" que nao e link do admin aparece como texto simples.
   if (!panelUrl && !isEmpty(painelRaw)) {
     lines.push({ label: "Painel", value: asText(painelRaw).slice(0, MAX_FIELD_VALUE) });
@@ -307,7 +364,8 @@ export function render(ev: OpsEvent): Rendered {
   const fixed = title.length + (summary?.length ?? 0) + `${ev.category} · ${ev.severity}`.length;
   const discordLines: Line[] = [];
   let used = fixed;
-  for (const l of lines) {
+  for (const raw of lines) {
+    const l: Line = { label: raw.label, value: escapeDiscordMd(raw.value) };
     const size = l.label.length + l.value.length;
     if (used + size > DISCORD_EMBED_BUDGET) break;
     used += size;
@@ -316,7 +374,7 @@ export function render(ev: OpsEvent): Rendered {
 
   const embed: Record<string, unknown> = {
     title,
-    description: summary,
+    description: summary === undefined ? undefined : escapeDiscordMd(summary),
     color: COLOR[ev.severity],
     timestamp: ev.created_at,
     footer: { text: `${ev.category} · ${ev.severity}` },

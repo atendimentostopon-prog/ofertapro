@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { escapeHtml, render } from "./format.ts";
+import { escapeDiscordMd as esc, escapeHtml, render } from "./format.ts";
 import type { OpsEvent } from "./types.ts";
 
 const base: OpsEvent = {
@@ -52,8 +52,9 @@ Deno.test("render: Telegram em HTML, escapado e com o detalhe", () => {
 
 Deno.test("render: ocorrências > 1 aparecem como ×N", () => {
   const r = render(ev({ severity: "error", occurrences: 25 }));
-  assertEquals(embed(r).description, "×25 ocorrências");
-  assert(r.telegram.includes("×25"));
+  const nota = "×25 ocorrências. Os detalhes abaixo são da primeira ocorrência.";
+  assertEquals(embed(r).description, nota);
+  assert(r.telegram.includes(nota));
 });
 
 Deno.test("render: titulo sanitizado (sem Bearer, JWT, e-mail completo)", () => {
@@ -79,7 +80,7 @@ Deno.test("render: detalhe mantém e-mail completo mas segredos seguem redigidos
   assert(f["Erro"].includes("ana@x.com"));
   assert(!f["Erro"].includes("abc123"));
   assert(!f["Erro"].includes("zzz"));
-  assertEquals(f["Api key"], "[redigido]");
+  assertEquals(f["Api key"], esc("[redigido]"));
   assert(!r.telegram.includes("abc123"));
   assert(!r.telegram.includes("segredo"));
 });
@@ -104,7 +105,7 @@ Deno.test("signup: rótulos, telefone, origem, confirmação, trial, resumo e li
   const f = fields(r);
   assertEquals(f["Nome"], "Ana Silva");
   assertEquals(f["E-mail"], "ana@x.com");
-  assertEquals(f["Telefone"], "(11) 98765-4321");
+  assertEquals(f["Telefone"], esc("(11) 98765-4321"));
   assertEquals(f["Origem"], "Google");
   assertEquals(f["Confirmação"], "Aguardando confirmação");
   assertEquals(f["Trial termina"], "20/10 às 12:00");
@@ -129,7 +130,7 @@ Deno.test("signup: origem email, confirmado e telefone fixo", () => {
   const f = fields(r);
   assertEquals(f["Origem"], "E-mail e senha");
   assertEquals(f["Confirmação"], "Confirmado");
-  assertEquals(f["Telefone"], "(11) 3333-4444");
+  assertEquals(f["Telefone"], esc("(11) 3333-4444"));
   assertEquals(embed(r).description, undefined);
 });
 
@@ -161,10 +162,13 @@ Deno.test("e-mail confirmado: tempo, onboarding e resumo com taxa", () => {
 
 Deno.test("confirmou em: formatos de minutos e horas", () => {
   const f = (n: number) => fields(render(ev({ detail: { confirmou_em_min: n } })))["Confirmou em"];
-  assertEquals(f(0.4), "< 1 min");
+  assertEquals(f(0.4), esc("< 1 min"));
   assertEquals(f(59), "59 min");
   assertEquals(f(80), "1 h 20 min");
   assertEquals(f(120), "2 h");
+  assertEquals(f(26 * 60), "1 d 2 h");
+  assertEquals(f(74 * 60), "3 d 2 h");
+  assertEquals(f(48 * 60), "2 d");
 });
 
 Deno.test("e-mail confirmado: taxa inteira vira 60%", () => {
@@ -172,7 +176,7 @@ Deno.test("e-mail confirmado: taxa inteira vira 60%", () => {
     title: "E-mail confirmado",
     detail: { confirmaram_hoje: 1, taxa_confirmacao_7d: 60 },
   }));
-  assertEquals(embed(r).description, "1 confirmaram hoje · confirmação em 7 dias: 60%");
+  assertEquals(embed(r).description, "1 confirmou hoje · confirmação em 7 dias: 60%");
 });
 
 Deno.test("trial expirando: restam, dias, bot, canais e data", () => {
@@ -187,7 +191,7 @@ Deno.test("trial expirando: restam, dias, bot, canais e data", () => {
       horas_restantes: 18,
       dias_de_uso: 6,
       onboarding_passo: "3 de 4",
-      bot_status: "ativo",
+      bot_status: "active",
       canais: 2,
       trial_termina: "2026-10-14T09:30:00.000Z",
       painel: PAINEL,
@@ -201,6 +205,13 @@ Deno.test("trial expirando: restam, dias, bot, canais e data", () => {
   assertEquals(f["Trial termina"], "14/10 às 06:30");
   assertEquals(embed(r).description, undefined);
   assertEquals(fields(render(ev({ detail: { horas_restantes: 0.75 } })))["Restam"], "45 min");
+  assertEquals(fields(render(ev({ detail: { horas_restantes: 23.8 } })))["Restam"], "23 h");
+  assertEquals(fields(render(ev({ detail: { bot_status: "paused" } })))["Bot"], "pausado");
+  assertEquals(fields(render(ev({ detail: { bot_status: "error" } })))["Bot"], "error");
+  assertEquals(
+    fields(render(ev({ detail: { onboarding_passo: "concluído" } })))["Onboarding"],
+    "concluído",
+  );
 });
 
 Deno.test("venda: valor BRL, plano, ciclo, pagamento, parcelas e resumo com vendas do dia", () => {
@@ -225,22 +236,22 @@ Deno.test("venda: valor BRL, plano, ciclo, pagamento, parcelas e resumo com vend
       painel: PAINEL,
     },
   }));
-  assertEquals(embed(r).description, "Pro mensal · R$ 48,89 · hoje: 4 vendas · R$ 1.234,50");
+  assertEquals(embed(r).description, esc("Pro mensal · R$ 48,89 · hoje: 4 vendas · R$ 1.234,50 (bruto)"));
   const f = fields(r);
-  assertEquals(f["Plano"], "Pro");
-  assertEquals(f["Ciclo"], "Mensal");
-  assertEquals(f["Valor"], "R$ 48,89");
+  // plano, ciclo, valor e vendas do dia ficam so no resumo
+  for (const k of ["Plano", "Ciclo", "Valor", "Vendas hoje", "Faturamento hoje"]) {
+    assertEquals(k in f, false, k);
+  }
+  assertEquals(f["Evento"], "Compra aprovada");
   assertEquals(f["Pagamento"], "Cartão");
   assertEquals(f["Parcelas"], "3x");
   assertEquals(f["Cliente"], "Ana");
   assertEquals(f["E-mail do cliente"], "ana@x.com");
-  assertEquals(f["Telefone do cliente"], "(11) 98765-4321");
+  assertEquals(f["Telefone do cliente"], esc("(11) 98765-4321"));
   assertEquals(f["Acesso"], "liberado, bot retomado");
-  assertEquals(f["Faturamento hoje"], "R$ 1.234,50");
-  assertEquals(f["Vendas hoje"], "4");
   const keys = Object.keys(f);
-  assert(keys.indexOf("Plano") < keys.indexOf("Valor"));
-  assert(keys.indexOf("Valor") < keys.indexOf("Pagamento"));
+  assert(keys.indexOf("Pagamento") < keys.indexOf("Pedido"));
+  assert(keys.indexOf("Pedido") < keys.indexOf("Cliente"));
   assert(keys.indexOf("Pedido") < keys.indexOf("Cliente"));
 });
 
@@ -252,13 +263,16 @@ Deno.test("venda: enterprise vira Business, pix e boleto, anual", () => {
   }));
   assertEquals(embed(r).description, "Business anual · R$ 100,00");
   assertEquals(fields(r)["Pagamento"], "Pix");
-  assertEquals(fields(r)["Ciclo"], "Anual");
   assertEquals(fields(render(ev({ detail: { forma_pagamento: "boleto" } })))["Pagamento"], "Boleto");
   assertEquals(fields(render(ev({ detail: { plano: "free" } })))["Plano"], "Free");
   assertEquals(
     fields(render(ev({ detail: { forma_pagamento: "carteira_x" } })))["Pagamento"],
-    "carteira_x",
+    esc("carteira_x"),
   );
+  // sem valor no resumo, plano e ciclo aparecem como campos
+  const g = fields(render(ev({ category: "billing", detail: { plano: "pro", ciclo: "monthly" } })));
+  assertEquals(g["Plano"], "Pro");
+  assertEquals(g["Ciclo"], "Mensal");
 });
 
 Deno.test("reembolso: acesso revogado, motivo, ocorrências somadas ao resumo", () => {
@@ -275,7 +289,7 @@ Deno.test("reembolso: acesso revogado, motivo, ocorrências somadas ao resumo", 
       acesso: "revogado e bot pausado",
     },
   }));
-  assertEquals(embed(r).description, "Starter mensal · R$ 19,90 · ×3 ocorrências");
+  assertEquals(embed(r).description, "Starter mensal · R$ 19,90\n×3 ocorrências. Os detalhes abaixo são da primeira ocorrência.");
   const f = fields(r);
   assertEquals(f["Motivo"], "solicitado pelo cliente");
   assertEquals(f["Acesso"], "revogado e bot pausado");
@@ -348,7 +362,7 @@ Deno.test("painel: só https://admin.aflyo.com.br/ vira link; outros viram texto
     const r = render(ev({ detail: { painel: bad, nome: "Ana" } }));
     assertEquals(embed(r).url, undefined, bad);
     assert(!r.telegram.includes("<a "), bad);
-    assertEquals(fields(r)["Painel"], bad, bad);
+    assertEquals(fields(r)["Painel"], esc(bad), bad);
     // sem tag crua vazando
     assert(!r.telegram.replace(/<\/?b>/g, "").includes("<"), bad);
   }
@@ -406,4 +420,49 @@ Deno.test("render: detalhe gigante respeita limites do Discord e do Telegram, co
   for (const l of lines.slice(2, -2)) assert(l.endsWith("</b>"), l.slice(-20));
   const fieldCount = lines.filter((l) => l.endsWith("</b>")).length;
   assert(fieldCount < 40, `campos: ${fieldCount}`);
+});
+
+Deno.test("markdown do Discord: nome e user-agent com link saem escapados", () => {
+  const evil = "[Abrir no painel](https://evil.example/login)";
+  const r = render(ev({
+    detail: { nome: evil, user_agent: evil, motivo: "*negrito* _it_ `c` ~~s~~ |spoiler| > q # h" },
+  }));
+  const f = fields(r);
+  assertEquals(f["Nome"], "\\[Abrir no painel\\]\\(https://evil.example/login\\)");
+  assertEquals(f["Navegador / cliente"], f["Nome"]);
+  assert(!/(^|[^\\])\[/.test(f["Nome"]));
+  assert(!/(^|[^\\])\(/.test(f["Nome"]));
+  assertEquals(f["Motivo"], "\\*negrito\\* \\_it\\_ \\`c\\` \\~\\~s\\~\\~ \\|spoiler\\| \\> q \\# h");
+  assertEquals(embed(r).url, undefined);
+});
+
+Deno.test("markdown do Discord: description tambem e escapada; Telegram segue so HTML", () => {
+  const r = render(ev({
+    category: "billing",
+    title: "Venda aprovada",
+    detail: { plano: "[x](https://evil)", valor: 10 },
+  }));
+  assert(embed(r).description.startsWith("\\[x\\]\\(https://evil\\)"));
+  assert(r.telegram.includes("[x](https://evil)"));
+});
+
+Deno.test("painel legitimo continua sendo o url do titulo, nao e escapado", () => {
+  const r = render(ev({ detail: { nome: "Ana", painel: PAINEL } }));
+  assertEquals(embed(r).url, PAINEL);
+});
+
+Deno.test("chave legada (termina) cai no fallback humanizado sem quebrar", () => {
+  const r = render(ev({ detail: { email: "ana@x.com", termina: "2026-10-14T09:30:00.000Z" } }));
+  assertEquals(fields(r)["Termina"], "2026-10-14T09:30:00.000Z");
+});
+
+Deno.test("rotulos de evento: conhecidos em pt-BR, desconhecido cru", () => {
+  assertEquals(fields(render(ev({ detail: { evento: "subscription_renewal_refused" } })))["Evento"], "Renovação recusada");
+  assertEquals(fields(render(ev({ detail: { evento: "ping_x" } })))["Evento"], esc("ping_x"));
+});
+
+Deno.test("1 confirmou e N confirmaram", () => {
+  const d = (n: number) => embed(render(ev({ title: "E-mail confirmado", detail: { confirmaram_hoje: n } }))).description;
+  assertEquals(d(1), "1 confirmou hoje");
+  assertEquals(d(2), "2 confirmaram hoje");
 });

@@ -83,3 +83,11 @@ Deno.test("HTTP 500 do Discord vira failed e o erro não vaza o token", async ()
   assert(!JSON.stringify(r).includes("SECRET_TOKEN"));
   assert(!JSON.stringify(r).includes("discord.test/hook"));
 });
+
+Deno.test("Discord: corpo enviado traz allowed_mentions vazio e @everyone nao pinga", async () => {
+  const { calls, fetchImpl } = recorder();
+  await deliver(ev({ detail: { nome: "@everyone @here" } }), env, fetchImpl);
+  const d = calls.find((c) => c.url.startsWith("https://discord.test/"))!;
+  assertEquals(d.body.allowed_mentions, { parse: [] });
+  assert(Array.isArray(d.body.embeds));
+});

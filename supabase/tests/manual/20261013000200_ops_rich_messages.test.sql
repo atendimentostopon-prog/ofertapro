@@ -54,5 +54,5 @@ select jsonb_object_keys(detail) as chave
 --     select title, detail from public.ops_events
 --      where title = 'E-mail confirmado' order by created_at desc limit 1;
 --       -- espera detail com: nome, email, confirmou_em_min, confirmaram_hoje,
---       -- taxa_confirmacao_7d, cadastro_numero, painel (+ onboarding_passo se houver linha)
+--       -- taxa_confirmacao_7d, painel (+ onboarding_passo, 'N de 4' ou 'concluído', se houver linha)
 --   rollback;

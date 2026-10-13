@@ -198,7 +198,6 @@ export function invalidSecretToOps(info?: RequestInfo): EmitInput {
     category: "security",
     title: "Webhook Cakto com secret inválido",
     detail: compact({
-      origem: "cakto-webhook",
       ip: text(info?.ip),
       pais: text(info?.pais),
       user_agent: ua && ua.trim() !== "" ? ua : null,

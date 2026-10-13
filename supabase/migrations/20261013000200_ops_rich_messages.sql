@@ -102,7 +102,6 @@ declare
   v_total_7d  bigint;
   v_conf_7d   bigint;
   v_taxa      int;
-  v_numero    bigint;
   v_start     timestamptz := (date_trunc('day', now() at time zone 'America/Sao_Paulo')) at time zone 'America/Sao_Paulo';
 begin
   begin
@@ -114,7 +113,9 @@ begin
       from (select 1) x
       left join public.profiles p on p.id = new.id;
 
-    select o.current_step::text || ' de 4' into v_passo
+    select case when o.status = 'completed' then 'concluído'
+                else o.current_step::text || ' de 4' end
+      into v_passo
       from public.onboarding_progress o
      where o.user_id = new.id;
 
@@ -126,8 +127,6 @@ begin
       from auth.users where created_at >= now() - interval '7 days';
     v_taxa := case when v_total_7d > 0 then round(v_conf_7d * 100.0 / v_total_7d)::int end;
 
-    select count(*) into v_numero from auth.users where created_at <= new.created_at;
-
     perform public.ops_emit(
       'business', 'signup', 'E-mail confirmado',
       jsonb_strip_nulls(jsonb_build_object(
@@ -138,7 +137,6 @@ begin
         'confirmaram_hoje',    v_conf_hoje,
         'taxa_confirmacao_7d', v_taxa,
         'onboarding_passo',    v_passo,
-        'cadastro_numero',     v_numero,
         'painel',              'https://admin.aflyo.com.br/users/' || new.id::text
       )),
       new.id,
@@ -189,7 +187,9 @@ begin
   loop
     v_passo := null; v_bot := null; v_canais := 0;
 
-    select o.current_step::text || ' de 4' into v_passo
+    select case when o.status = 'completed' then 'concluído'
+                else o.current_step::text || ' de 4' end
+      into v_passo
       from public.onboarding_progress o where o.user_id = r.id;
 
     -- to_jsonb funciona para text[], uuid[] e jsonb, qualquer que seja o tipo da coluna.
