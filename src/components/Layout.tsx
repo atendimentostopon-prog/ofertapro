@@ -10,6 +10,9 @@ import { useAccountAccess } from '../hooks/useAccountAccess';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
+import { CommunityWelcomeModal } from './community/CommunityWelcomeModal';
+import CommunityFloatingButton from './community/CommunityFloatingButton';
+import { useCommunityGroup } from '../hooks/useCommunityGroup';
 
 interface LayoutProps {
   children: ReactNode;
@@ -39,6 +42,10 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   // checagem, o modal aparecia até em cima da tela de Planos pra quem
   // ainda nem pagou, pedindo pra conectar bot/canal que ele não pode usar.
   const isPaying = !!user && (user.plan !== 'free' || !!subscription);
+  // Convite do grupo: aparece uma vez, logo depois da página pública estar
+  // configurada e antes do tutorial guiado (os dois modais nunca empilham).
+  const community = useCommunityGroup(user?.id);
+  const showCommunityWelcome = !!user && !needsSetup && community.status === 'none';
   const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
@@ -107,7 +114,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}
       <PublicPageSetupModal isOpen={needsSetup} />
-      <OnboardingWizardModal isOpen={needsWizard} />
+      <CommunityWelcomeModal isOpen={showCommunityWelcome} onJoin={community.join} onDismiss={community.dismissWelcome} />
+      <OnboardingWizardModal isOpen={needsWizard && !showCommunityWelcome} />
+      <CommunityFloatingButton />
       <FeedbackButton />
     </div>
   );
