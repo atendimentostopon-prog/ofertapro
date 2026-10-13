@@ -21,6 +21,7 @@ const auto = (over: Partial<AutomationRow> = {}): AutomationRow => ({
 function fakeStore(o: {
   account?: AccountRow | null; automations?: AutomationRow[]; access?: AccessInfo;
   sentToContact?: boolean; claimable?: boolean; quota?: boolean; token?: string | null;
+  refundThrows?: boolean; consumeThrows?: boolean; publicClaimThrows?: boolean;
 } = {}) {
   const log: string[] = [];
   const claimed = new Set<string>();
@@ -32,14 +33,15 @@ function fakeStore(o: {
     upsertContact: async () => "CONTACT",
     wasAlreadySentToContact: async () => o.sentToContact ?? false,
     claimMessage: async (r: MessageRef) => {
+      if (o.publicClaimThrows && r.kind === "public_reply") throw new Error("claim boom");
       const k = `${r.automationId}:${r.commentId}:${r.kind}`;
       if (o.claimable === false || claimed.has(k)) return false;
       claimed.add(k); log.push(`claim:${r.kind}`); return true;
     },
     finishMessage: async (r, status, code) => { log.push(`finish:${r.kind}:${status}:${code ?? ""}`); },
     releaseMessage: async (r) => { claimed.delete(`${r.automationId}:${r.commentId}:${r.kind}`); log.push(`release:${r.kind}`); },
-    consumeDmQuota: async () => o.quota ?? true,
-    refundDmQuota: async () => { log.push("refund"); },
+    consumeDmQuota: async () => { if (o.consumeThrows) throw new Error("consume boom"); return o.quota ?? true; },
+    refundDmQuota: async () => { if (o.refundThrows) throw new Error("refund boom"); log.push("refund"); },
     getToken: async () => (o.token === undefined ? "TOKEN" : o.token),
     markAccountNeedsReconnect: async (_id, reason) => { log.push(`reconnect:${reason}`); },
   };
@@ -201,4 +203,55 @@ Deno.test("sem respostas públicas configuradas não chama replyToComment", asyn
   const { graph, sent } = fakeGraph(OK);
   await processComment({ store, graph }, comment());
   assertEquals(sent.reply.length, 0);
+});
+
+Deno.test("transiente com refund lancando: ainda libera o claim e pede retry", async () => {
+  const { store, log } = fakeStore({ refundThrows: true });
+  const { graph } = fakeGraph({ ok: false, kind: "rate_limit", code: 4, message: "slow" });
+  const r = await processComment({ store, graph }, comment());
+  assertEquals(r.outcome, "retry");
+  assertEquals(log.includes("release:dm"), true);
+});
+
+Deno.test("consumeDmQuota lancando: propaga, libera o claim e nao envia", async () => {
+  const { store, log } = fakeStore({ consumeThrows: true });
+  const { graph, sent } = fakeGraph(OK);
+  let threw = false;
+  try { await processComment({ store, graph }, comment()); } catch { threw = true; }
+  assertEquals(threw, true);
+  assertEquals(log.includes("release:dm"), true);
+  assertEquals(log.includes("refund"), false);
+  assertEquals(sent.dm.length, 0);
+});
+
+Deno.test("claim da resposta publica lancando nao derruba o evento", async () => {
+  const { store } = fakeStore({ publicClaimThrows: true });
+  const { graph } = fakeGraph(OK);
+  const r = await processComment({ store, graph, random: () => 0 }, comment());
+  assertEquals(r, { outcome: "done", reason: "sent" });
+});
+
+Deno.test("falha transiente (kind transient) pede retry", async () => {
+  const { store, log } = fakeStore();
+  const { graph } = fakeGraph({ ok: false, kind: "transient", code: 2, message: "x" });
+  const r = await processComment({ store, graph }, comment());
+  assertEquals(r.outcome, "retry");
+  assertEquals(log.includes("release:dm"), true);
+});
+
+Deno.test("token invalido: finish antes de reconnect", async () => {
+  const { store, log } = fakeStore();
+  const { graph } = fakeGraph({ ok: false, kind: "token", code: 190, message: "bad" });
+  await processComment({ store, graph }, comment());
+  const f = log.indexOf("finish:dm:failed:190");
+  const rc = log.findIndex((l) => l.startsWith("reconnect:"));
+  assertEquals(f >= 0 && rc > f, true);
+});
+
+Deno.test("refund lancando em erro permanente nao impede o finish", async () => {
+  const { store, log } = fakeStore({ refundThrows: true });
+  const { graph } = fakeGraph({ ok: false, kind: "permanent", code: 100, message: "x" });
+  const r = await processComment({ store, graph }, comment());
+  assertEquals(r.outcome, "failed");
+  assertEquals(log.includes("finish:dm:failed:100"), true);
 });

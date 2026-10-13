@@ -27,6 +27,14 @@ function pickReply(replies: string[], random: () => number): string | null {
   return valid[Math.min(valid.length - 1, Math.floor(random() * valid.length))];
 }
 
+async function safeRefund(store: Store, userId: string): Promise<void> {
+  try {
+    await store.refundDmQuota(userId);
+  } catch (e) {
+    console.error("[instagram] refundDmQuota falhou", e);
+  }
+}
+
 export async function processComment(deps: ProcessDeps, c: NormalizedComment): Promise<ProcessResult> {
   const { store, graph } = deps;
   const random = deps.random ?? Math.random;
@@ -70,39 +78,61 @@ export async function processComment(deps: ProcessDeps, c: NormalizedComment): P
   // Idempotencia: so quem consegue inserir a linha envia.
   if (!(await store.claimMessage(ref("dm")))) return res("ignored", "duplicate");
 
-  if (!(await store.consumeDmQuota(account.user_id, access.maxDmsMonth))) {
-    await store.finishMessage(ref("dm"), "blocked", "quota");
-    return res("blocked", "quota");
+  // Entre o claim e o envio, qualquer excecao libera o claim (e estorna a cota
+  // se ja consumida) para o retry nao perder a DM. O envio em si segue a regra
+  // at-most-once: um envio ambiguo nunca e liberado.
+  let consumed = false;
+  let text: string;
+  try {
+    if (!(await store.consumeDmQuota(account.user_id, access.maxDmsMonth))) {
+      await store.finishMessage(ref("dm"), "blocked", "quota");
+      return res("blocked", "quota");
+    }
+    consumed = true;
+    text = renderDm(auto.dm_text, auto.link_url, c.fromUsername);
+  } catch (e) {
+    if (consumed) await safeRefund(store, account.user_id);
+    try {
+      await store.releaseMessage(ref("dm"));
+    } catch (e2) {
+      console.error("[instagram] releaseMessage falhou", e2);
+    }
+    throw e;
   }
 
-  const text = renderDm(auto.dm_text, auto.link_url, c.fromUsername);
   const sent = await graph.sendPrivateReply({ token, igUserId: c.igUserId, commentId: c.commentId, text });
 
   if (!sent.ok) {
-    await store.refundDmQuota(account.user_id);
     if (sent.kind === "rate_limit" || sent.kind === "transient") {
       await store.releaseMessage(ref("dm"));
+      await safeRefund(store, account.user_id);
       return res("retry", `${sent.kind}:${sent.code ?? ""}`);
     }
     await store.finishMessage(ref("dm"), "failed", sent.code === null ? sent.kind : String(sent.code));
     if (sent.kind === "token") {
       await store.markAccountNeedsReconnect(account.id, `token_invalid:${sent.code ?? ""}`);
+      await safeRefund(store, account.user_id);
       return res("failed", "token_invalid");
     }
+    await safeRefund(store, account.user_id);
     return res("failed", `permanent:${sent.code ?? ""}`);
   }
 
   await store.finishMessage(ref("dm"), "sent", null);
 
   // Resposta publica: melhor esforco, depois da DM, nunca derruba o evento.
-  const reply = pickReply(auto.public_replies, random);
-  if (reply && await store.claimMessage(ref("public_reply"))) {
-    const r = await graph.replyToComment({ token, commentId: c.commentId, text: reply });
-    await store.finishMessage(
-      ref("public_reply"),
-      r.ok ? "sent" : "failed",
-      r.ok ? null : (r.code === null ? r.kind : String(r.code)),
-    );
+  try {
+    const reply = pickReply(auto.public_replies, random);
+    if (reply && await store.claimMessage(ref("public_reply"))) {
+      const r = await graph.replyToComment({ token, commentId: c.commentId, text: reply });
+      await store.finishMessage(
+        ref("public_reply"),
+        r.ok ? "sent" : "failed",
+        r.ok ? null : (r.code === null ? r.kind : String(r.code)),
+      );
+    }
+  } catch (e) {
+    console.error("[instagram] resposta publica falhou", e);
   }
 
   return res("done", "sent");
