@@ -169,7 +169,7 @@ Deno.test("sanitizeDetail corta strings longas, arrays, chaves e profundidade", 
   }) as Record<string, any>;
   assert(out.big.length <= 501);
   assertEquals(out.list.length, 10);
-  assertEquals(out.deep.a.b.c.d, "[truncado]");
+  assertEquals(out.deep.a.b.c, "[truncado]");
 });
 
 Deno.test("sanitizeDetail aceita null, undefined e tipos estranhos sem lançar", () => {
@@ -1690,8 +1690,9 @@ git commit -m "feat(ops): alertas de cadastro e de trial perto de expirar" -m "C
 ```js
 // scripts/check-ops-alerts.mjs
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
@@ -1741,8 +1742,9 @@ function walk(dir, out = []) {
   return out;
 }
 for (const root of ['src', 'admin/src']) {
-  let files = [];
-  try { files = walk(new URL(`../${root}`, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')); } catch { continue; }
+  const dir = fileURLToPath(new URL(`../${root}`, import.meta.url));
+  if (!existsSync(dir)) continue; // admin/src pode nao existir; qualquer outro erro DEVE falhar o check
+  const files = walk(dir);
   for (const f of files) {
     assert.doesNotMatch(readFileSync(f, 'utf8'), SECRET_RE, `Segredo de alerta referenciado no front: ${f}`);
   }
