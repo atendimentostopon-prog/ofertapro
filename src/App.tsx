@@ -26,6 +26,7 @@ import { supabase } from './lib/supabase';
 import DebugSupabase from './pages/DebugSupabase';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
+import ExclusaoDados from './pages/ExclusaoDados';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
 import MercadoLivreAutomationPage from './pages/MercadoLivreAutomationPage';
@@ -271,6 +272,7 @@ const App: React.FC = () => {
           {/* Legal Pages */}
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosUso />} />
+          <Route path="/exclusao-de-dados" element={<ExclusaoDados />} />
           <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
           <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
           <Route path="/automatizacao-mercadolivre" element={<MercadoLivreAutomationPage />} />

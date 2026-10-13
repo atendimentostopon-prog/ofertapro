@@ -98,6 +98,13 @@ const TermosUso: React.FC = () => {
                 Podemos modificar estes termos a qualquer momento para refletir mudanças operacionais, regulatórias ou de segurança. Ao continuar a usar o {APP_NAME} após a data das atualizações, você aceita implicitamente as novas regras contratuais.
               </p>
             </section>
+
+            <section className="space-y-3">
+              <h2 className="text-base font-extrabold text-ink">9. Uso do módulo de automações de Instagram</h2>
+              <p>
+                Ao usar as automações de Instagram você declara que é responsável pelo conteúdo das mensagens, que enviará mensagens apenas em resposta a comentários feitos por quem as recebe, e que cumprirá as políticas da Meta e a legislação aplicável, incluindo a LGPD. É vedado o envio de spam, conteúdo enganoso ou proibido. O {APP_NAME} pode pausar automações que violem estas regras.
+              </p>
+            </section>
           </div>
         </div>
       </div>

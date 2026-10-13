@@ -133,6 +133,21 @@ const PoliticaPrivacidade: React.FC = () => {
                 O uso das informações recebidas por esta extensão respeita a Política de Dados do Usuário dos Serviços do Chrome Web Store, incluindo os requisitos de Uso Limitado.
               </p>
             </section>
+
+            <section className="space-y-3" id="instagram">
+              <h2 className="text-base font-extrabold text-ink">10. Automações de Instagram</h2>
+              <p>
+                O módulo de automações de Instagram do {APP_NAME} permite que você responda automaticamente, por mensagem direta, a quem comenta palavras-chave nas suas publicações. Esta seção descreve os dados tratados nesse módulo.
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li><strong>Dados da sua conta:</strong> identificador e nome de usuário da conta profissional conectada e o token de acesso, que fica guardado de forma cifrada e nunca é exibido.</li>
+                <li><strong>Dados de quem comenta:</strong> identificador do Instagram, nome de usuário, texto do comentário e registro das mensagens enviadas. Não coletamos foto, biografia nem lista de seguidores.</li>
+                <li><strong>Finalidade:</strong> exclusivamente executar as automações que você configurou e exibir métricas de desempenho a você. Não vendemos nem usamos esses dados para publicidade.</li>
+                <li><strong>Papéis:</strong> você é o controlador dos dados das pessoas que interagem com a sua conta; o {APP_NAME} atua como operador.</li>
+                <li><strong>Retenção:</strong> eventos técnicos são apagados em 30 dias e o registro de mensagens em 180 dias.</li>
+                <li><strong>Exclusão:</strong> ao desconectar a conta ou solicitar a exclusão, apagamos o token, as automações, os contatos e o registro de mensagens. Instruções em <a className="underline" href="/exclusao-de-dados">/exclusao-de-dados</a>.</li>
+              </ul>
+            </section>
           </div>
         </div>
       </div>
