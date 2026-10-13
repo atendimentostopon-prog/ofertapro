@@ -21,6 +21,11 @@ function toSPDayMonth(date: Date): string {
 export function useDashboardStats() {
   const { user } = useUser();
   const requestVersion = useRef(0);
+  // Sem isso, remontar o Dashboard rapido (navegar pra fora e voltar) deixa
+  // a busca antiga ainda ocupando conexao enquanto a nova espera na fila --
+  // requestVersion so ignora o resultado velho, nao libera a conexao. O
+  // abort cancela de verdade a requisicao anterior assim que uma nova comeca.
+  const requestRef = useRef<AbortController | null>(null);
   const [stats, setStats] = useState<any>({
     totalClicksToday: 0,
     totalClicks7d: 0,
@@ -43,11 +48,14 @@ export function useDashboardStats() {
 
   const loadStats = useCallback(async () => {
     const version = ++requestVersion.current;
+    requestRef.current?.abort();
     if (!user?.id) {
       setStats(prev => ({ ...prev, loading: false }));
       return;
     }
-    
+    const controller = new AbortController();
+    requestRef.current = controller;
+
     try {
       setStats(prev => ({ ...prev, loading: true, error: null }));
 
@@ -77,24 +85,31 @@ export function useDashboardStats() {
           return { data: res.data || [], error: null, isFallback: false, count: res.count ?? 0 };
         } catch (e: any) {
           if (timeoutId) clearTimeout(timeoutId);
-          console.error(`[DASHBOARD_STATS_ERROR] Exceção ou timeout na busca da tabela ${tableName}:`, e);
+          // AbortError por causa do proprio requestRef.current?.abort() (uma
+          // remontagem mais nova cancelou esta) nao e uma falha de rede real
+          // -- so sai calado, a checagem de version logo abaixo ja descarta
+          // este resultado de qualquer forma.
+          if (e?.name !== 'AbortError') {
+            console.error(`[DASHBOARD_STATS_ERROR] Exceção ou timeout na busca da tabela ${tableName}:`, e);
+          }
           return { data: [], error: e, isFallback: true, count: 0 };
         }
       };
 
       // Buscar ofertas, canais, histórico recente e cliques dos últimos 30 dias em paralelo com timeouts individuais
       const [offersRes, channelsRes, historyRes, dispatchCountRes, clicksRes] = await Promise.all([
-        fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id), 'offers'),
-        fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id), 'channels'),
-        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5), 'history'),
-        fetchWithFallback(supabase.from('history').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()), 'history_count'),
+        fetchWithFallback(supabase.from('offers').select('*').eq('user_id', user.id).abortSignal(controller.signal), 'offers'),
+        fetchWithFallback(supabase.from('channels').select('*').eq('user_id', user.id).abortSignal(controller.signal), 'channels'),
+        fetchWithFallback(supabase.from('history').select('*').eq('user_id', user.id).order('sent_at', { ascending: false }).limit(5).abortSignal(controller.signal), 'history'),
+        fetchWithFallback(supabase.from('history').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('sent_at', thirtyDaysAgo.toISOString()).abortSignal(controller.signal), 'history_count'),
         // offer_id incluído pra poder ranquear "produtos mais clicados" a partir
         // do evento real em vez do contador denormalizado offers.clicks (ver nota
         // abaixo) -- ainda leve, mesma tabela/período já buscados.
-        fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()), 'clicks')
+        fetchWithFallback(supabase.from('clicks').select('created_at, source, offer_id').eq('user_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()).abortSignal(controller.signal), 'clicks')
       ]);
 
       if (version !== requestVersion.current) return;
+      if (requestRef.current !== controller) return;
 
       // Se todas as consultas falharem catastróficamente (ex: erro de rede global), exibe o erro geral
       const allFailed = offersRes.isFallback && channelsRes.isFallback && historyRes.isFallback && clicksRes.isFallback;
@@ -264,6 +279,7 @@ export function useDashboardStats() {
 
   const invalidateRequests = useCallback(() => {
     requestVersion.current++;
+    requestRef.current?.abort();
   }, []);
 
   useEffect(() => {
