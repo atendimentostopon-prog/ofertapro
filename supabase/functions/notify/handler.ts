@@ -45,7 +45,13 @@ export async function handleNotify(req: Request, deps: NotifyDeps): Promise<Resp
     return json({ error: "event_id invalido" }, 400);
   }
 
-  const ev = await deps.loadEvent(id);
+  let ev: OpsEvent | null;
+  try {
+    ev = await deps.loadEvent(id);
+  } catch (e) {
+    console.error("[notify] loadEvent falhou:", e instanceof Error ? e.message : "erro");
+    return json({ error: "load_failed" }, 502);
+  }
   if (!ev) return json({ error: "evento nao encontrado" }, 404);
 
   let result: DeliverResult;
@@ -59,7 +65,11 @@ export async function handleNotify(req: Request, deps: NotifyDeps): Promise<Resp
   const anySent = result.discord === "sent" || result.telegram === "sent";
   const anyFailed = result.discord === "failed" || result.telegram === "failed";
   if (anySent) {
-    await deps.markNotified(id);
+    try {
+      await deps.markNotified(id);
+    } catch (e) {
+      console.error("[notify] markNotified falhou:", e instanceof Error ? e.message : "erro");
+    }
     return json(result, 200);
   }
   if (anyFailed) return json(result, 502);

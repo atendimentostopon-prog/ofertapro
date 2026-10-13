@@ -56,3 +56,15 @@ Deno.test("emitOps corta título acima de 200 caracteres", async () => {
   await emitOps(client, { severity: "error", category: "edge_error", title: "t".repeat(500) });
   assertEquals((calls[0].args.p_title as string).length, 200);
 });
+
+Deno.test("emitOps remove tokens (Bearer) e mascara emails do titulo", async () => {
+  const { client, calls } = fakeClient({ error: null });
+  await emitOps(client, {
+    severity: "error",
+    category: "edge_error",
+    title: "Falha com Bearer abc123 de ana@x.com",
+  });
+  const title = calls[0].args.p_title as string;
+  assertEquals(title.includes("abc123"), false);
+  assertEquals(title.includes("a***@x.com"), true);
+});

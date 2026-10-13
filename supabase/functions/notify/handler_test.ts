@@ -97,3 +97,80 @@ Deno.test("nenhum canal configurado (skipped): 200 sem marcar", async () => {
   assertEquals(res.status, 200);
   assertEquals(marked, []);
 });
+
+Deno.test("serviceKey vazia com token nao vazio: 401 (isola guarda serviceKey)", async () => {
+  let loadEventCalled = false;
+  let deliverCalled = false;
+  const { deps } = mkDeps({
+    serviceKey: "",
+    loadEvent: async () => { loadEventCalled = true; return null; },
+    deliver: async () => { deliverCalled = true; return { discord: "sent", telegram: "sent", errors: [] }; },
+  });
+  assertEquals((await handleNotify(req({ event_id: ID }, "x"), deps)).status, 401);
+  assertEquals(loadEventCalled, false);
+  assertEquals(deliverCalled, false);
+});
+
+Deno.test("sem header Authorization: 401", async () => {
+  let loadEventCalled = false;
+  let deliverCalled = false;
+  const { deps } = mkDeps({
+    loadEvent: async () => { loadEventCalled = true; return null; },
+    deliver: async () => { deliverCalled = true; return { discord: "sent", telegram: "sent", errors: [] }; },
+  });
+  const noAuthReq = new Request("https://x.test/notify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_id: ID }),
+  });
+  assertEquals((await handleNotify(noAuthReq, deps)).status, 401);
+  assertEquals(loadEventCalled, false);
+  assertEquals(deliverCalled, false);
+});
+
+Deno.test("schema nao-Bearer (Basic abc): 401", async () => {
+  let loadEventCalled = false;
+  let deliverCalled = false;
+  const { deps } = mkDeps({
+    loadEvent: async () => { loadEventCalled = true; return null; },
+    deliver: async () => { deliverCalled = true; return { discord: "sent", telegram: "sent", errors: [] }; },
+  });
+  const basicAuthReq = new Request("https://x.test/notify", {
+    method: "POST",
+    headers: { Authorization: "Basic abc", "Content-Type": "application/json" },
+    body: JSON.stringify({ event_id: ID }),
+  });
+  assertEquals((await handleNotify(basicAuthReq, deps)).status, 401);
+  assertEquals(loadEventCalled, false);
+  assertEquals(deliverCalled, false);
+});
+
+Deno.test("JSON null/array/string valido: 400", async () => {
+  const { deps } = mkDeps();
+  assertEquals((await handleNotify(req(null, "svc-key", "null"), deps)).status, 400);
+  assertEquals((await handleNotify(req(null, "svc-key", "[]"), deps)).status, 400);
+  assertEquals((await handleNotify(req(null, "svc-key", '"str"'), deps)).status, 400);
+});
+
+Deno.test("loadEvent lancando: 502 com error load_failed, deliver nao chamado", async () => {
+  let deliverCalled = false;
+  const { deps } = mkDeps({
+    loadEvent: async () => { throw new Error("db connection lost"); },
+    deliver: async () => { deliverCalled = true; return { discord: "sent", telegram: "sent", errors: [] }; },
+  });
+  const res = await handleNotify(req({ event_id: ID }), deps);
+  assertEquals(res.status, 502);
+  assertEquals((await res.json()).error, "load_failed");
+  assertEquals(deliverCalled, false);
+});
+
+Deno.test("markNotified lancando apos entrega ok: ainda 200 com resultado", async () => {
+  const { deps } = mkDeps({
+    markNotified: async () => { throw new Error("db down"); },
+  });
+  const res = await handleNotify(req({ event_id: ID }), deps);
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.discord, "sent");
+  assertEquals(body.telegram, "sent");
+});

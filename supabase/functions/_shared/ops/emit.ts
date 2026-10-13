@@ -1,4 +1,4 @@
-import { maskEmail, sanitizeDetail } from "./sanitize.ts";
+import { cleanString, sanitizeDetail } from "./sanitize.ts";
 import type { Category, Severity } from "./types.ts";
 
 export interface EmitInput {
@@ -20,7 +20,7 @@ export async function emitOps(client: RpcClient, input: EmitInput): Promise<void
     const { error } = await client.rpc("ops_emit", {
       p_severity: input.severity,
       p_category: input.category,
-      p_title: maskEmail(input.title).slice(0, 200),
+      p_title: cleanString(input.title).slice(0, 200),
       p_detail: sanitizeDetail(input.detail ?? {}) ?? {},
       p_user_id: input.userId ?? null,
       p_dedupe_key: input.dedupeKey ?? null,
