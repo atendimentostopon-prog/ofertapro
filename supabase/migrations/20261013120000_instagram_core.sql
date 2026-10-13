@@ -401,15 +401,26 @@ GRANT EXECUTE ON FUNCTION public.ig_pause_automations_without_access() TO servic
 -- 9) Retencao: eventos 30 dias, log 180 dias -----------------------------
 CREATE OR REPLACE FUNCTION public.ig_prune()
 RETURNS void
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, vault
 AS $$
+BEGIN
   DELETE FROM public.ig_events
    WHERE received_at < now() - interval '30 days'
      AND status IN ('done','ignored','blocked','failed');
   DELETE FROM public.ig_message_log WHERE created_at < now() - interval '180 days';
+
+  -- revoga o token no Vault das pendencias vencidas ANTES de apagar as linhas
+  PERFORM vault.update_secret(s.id, '', s.name, 'Aflyo: token do Instagram (revogado)')
+     FROM vault.secrets s
+    WHERE s.name IN (
+      SELECT 'ig_access_token:' || p.id::text
+        FROM public.ig_pending_connections p
+       WHERE p.expires_at < now()
+    );
   DELETE FROM public.ig_pending_connections WHERE expires_at < now();
+END;
 $$;
 
 REVOKE ALL ON FUNCTION public.ig_prune() FROM public, anon, authenticated;

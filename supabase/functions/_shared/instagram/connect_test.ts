@@ -24,13 +24,19 @@ Deno.test("conta nova no limite do plano", () => {
   assertEquals(decideCompletion({ ...base, ownAccountCount: 1, maxAccounts: 1 }), "limit");
 });
 
-Deno.test("reconectar a própria conta não conta contra o limite", () => {
-  for (const status of ["connected", "needs_reconnect", "disconnected"] as const) {
+Deno.test("reconectar conta própria já contada (connected/needs_reconnect) não consome limite", () => {
+  for (const status of ["connected", "needs_reconnect"] as const) {
     assertEquals(
       decideCompletion({ ...base, existing: { userId: "U1", status }, ownAccountCount: 1, maxAccounts: 1 }),
       "update_own",
     );
   }
+});
+
+Deno.test("reconectar conta própria desconectada respeita o limite", () => {
+  const existing = { userId: "U1", status: "disconnected" as const };
+  assertEquals(decideCompletion({ ...base, existing, ownAccountCount: 1, maxAccounts: 1 }), "limit");
+  assertEquals(decideCompletion({ ...base, existing, ownAccountCount: 0, maxAccounts: 1 }), "update_own");
 });
 
 Deno.test("conta conectada de outro usuário: in_use (sequestro)", () => {

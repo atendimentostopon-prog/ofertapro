@@ -22,7 +22,12 @@ export function decideCompletion(a: {
   if (!a.hasAccess || !a.allowInstagram) return "not_allowed";
   const atLimit = a.ownAccountCount >= a.maxAccounts;
   if (!a.existing) return atLimit ? "limit" : "insert";
-  if (a.existing.userId === a.userId) return "update_own"; // reconexao
+  if (a.existing.userId === a.userId) {
+    // Reconexao. connected/needs_reconnect ja entram na contagem; uma conta
+    // propria desconectada nao entra, entao reconectar consome limite.
+    if (a.existing.status === "disconnected" && atLimit) return "limit";
+    return "update_own";
+  }
   if (a.existing.status === "disconnected") return atLimit ? "limit" : "replace_disconnected";
   return "in_use";
 }

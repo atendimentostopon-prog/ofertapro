@@ -61,9 +61,16 @@ serve(async (req) => {
     allowInstagram: Boolean(l?.allow_instagram),
     hasAccess: Boolean(has),
   });
-  if (decision === "not_allowed") return json({ error: "plan_not_allowed" }, 403);
-  if (decision === "in_use") return json({ error: "account_in_use" }, 409);
-  if (decision === "limit") return json({ error: "account_limit" }, 409);
+  // Decisao terminal: descarta a pendencia e o token (nao fica token vivo no Vault).
+  const discardPending = async () => {
+    try {
+      await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: "" });
+      await admin.from("ig_pending_connections").delete().eq("id", pendingId);
+    } catch (_e) { /* melhor esforco; ig_prune limpa o que sobrar */ }
+  };
+  if (decision === "not_allowed") { await discardPending(); return json({ error: "plan_not_allowed" }, 403); }
+  if (decision === "in_use") { await discardPending(); return json({ error: "account_in_use" }, 409); }
+  if (decision === "limit") { await discardPending(); return json({ error: "account_limit" }, 409); }
 
   const fields = {
     username: String(p.username ?? ""),
@@ -100,7 +107,10 @@ serve(async (req) => {
       .insert({ ...fields, user_id: user.id, ig_user_id: igUserId })
       .select("id").single();
     if (error) {
-      if ((error as { code?: string }).code === "23505") return json({ error: "account_in_use" }, 409);
+      if ((error as { code?: string }).code === "23505") {
+        await discardPending();
+        return json({ error: "account_in_use" }, 409);
+      }
       console.error("[ig-oauth-complete] insert:", error.message);
       return json({ error: "save_failed" }, 500);
     }
