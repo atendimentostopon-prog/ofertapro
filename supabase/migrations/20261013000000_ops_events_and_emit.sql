@@ -4,6 +4,8 @@
 -- DEPLOY: aplicar esta migration DEPOIS de `supabase functions deploy notify`
 --   e de setar os secrets (TELEGRAM_*, DISCORD_WEBHOOK_*). app.service_role_key
 --   ja existe (recurso de e-mails). ops_emit e fail-open: sem notify/secret nada quebra.
+--   NOTA: alter database ... set so vale para NOVAS conexoes; conexoes em pool podem
+--   demorar a enxergar o valor at reconectar.
 -- ROLLBACK: supabase/rollbacks/20261013000000_ops_alerts_rollback.sql
 
 -- 1) Config nao secreta ------------------------------------------------------
@@ -68,6 +70,8 @@ declare
   v_key    text := current_setting('app.service_role_key', true);
   v_url    text := current_setting('app.notify_url', true);
 begin
+  p_title := left(coalesce(nullif(btrim(p_title), ''), '(sem titulo)'), 200);
+
   v_fp := case
     when p_dedupe_key is not null then 'k:' || p_dedupe_key
     else md5(
@@ -115,14 +119,18 @@ begin
     if coalesce(v_key, '') = '' or coalesce(v_url, '') = '' then
       raise notice '[ops_emit] app.service_role_key/app.notify_url nao configurados; evento % gravado sem notificar', v_id;
     else
-      perform net.http_post(
-        url     := v_url,
-        headers := jsonb_build_object(
-          'Content-Type', 'application/json',
-          'Authorization', 'Bearer ' || v_key
-        ),
-        body    := jsonb_build_object('event_id', v_id)
-      );
+      begin
+        perform net.http_post(
+          url     := v_url,
+          headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'Authorization', 'Bearer ' || v_key
+          ),
+          body    := jsonb_build_object('event_id', v_id)
+        );
+      exception when others then
+        raise warning '[ops_emit] notify nao enviado para %: %', v_id, sqlerrm;
+      end;
     end if;
   end if;
 

@@ -1,6 +1,6 @@
 -- supabase/tests/manual/20261013000000_ops_events_and_emit.test.sql
 -- Rodar no SQL Editor DEPOIS de aplicar a migration 20261013000000.
--- Atencao: o item (c) gera 1 alerta REAL se notify e os canais ja estiverem configurados.
+-- Atencao: os itens (c) e (d) geram alertas REAIS se notify e os canais ja estiverem configurados.
 
 -- (a) tabela existe, RLS ligada, sem policy
 select relrowsecurity as rls_ligada from pg_class where oid = 'public.ops_events'::regclass;   -- espera true
@@ -38,6 +38,7 @@ select public.ops_mask_email(null) is null as nulo_ok;                          
 select jobname, schedule from cron.job where jobname = 'ops_prune';                           -- espera 1 linha
 
 -- (h) config
+-- rodar em uma sessao NOVA (nova aba do SQL Editor); sessoes antigas podem devolver NULL
 select current_setting('app.notify_url', true) as notify_url;                                 -- espera .../notify
 
 -- limpeza
