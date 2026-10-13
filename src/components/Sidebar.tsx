@@ -3,7 +3,7 @@ import { useTheme } from 'next-themes';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Radio, History, Settings,
-  ChevronRight, LogOut, ExternalLink, LifeBuoy, X, CreditCard, Plug
+  ChevronRight, LogOut, ExternalLink, LifeBuoy, X, CreditCard, Plug, MessageCircle
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -22,6 +22,7 @@ const navItems = [
   { to: '/offers', icon: Package, label: 'Ofertas' },
   { to: '/channels', icon: Radio, label: 'Canais' },
   { to: '/integrations', icon: Plug, label: 'Integrações' },
+  { to: '/instagram', icon: MessageCircle, label: 'Instagram' },
   { to: '/history', icon: History, label: 'Histórico' },
   { to: '/settings', icon: Settings, label: 'Configurações' },
   { to: '/suporte', icon: LifeBuoy, label: 'Suporte' },

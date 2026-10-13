@@ -13,6 +13,8 @@ import Channels from './pages/Channels';
 import Integrations from './pages/Integrations';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import Instagram from './pages/Instagram';
+import InstagramAutomationEditor from './pages/InstagramAutomationEditor';
 import Suporte from './pages/Suporte';
 import SuporteTicket from './pages/SuporteTicket';
 import PublicPage from './pages/PublicPage';
@@ -38,7 +40,7 @@ import { APP_NAME } from './config/app';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
-  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/suporte'];
+  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/suporte', '/instagram'];
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
 };
 
@@ -307,6 +309,9 @@ const App: React.FC = () => {
             <Route path="/offers/new" element={<NewOfferPage />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/integrations" element={<Integrations />} />
+            <Route path="/instagram" element={<Instagram />} />
+            <Route path="/instagram/automacoes/nova" element={<InstagramAutomationEditor />} />
+            <Route path="/instagram/automacoes/:id" element={<InstagramAutomationEditor />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/suporte" element={<Suporte />} />
