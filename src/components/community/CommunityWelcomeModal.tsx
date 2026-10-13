@@ -69,8 +69,11 @@ export const CommunityWelcomeModal: React.FC<Props> = ({ isOpen, onJoin, onDismi
               onClick={onDismiss}
               className="w-full rounded-xl px-4 py-2.5 text-xs font-semibold text-ink-tertiary transition-colors hover:text-ink cursor-pointer"
             >
-              Agora não. O botão verde fica sempre disponível no canto da tela.
+              Agora não
             </button>
+            <p className="text-center text-[11px] text-ink-tertiary">
+              Sem pressa: você pode entrar depois pelo botão verde no canto da tela.
+            </p>
           </div>
         </div>
       </div>
