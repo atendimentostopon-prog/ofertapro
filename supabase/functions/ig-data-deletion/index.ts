@@ -13,11 +13,25 @@ serve(async (req) => {
   const data = await parseSignedRequest(signed, Deno.env.get("IG_APP_SECRET") ?? "");
   if (!data) return new Response("invalid signed_request", { status: 400 });
 
-  const igUserId = String(data.user_id ?? "");
-  if (igUserId) {
+  // O id do signed_request pode ser o profissional (ig_user_id) ou o app-scoped.
+  const metaId = String(data.user_id ?? "");
+  if (!/^\d+$/.test(metaId)) return new Response("invalid user_id", { status: 400 });
+
+  try {
     const admin = getAdmin();
-    const { data: acc } = await admin.from("ig_accounts").select("id").eq("ig_user_id", igUserId).maybeSingle();
-    if (acc) await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: true });
+    const { data: acc, error } = await admin.from("ig_accounts").select("id")
+      .or(`ig_user_id.eq.${metaId},ig_app_scoped_id.eq.${metaId}`).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!acc) {
+      // Nada a apagar: ainda devolve a confirmacao exigida pela Meta.
+      console.error("[ig-data-deletion] nenhuma conta para o id da Meta");
+    } else {
+      await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: true });
+    }
+  } catch (e) {
+    // Sem confirmacao: a Meta tenta de novo e nao afirmamos uma exclusao nao feita.
+    console.error("[ig-data-deletion]", e instanceof Error ? e.message : e);
+    return new Response("error", { status: 500 });
   }
 
   const code = crypto.randomUUID();

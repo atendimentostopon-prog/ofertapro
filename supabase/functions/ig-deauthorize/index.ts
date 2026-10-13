@@ -13,11 +13,23 @@ serve(async (req) => {
   const data = await parseSignedRequest(signed, Deno.env.get("IG_APP_SECRET") ?? "");
   if (!data) return new Response("invalid signed_request", { status: 400 });
 
-  const igUserId = String(data.user_id ?? "");
-  if (igUserId) {
+  // O id do signed_request pode ser o profissional (ig_user_id) ou o app-scoped.
+  const metaId = String(data.user_id ?? "");
+  if (!/^\d+$/.test(metaId)) return new Response("invalid user_id", { status: 400 });
+
+  try {
     const admin = getAdmin();
-    const { data: acc } = await admin.from("ig_accounts").select("id").eq("ig_user_id", igUserId).maybeSingle();
-    if (acc) await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: false });
+    const { data: acc, error } = await admin.from("ig_accounts").select("id")
+      .or(`ig_user_id.eq.${metaId},ig_app_scoped_id.eq.${metaId}`).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!acc) {
+      console.error("[ig-deauthorize] nenhuma conta para o id da Meta");
+    } else {
+      await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: false });
+    }
+  } catch (e) {
+    console.error("[ig-deauthorize]", e instanceof Error ? e.message : e);
+    return new Response("error", { status: 500 });
   }
   return new Response("ok", { status: 200 });
 });

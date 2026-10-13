@@ -20,6 +20,13 @@ serve(async (req) => {
   const admin = getAdmin();
   const { data: has } = await admin.rpc("has_active_access", { uid: user.id });
   if (!has) return json({ error: "plano_sem_acesso" }, 403);
+  const { data: prof } = await admin.from("profiles").select("plan").eq("id", user.id).maybeSingle();
+  const plan = (prof as { plan?: string } | null)?.plan ?? "free";
+  const { data: limits } = await admin.from("plan_limits")
+    .select("allow_instagram").eq("plan", plan).maybeSingle();
+  if (!(limits as { allow_instagram?: boolean } | null)?.allow_instagram) {
+    return json({ error: "plano_sem_acesso" }, 403);
+  }
 
   const state = await signState(user.id, requireEnv("IG_STATE_SECRET"));
   const params = new URLSearchParams({

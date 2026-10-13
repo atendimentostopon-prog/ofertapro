@@ -10,6 +10,7 @@ import { parseWebhookBody } from "../_shared/instagram/webhook.ts";
 import { runWorker } from "../_shared/instagram/worker.ts";
 
 const enc = new TextEncoder();
+const MAX_BODY_BYTES = 1024 * 1024;
 
 serve(async (req) => {
   // 1) Verificacao do endpoint pela Meta
@@ -28,7 +29,11 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("method not allowed", { status: 405 });
 
   // 2) Assinatura sobre o corpo cru
+  // Corpo maior que ~1 MB nunca vem da Meta: recusa antes de ler.
+  const declared = Number(req.headers.get("content-length") ?? "0");
+  if (declared > MAX_BODY_BYTES) return new Response("payload too large", { status: 413 });
   const raw = await req.text();
+  if (raw.length > MAX_BODY_BYTES) return new Response("payload too large", { status: 413 });
   const valid = await verifyMetaSignature(
     raw,
     req.headers.get("x-hub-signature-256") ?? "",
@@ -49,10 +54,11 @@ serve(async (req) => {
 
   try {
     const admin = getAdmin();
-    await admin.from("ig_events").upsert(
+    const { error: evErr } = await admin.from("ig_events").upsert(
       comments.map((c) => ({ ig_user_id: c.igUserId, external_id: c.commentId, payload: c })),
       { onConflict: "ig_user_id,external_id", ignoreDuplicates: true },
     );
+    if (evErr) throw evErr;
     await admin.from("ig_accounts")
       .update({ last_webhook_at: new Date().toISOString() })
       .in("ig_user_id", [...new Set(comments.map((c) => c.igUserId))]);

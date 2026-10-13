@@ -22,6 +22,11 @@ serve(async (req) => {
     return json({ error: "Conta não encontrada." }, 404);
   }
 
-  await disconnectAccount(admin, createGraphClient(), accountId, { erase: false });
+  try {
+    await disconnectAccount(admin, createGraphClient(), accountId, { erase: false });
+  } catch (e) {
+    console.error("[ig-account-disconnect]", e instanceof Error ? e.message : e);
+    return json({ error: "disconnect_failed" }, 500);
+  }
   return json({ success: true });
 });

@@ -40,11 +40,23 @@ serve(async (req) => {
       failed++;
       continue;
     }
-    await admin.rpc("set_ig_access_token", { p_account_id: a.id, p_token: r.data.accessToken });
-    await admin.from("ig_accounts").update({
+    // Token novo so conta se o Vault gravou; senao nao move a data de expiracao
+    // (a conta seria dada como renovada com o token antigo ainda gravado).
+    const { error: vaultErr } = await admin.rpc("set_ig_access_token", { p_account_id: a.id, p_token: r.data.accessToken });
+    if (vaultErr) {
+      console.error("[ig-token-refresh] vault:", vaultErr.message);
+      failed++;
+      continue;
+    }
+    const { error: upErr } = await admin.from("ig_accounts").update({
       token_expires_at: new Date(Date.now() + (r.data.expiresIn || 60 * 24 * 3600) * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", a.id);
+    if (upErr) {
+      console.error("[ig-token-refresh] update:", upErr.message);
+      failed++;
+      continue;
+    }
     refreshed++;
   }
 
