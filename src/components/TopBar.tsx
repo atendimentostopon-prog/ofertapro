@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Bell, Plus, Command, Zap, Menu } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Avatar } from './ui/Avatar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from './NotificationsDropdown';
 import { useAccountAccess } from '../hooks/useAccountAccess';
@@ -23,6 +23,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
   const { user } = useUser();
   const access = useAccountAccess();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const getPlanBadgeLabel = (plan: string, isTrialing: boolean) => {
     const planMap: Record<string, string> = {
@@ -104,6 +105,14 @@ const TopBar: React.FC<TopBarProps> = ({ onNewOffer: _onNewOffer, onMenuClick, b
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // TopBar faz parte do Layout, nao da rota -- sobrevive a navegacao, entao
+  // o dropdown so fechava por clique-fora/Escape/item clicado. Qualquer
+  // outra forma de trocar de rota (atalho, navegacao programatica) deixava
+  // ele "grudado" aberto por cima do conteudo da pagina nova.
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [location.pathname]);
 
   const handleToggleNotif = () => {
     const nextState = !notifOpen;
