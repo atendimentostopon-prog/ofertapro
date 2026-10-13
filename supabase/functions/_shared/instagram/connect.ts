@@ -1,17 +1,28 @@
 // supabase/functions/_shared/instagram/connect.ts
-export type ConnectDecision = "ok" | "not_allowed" | "in_use" | "limit";
+export type CompletionDecision =
+  | "insert"
+  | "update_own"
+  | "replace_disconnected"
+  | "not_allowed"
+  | "in_use"
+  | "limit";
 
-export function decideConnect(a: {
-  existingOwnerId: string | null;
+/**
+ * Decide o que fazer ao concluir uma conexao pendente (ig-oauth-complete).
+ * `existing` e a linha de ig_accounts com o mesmo ig_user_id, se houver.
+ */
+export function decideCompletion(a: {
+  existing: { userId: string; status: "connected" | "needs_reconnect" | "disconnected" } | null;
   userId: string;
   ownAccountCount: number;
   maxAccounts: number;
   allowInstagram: boolean;
   hasAccess: boolean;
-}): ConnectDecision {
+}): CompletionDecision {
   if (!a.hasAccess || !a.allowInstagram) return "not_allowed";
-  if (a.existingOwnerId && a.existingOwnerId !== a.userId) return "in_use";
-  if (a.existingOwnerId === a.userId) return "ok"; // reconexao
-  if (a.ownAccountCount >= a.maxAccounts) return "limit";
-  return "ok";
+  const atLimit = a.ownAccountCount >= a.maxAccounts;
+  if (!a.existing) return atLimit ? "limit" : "insert";
+  if (a.existing.userId === a.userId) return "update_own"; // reconexao
+  if (a.existing.status === "disconnected") return atLimit ? "limit" : "replace_disconnected";
+  return "in_use";
 }

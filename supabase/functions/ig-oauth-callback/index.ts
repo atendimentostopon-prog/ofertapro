@@ -1,8 +1,9 @@
 // supabase/functions/ig-oauth-callback/index.ts
-// Deploy com --no-verify-jwt (redirect do navegador, sem JWT). A autenticidade
-// vem do `state` assinado.
+// Deploy com --no-verify-jwt (redirect do navegador, sem JWT). O `state`
+// assinado so prova que o fluxo foi iniciado por esse usuario; NAO prova que o
+// navegador atual e dele. Por isso este callback nao toca em ig_accounts: ele
+// grava uma pendencia, e ig-oauth-complete (JWT) a conclui para o dono logado.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { decideConnect } from "../_shared/instagram/connect.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
 import { getAdmin, requireEnv } from "../_shared/instagram/http.ts";
 import { verifyState } from "../_shared/instagram/state.ts";
@@ -53,65 +54,30 @@ serve(async (req) => {
   // 2) perfil
   const profile = await graph.getProfile({ token });
   if (!profile.ok || !profile.data.userId) return fail("profile_failed");
-  const igUserId = profile.data.userId;
 
-  // 3) regra de conexao (acesso, plano, dono, limite)
-  const [{ data: has }, { data: prof }, { data: existing }, { count: ownCount }] = await Promise.all([
-    admin.rpc("has_active_access", { uid: userId }),
-    admin.from("profiles").select("plan").eq("id", userId).maybeSingle(),
-    admin.from("ig_accounts").select("id,user_id").eq("ig_user_id", igUserId).maybeSingle(),
-    admin.from("ig_accounts").select("id", { count: "exact", head: true })
-      .eq("user_id", userId).neq("status", "disconnected"),
-  ]);
-  const plan = (prof as { plan?: string } | null)?.plan ?? "free";
-  const { data: limits } = await admin.from("plan_limits")
-    .select("allow_instagram,max_ig_accounts").eq("plan", plan).maybeSingle();
-  const l = limits as { allow_instagram?: boolean; max_ig_accounts?: number } | null;
-
-  const decision = decideConnect({
-    existingOwnerId: (existing as { user_id?: string } | null)?.user_id ?? null,
-    userId,
-    ownAccountCount: ownCount ?? 0,
-    maxAccounts: l?.max_ig_accounts ?? 0,
-    allowInstagram: Boolean(l?.allow_instagram),
-    hasAccess: Boolean(has),
-  });
-  if (decision === "not_allowed") return fail("plan_not_allowed");
-  if (decision === "in_use") return fail("account_in_use");
-  if (decision === "limit") return fail("account_limit");
-
-  // 4) grava conta e token (Vault)
+  // 3) pendencia (token no Vault sob o id da pendencia; nunca em URL)
   const expiresAt = new Date(Date.now() + (long.data.expiresIn || 60 * 24 * 3600) * 1000).toISOString();
-  const { data: acc, error: upErr } = await admin.from("ig_accounts").upsert({
+  const { data: pending, error: pErr } = await admin.from("ig_pending_connections").insert({
     user_id: userId,
-    ig_user_id: igUserId,
-    username: profile.data.username,
-    account_type: profile.data.accountType,
-    status: "connected",
+    ig_user_id: profile.data.userId,
+    ig_app_scoped_id: short.data.userId || null,
+    username: profile.data.username ?? "",
+    account_type: profile.data.accountType ?? null,
     scopes: SCOPES,
     token_expires_at: expiresAt,
-    last_error: null,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "ig_user_id" }).select("id").single();
-  if (upErr || !acc) {
-    console.error("[ig-oauth-callback] upsert:", upErr?.message);
+  }).select("id").single();
+  if (pErr || !pending) {
+    console.error("[ig-oauth-callback] pending:", pErr?.message);
     return fail("save_failed");
   }
-  const accountId = (acc as { id: string }).id;
+  const pendingId = (pending as { id: string }).id;
 
-  const { error: vaultErr } = await admin.rpc("set_ig_access_token", { p_account_id: accountId, p_token: token });
+  const { error: vaultErr } = await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: token });
   if (vaultErr) {
     console.error("[ig-oauth-callback] vault:", vaultErr.message);
+    await admin.from("ig_pending_connections").delete().eq("id", pendingId);
     return fail("save_failed");
   }
 
-  // 5) assina o webhook da conta
-  const sub = await graph.subscribeWebhooks({ token, igUserId });
-  if (!sub.ok) {
-    await admin.from("ig_accounts")
-      .update({ last_error: `webhook_subscribe_failed:${sub.code ?? sub.kind}` }).eq("id", accountId);
-    return fail("webhook_failed");
-  }
-
-  return redirect("/instagram?connected=1");
+  return redirect(`/instagram?ig_pending=${encodeURIComponent(pendingId)}`);
 });

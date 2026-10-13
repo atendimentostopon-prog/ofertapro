@@ -51,6 +51,27 @@ CREATE TABLE IF NOT EXISTS public.ig_accounts (
 );
 CREATE INDEX IF NOT EXISTS ig_accounts_user_idx ON public.ig_accounts(user_id);
 
+-- id app-scoped (signed_request da Meta pode usar este id em vez do id profissional)
+ALTER TABLE public.ig_accounts ADD COLUMN IF NOT EXISTS ig_app_scoped_id text;
+CREATE INDEX IF NOT EXISTS ig_accounts_app_scoped_idx ON public.ig_accounts(ig_app_scoped_id);
+
+-- Conexao em duas etapas: o callback do OAuth (sem sessao) so grava uma
+-- pendencia; quem a conclui e o usuario logado dono dela (ig-oauth-complete).
+-- O token da pendencia fica no Vault sob o id da pendencia.
+CREATE TABLE IF NOT EXISTS public.ig_pending_connections (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ig_user_id       text NOT NULL,
+  ig_app_scoped_id text,
+  username         text NOT NULL DEFAULT '',
+  account_type     text,
+  scopes           text[] NOT NULL DEFAULT '{}',
+  token_expires_at timestamptz,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  expires_at       timestamptz NOT NULL DEFAULT now() + interval '10 minutes'
+);
+CREATE INDEX IF NOT EXISTS ig_pending_connections_expires_idx ON public.ig_pending_connections(expires_at);
+
 CREATE TABLE IF NOT EXISTS public.ig_automations (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id             uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -147,6 +168,8 @@ ALTER TABLE public.ig_contacts      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ig_events        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ig_message_log   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ig_usage_monthly ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ig_pending_connections ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.ig_pending_connections FROM anon, authenticated;
 
 REVOKE ALL ON public.ig_events FROM anon, authenticated;
 REVOKE ALL ON public.ig_accounts, public.ig_contacts, public.ig_message_log,
@@ -386,6 +409,7 @@ AS $$
    WHERE received_at < now() - interval '30 days'
      AND status IN ('done','ignored','blocked','failed');
   DELETE FROM public.ig_message_log WHERE created_at < now() - interval '180 days';
+  DELETE FROM public.ig_pending_connections WHERE expires_at < now();
 $$;
 
 REVOKE ALL ON FUNCTION public.ig_prune() FROM public, anon, authenticated;

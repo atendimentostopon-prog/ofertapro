@@ -8,7 +8,7 @@ declare
   t text;
 begin
   -- RLS ligada em todas as tabelas ig_*
-  foreach t in array array['ig_accounts','ig_automations','ig_contacts','ig_events','ig_message_log','ig_usage_monthly']
+  foreach t in array array['ig_accounts','ig_automations','ig_contacts','ig_events','ig_message_log','ig_usage_monthly','ig_pending_connections']
   loop
     assert (select relrowsecurity from pg_class where oid = ('public.' || t)::regclass),
       'RLS desligada em ' || t;
@@ -27,6 +27,12 @@ begin
 
   -- ig_events sem acesso para authenticated
   assert not has_table_privilege('authenticated', 'public.ig_events', 'select'), 'authenticated nao le ig_events';
+
+  -- pendencias de conexao: so service_role
+  assert not has_table_privilege('authenticated', 'public.ig_pending_connections', 'select'), 'authenticated nao le pendencias';
+  assert not has_table_privilege('authenticated', 'public.ig_pending_connections', 'insert'), 'authenticated nao grava pendencias';
+  assert not has_table_privilege('anon', 'public.ig_pending_connections', 'select'), 'anon nao le pendencias';
+  assert not exists (select 1 from pg_policies where tablename = 'ig_pending_connections'), 'pendencias sem policies';
 end $$;
 
 -- cota atomica

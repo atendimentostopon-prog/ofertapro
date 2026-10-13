@@ -1,26 +1,54 @@
 // supabase/functions/_shared/instagram/connect_test.ts
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { decideConnect } from "./connect.ts";
+import { decideCompletion } from "./connect.ts";
 
-const base = { existingOwnerId: null, userId: "U1", ownAccountCount: 0, maxAccounts: 1, allowInstagram: true, hasAccess: true };
+const base = {
+  existing: null,
+  userId: "U1",
+  ownAccountCount: 0,
+  maxAccounts: 1,
+  allowInstagram: true,
+  hasAccess: true,
+};
 
-Deno.test("conecta quando tudo permite", () => {
-  assertEquals(decideConnect(base), "ok");
+Deno.test("conta nova com folga: insert", () => {
+  assertEquals(decideCompletion(base), "insert");
 });
 
 Deno.test("sem acesso ou plano sem módulo", () => {
-  assertEquals(decideConnect({ ...base, hasAccess: false }), "not_allowed");
-  assertEquals(decideConnect({ ...base, allowInstagram: false }), "not_allowed");
+  assertEquals(decideCompletion({ ...base, hasAccess: false }), "not_allowed");
+  assertEquals(decideCompletion({ ...base, allowInstagram: false }), "not_allowed");
 });
 
-Deno.test("conta já pertence a outro usuário", () => {
-  assertEquals(decideConnect({ ...base, existingOwnerId: "U2" }), "in_use");
+Deno.test("conta nova no limite do plano", () => {
+  assertEquals(decideCompletion({ ...base, ownAccountCount: 1, maxAccounts: 1 }), "limit");
 });
 
 Deno.test("reconectar a própria conta não conta contra o limite", () => {
-  assertEquals(decideConnect({ ...base, existingOwnerId: "U1", ownAccountCount: 1, maxAccounts: 1 }), "ok");
+  for (const status of ["connected", "needs_reconnect", "disconnected"] as const) {
+    assertEquals(
+      decideCompletion({ ...base, existing: { userId: "U1", status }, ownAccountCount: 1, maxAccounts: 1 }),
+      "update_own",
+    );
+  }
 });
 
-Deno.test("limite de contas do plano", () => {
-  assertEquals(decideConnect({ ...base, ownAccountCount: 1, maxAccounts: 1 }), "limit");
+Deno.test("conta conectada de outro usuário: in_use (sequestro)", () => {
+  assertEquals(decideCompletion({ ...base, existing: { userId: "U2", status: "connected" } }), "in_use");
+  assertEquals(decideCompletion({ ...base, existing: { userId: "U2", status: "needs_reconnect" } }), "in_use");
+});
+
+Deno.test("conta desconectada de outro usuário: assume, respeitando o limite", () => {
+  assertEquals(decideCompletion({ ...base, existing: { userId: "U2", status: "disconnected" } }), "replace_disconnected");
+  assertEquals(
+    decideCompletion({ ...base, existing: { userId: "U2", status: "disconnected" }, ownAccountCount: 1 }),
+    "limit",
+  );
+});
+
+Deno.test("acesso negado vence qualquer outra regra", () => {
+  assertEquals(
+    decideCompletion({ ...base, hasAccess: false, existing: { userId: "U2", status: "connected" } }),
+    "not_allowed",
+  );
 });
