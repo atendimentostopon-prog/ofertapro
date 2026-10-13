@@ -1,6 +1,7 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   billingEventToOps,
+  enrichWithSalesToday,
   invalidSecretToOps,
   requestInfoFromHeaders,
   webhookFailureToOps,
@@ -266,4 +267,60 @@ Deno.test("e-mail e telefone do cliente ficam completos", () => {
   const d = billingEventToOps("refund", FULL)!.detail as any;
   assertEquals(d.cliente_email, "ana@x.com");
   assertEquals(d.cliente_telefone, "+5511987654321");
+});
+
+// ---------- enrichWithSalesToday ----------
+
+function baseEv() {
+  return billingEventToOps("purchase_approved", { id: "ord_9", amount: 47.9, metadata: { supabase_user_id: UID } })!;
+}
+
+Deno.test("enrichWithSalesToday acrescenta vendas_hoje e faturamento_hoje", async () => {
+  const ev = baseEv();
+  const out = await enrichWithSalesToday(
+    { rpc: (fn) => { assertEquals(fn, "ops_sales_today"); return Promise.resolve({ data: { vendas: 3, faturamento: 143.7 }, error: null }); } },
+    ev,
+  );
+  assertEquals((out.detail as any).vendas_hoje, 3);
+  assertEquals((out.detail as any).faturamento_hoje, 143.7);
+  assertEquals((out.detail as any).valor, 47.9);
+  assertEquals(out.dedupeKey, ev.dedupeKey);
+});
+
+Deno.test("enrichWithSalesToday devolve o evento intacto quando a RPC retorna erro", async () => {
+  const ev = baseEv();
+  const out = await enrichWithSalesToday(
+    { rpc: () => Promise.resolve({ data: null, error: { message: "boom" } }) },
+    ev,
+  );
+  assert(out === ev);
+  assertEquals("vendas_hoje" in (out.detail as any), false);
+});
+
+Deno.test("enrichWithSalesToday engole excecao lancada pelo cliente", async () => {
+  const ev = baseEv();
+  const out = await enrichWithSalesToday({ rpc: () => { throw new Error("rede"); } }, ev);
+  assert(out === ev);
+  const out2 = await enrichWithSalesToday({ rpc: () => Promise.reject(new Error("rede")) }, ev);
+  assert(out2 === ev);
+});
+
+Deno.test("enrichWithSalesToday ignora formato inesperado", async () => {
+  const ev = baseEv();
+  for (const data of [null, "x", 5, [], {}, { vendas: "a", faturamento: 1 }, { vendas: 1 }, { vendas: 1, faturamento: null }]) {
+    const out = await enrichWithSalesToday({ rpc: () => Promise.resolve({ data, error: null }) }, ev);
+    assert(out === ev);
+  }
+});
+
+Deno.test("enrichWithSalesToday nao muta o objeto de entrada", async () => {
+  const ev = baseEv();
+  const snapshot = JSON.stringify(ev);
+  const out = await enrichWithSalesToday(
+    { rpc: () => Promise.resolve({ data: { vendas: 1, faturamento: 47.9 }, error: null }) },
+    ev,
+  );
+  assert(out !== ev);
+  assertEquals(JSON.stringify(ev), snapshot);
+  assertEquals("vendas_hoje" in (ev.detail as any), false);
 });

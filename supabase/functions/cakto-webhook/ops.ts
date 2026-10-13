@@ -1,5 +1,6 @@
 // supabase/functions/cakto-webhook/ops.ts
-// Mapeia eventos da Cakto para alertas operacionais. Puro: nao toca em rede nem banco.
+// Mapeia eventos da Cakto para alertas operacionais. As funcoes de mapeamento sao puras;
+// enrichWithSalesToday so fala com o banco por meio do cliente recebido.
 import type { EmitInput } from "../_shared/ops/emit.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -204,4 +205,33 @@ export function invalidSecretToOps(info?: RequestInfo): EmitInput {
       rota: "/cakto-webhook",
     }),
   };
+}
+
+export interface SalesRpcClient {
+  rpc(fn: string): PromiseLike<{ data: unknown; error: { message: string } | null }>;
+}
+
+// Acrescenta vendas_hoje e faturamento_hoje ao alerta. Nunca lanca e nunca muda o
+// objeto recebido: qualquer erro ou formato inesperado devolve o proprio `ev`.
+export async function enrichWithSalesToday(client: SalesRpcClient, ev: EmitInput): Promise<EmitInput> {
+  try {
+    const { data, error } = await client.rpc("ops_sales_today");
+    if (error) return ev;
+    const d = obj(data);
+    const vendas = d.vendas;
+    const faturamento = d.faturamento;
+    const faturamentoNum = typeof faturamento === "string" && faturamento.trim() !== ""
+      ? Number(faturamento)
+      : faturamento;
+    if (
+      typeof vendas !== "number" || !Number.isFinite(vendas) ||
+      typeof faturamentoNum !== "number" || !Number.isFinite(faturamentoNum)
+    ) return ev;
+    return {
+      ...ev,
+      detail: { ...(ev.detail ?? {}), vendas_hoje: vendas, faturamento_hoje: faturamentoNum },
+    };
+  } catch {
+    return ev;
+  }
 }

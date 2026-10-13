@@ -8,6 +8,7 @@ import { getSupabaseAdmin } from "../_shared/cakto.ts";
 import { emitOps, type EmitInput } from "../_shared/ops/emit.ts";
 import {
   billingEventToOps,
+  enrichWithSalesToday,
   invalidSecretToOps,
   requestInfoFromHeaders,
   webhookFailureToOps,
@@ -59,7 +60,10 @@ serve(async (req: Request) => {
     // Cakto payload real: { secret, event, data: {...} } - handlers recebem so data.
     await handler(payload.data ?? {});
     try {
-      const opsEvent = billingEventToOps(payload.event, payload.data ?? {});
+      let opsEvent = billingEventToOps(payload.event, payload.data ?? {});
+      if (opsEvent && (payload.event === "purchase_approved" || payload.event === "subscription_renewed")) {
+        opsEvent = await enrichWithSalesToday(getSupabaseAdmin() as any, opsEvent);
+      }
       if (opsEvent) await emit(opsEvent);
     } catch (e) {
       console.error("[cakto-webhook] ops mapping falhou:", e instanceof Error ? e.message : "erro");

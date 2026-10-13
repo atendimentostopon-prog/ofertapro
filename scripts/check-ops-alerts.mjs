@@ -7,6 +7,7 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
 const core = read('supabase/migrations/20261013000000_ops_events_and_emit.sql');
 const sources = read('supabase/migrations/20261013000100_ops_business_sources.sql');
+const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
@@ -39,6 +40,16 @@ const sourceContracts = [
   /'trial_expiring:' \|\| r\.id::text/i,
 ];
 for (const c of sourceContracts) assert.match(sources, c, `Contrato ausente na migration de fontes: ${c}`);
+
+const richContracts = [
+  /after update of email_confirmed_at on auth\.users/i,
+  /when\s*\(\s*old\.email_confirmed_at\s+is\s+null\s+and\s+new\.email_confirmed_at\s+is\s+not\s+null\s*\)/i,
+  /revoke all on function public\.ops_sales_today/i,
+  /grant execute on function public\.ops_sales_today\(\) to service_role/i,
+  /exception when others/i,
+  /'email_confirmed:'/,
+];
+for (const c of richContracts) assert.match(rich, c, `Contrato ausente na migration de mensagens ricas: ${c}`);
 
 assert.match(handler, /timingSafeEqual/, 'notify precisa comparar a chave em tempo constante');
 assert.match(handler, /!deps\.serviceKey/, 'notify nao pode autorizar com serviceKey vazia');

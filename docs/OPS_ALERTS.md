@@ -144,6 +144,20 @@ supabase secrets set DISCORD_WEBHOOK_CRITICAL=... DISCORD_WEBHOOK_ERRORS=... DIS
 5. Aplicar `supabase/migrations/20261013000100_ops_business_sources.sql` e rodar o teste manual correspondente.
 6. `supabase functions deploy cakto-webhook --no-verify-jwt`
 7. Fazer um cadastro de teste e conferir o aviso no `#negocio` e no Telegram.
+8. Migration 3 (mensagens ricas): aplicar `supabase/migrations/20261013000200_ops_rich_messages.sql` no SQL Editor, com o mesmo papel das anteriores, e rodar `supabase/tests/manual/20261013000200_ops_rich_messages.test.sql`. Verificações:
+
+   ```sql
+   -- 1) trigger existe (espera 1 linha)
+   select tgname from pg_trigger where tgrelid = 'auth.users'::regclass and tgname = 'trg_ops_email_confirmed';
+   -- 2) privilégios (espera false, false, true)
+   select has_function_privilege('anon', 'public.ops_sales_today()', 'execute'),
+          has_function_privilege('authenticated', 'public.ops_on_email_confirmed()', 'execute'),
+          has_function_privilege('service_role', 'public.ops_sales_today()', 'execute');
+   -- 3) vendas do dia (espera jsonb com "vendas" e "faturamento")
+   select public.ops_sales_today();
+   ```
+
+   Rollback: `supabase/rollbacks/20261013000200_ops_rich_messages_rollback.sql`. O `cakto-webhook` precisa ser reimplantado (`--no-verify-jwt`) para incluir "vendas hoje" nas vendas.
 
 Sobre o flag de JWT:
 
@@ -167,6 +181,7 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 ## Desligar / reverter
 
 - Parar só os avisos de cadastro: `drop trigger if exists trg_ops_signup on auth.users;`
+- Parar só os avisos de e-mail confirmado: `drop trigger if exists trg_ops_email_confirmed on auth.users;`
 - Não há interruptor no nível do banco na Fase 1 (veja `ops_settings.enabled` em Próximas fases).
 - Interruptor imediato (qualquer um dos dois):
   - `supabase secrets unset TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID DISCORD_WEBHOOK_CRITICAL DISCORD_WEBHOOK_ERRORS DISCORD_WEBHOOK_BUSINESS DISCORD_WEBHOOK_INFO` (o `notify` passa a reportar tudo como ignorado);
