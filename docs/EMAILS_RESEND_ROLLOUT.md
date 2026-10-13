@@ -37,7 +37,7 @@ Verificar: `supabase secrets list`.
 ```
 supabase functions deploy send-email
 supabase functions deploy email-hook --no-verify-jwt
-supabase functions deploy cakto-webhook
+supabase functions deploy cakto-webhook --no-verify-jwt
 ```
 Nota: `--no-verify-jwt` porque o Send Email Hook do Supabase nao manda JWT; a autenticidade e checada pela assinatura Standard Webhooks (`SEND_EMAIL_HOOK_SECRET`) dentro da funcao.
 

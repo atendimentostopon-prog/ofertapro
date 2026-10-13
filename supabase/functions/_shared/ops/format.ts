@@ -38,7 +38,7 @@ export function render(ev: OpsEvent): Rendered {
   const detail = (sanitizeDetail(ev.detail) ?? {}) as Record<string, unknown>;
   const entries = Object.entries(detail).slice(0, MAX_FIELDS);
   const title = `${EMOJI[ev.severity]} ${cleanString(ev.title)}`.slice(0, 250);
-  const repeat = ev.occurrences > 1 ? `×${ev.occurrences} nos últimos 10 min` : undefined;
+  const repeat = ev.occurrences > 1 ? `×${ev.occurrences} ocorrências` : undefined;
 
   const discord = {
     embeds: [

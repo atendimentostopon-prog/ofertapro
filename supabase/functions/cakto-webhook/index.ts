@@ -65,7 +65,7 @@ serve(async (req: Request) => {
     // desfaz idempotencia pra permitir retry do Cakto
     await deleteEventRecord(getEventId(payload));
     try {
-      await emit(webhookFailureToOps(payload.event, e));
+      await emit(webhookFailureToOps(payload.event, e, payload.data));
     } catch (emitErr) {
       console.error("[cakto-webhook] ops mapping falhou:", emitErr instanceof Error ? emitErr.message : "erro");
     }

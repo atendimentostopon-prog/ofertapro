@@ -27,6 +27,24 @@ select public.ops_emit('business','signup','Teste chave', '{}'::jsonb, null, 'te
 select count(*) as linhas, max(occurrences) as occ
   from public.ops_events where fingerprint = 'k:teste:k1';                                    -- espera 1, 2
 
+-- (d2) gating de notificacao (1a e 5a ocorrencia; dedupe_key notifica 1x). Roda dentro de uma
+-- transacao que termina em ROLLBACK, entao nunca envia alerta real (pg_net so envia no commit).
+-- net.http_request_queue e o nome documentado da fila do pg_net; se a sua versao usar outro
+-- nome, ajuste. O SQL Editor nao suporta \gset: as contagens ficam numa tabela temporaria.
+-- Rodar tudo de uma vez, no mesmo run (um unico begin ... rollback).
+begin;
+  set local app.notify_url = 'http://127.0.0.1:9/notify';
+  set local app.service_role_key = 'teste-nao-e-segredo';
+  create temp table _g on commit drop as select count(*) as n from net.http_request_queue;
+  -- 6 emissoes identicas (digitos normalizam): notifica na 1a e na 5a
+  select public.ops_emit('error','edge_error','Teste gating 1') from generate_series(1,6);
+  select (select count(*) from net.http_request_queue) - (select n from _g) as notificacoes;       -- espera 2
+  -- dedupe_key: 3 chamadas, 1 notificacao (total acumulado 3)
+  select public.ops_emit('business','signup','Teste gating chave', '{}'::jsonb, null, 'teste:gating')
+    from generate_series(1,3);
+  select (select count(*) from net.http_request_queue) - (select n from _g) as notificacoes_total;  -- espera 3
+rollback;
+
 -- (e) fail-open: argumento invalido NAO lanca, devolve null
 select public.ops_emit('nao-existe','x','t') is null as devolveu_null;                        -- espera true
 

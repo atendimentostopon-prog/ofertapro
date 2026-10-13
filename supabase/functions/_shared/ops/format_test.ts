@@ -35,7 +35,7 @@ Deno.test("render: Telegram em HTML, escapado e com o detalhe", () => {
 
 Deno.test("render: ocorrências > 1 aparecem como ×N", () => {
   const r = render({ ...base, severity: "error", occurrences: 25 });
-  assertEquals((r.discord.embeds[0] as any).description, "×25 nos últimos 10 min");
+  assertEquals((r.discord.embeds[0] as any).description, "×25 ocorrências");
   assert(r.telegram.includes("×25"));
 });
 
