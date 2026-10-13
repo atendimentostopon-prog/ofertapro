@@ -64,7 +64,8 @@ export async function deliver(
 
   const [d, t] = await Promise.all([
     discordUrl
-      ? post("discord", discordUrl, rendered.discord, fetchImpl)
+      // allowed_mentions vazio: nenhum @everyone, @here ou mencao dispara notificacao.
+      ? post("discord", discordUrl, { ...rendered.discord, allowed_mentions: { parse: [] } }, fetchImpl)
       : Promise.resolve({ status: "skipped" as ChannelStatus, error: undefined }),
     wantTelegram
       ? post(

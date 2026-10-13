@@ -19,10 +19,108 @@ Edge Functions ───────┴─> ops_emit() ─> ops_events ─(pg_ne
 | Evento | Severidade | Destino |
 |---|---|---|
 | Novo cadastro | business | Discord `#negocio` + Telegram |
+| E-mail confirmado (exige a migration `20261013000200_ops_rich_messages.sql`) | business | Discord `#negocio` + Telegram |
 | Venda aprovada, renovação, assinatura criada/cancelada, reembolso, chargeback, compra/renovação recusada | business | Discord `#negocio` + Telegram |
 | Trial termina em menos de 24h | business | Discord `#negocio` + Telegram |
 | Webhook da Cakto falhou ao processar | critical | Discord `#criticos` + Telegram |
 | Webhook da Cakto com secret inválido | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+
+## Mensagens
+
+Cada alerta é montado por `supabase/functions/_shared/ops/format.ts` a partir das chaves do `detail`. Rótulos em pt-BR, valores formatados (R$, telefone, data em America/Sao_Paulo), e-mail e telefone completos. Chaves vazias são omitidas e chaves desconhecidas aparecem depois das conhecidas, com o nome humanizado.
+
+| Chave | Rótulo | Formato |
+|---|---|---|
+| `nome`, `email`, `telefone` | Nome, E-mail, Telefone | telefone BR como `(11) 98765-4321` |
+| `origem` | Origem | `email` = E-mail e senha, `google` = Google |
+| `email_confirmado` | Confirmação | Confirmado / Aguardando confirmação |
+| `trial_termina` | Trial termina | `20/10 às 12:00` |
+| `confirmou_em_min` | Confirmou em | `4 min`, `1 h 20 min`, `< 1 min` |
+| `onboarding_passo` | Onboarding | `passo 1 de 4` |
+| `horas_restantes` | Restam | `18 h` ou `45 min` |
+| `dias_de_uso`, `bot_status`, `canais` | Dias de uso, Bot, Canais | texto |
+| `plano`, `ciclo` | Plano, Ciclo | Pro, Starter, Business (enterprise), Free; Mensal, Anual |
+| `valor`, `faturamento_hoje` | Valor, Faturamento hoje | `R$ 48,89` |
+| `forma_pagamento`, `parcelas` | Pagamento, Parcelas | Cartão, Pix, Boleto; `3x` |
+| `pedido`, `oferta`, `evento` | Pedido, Oferta, Evento | texto |
+| `cliente_nome`, `cliente_email`, `cliente_telefone` | Cliente, E-mail do cliente, Telefone do cliente | texto |
+| `acesso`, `motivo`, `erro`, `acao` | Acesso, Motivo, Erro, O que fazer | texto |
+| `vendas_hoje` | Vendas hoje | número |
+| `ip`, `pais`, `user_agent`, `rota` | IP, País, Navegador / cliente, Rota | texto |
+| `painel` | (link) | só `https://admin.aflyo.com.br/...` vira link: título do embed no Discord e "Abrir no painel" no Telegram; qualquer outro valor aparece como texto simples |
+
+`cadastro_numero`, `cadastros_hoje`, `confirmaram_hoje` e `taxa_confirmacao_7d` não são campos: entram na linha-resumo logo abaixo do título. Limites: Telegram até 4000 caracteres (corta por linha), Discord até 15 campos e embed abaixo de 5500 caracteres.
+
+Exemplos (Telegram):
+
+```
+🟢 Novo cadastro
+Cadastro nº 128 · 7 hoje
+Nome: Ana Silva
+E-mail: ana@exemplo.com
+Telefone: (11) 98765-4321
+Origem: Google
+Confirmação: Aguardando confirmação
+Trial termina: 20/10 às 12:00
+signup · 13/10/2026 12:00
+Abrir no painel
+```
+
+```
+🟢 E-mail confirmado
+5 confirmaram hoje · confirmação em 7 dias: 62,5%
+Nome: Ana Silva
+E-mail: ana@exemplo.com
+Confirmou em: 4 min
+Onboarding: passo 1 de 4
+```
+
+```
+🟢 Trial termina em menos de 24h
+Nome: Ana Silva
+Telefone: (11) 98765-4321
+Trial termina: 14/10 às 06:30
+Restam: 18 h
+Dias de uso: 6
+Bot: ativo
+Canais: 2
+```
+
+```
+🟢 Venda aprovada
+Pro mensal · R$ 48,89 · hoje: 4 vendas · R$ 1.234,50
+Plano: Pro
+Valor: R$ 48,89
+Pagamento: Cartão
+Parcelas: 3x
+Cliente: Ana Silva
+Acesso: liberado, bot retomado
+```
+
+```
+🟢 Reembolso
+Starter mensal · R$ 19,90
+Motivo: solicitado pelo cliente
+Acesso: revogado e bot pausado
+```
+
+```
+🔴 Webhook Cakto falhou: refund
+Evento: refund
+Pedido: ord_9
+Erro: profiles by id: timeout
+O que fazer: Verifique o webhook e reprocesse o evento em Cakto > Webhooks no painel admin
+```
+
+```
+🟠 Webhook Cakto com secret inválido
+IP: 203.0.113.9
+País: BR
+Navegador / cliente: curl/8.0
+Rota: /cakto-webhook
+```
+
+Requisitos: o alerta "E-mail confirmado" e os campos ricos de cadastro e trial dependem da migration `supabase/migrations/20261013000200_ops_rich_messages.sql`. Sem ela as mensagens continuam funcionando, só com menos campos. Os campos de cobrança vêm do próprio `cakto-webhook` (deploy da function).
 
 ## Configuração (uma vez)
 
@@ -46,6 +144,20 @@ supabase secrets set DISCORD_WEBHOOK_CRITICAL=... DISCORD_WEBHOOK_ERRORS=... DIS
 5. Aplicar `supabase/migrations/20261013000100_ops_business_sources.sql` e rodar o teste manual correspondente.
 6. `supabase functions deploy cakto-webhook --no-verify-jwt`
 7. Fazer um cadastro de teste e conferir o aviso no `#negocio` e no Telegram.
+8. Migration 3 (mensagens ricas): aplicar `supabase/migrations/20261013000200_ops_rich_messages.sql` no SQL Editor, com o mesmo papel das anteriores, e rodar `supabase/tests/manual/20261013000200_ops_rich_messages.test.sql`. Verificações:
+
+   ```sql
+   -- 1) trigger existe (espera 1 linha)
+   select tgname from pg_trigger where tgrelid = 'auth.users'::regclass and tgname = 'trg_ops_email_confirmed';
+   -- 2) privilégios (espera false, false, true)
+   select has_function_privilege('anon', 'public.ops_sales_today()', 'execute'),
+          has_function_privilege('authenticated', 'public.ops_on_email_confirmed()', 'execute'),
+          has_function_privilege('service_role', 'public.ops_sales_today()', 'execute');
+   -- 3) vendas do dia (espera jsonb com "vendas" e "faturamento")
+   select public.ops_sales_today();
+   ```
+
+   Rollback: `supabase/rollbacks/20261013000200_ops_rich_messages_rollback.sql`. O `cakto-webhook` precisa ser reimplantado (`--no-verify-jwt`) para incluir "vendas hoje" nas vendas.
 
 Sobre o flag de JWT:
 
@@ -69,6 +181,7 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 ## Desligar / reverter
 
 - Parar só os avisos de cadastro: `drop trigger if exists trg_ops_signup on auth.users;`
+- Parar só os avisos de e-mail confirmado: `drop trigger if exists trg_ops_email_confirmed on auth.users;`
 - Não há interruptor no nível do banco na Fase 1 (veja `ops_settings.enabled` em Próximas fases).
 - Interruptor imediato (qualquer um dos dois):
   - `supabase secrets unset TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID DISCORD_WEBHOOK_CRITICAL DISCORD_WEBHOOK_ERRORS DISCORD_WEBHOOK_BUSINESS DISCORD_WEBHOOK_INFO` (o `notify` passa a reportar tudo como ignorado);
@@ -93,7 +206,8 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 ## Segurança
 
 - Tokens e webhooks existem apenas como secrets das Edge Functions. Webhook do Discord é credencial: se vazar, apague e recrie.
-- `ops_events` nunca recebe headers, corpo bruto, chaves ou cartão. Tudo passa por `sanitizeDetail` (e-mail mascarado, chaves sensíveis redigidas, tamanho limitado).
+- `ops_events` nunca recebe headers, corpo bruto, chaves ou cartão. Tudo passa por `sanitizeDetail` com `keepEmails`: chaves sensíveis, JWT, Bearer, tokens do Telegram e webhooks do Discord são sempre redigidos e o tamanho é limitado. O e-mail NÃO é mascarado no detalhe (decisão do operador em 2026-10-13); só o título do alerta continua com e-mail mascarado.
+- Dados pessoais (LGPD): e-mail e telefone completos de usuários e clientes vão para o Discord, o Telegram e `ops_events.detail` por decisão do operador, porque os canais são privados. Mantenha os canais restritos à equipe e não os compartilhe.
 - `ops_events` tem RLS ligada e nenhuma policy; `ops_emit` só executa para `service_role`.
 - Check automático: `npm run check:ops-alerts`.
 
@@ -107,3 +221,5 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 - Nomes de chaves sensíveis em pt-BR no sanitize (senha, pwd, credential) antes do `withAlerts`.
 - Alerta quando a gravação em `webhook_events` falha no `cakto-webhook`.
 - Hook de "evento recebido".
+- Os contadores `count(*)` em `auth.users` dentro dos triggers de cadastro e de confirmação devem ser trocados por contador ou consulta indexada antes de ~100 mil usuários (e `query_canceled` não é capturado por `exception when others`).
+- "Faturamento hoje" soma o valor bruto pago pelo cliente (inclui a taxa de R$ 0,99 e é antes do corte da Cakto) e conta eventos de teste.

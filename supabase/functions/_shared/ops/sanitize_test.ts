@@ -76,3 +76,26 @@ Deno.test("cleanString remove pares de query/chave tipo token=, key=, secret=, a
   assert(!out.includes("test123"));
   assertEquals((out.match(/\[redigido\]/g) || []).length, 5);
 });
+
+Deno.test("keepEmails: e-mail completo, mas JWT/Bearer/token continuam redigidos", () => {
+  const jwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijklmnop";
+  const tg = "123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw";
+  const out = sanitizeDetail({
+    email: "ana@x.com",
+    erro: `falha ana@x.com Bearer abc123 ${jwt} ${tg} url?token=zzz sbp_abcdef123`,
+    api_key: "segredo",
+    nested: { cliente_email: "bia@y.com.br", password: "p" },
+  }, 0, { keepEmails: true }) as Record<string, any>;
+  assertEquals(out.email, "ana@x.com");
+  assert(out.erro.includes("ana@x.com"));
+  for (const leaked of ["abc123", jwt, tg, "zzz", "sbp_abcdef123"]) assert(!out.erro.includes(leaked));
+  assertEquals(out.api_key, "[redigido]");
+  assertEquals(out.nested.cliente_email, "bia@y.com.br");
+  assertEquals(out.nested.password, "[redigido]");
+});
+
+Deno.test("keepEmails: cleanString continua truncando e o padrao continua mascarando", () => {
+  assertEquals(cleanString("ana@x.com", { keepEmails: true }), "ana@x.com");
+  assertEquals(cleanString("ana@x.com"), "a***@x.com");
+  assert(cleanString("x".repeat(5000), { keepEmails: true }).length <= 501);
+});

@@ -30,7 +30,7 @@ Deno.test("emitOps chama ops_emit com os parâmetros certos e detalhe sanitizado
   assertEquals(calls[0].args.p_title, "Venda aprovada");
   assertEquals(calls[0].args.p_user_id, "3f2b8c1e-9a4d-4e6f-8b1a-2c3d4e5f6a7b");
   assertEquals(calls[0].args.p_dedupe_key, "cakto:purchase_approved:abc");
-  assertEquals(calls[0].args.p_detail, { customer: "a***@x.com", api_key: "[redigido]" });
+  assertEquals(calls[0].args.p_detail, { customer: "ana@x.com", api_key: "[redigido]" });
 });
 
 Deno.test("emitOps usa defaults quando faltam campos opcionais", async () => {
@@ -67,4 +67,18 @@ Deno.test("emitOps remove tokens (Bearer) e mascara emails do titulo", async () 
   const title = calls[0].args.p_title as string;
   assertEquals(title.includes("abc123"), false);
   assertEquals(title.includes("a***@x.com"), true);
+});
+
+Deno.test("emitOps mantem e-mail completo no detalhe mas redige Bearer na mesma string", async () => {
+  const { client, calls } = fakeClient({ error: null });
+  await emitOps(client, {
+    severity: "error",
+    category: "edge_error",
+    title: "x",
+    detail: { erro: "falha para joao@x.com com Bearer abc123", email: "ana@x.com" },
+  });
+  const d = calls[0].args.p_detail as Record<string, string>;
+  assertEquals(d.email, "ana@x.com");
+  assertEquals(d.erro.includes("joao@x.com"), true);
+  assertEquals(d.erro.includes("abc123"), false);
 });

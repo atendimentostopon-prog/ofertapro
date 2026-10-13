@@ -1,5 +1,6 @@
 // Unica porta de entrada de dados de contexto para ops_events e para as mensagens.
-// Regra: nunca deixar passar segredo, e-mail completo ou texto gigante.
+// Regra: nunca deixar passar segredo ou texto gigante. E-mail e mascarado por padrao;
+// os alertas operacionais (canal privado) pedem keepEmails para mostrar o e-mail completo.
 
 const SECRET_KEY_RE =
   /(token|secret|password|passwd|authorization|api[_-]?key|apikey|cookie|service[_-]?role|bearer|jwt|signature|cvv|card)/i;
@@ -20,31 +21,35 @@ export function maskEmail(input: string): string {
   return input.replace(EMAIL_RE, (_m, first: string, domain: string) => `${first}***@${domain}`);
 }
 
-export function cleanString(s: string): string {
-  const cleaned = maskEmail(
-    s
-      .replace(JWT_RE, "[jwt]")
-      .replace(BEARER_RE, "Bearer [redigido]")
-      .replace(PREFIXED_SECRET_RE, "[redigido]")
-      .replace(TELEGRAM_BOT_TOKEN_RE, "[redigido]")
-      .replace(DISCORD_WEBHOOK_RE, "[redigido]")
-      .replace(QUERY_KEY_PAIR_RE, "[redigido]"),
-  );
+export interface SanitizeOptions {
+  /** Mantem e-mails completos. Segredos continuam sempre redigidos. */
+  keepEmails?: boolean;
+}
+
+export function cleanString(s: string, opts?: SanitizeOptions): string {
+  const redacted = s
+    .replace(JWT_RE, "[jwt]")
+    .replace(BEARER_RE, "Bearer [redigido]")
+    .replace(PREFIXED_SECRET_RE, "[redigido]")
+    .replace(TELEGRAM_BOT_TOKEN_RE, "[redigido]")
+    .replace(DISCORD_WEBHOOK_RE, "[redigido]")
+    .replace(QUERY_KEY_PAIR_RE, "[redigido]");
+  const cleaned = opts?.keepEmails ? redacted : maskEmail(redacted);
   return cleaned.length > MAX_STRING ? cleaned.slice(0, MAX_STRING) + "…" : cleaned;
 }
 
-export function sanitizeDetail(value: unknown, depth = 0): unknown {
+export function sanitizeDetail(value: unknown, depth = 0, opts?: SanitizeOptions): unknown {
   if (value === null || value === undefined) return null;
   if (typeof value === "number" || typeof value === "boolean") return value;
-  if (typeof value === "string") return cleanString(value);
+  if (typeof value === "string") return cleanString(value, opts);
   if (typeof value !== "object") return null; // function, symbol, bigint
   if (depth >= MAX_DEPTH) return "[truncado]";
   if (Array.isArray(value)) {
-    return value.slice(0, MAX_ITEMS).map((v) => sanitizeDetail(v, depth + 1));
+    return value.slice(0, MAX_ITEMS).map((v) => sanitizeDetail(v, depth + 1, opts));
   }
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(value as Record<string, unknown>).slice(0, MAX_KEYS)) {
-    out[k] = SECRET_KEY_RE.test(k) ? "[redigido]" : sanitizeDetail(v, depth + 1);
+    out[k] = SECRET_KEY_RE.test(k) ? "[redigido]" : sanitizeDetail(v, depth + 1, opts);
   }
   return out;
 }

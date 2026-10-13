@@ -7,9 +7,12 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
 const core = read('supabase/migrations/20261013000000_ops_events_and_emit.sql');
 const sources = read('supabase/migrations/20261013000100_ops_business_sources.sql');
+const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
+const sanitize = read('supabase/functions/_shared/ops/sanitize.ts');
+const format = read('supabase/functions/_shared/ops/format.ts');
 
 const coreContracts = [
   /alter table public\.ops_events enable row level security/i,
@@ -38,10 +41,28 @@ const sourceContracts = [
 ];
 for (const c of sourceContracts) assert.match(sources, c, `Contrato ausente na migration de fontes: ${c}`);
 
+const richContracts = [
+  /after update of email_confirmed_at on auth\.users/i,
+  /when\s*\(\s*old\.email_confirmed_at\s+is\s+null\s+and\s+new\.email_confirmed_at\s+is\s+not\s+null\s*\)/i,
+  /revoke all on function public\.ops_sales_today/i,
+  /grant execute on function public\.ops_sales_today\(\) to service_role/i,
+  /exception when others/i,
+  /'email_confirmed:'/,
+];
+for (const c of richContracts) assert.match(rich, c, `Contrato ausente na migration de mensagens ricas: ${c}`);
+
 assert.match(handler, /timingSafeEqual/, 'notify precisa comparar a chave em tempo constante');
 assert.match(handler, /!deps\.serviceKey/, 'notify nao pode autorizar com serviceKey vazia');
 assert.match(deliver, /http_\$\{res\.status\}/, 'erros de entrega nao podem carregar corpo/URL');
 assert.match(emit, /catch \(e\)/, 'emitOps precisa ser fail-open');
+assert.match(sanitize, /export function cleanString\(s: string, opts\?: SanitizeOptions\)/, 'sanitize precisa exportar cleanString(s, opts)');
+assert.match(sanitize, /keepEmails\?: boolean/, 'SanitizeOptions precisa declarar keepEmails');
+assert.match(sanitize, /opts\?\.keepEmails \? redacted : maskEmail\(redacted\)/, 'keepEmails so pode pular o mascaramento de e-mail');
+assert.match(sanitize, /export function sanitizeDetail\(value: unknown, depth = 0, opts\?: SanitizeOptions\)/, 'sanitizeDetail precisa aceitar opts (keepEmails)');
+assert.match(sanitize, /SECRET_KEY_RE\.test\(k\)/, 'redacao por nome de chave nao pode depender de keepEmails');
+assert.ok(format.includes(String.raw`/^https:\/\/admin\.aflyo\.com\.br\/[^\s"'<>]*$/`), 'format so pode linkificar o prefixo https://admin.aflyo.com.br/');
+assert.equal((format.match(/<a href=/g) ?? []).length, 1, 'format so pode gerar um link <a href>, o do painel validado');
+assert.match(format, /keepEmails: true/, 'render precisa sanitizar com keepEmails');
 
 // Nenhum segredo de alerta pode aparecer no front ou no admin.
 const SECRET_RE = /TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID|DISCORD_WEBHOOK_/;

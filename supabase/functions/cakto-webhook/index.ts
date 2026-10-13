@@ -6,7 +6,13 @@ import { validateSecret, recordEventIfNew, deleteEventRecord, getEventId } from 
 import { HANDLERS } from "./handlers.ts";
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
 import { emitOps, type EmitInput } from "../_shared/ops/emit.ts";
-import { billingEventToOps, invalidSecretToOps, webhookFailureToOps } from "./ops.ts";
+import {
+  billingEventToOps,
+  enrichWithSalesToday,
+  invalidSecretToOps,
+  requestInfoFromHeaders,
+  webhookFailureToOps,
+} from "./ops.ts";
 
 // Fail-open: alerta nunca muda a resposta do webhook.
 async function emit(ev: EmitInput): Promise<void> {
@@ -31,7 +37,7 @@ serve(async (req: Request) => {
 
   if (!validateSecret(payload)) {
     console.warn("[cakto-webhook] secret invalido");
-    await emit(invalidSecretToOps());
+    await emit(invalidSecretToOps(requestInfoFromHeaders(req.headers)));
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -54,7 +60,10 @@ serve(async (req: Request) => {
     // Cakto payload real: { secret, event, data: {...} } - handlers recebem so data.
     await handler(payload.data ?? {});
     try {
-      const opsEvent = billingEventToOps(payload.event, payload.data ?? {});
+      let opsEvent = billingEventToOps(payload.event, payload.data ?? {});
+      if (opsEvent && (payload.event === "purchase_approved" || payload.event === "subscription_renewed")) {
+        opsEvent = await enrichWithSalesToday(getSupabaseAdmin() as any, opsEvent);
+      }
       if (opsEvent) await emit(opsEvent);
     } catch (e) {
       console.error("[cakto-webhook] ops mapping falhou:", e instanceof Error ? e.message : "erro");
