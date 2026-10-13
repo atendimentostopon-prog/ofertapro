@@ -15,6 +15,7 @@ npm run build
 npm run check:plan-limits
 npm run check:billing
 npm run check:api-key-rollout
+npm run check:ops-alerts
 ```
 
 Não existe `npm test` geral.
