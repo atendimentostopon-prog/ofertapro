@@ -19,8 +19,13 @@ const coreContracts = [
   /exception when others then[\s\S]*return null/i,
   /pg_advisory_xact_lock/i,
   /v_occ in \(5, 25, 100\)/i,
+  /vault\.decrypted_secrets/i,
+  /app_service_role_key/i,
+  /functions\.supabase\.co\/notify/i,
 ];
 for (const c of coreContracts) assert.match(core, c, `Contrato ausente na migration core: ${c}`);
+assert.doesNotMatch(core, /alter database/i, 'a migration core nao pode usar alter database (permission denied no SQL Editor)');
+assert.doesNotMatch(core, /current_setting\('app\./i, 'ops_emit nao pode ler app.* (producao usa Vault)');
 assert.doesNotMatch(core, /create policy[^;]*ops_events/i, 'ops_events nao pode ter policy publica');
 assert.doesNotMatch(core, /references\s+public\.profiles/i, 'ops_events.user_id nao pode ter FK para profiles');
 

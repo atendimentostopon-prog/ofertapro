@@ -11,5 +11,3 @@ drop function if exists public.ops_prune();
 drop function if exists public.ops_emit(text, text, text, jsonb, uuid, text);
 drop function if exists public.ops_mask_email(text);
 drop table if exists public.ops_events;
-
-alter database postgres reset app.notify_url;

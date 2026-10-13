@@ -29,8 +29,9 @@ de plantão.
 
 - Já existe padrão de disparo banco para Edge Function: `public.enqueue_transactional_email`
   (`supabase/migrations/20260901120000_email_log_and_triggers.sql`) usa `net.http_post` com
-  `app.service_role_key` e URL em `alter database ... set app.*`, e é `security definer` com
-  `revoke ... from public, anon, authenticated`. A central reaproveita esse padrão.
+  a chave lida do Vault (segredo `app_service_role_key`) e URL constante na função, e é
+  `security definer` com `revoke ... from public, anon, authenticated`. A central reaproveita
+  esse padrão (a migration versionada antiga usava `app.*`, mas produção usa Vault).
 - Cron do banco via `cron.schedule` já é usado (`expire_trials`, `aflyo_expire_offers`, etc.).
 - Edge Functions existentes: `cakto-webhook`, `cakto-create-payment`, `cakto-cancel-subscription`,
   `evolution-*`, `public-api`, `admin-api`, `send-email`, `email-hook`, `enrich-product`,
@@ -141,7 +142,7 @@ tokens, query strings). Integração Discord/Telegram nativa. Atenção: a CSP e
 
 **Fase 1: central + negócio**
 
-- Migration: `ops_events`, `ops_emit`, RLS, retenção, `app.notify_url` (config não secreta).
+- Migration: `ops_events`, `ops_emit`, RLS, retenção; `ops_emit` lê o segredo `app_service_role_key` do Vault e tem a URL do `notify` como constante.
 - Edge Function `notify`, `_shared/ops/{routing,format,sanitize}.ts`, testes Deno.
 - Triggers: novo `profiles`/`auth.users` (cadastro), mudança em `subscriptions` (ativação,
   cancelamento, reembolso, expiração), trial expirando.
@@ -173,8 +174,9 @@ tokens, query strings). Integração Discord/Telegram nativa. Atenção: a CSP e
 ## 4. Segurança
 
 - Tokens do Telegram, webhooks do Discord e `NOTIFY_SECRET` ficam somente em secrets das Edge
-  Functions (e em `app.*` quando o banco precisa só da URL, nunca de segredo). O padrão de
-  `app.service_role_key` aplicado à mão no SQL Editor é mantido; nada disso é versionado.
+  Functions. A chave de service role usada pelo banco fica no Vault (segredo
+  `app_service_role_key`, o mesmo do recurso de e-mails; rotação com
+  `select public.set_app_service_role_key('<nova chave>');`); nada disso é versionado.
 - Webhooks do Discord são credenciais: quem os tem posta no canal. Rotacionar se vazarem.
 - `ops_events` nunca recebe corpo bruto de request, headers, tokens, chaves de bot/Evolution, nem
   dados de cartão. `sanitize.ts` é a única porta de entrada e tem teste.
@@ -199,7 +201,7 @@ tokens, query strings). Integração Discord/Telegram nativa. Atenção: a CSP e
 - Deno: `sanitize` (PII/segredos removidos), `routing` (matriz de severidade), `format`, dedup
   por fingerprint, validação de segredo.
 - SQL manual em `supabase/tests/manual/`: `ops_emit` dedup e janela, RLS (anon/authenticated sem
-  acesso), fail-open do trigger com `notify_url` ausente.
+  acesso), fail-open do trigger com o segredo do Vault ausente.
 - `scripts/ops-test-alert.mjs`: smoke ponta a ponta de cada severidade para os dois canais.
 - Checklist manual por fase em produção: provocar cada fonte uma vez (cadastro de teste, erro
   forçado em função de teste, derrubar o ping) e conferir os dois canais.
@@ -209,7 +211,8 @@ tokens, query strings). Integração Discord/Telegram nativa. Atenção: a CSP e
 - Migrations novas passam por revisão e aplicação manual pelo operador (regra do projeto: nunca
   direto em produção). O deploy das Edge Functions segue o fluxo já usado (`supabase login`).
 - Cada fase é independente e reversível: remover o trigger (`drop trigger ...`) desliga a fonte;
-  esvaziar `app.notify_url` desliga toda a entrega sem tocar no negócio.
+  na Fase 1 não há interruptor no nível do banco (previsto como `ops_settings.enabled`); o
+  interruptor imediato é `supabase secrets unset` dos canais ou `supabase functions delete notify`.
 - Documentação: `docs/OPS_ALERTS.md` (arquitetura, secrets, como silenciar, runbook de
   "recebi X, e agora?") e atualização do guia de monitoramento do admin.
 

@@ -28,13 +28,12 @@ select count(*) as linhas, max(occurrences) as occ
   from public.ops_events where fingerprint = 'k:teste:k1';                                    -- espera 1, 2
 
 -- (d2) gating de notificacao (1a e 5a ocorrencia; dedupe_key notifica 1x). Roda dentro de uma
--- transacao que termina em ROLLBACK, entao nunca envia alerta real (pg_net so envia no commit).
+-- transacao que termina em ROLLBACK. ops_emit le a chave do Vault; as requisicoes http sao
+-- enfileiradas dentro da transacao e descartadas pelo rollback, entao nenhum alerta real e enviado.
 -- net.http_request_queue e o nome documentado da fila do pg_net; se a sua versao usar outro
 -- nome, ajuste. O SQL Editor nao suporta \gset: as contagens ficam numa tabela temporaria.
 -- Rodar tudo de uma vez, no mesmo run (um unico begin ... rollback).
 begin;
-  set local app.notify_url = 'http://127.0.0.1:9/notify';
-  set local app.service_role_key = 'teste-nao-e-segredo';
   create temp table _g on commit drop as select count(*) as n from net.http_request_queue;
   -- 6 emissoes identicas (digitos normalizam): notifica na 1a e na 5a
   select public.ops_emit('error','edge_error','Teste gating 1') from generate_series(1,6);
@@ -55,9 +54,8 @@ select public.ops_mask_email(null) is null as nulo_ok;                          
 -- (g) cron de retencao agendado
 select jobname, schedule from cron.job where jobname = 'ops_prune';                           -- espera 1 linha
 
--- (h) config
--- rodar em uma sessao NOVA (nova aba do SQL Editor); sessoes antigas podem devolver NULL
-select current_setting('app.notify_url', true) as notify_url;                                 -- espera .../notify
+-- (h) segredo no Vault (sem imprimir o valor)
+select exists (select 1 from vault.secrets where name = 'app_service_role_key') as vault_key_ok;  -- espera true
 
 -- limpeza
 delete from public.ops_events where title like 'Falha teste dedup%' or fingerprint = 'k:teste:k1';

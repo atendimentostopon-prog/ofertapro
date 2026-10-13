@@ -1,15 +1,10 @@
 -- supabase/migrations/20261013000000_ops_events_and_emit.sql
 -- Central de alertas operacionais, Fase 1.
 -- Spec: docs/superpowers/specs/2026-10-13-ops-alerts-design.md
--- DEPLOY: aplicar esta migration DEPOIS de `supabase functions deploy notify`
---   e de setar os secrets (TELEGRAM_*, DISCORD_WEBHOOK_*). app.service_role_key
---   ja existe (recurso de e-mails). ops_emit e fail-open: sem notify/secret nada quebra.
---   NOTA: alter database ... set so vale para NOVAS conexoes; conexoes em pool podem
---   demorar a enxergar o valor at reconectar.
+-- DEPLOY: depende do segredo 'app_service_role_key' no Vault (o mesmo usado por
+--   enqueue_transactional_email) e da function notify ja deployada. Sem o segredo,
+--   ops_emit grava o evento e apenas emite um notice (fail-open).
 -- ROLLBACK: supabase/rollbacks/20261013000000_ops_alerts_rollback.sql
-
--- 1) Config nao secreta ------------------------------------------------------
-alter database postgres set app.notify_url = 'https://zuqaccivowbzdfrpgekz.functions.supabase.co/notify';
 
 -- 2) Tabela ------------------------------------------------------------------
 -- user_id SEM FK de proposito: o trigger de cadastro roda em auth.users antes de
@@ -60,15 +55,15 @@ create or replace function public.ops_emit(
 ) returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, vault
 as $$
 declare
   v_fp     text;
   v_id     uuid;
   v_occ    int;
   v_notify boolean := false;
-  v_key    text := current_setting('app.service_role_key', true);
-  v_url    text := current_setting('app.notify_url', true);
+  v_key    text;
+  v_url    constant text := 'https://zuqaccivowbzdfrpgekz.functions.supabase.co/notify';
 begin
   p_title := left(coalesce(nullif(btrim(p_title), ''), '(sem titulo)'), 200);
 
@@ -116,22 +111,23 @@ begin
   end if;
 
   if v_notify then
-    if coalesce(v_key, '') = '' or coalesce(v_url, '') = '' then
-      raise notice '[ops_emit] app.service_role_key/app.notify_url nao configurados; evento % gravado sem notificar', v_id;
-    else
-      begin
+    begin
+      select ds.decrypted_secret into v_key
+        from vault.decrypted_secrets ds
+       where ds.name = 'app_service_role_key'
+       limit 1;
+      if coalesce(v_key, '') = '' then
+        raise notice '[ops_emit] app_service_role_key nao configurado no Vault; evento % gravado sem notificar', v_id;
+      else
         perform net.http_post(
           url     := v_url,
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'Authorization', 'Bearer ' || v_key
-          ),
+          headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || v_key),
           body    := jsonb_build_object('event_id', v_id)
         );
-      exception when others then
-        raise warning '[ops_emit] notify nao enviado para %: %', v_id, sqlerrm;
-      end;
-    end if;
+      end if;
+    exception when others then
+      raise warning '[ops_emit] notify nao enviado para %: %', v_id, sqlerrm;
+    end;
   end if;
 
   return v_id;
