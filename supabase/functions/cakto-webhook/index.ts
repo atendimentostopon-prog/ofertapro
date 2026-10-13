@@ -6,7 +6,12 @@ import { validateSecret, recordEventIfNew, deleteEventRecord, getEventId } from 
 import { HANDLERS } from "./handlers.ts";
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
 import { emitOps, type EmitInput } from "../_shared/ops/emit.ts";
-import { billingEventToOps, invalidSecretToOps, webhookFailureToOps } from "./ops.ts";
+import {
+  billingEventToOps,
+  invalidSecretToOps,
+  requestInfoFromHeaders,
+  webhookFailureToOps,
+} from "./ops.ts";
 
 // Fail-open: alerta nunca muda a resposta do webhook.
 async function emit(ev: EmitInput): Promise<void> {
@@ -31,7 +36,7 @@ serve(async (req: Request) => {
 
   if (!validateSecret(payload)) {
     console.warn("[cakto-webhook] secret invalido");
-    await emit(invalidSecretToOps());
+    await emit(invalidSecretToOps(requestInfoFromHeaders(req.headers)));
     return new Response("Unauthorized", { status: 401 });
   }
 

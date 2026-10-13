@@ -14,6 +14,8 @@ export interface RpcClient {
   rpc(fn: string, args: Record<string, unknown>): Promise<{ error: { message: string } | null }>;
 }
 
+// Titulo: e-mail mascarado. Detalhe: e-mail completo por decisao do operador (canal privado);
+// segredos continuam sempre redigidos.
 // Fail-open: um alerta nunca pode quebrar a funcao que o emitiu.
 export async function emitOps(client: RpcClient, input: EmitInput): Promise<void> {
   try {
@@ -21,7 +23,7 @@ export async function emitOps(client: RpcClient, input: EmitInput): Promise<void
       p_severity: input.severity,
       p_category: input.category,
       p_title: cleanString(input.title).slice(0, 200),
-      p_detail: sanitizeDetail(input.detail ?? {}) ?? {},
+      p_detail: sanitizeDetail(input.detail ?? {}, 0, { keepEmails: true }) ?? {},
       p_user_id: input.userId ?? null,
       p_dedupe_key: input.dedupeKey ?? null,
     });
