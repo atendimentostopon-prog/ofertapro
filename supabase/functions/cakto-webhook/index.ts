@@ -4,6 +4,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateSecret, recordEventIfNew, deleteEventRecord, getEventId } from "./lib.ts";
 import { HANDLERS } from "./handlers.ts";
+import { getSupabaseAdmin } from "../_shared/cakto.ts";
+import { emitOps, type EmitInput } from "../_shared/ops/emit.ts";
+import { billingEventToOps, invalidSecretToOps, webhookFailureToOps } from "./ops.ts";
+
+// Fail-open: alerta nunca muda a resposta do webhook.
+async function emit(ev: EmitInput): Promise<void> {
+  try {
+    await emitOps(getSupabaseAdmin() as any, ev);
+  } catch (e) {
+    console.error("[cakto-webhook] emit falhou:", e instanceof Error ? e.message : "erro");
+  }
+}
 
 serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -19,6 +31,7 @@ serve(async (req: Request) => {
 
   if (!validateSecret(payload)) {
     console.warn("[cakto-webhook] secret invalido");
+    await emit(invalidSecretToOps());
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -40,11 +53,22 @@ serve(async (req: Request) => {
   try {
     // Cakto payload real: { secret, event, data: {...} } - handlers recebem so data.
     await handler(payload.data ?? {});
+    try {
+      const opsEvent = billingEventToOps(payload.event, payload.data ?? {});
+      if (opsEvent) await emit(opsEvent);
+    } catch (e) {
+      console.error("[cakto-webhook] ops mapping falhou:", e instanceof Error ? e.message : "erro");
+    }
     return new Response("OK", { status: 200 });
   } catch (e) {
     console.error(`[cakto-webhook] handler ${payload.event} error:`, e);
     // desfaz idempotencia pra permitir retry do Cakto
     await deleteEventRecord(getEventId(payload));
+    try {
+      await emit(webhookFailureToOps(payload.event, e));
+    } catch (emitErr) {
+      console.error("[cakto-webhook] ops mapping falhou:", emitErr instanceof Error ? emitErr.message : "erro");
+    }
     return new Response("Internal error", { status: 500 });
   }
 });
