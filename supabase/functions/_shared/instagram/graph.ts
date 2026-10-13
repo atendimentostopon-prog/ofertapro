@@ -61,16 +61,24 @@ function numOrNull(x: unknown): number | null {
   return typeof x === "number" && Number.isFinite(x) ? x : null;
 }
 
+function redact(text: string, secrets: string[]): string {
+  let out = text;
+  for (const sec of secrets) {
+    if (sec) out = out.split(sec).join("[redacted]");
+  }
+  return out.replace(/(access_token|client_secret)=[^&\s)]+/g, "$1=[redacted]");
+}
+
 export function createGraphClient(opts: { fetch?: typeof fetch; version?: string } = {}): InstagramApi {
   const f = opts.fetch ?? fetch;
   const v = opts.version ?? "v23.0";
 
-  async function request<T>(url: string, init: RequestInit, map: (body: Json) => T): Promise<GraphResult<T>> {
+  async function request<T>(url: string, init: RequestInit, map: (body: Json) => T, secrets: string[] = []): Promise<GraphResult<T>> {
     let res: Response;
     try {
       res = await f(url, init);
     } catch (e) {
-      return { ok: false, kind: "transient", code: null, message: String(e) };
+      return { ok: false, kind: "transient", code: null, message: `network error: ${(e as Error)?.name ?? "Error"}` };
     }
     let body: Json = null;
     try {
@@ -80,10 +88,11 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
     if (res.ok && !(body && body.error)) return { ok: true, data: map(body) };
 
     const code = numOrNull(body?.error?.code ?? body?.code);
-    const message = String(body?.error?.message ?? body?.error_message ?? `HTTP ${res.status}`);
+    const message = redact(String(body?.error?.message ?? body?.error_message ?? `HTTP ${res.status}`), secrets);
     return { ok: false, kind: classifyGraphError(res.status, code), code, message };
   }
 
+  const enc = encodeURIComponent;
   const bearer = (token: string): HeadersInit => ({
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
@@ -91,18 +100,18 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
 
   return {
     sendPrivateReply: ({ token, igUserId, commentId, text }) =>
-      request(`${HOST}/${v}/${igUserId}/messages`, {
+      request(`${HOST}/${v}/${enc(igUserId)}/messages`, {
         method: "POST",
         headers: bearer(token),
         body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text } }),
-      }, (b) => ({ id: b?.message_id ?? null })),
+      }, (b) => ({ id: b?.message_id ?? null }), [token]),
 
     replyToComment: ({ token, commentId, text }) =>
-      request(`${HOST}/${v}/${commentId}/replies`, {
+      request(`${HOST}/${v}/${enc(commentId)}/replies`, {
         method: "POST",
         headers: bearer(token),
         body: JSON.stringify({ message: text }),
-      }, (b) => ({ id: b?.id ?? null })),
+      }, (b) => ({ id: b?.id ?? null }), [token]),
 
     exchangeCode: ({ appId, appSecret, redirectUri, code }) =>
       request(OAUTH_TOKEN_URL, {
@@ -115,7 +124,7 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
           redirect_uri: redirectUri,
           code,
         }).toString(),
-      }, (b) => ({ accessToken: String(b?.access_token ?? ""), userId: String(b?.user_id ?? "") })),
+      }, (b) => ({ accessToken: String(b?.access_token ?? ""), userId: String(b?.user_id ?? "") }), [appSecret, code]),
 
     exchangeLongLived: ({ appSecret, shortToken }) =>
       request(
@@ -126,6 +135,7 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
         })}`,
         { method: "GET" },
         (b) => ({ accessToken: String(b?.access_token ?? ""), expiresIn: Number(b?.expires_in ?? 0) }),
+        [appSecret, shortToken],
       ),
 
     refreshToken: ({ token }) =>
@@ -136,6 +146,7 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
         })}`,
         { method: "GET" },
         (b) => ({ accessToken: String(b?.access_token ?? ""), expiresIn: Number(b?.expires_in ?? 0) }),
+        [token],
       ),
 
     getProfile: ({ token }) =>
@@ -147,27 +158,31 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
           username: String(b?.username ?? ""),
           accountType: b?.account_type ? String(b.account_type) : null,
         }),
+        [token],
       ),
 
     subscribeWebhooks: ({ token, igUserId }) =>
       request(
-        `${HOST}/${v}/${igUserId}/subscribed_apps?subscribed_fields=comments,messages`,
+        `${HOST}/${v}/${enc(igUserId)}/subscribed_apps?subscribed_fields=comments,messages`,
         { method: "POST", headers: bearer(token) },
         (b) => ({ success: Boolean(b?.success) }),
+        [token],
       ),
 
     unsubscribeWebhooks: ({ token, igUserId }) =>
       request(
-        `${HOST}/${v}/${igUserId}/subscribed_apps`,
+        `${HOST}/${v}/${enc(igUserId)}/subscribed_apps`,
         { method: "DELETE", headers: bearer(token) },
         (b) => ({ success: Boolean(b?.success) }),
+        [token],
       ),
 
     listMedia: ({ token, igUserId, limit = 24 }) =>
       request(
-        `${HOST}/${v}/${igUserId}/media?fields=id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp&limit=${limit}`,
+        `${HOST}/${v}/${enc(igUserId)}/media?fields=id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp&limit=${Math.max(1, Math.min(100, Math.trunc(Number(limit)) || 24))}`,
         { method: "GET", headers: bearer(token) },
         (b) => (Array.isArray(b?.data) ? b.data : []) as IgMediaItem[],
+        [token],
       ),
   };
 }

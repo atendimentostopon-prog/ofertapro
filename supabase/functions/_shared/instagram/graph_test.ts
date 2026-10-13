@@ -83,3 +83,43 @@ Deno.test("exchangeCode envia form e devolve token e user_id", async () => {
   assertEquals(form.get("grant_type"), "authorization_code");
   assertEquals(form.get("code"), "C");
 });
+
+Deno.test("erro de rede nao vaza segredo/token na mensagem", async () => {
+  const { f } = fakeFetch([
+    new TypeError("error sending request for url (https://graph.instagram.com/access_token?client_secret=SECRET123&access_token=TOK456)"),
+  ]);
+  const g = createGraphClient({ fetch: f });
+  const r = await g.exchangeLongLived({ appSecret: "SECRET123", shortToken: "TOK456" });
+  assert(!r.ok);
+  if (!r.ok) {
+    assertEquals(r.kind, "transient");
+    assert(!r.message.includes("SECRET123"));
+    assert(!r.message.includes("TOK456"));
+  }
+});
+
+Deno.test("mensagem de erro da Meta com token ecoado e redigida", async () => {
+  const { f } = fakeFetch([
+    { status: 400, body: { error: { message: "Invalid token TOKENXYZ (access_token=TOKENXYZ)", code: 190 } } },
+  ]);
+  const g = createGraphClient({ fetch: f });
+  const r = await g.sendPrivateReply({ token: "TOKENXYZ", igUserId: "1", commentId: "c", text: "x" });
+  assert(!r.ok);
+  if (!r.ok) assert(!r.message.includes("TOKENXYZ"));
+});
+
+Deno.test("ids vindos de webhook sao percent-encoded no path", async () => {
+  const a = fakeFetch([{ status: 200, body: { id: "r" } }]);
+  await createGraphClient({ fetch: a.f }).replyToComment({ token: "T", commentId: "../evil?x=1", text: "x" });
+  assertEquals(a.calls[0].url, "https://graph.instagram.com/v23.0/..%2Fevil%3Fx%3D1/replies");
+
+  const b = fakeFetch([{ status: 200, body: {} }]);
+  await createGraphClient({ fetch: b.f }).sendPrivateReply({ token: "T", igUserId: "9/../x", commentId: "c", text: "x" });
+  assertEquals(b.calls[0].url, "https://graph.instagram.com/v23.0/9%2F..%2Fx/messages");
+});
+
+Deno.test("listMedia limita limit a 100", async () => {
+  const { f, calls } = fakeFetch([{ status: 200, body: { data: [] } }]);
+  await createGraphClient({ fetch: f }).listMedia({ token: "T", igUserId: "1", limit: 9999 });
+  assert(calls[0].url.endsWith("&limit=100"));
+});
