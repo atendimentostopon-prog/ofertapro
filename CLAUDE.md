@@ -32,6 +32,7 @@ Não existe `npm test` geral.
 - `supabase/tests/manual`: testes SQL manuais
 - `admin`: app administrativo separado
 - `browser-extension`: extensão Mercado Livre
+- `docs/instagram`: setup da Meta, premissas validadas e runbook das automações de Instagram
 
 ## Convenções
 

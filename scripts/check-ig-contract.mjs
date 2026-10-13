@@ -120,7 +120,7 @@ if (!clientTpl.includes(VAR_SIG)) problems.push('src/lib/instagram.ts: variaveis
 
 // 5) Edge Functions esperadas ------------------------------------------
 for (const fn of [
-  'ig-webhook', 'ig-worker', 'ig-oauth-start', 'ig-oauth-callback', 'ig-account-disconnect',
+  'ig-webhook', 'ig-worker', 'ig-oauth-start', 'ig-oauth-callback', 'ig-oauth-complete', 'ig-account-disconnect',
   'ig-deauthorize', 'ig-data-deletion', 'ig-token-refresh', 'ig-media-list',
 ]) {
   if (!existsSync(join(root, `supabase/functions/${fn}/index.ts`))) {
