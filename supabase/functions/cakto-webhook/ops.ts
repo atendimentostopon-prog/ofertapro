@@ -234,3 +234,34 @@ export async function enrichWithSalesToday(client: SalesRpcClient, ev: EmitInput
     return ev;
   }
 }
+
+// Falha ao gravar o evento em webhook_events (antes de qualquer handler).
+// Mantem o webhook "nao gravado": a Cakto reenvia, mas o operador precisa saber.
+export function webhookRecordFailureToOps(payload: any, err: unknown): EmitInput {
+  const p = obj(payload);
+  const d = obj(p.data);
+  return {
+    severity: "critical",
+    category: "billing",
+    title: "Webhook Cakto não gravou o evento",
+    detail: compact({
+      evento: text(p.event) ?? "desconhecido",
+      pedido: text(d.id, d.refId, d.order_id),
+      erro: err instanceof Error ? err.message : String(err),
+    }),
+  };
+}
+
+export const INVALID_SECRET_THROTTLE_MS = 60_000;
+
+// Throttle em memoria do isolate: no maximo 1 alerta de secret invalido por janela.
+// Retorna true (e registra o instante) quando a emissao esta liberada.
+export function shouldEmitInvalidSecret(
+  now: number,
+  state: { last: number },
+  windowMs: number = INVALID_SECRET_THROTTLE_MS,
+): boolean {
+  if (state.last > 0 && now - state.last < windowMs) return false;
+  state.last = now;
+  return true;
+}

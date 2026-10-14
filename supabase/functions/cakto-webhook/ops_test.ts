@@ -4,7 +4,9 @@ import {
   enrichWithSalesToday,
   invalidSecretToOps,
   requestInfoFromHeaders,
+  shouldEmitInvalidSecret,
   webhookFailureToOps,
+  webhookRecordFailureToOps,
 } from "./ops.ts";
 
 const UID = "3f2b8c1e-9a4d-4e6f-8b1a-2c3d4e5f6a7b";
@@ -323,4 +325,29 @@ Deno.test("enrichWithSalesToday nao muta o objeto de entrada", async () => {
   assert(out !== ev);
   assertEquals(JSON.stringify(ev), snapshot);
   assertEquals("vendas_hoje" in (ev.detail as any), false);
+});
+
+Deno.test("webhookRecordFailureToOps: critical billing com evento, pedido e erro", () => {
+  const ev = webhookRecordFailureToOps(
+    { event: "purchase_approved", secret: "nao-vazar", data: { id: "ord_9", customer: { email: "a@x.com" } } },
+    new Error("db fora"),
+  );
+  assertEquals(ev.severity, "critical");
+  assertEquals(ev.category, "billing");
+  assertEquals(ev.title, "Webhook Cakto não gravou o evento");
+  assertEquals(ev.detail, { evento: "purchase_approved", pedido: "ord_9", erro: "db fora" });
+});
+
+Deno.test("webhookRecordFailureToOps: payload invalido nao lanca", () => {
+  const ev = webhookRecordFailureToOps(null, "falhou");
+  assertEquals(ev.detail, { evento: "desconhecido", erro: "falhou" });
+});
+
+Deno.test("shouldEmitInvalidSecret: libera na 1a, bloqueia em 60 s, libera depois", () => {
+  const state = { last: 0 };
+  assertEquals(shouldEmitInvalidSecret(1_000_000, state), true);
+  assertEquals(shouldEmitInvalidSecret(1_030_000, state), false);
+  assertEquals(shouldEmitInvalidSecret(1_059_999, state), false);
+  assertEquals(shouldEmitInvalidSecret(1_060_000, state), true);
+  assertEquals(shouldEmitInvalidSecret(1_061_000, state), false);
 });

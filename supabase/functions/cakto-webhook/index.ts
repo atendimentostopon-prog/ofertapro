@@ -11,7 +11,9 @@ import {
   enrichWithSalesToday,
   invalidSecretToOps,
   requestInfoFromHeaders,
+  shouldEmitInvalidSecret,
   webhookFailureToOps,
+  webhookRecordFailureToOps,
 } from "./ops.ts";
 
 // Fail-open: alerta nunca muda a resposta do webhook.
@@ -22,6 +24,8 @@ async function emit(ev: EmitInput): Promise<void> {
     console.error("[cakto-webhook] emit falhou:", e instanceof Error ? e.message : "erro");
   }
 }
+
+const invalidSecretState = { last: 0 };
 
 serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -37,7 +41,9 @@ serve(async (req: Request) => {
 
   if (!validateSecret(payload)) {
     console.warn("[cakto-webhook] secret invalido");
-    await emit(invalidSecretToOps(requestInfoFromHeaders(req.headers)));
+    if (shouldEmitInvalidSecret(Date.now(), invalidSecretState)) {
+      await emit(invalidSecretToOps(requestInfoFromHeaders(req.headers)));
+    }
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -46,6 +52,7 @@ serve(async (req: Request) => {
     isNew = await recordEventIfNew(payload);
   } catch (e) {
     console.error("[cakto-webhook] erro ao gravar webhook_events", e);
+    await emit(webhookRecordFailureToOps(payload, e));
     return new Response("Internal error", { status: 500 });
   }
   if (!isNew) return new Response("OK (duplicate)", { status: 200 });

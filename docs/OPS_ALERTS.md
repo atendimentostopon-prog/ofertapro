@@ -1,7 +1,7 @@
 # Alertas operacionais (Telegram + Discord)
 
 Spec: `docs/superpowers/specs/2026-10-13-ops-alerts-design.md`.
-Estado: Fase 1 (central + negócio) e Fase 2 (saúde, em andamento). Fase 3 (segurança, Sentry, resumo diário) ainda não implementada.
+Estado: Fase 1 (central + negócio) e Fase 2 (saúde e erros) entregues. Fase 3 (segurança, Sentry, resumo diário) ainda não implementada.
 
 ## Como funciona
 
@@ -141,6 +141,14 @@ Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback e
 
 **Uptime Kuma:** crie um monitor HTTP para `https://zuqaccivowbzdfrpgekz.supabase.co/rest/v1/rpc/ops_health?apikey=<publishable>` esperando HTTP 200 e corpo contendo `"ok":true`. `ops_health` não lê nenhuma tabela e é executável por `anon`.
 
+### Erros de Edge Function (`withAlerts`)
+
+O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` e avisa quando a function responde 5xx ou lança exceção (categoria `edge_error`; a resposta e a exceção seguem idênticas, o alerta é fail-open e espera no máximo 1,5 s). O detalhe leva só função, método, rota (sem query string), mensagem e tipo do erro, nunca cabeçalhos nem corpo. Erros repetidos agrupam por título e avisam nas ocorrências 1, 5, 25 e 100.
+
+- Cobertas (severidade `critical` para exceções em `public-api`, `cakto-create-payment`, `cakto-cancel-subscription` e `evolution-webhook`): `public-api`, `enrich-product`, `evolution-webhook`, `evolution-groups-select`, `evolution-groups-sync`, `evolution-instance-create`, `evolution-instance-delete`, `evolution-instance-status`, `api-key-generate`, `api-key-reveal`, `api-key-revoke`, `cakto-create-payment`, `cakto-cancel-subscription`, `cleanup-storage`.
+- `cakto-webhook` tem alertas próprios: falha ao gravar `webhook_events` (critical / billing, "Webhook Cakto não gravou o evento") e secret inválido com no máximo 1 alerta por 60 s por instância.
+- Excluídas de propósito: `admin-api` (tem tratamento próprio de erros), `send-email` e `email-hook` (caminho de e-mail do Auth, não pode ganhar dependência nova) e `notify` (não alerta sobre si mesmo).
+
 ## Configuração (uma vez)
 
 1. **Telegram:** no @BotFather envie `/newbot`, guarde o token. Abra o bot e envie `/start`. Obtenha o `chat_id` com `https://api.telegram.org/bot<TOKEN>/getUpdates` (rode no seu navegador local; não cole o token em chats).
@@ -232,11 +240,9 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 
 ## Próximas fases (pendências conhecidas)
 
-- Timeout nos envios (`fetch`) do `notify` e do `cakto-webhook`.
+- Timeout nos envios (`fetch`) do `notify` (o `cakto-webhook` não faz `fetch` próprio; a emissão dos alertas das Edge Functions já tem teto de 1,5 s no `withAlerts`).
 - Interruptor imediato por tabela (`ops_settings.enabled` lido pelo `ops_emit`).
-- Limitação (throttle) do alerta de secret inválido do `cakto-webhook`.
 - Nomes de chaves sensíveis em pt-BR no sanitize (senha, pwd, credential) antes do `withAlerts`.
-- Alerta quando a gravação em `webhook_events` falha no `cakto-webhook`.
 - Hook de "evento recebido".
 - Os contadores `count(*)` em `auth.users` dentro dos triggers de cadastro e de confirmação devem ser trocados por contador ou consulta indexada antes de ~100 mil usuários (e `query_canceled` não é capturado por `exception when others`).
 - "Faturamento hoje" soma o valor bruto pago pelo cliente (inclui a taxa de R$ 0,99 e é antes do corte da Cakto) e conta eventos de teste.
