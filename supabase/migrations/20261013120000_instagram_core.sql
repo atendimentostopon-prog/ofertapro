@@ -398,7 +398,13 @@ $$;
 REVOKE ALL ON FUNCTION public.ig_pause_automations_without_access() FROM public, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.ig_pause_automations_without_access() TO service_role;
 
--- 9) Retencao: eventos 30 dias, log 180 dias -----------------------------
+-- 9) Retencao ------------------------------------------------------------
+--  - eventos terminados: 30 dias
+--  - log de mensagens: 180 dias
+--  - conta desconectada pelo painel: a linha (e em cascata automacoes,
+--    contatos e log) e seus eventos somem 30 dias depois da desconexao.
+--    O token ja foi zerado na desconexao.
+--  - pendencias vencidas: token zerado no Vault e linha apagada.
 CREATE OR REPLACE FUNCTION public.ig_prune()
 RETURNS void
 LANGUAGE plpgsql
@@ -410,6 +416,15 @@ BEGIN
    WHERE received_at < now() - interval '30 days'
      AND status IN ('done','ignored','blocked','failed');
   DELETE FROM public.ig_message_log WHERE created_at < now() - interval '180 days';
+
+  DELETE FROM public.ig_events e
+   USING public.ig_accounts a
+   WHERE a.status = 'disconnected'
+     AND a.updated_at < now() - interval '30 days'
+     AND e.ig_user_id = a.ig_user_id;
+  DELETE FROM public.ig_accounts
+   WHERE status = 'disconnected'
+     AND updated_at < now() - interval '30 days';
 
   -- revoga o token no Vault das pendencias vencidas ANTES de apagar as linhas
   PERFORM vault.update_secret(s.id, '', s.name, 'Aflyo: token do Instagram (revogado)')

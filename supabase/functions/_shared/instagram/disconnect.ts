@@ -6,8 +6,10 @@ type Admin = any;
 
 /**
  * Desconecta uma conta: tira a assinatura do webhook (melhor esforco), apaga o
- * token do Vault, pausa automacoes. Com `erase`, apaga tambem automacoes,
- * contatos, logs e eventos (callback de exclusao de dados da Meta).
+ * token do Vault, pausa automacoes e marca a conta `disconnected` (painel; o
+ * ig_prune apaga a linha e os dados dela 30 dias depois). Com `erase`, apaga
+ * na hora automacoes, contatos, logs e eventos (callbacks de desautorizacao e
+ * de exclusao de dados da Meta).
  * Lanca Error em qualquer falha de escrita (o chamador responde 500 e a Meta
  * ou o usuario tentam de novo; todas as operacoes sao idempotentes).
  */

@@ -11,7 +11,7 @@ Meta -> `ig-webhook` (HMAC, grava `ig_events`) -> `runWorker` (webhook e cron de
 |---|---|---|
 | `ig_accounts.status = connected` | conectado e operacional | normal |
 | `ig_accounts.status = needs_reconnect` | token expirado/inválido | afiliado reconecta em /instagram |
-| `ig_accounts.status = disconnected` | conta desconectada | ver paused_reason das automações |
+| `ig_accounts.status = disconnected` | conta desconectada pelo painel (token já apagado, automações pausadas) | o `ig_prune` apaga a conta, automações, contatos, log e eventos 30 dias depois de `updated_at`; reconectar antes disso reaproveita a linha |
 | `ig_automations.paused_reason = access_revoked` | sem assinatura ativa | assine um plano e reative manualmente (trigger valida acesso ao ativar) |
 | `ig_automations.paused_reason = account_disconnected` | conta foi desconectada | reconecte a conta em /instagram |
 | `ig_automations.paused_reason = token_invalid` | token inválido/expirado | reconecte a conta em /instagram |
@@ -53,15 +53,22 @@ select count(*), min(expires_at) from ig_pending_connections;
 
 ## Desautorização e exclusão de dados
 
-- `ig-deauthorize` (webhook da Meta, sem JWT)
-  - Procura a conta por `ig_user_id` OU `ig_app_scoped_id`
-  - Blanqueia token no Vault
+Três caminhos, com efeitos diferentes:
+
+- Desconectar no painel (`ig-account-disconnect`, com JWT)
+  - Remove a assinatura do webhook (melhor esforço) e apaga o token no Vault na hora
   - Pausa automações com `paused_reason = 'account_disconnected'`
   - Define `ig_accounts.status = 'disconnected'`
+  - Os dados (automações, contatos, log, eventos) são apagados pelo `ig_prune` 30 dias depois
+
+- `ig-deauthorize` (webhook da Meta, sem JWT): a pessoa removeu o Aflyo nas configurações do Instagram
+  - Procura a conta por `ig_user_id` OU `ig_app_scoped_id`
+  - Apaga tudo na hora, igual à exclusão de dados: token, eventos e a linha `ig_accounts`
+    (cascata: automações, contatos, log de mensagens)
 
 - `ig-data-deletion` (webhook da Meta, sem JWT)
   - Procura a conta por `ig_user_id` OU `ig_app_scoped_id`
-  - Blanqueia token no Vault
+  - Zera o token no Vault
   - Deleta eventos por `ig_user_id`
   - Deleta a linha `ig_accounts` (cascata: automações, contatos, log de mensagens)
   - Retorna `{url, confirmation_code}` conforme exigido pela Meta
@@ -71,8 +78,11 @@ select count(*), min(expires_at) from ig_pending_connections;
 - `ig_prune` (cron diário 03:30 UTC)
   - Deleta `ig_events` em terminal (done, ignored, blocked, failed) com > 30 dias
   - Deleta `ig_message_log` com > 180 dias
-  - Blanqueia segredos Vault das `ig_pending_connections` expiradas (TTL 10 min)
-  - Deleta `ig_pending_connections` expiradas
+  - Deleta contas com `status = 'disconnected'` e `updated_at` com > 30 dias, e os
+    `ig_events` delas (por `ig_user_id`); a cascata apaga automações, contatos e log
+  - Deleta `ig_pending_connections` expiradas (TTL 10 min)
+  - Em qualquer DELETE de `ig_accounts` ou `ig_pending_connections` (direto ou em cascata),
+    o trigger `ig_blank_token_on_delete` zera o segredo `ig_access_token:<id>` no Vault
 
 - `ig_pause_no_access` (cron a cada 15 min)
   - Pausa automações ativas de usuários sem acesso ativo (assinatura/trial expirada)

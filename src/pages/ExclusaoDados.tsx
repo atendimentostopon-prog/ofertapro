@@ -23,7 +23,7 @@ const ExclusaoDados: React.FC = () => {
         <div className="bg-surface-0 border border-line rounded-3xl p-8 sm:p-12 space-y-5 text-sm text-ink-secondary leading-relaxed">
           <h1 className="text-3xl font-black text-ink tracking-tight">Exclusão de dados do Instagram</h1>
           <p>
-            Quando você remove o {APP_NAME} das configurações do Instagram ou desconecta a conta no painel, os dados abaixo são apagados dos nossos servidores:
+            Quando você remove o {APP_NAME} nas configurações do Instagram ou pede a exclusão por e-mail, apagamos na hora, dos nossos servidores:
           </p>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>token de acesso da conta;</li>
@@ -31,6 +31,9 @@ const ExclusaoDados: React.FC = () => {
             <li>contatos e nomes de usuário de quem interagiu;</li>
             <li>registro de mensagens enviadas e eventos recebidos.</li>
           </ul>
+          <p>
+            Se você apenas desconectar a conta no painel do {APP_NAME}, o token de acesso é apagado na hora e as automações ficam pausadas. Os demais dados (automações, contatos, registro de mensagens e eventos) são apagados 30 dias depois da desconexão. Se você reconectar a mesma conta antes disso, as automações voltam a aparecer pausadas.
+          </p>
           <p>
             Para solicitar a exclusão manualmente, envie um e-mail para <a className="underline" href="mailto:suporte@aflyo.com.br">suporte@aflyo.com.br</a> a partir do e-mail da sua conta, informando o usuário do Instagram. Respondemos em até 15 dias úteis.
           </p>

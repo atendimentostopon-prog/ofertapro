@@ -1,5 +1,7 @@
 // supabase/functions/ig-deauthorize/index.ts
 // Callback de desautorizacao da Meta. Deploy com --no-verify-jwt.
+// A pessoa removeu o Aflyo nas configuracoes do Instagram: apaga tudo
+// (token, automacoes, contatos, log e eventos), como a exclusao de dados.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { disconnectAccount } from "../_shared/instagram/disconnect.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
@@ -25,7 +27,7 @@ serve(async (req) => {
     if (!acc) {
       console.error("[ig-deauthorize] nenhuma conta para o id da Meta");
     } else {
-      await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: false });
+      await disconnectAccount(admin, createGraphClient(), (acc as { id: string }).id, { erase: true });
     }
   } catch (e) {
     console.error("[ig-deauthorize]", e instanceof Error ? e.message : e);

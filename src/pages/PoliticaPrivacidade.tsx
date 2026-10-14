@@ -144,8 +144,8 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li><strong>Dados de quem comenta:</strong> identificador do Instagram, nome de usuário, texto do comentário e registro das mensagens enviadas. Não coletamos foto, biografia nem lista de seguidores.</li>
                 <li><strong>Finalidade:</strong> exclusivamente executar as automações que você configurou e exibir métricas de desempenho a você. Não vendemos nem usamos esses dados para publicidade.</li>
                 <li><strong>Papéis:</strong> você é o controlador dos dados das pessoas que interagem com a sua conta; o {APP_NAME} atua como operador.</li>
-                <li><strong>Retenção:</strong> eventos técnicos são apagados em 30 dias e o registro de mensagens em 180 dias.</li>
-                <li><strong>Exclusão:</strong> ao desconectar a conta ou solicitar a exclusão, apagamos o token, as automações, os contatos e o registro de mensagens. Instruções em <a className="underline" href="/exclusao-de-dados">/exclusao-de-dados</a>.</li>
+                <li><strong>Retenção:</strong> eventos técnicos são apagados em 30 dias e o registro de mensagens em 180 dias. Quando você desconecta a conta no painel, os dados dela (automações, contatos, registro de mensagens e eventos) são apagados 30 dias depois da desconexão.</li>
+                <li><strong>Exclusão:</strong> ao desconectar a conta no painel, apagamos o token de acesso na hora e pausamos as automações; os demais dados seguem o prazo de 30 dias acima. Quando você remove o {APP_NAME} nas configurações do Instagram ou solicita a exclusão, apagamos tudo na hora: token, automações, contatos, registro de mensagens e eventos. Instruções em <a className="underline" href="/exclusao-de-dados">/exclusao-de-dados</a>.</li>
               </ul>
             </section>
           </div>
