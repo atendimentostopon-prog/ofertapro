@@ -13,8 +13,14 @@ export function json(body: unknown, status = 200): Response {
   });
 }
 
+/** Le um secret removendo espacos e quebras de linha das pontas (colagem no painel). */
+export function getEnv(name: string): string | undefined {
+  const v = Deno.env.get(name)?.trim();
+  return v ? v : undefined;
+}
+
 export function requireEnv(name: string): string {
-  const v = Deno.env.get(name);
+  const v = getEnv(name);
   if (!v) throw new Error(`env ${name} ausente`);
   return v;
 }

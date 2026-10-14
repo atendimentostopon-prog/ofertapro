@@ -3,14 +3,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { disconnectAccount } from "../_shared/instagram/disconnect.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
-import { getAdmin } from "../_shared/instagram/http.ts";
+import { getAdmin, getEnv } from "../_shared/instagram/http.ts";
 import { parseSignedRequest } from "../_shared/instagram/signature.ts";
 
 serve(async (req) => {
   if (req.method !== "POST") return new Response("method not allowed", { status: 405 });
   const form = await req.formData().catch(() => null);
   const signed = String(form?.get("signed_request") ?? "");
-  const data = await parseSignedRequest(signed, Deno.env.get("IG_APP_SECRET") ?? "");
+  const data = await parseSignedRequest(signed, getEnv("IG_APP_SECRET") ?? "");
   if (!data) return new Response("invalid signed_request", { status: 400 });
 
   // O id do signed_request pode ser o profissional (ig_user_id) ou o app-scoped.
@@ -35,7 +35,7 @@ serve(async (req) => {
   }
 
   const code = crypto.randomUUID();
-  const appUrl = Deno.env.get("APP_URL") ?? "https://app.aflyo.com.br";
+  const appUrl = getEnv("APP_URL") ?? "https://app.aflyo.com.br";
   return new Response(
     JSON.stringify({ url: `${appUrl}/exclusao-de-dados?code=${code}`, confirmation_code: code }),
     { status: 200, headers: { "Content-Type": "application/json" } },

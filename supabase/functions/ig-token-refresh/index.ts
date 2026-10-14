@@ -2,7 +2,7 @@
 // Acionado diariamente por pg_cron com a service role.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
-import { getAdmin, json } from "../_shared/instagram/http.ts";
+import { getAdmin, json, getEnv } from "../_shared/instagram/http.ts";
 import { timingSafeEqualBytes } from "../_shared/instagram/signature.ts";
 import { createStore } from "../_shared/instagram/store.ts";
 
@@ -11,14 +11,14 @@ const enc = new TextEncoder();
 serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const key = getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   if (!key || !timingSafeEqualBytes(enc.encode(bearer), enc.encode(key))) {
     return json({ error: "unauthorized" }, 401);
   }
 
   const admin = getAdmin();
   const store = createStore(admin);
-  const graph = createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined });
+  const graph = createGraphClient({ version: getEnv("IG_GRAPH_VERSION") });
 
   const horizon = new Date(Date.now() + 10 * 24 * 3600 * 1000).toISOString();
   const { data: accounts, error } = await admin.from("ig_accounts")

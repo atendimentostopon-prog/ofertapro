@@ -5,7 +5,7 @@
 // grava uma pendencia, e ig-oauth-complete (JWT) a conclui para o dono logado.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
-import { getAdmin, requireEnv } from "../_shared/instagram/http.ts";
+import { getAdmin, requireEnv, getEnv } from "../_shared/instagram/http.ts";
 import { verifyState } from "../_shared/instagram/state.ts";
 
 const SCOPES = [
@@ -15,7 +15,8 @@ const SCOPES = [
 ];
 
 function redirect(path: string): Response {
-  const base = Deno.env.get("APP_URL") ?? "https://app.aflyo.com.br";
+  // IG_APP_URL (opcional) permite testar em um Preview sem mexer no APP_URL dos outros fluxos.
+  const base = getEnv("IG_APP_URL") ?? getEnv("APP_URL") ?? "https://app.aflyo.com.br";
   return new Response(null, { status: 302, headers: { Location: `${base}${path}` } });
 }
 const fail = (code: string) => redirect(`/instagram?ig_error=${encodeURIComponent(code)}`);
@@ -32,7 +33,7 @@ serve(async (req) => {
   const userId = await verifyState(state, requireEnv("IG_STATE_SECRET"));
   if (!userId) return fail("invalid_state");
 
-  const graph = createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined });
+  const graph = createGraphClient({ version: getEnv("IG_GRAPH_VERSION") });
   const admin = getAdmin();
 
   // 1) code -> token curto -> token longo
@@ -42,18 +43,27 @@ serve(async (req) => {
     redirectUri: requireEnv("IG_REDIRECT_URI"),
     code,
   });
-  if (!short.ok || !short.data.accessToken) return fail("exchange_failed");
+  if (!short.ok || !short.data.accessToken) {
+    console.error("[ig-oauth-callback] exchangeCode:", short.ok ? "token vazio" : `${short.kind} ${short.code ?? ""} ${short.message}`);
+    return fail("exchange_failed");
+  }
 
   const long = await graph.exchangeLongLived({
     appSecret: requireEnv("IG_APP_SECRET"),
     shortToken: short.data.accessToken,
   });
-  if (!long.ok || !long.data.accessToken) return fail("exchange_failed");
+  if (!long.ok || !long.data.accessToken) {
+    console.error("[ig-oauth-callback] exchangeLongLived:", long.ok ? "token vazio" : `${long.kind} ${long.code ?? ""} ${long.message}`);
+    return fail("exchange_failed");
+  }
   const token = long.data.accessToken;
 
   // 2) perfil
   const profile = await graph.getProfile({ token });
-  if (!profile.ok || !profile.data.userId) return fail("profile_failed");
+  if (!profile.ok || !profile.data.userId) {
+    console.error("[ig-oauth-callback] getProfile:", profile.ok ? "sem userId" : `${profile.kind} ${profile.code ?? ""} ${profile.message}`);
+    return fail("profile_failed");
+  }
 
   // 3) pendencia (token no Vault sob o id da pendencia; nunca em URL)
   const expiresAt = new Date(Date.now() + (long.data.expiresIn || 60 * 24 * 3600) * 1000).toISOString();

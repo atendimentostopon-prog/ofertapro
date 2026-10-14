@@ -1,7 +1,7 @@
 // supabase/functions/ig-worker/index.ts
 // Acionado por pg_cron (a cada minuto) via pg_net com a service role.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getAdmin, json } from "../_shared/instagram/http.ts";
+import { getAdmin, json, getEnv } from "../_shared/instagram/http.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
 import { timingSafeEqualBytes } from "../_shared/instagram/signature.ts";
 import { createStore } from "../_shared/instagram/store.ts";
@@ -13,7 +13,7 @@ serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
 
   const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const key = getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   if (!key || !timingSafeEqualBytes(enc.encode(bearer), enc.encode(key))) {
     return json({ error: "unauthorized" }, 401);
   }
@@ -23,7 +23,7 @@ serve(async (req) => {
     const result = await runWorker({
       admin,
       store: createStore(admin),
-      graph: createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined }),
+      graph: createGraphClient({ version: getEnv("IG_GRAPH_VERSION") }),
     }, 25);
     return json(result);
   } catch (e) {

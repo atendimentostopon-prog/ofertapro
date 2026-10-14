@@ -1,7 +1,7 @@
 // supabase/functions/ig-media-list/index.ts
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
-import { corsHeaders, getAdmin, getUser, json } from "../_shared/instagram/http.ts";
+import { corsHeaders, getAdmin, getUser, json, getEnv } from "../_shared/instagram/http.ts";
 import { createStore } from "../_shared/instagram/store.ts";
 
 serve(async (req) => {
@@ -29,7 +29,7 @@ serve(async (req) => {
     return json({ error: "reconnect_required" }, 409);
   }
 
-  const r = await createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined })
+  const r = await createGraphClient({ version: getEnv("IG_GRAPH_VERSION") })
     .listMedia({ token, igUserId: a.ig_user_id, limit: 24 });
   if (!r.ok) {
     if (r.kind === "token") {

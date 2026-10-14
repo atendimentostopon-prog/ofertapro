@@ -2,7 +2,7 @@
 // Webhook do Instagram. Deploy com --no-verify-jwt: a autenticacao e a
 // assinatura HMAC (POST) e o verify token (GET).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getAdmin } from "../_shared/instagram/http.ts";
+import { getAdmin, getEnv } from "../_shared/instagram/http.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
 import { timingSafeEqualBytes, verifyMetaSignature } from "../_shared/instagram/signature.ts";
 import { createStore } from "../_shared/instagram/store.ts";
@@ -19,7 +19,7 @@ serve(async (req) => {
     const mode = url.searchParams.get("hub.mode");
     const token = url.searchParams.get("hub.verify_token") ?? "";
     const challenge = url.searchParams.get("hub.challenge") ?? "";
-    const expected = Deno.env.get("IG_WEBHOOK_VERIFY_TOKEN") ?? "";
+    const expected = getEnv("IG_WEBHOOK_VERIFY_TOKEN") ?? "";
     if (mode === "subscribe" && expected && timingSafeEqualBytes(enc.encode(token), enc.encode(expected))) {
       return new Response(challenge, { status: 200 });
     }
@@ -37,7 +37,7 @@ serve(async (req) => {
   const valid = await verifyMetaSignature(
     raw,
     req.headers.get("x-hub-signature-256") ?? "",
-    Deno.env.get("IG_APP_SECRET") ?? "",
+    getEnv("IG_APP_SECRET") ?? "",
   );
   if (!valid) return new Response("invalid signature", { status: 401 });
 
@@ -67,7 +67,7 @@ serve(async (req) => {
     const work = runWorker({
       admin,
       store: createStore(admin),
-      graph: createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined }),
+      graph: createGraphClient({ version: getEnv("IG_GRAPH_VERSION") }),
     }, 10).catch((e) => console.error("[ig-webhook] worker:", e instanceof Error ? e.message : e));
     // deno-lint-ignore no-explicit-any
     const rt = (globalThis as any).EdgeRuntime;

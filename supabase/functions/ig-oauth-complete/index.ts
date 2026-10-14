@@ -4,7 +4,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { decideCompletion } from "../_shared/instagram/connect.ts";
 import { createGraphClient } from "../_shared/instagram/graph.ts";
-import { corsHeaders, getAdmin, getUser, json } from "../_shared/instagram/http.ts";
+import { corsHeaders, getAdmin, getUser, json, getEnv } from "../_shared/instagram/http.ts";
 
 type Row = Record<string, unknown>;
 
@@ -20,7 +20,7 @@ serve(async (req) => {
   if (!/^[0-9a-f-]{36}$/i.test(pendingId)) return json({ error: "invalid_pending" }, 404);
 
   const admin = getAdmin();
-  const graph = createGraphClient({ version: Deno.env.get("IG_GRAPH_VERSION") ?? undefined });
+  const graph = createGraphClient({ version: getEnv("IG_GRAPH_VERSION") });
 
   const { data: pend, error: pendErr } = await admin.from("ig_pending_connections")
     .select("*").eq("id", pendingId).eq("user_id", user.id).maybeSingle();
