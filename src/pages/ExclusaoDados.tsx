@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { APP_NAME } from '../config/app';
+import { CompanyIdentity } from '../components/legal/CompanyIdentity';
 
 const ExclusaoDados: React.FC = () => {
   useEffect(() => {
@@ -37,6 +38,7 @@ const ExclusaoDados: React.FC = () => {
           <p>
             Para solicitar a exclusão manualmente, envie um e-mail para <a className="underline" href="mailto:suporte@aflyo.com.br">suporte@aflyo.com.br</a> a partir do e-mail da sua conta, informando o usuário do Instagram. Respondemos em até 15 dias úteis.
           </p>
+          <CompanyIdentity />
         </div>
       </div>
     </div>
