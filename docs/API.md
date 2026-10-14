@@ -63,8 +63,8 @@ Eventos tratados em `supabase/functions/cakto-webhook/handlers.ts`:
 | `expire_trials` | a cada hora | expira trials vencidos, rebaixa plano e pausa bot |
 | `expire_subscriptions` | diariamente 03:00 | expira cancelamentos/períodos de graça vencidos, preservando outra assinatura válida |
 | `trial_email_reminders` | diariamente 12:00 | enfileira avisos de trial |
-| `aflyo_prune_old_rows` | diariamente 06:10 | limpa logs/eventos antigos conforme regras da função |
-| `aflyo_expire_offers` | criado a cada 15 min, depois desativado | legado; TTL de ofertas foi removido |
+| `aflyo_prune_old_rows` | diariamente 06:10 | remove histórico de disparos com mais de 30 dias (e o órfão com mais de 7), cliques com mais de 90 dias e `maintenance_runs` com mais de 60 dias. **Não apaga ofertas** |
+| `aflyo_expire_offers` | **removido em 2026-10-14** | expirava ofertas pelo prazo (`offer_ttl_hours`) de cada usuário; a função `expire_offers()` foi apagada e os prazos zerados. Ofertas persistem indefinidamente |
 
 O agendamento de limpeza de Storage aparece comentado, portanto não está confirmado como ativo.
 

@@ -13,12 +13,12 @@ DECLARE
 BEGIN
   SELECT count(*) INTO v_count
   FROM cron.job
-  WHERE jobname IN ('aflyo_expire_offers', 'aflyo_prune_old_rows');
+  WHERE jobname = 'aflyo_expire_offers';
 
   ASSERT v_count = 0,
-    format('FALHOU: %s cron job(s) de expiracao ainda ativo(s).', v_count);
+    format('FALHOU: o job aflyo_expire_offers ainda existe (%s).', v_count);
 
-  RAISE NOTICE 'OK: nenhum cron job de expiracao ativo.';
+  RAISE NOTICE 'OK: o job aflyo_expire_offers nao existe. (aflyo_prune_old_rows permanece: poda historico, nao ofertas.)';
 END $$;
 
 -- 2. As funcoes de expiracao/poda nao devem existir ------------------
@@ -30,12 +30,12 @@ BEGIN
   FROM pg_proc p
   JOIN pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public'
-    AND p.proname IN ('expire_offers', 'prune_old_rows');
+    AND p.proname = 'expire_offers';
 
   ASSERT v_count = 0,
-    format('FALHOU: %s funcao(oes) de expiracao ainda existem.', v_count);
+    format('FALHOU: a funcao expire_offers() ainda existe (%s).', v_count);
 
-  RAISE NOTICE 'OK: funcoes expire_offers e prune_old_rows nao existem.';
+  RAISE NOTICE 'OK: a funcao expire_offers() nao existe.';
 END $$;
 
 -- 3. offer_ttl_hours deve ser NULL para todos os usuarios -----------
@@ -65,6 +65,7 @@ BEGIN
   INSERT INTO public.offers (
     user_id,
     name,
+    category,
     sale_price,
     affiliate_link,
     status,
@@ -73,6 +74,7 @@ BEGIN
   SELECT
     id,                              -- user_id = primeiro usuario disponivel
     '__TEST_NO_EXPIRY__',
+    'teste',
     0,
     'https://example.com/test-no-expiry',
     'active',

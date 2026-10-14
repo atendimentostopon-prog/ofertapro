@@ -138,7 +138,7 @@ Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback e
 |---|---|---|
 | Job do cron falhou: `<job>` | error / cron | alguma execução com `status = 'failed'` nos últimos 15 min, exceto "job startup timeout" |
 | Cron com falhas de inicialização | error / cron | 5 ou mais falhas "job startup timeout" nas últimas 3 horas (agregado, lista até 8 jobs) |
-| Cron parado: `<job>` | error / cron | sem execução bem-sucedida dentro do intervalo máximo: `aflyo_expire_offers` 45 min, `expire_trials` e `ops_trial_expiring_scan` 3 h. Job que nunca rodou ou foi criado há menos que o intervalo não alerta |
+| Cron parado: `<job>` | error / cron | sem execução bem-sucedida dentro do intervalo máximo: `expire_trials` e `ops_trial_expiring_scan` 3 h. (O job `aflyo_expire_offers`, que também era vigiado, foi removido em 2026-10-14 junto com a expiração de ofertas; o healthcheck só vigia jobs ativos.) Job que nunca rodou ou foi criado há menos que o intervalo não alerta |
 | Bots com erro | error / bot | `bot_configs` com `status = 'active'` e `last_error` preenchido (bots `pending` ou `paused` nunca alertam; `last_seen_at` não é usado) |
 | Conexões do banco acima de 80% | error / health | conexões de clientes em `pg_stat_activity` (`backend_type = 'client backend'`) acima de 80% de `max_connections` |
 | Banco perto do limite de disco | error / health | `pg_database_size` acima de 400 MB (limite Free: 500 MB) |
