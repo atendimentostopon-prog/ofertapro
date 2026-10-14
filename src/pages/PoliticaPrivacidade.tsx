@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { APP_NAME } from '../config/app';
+import { CompanyIdentity } from '../components/legal/CompanyIdentity';
 
 const PoliticaPrivacidade: React.FC = () => {
   useEffect(() => {
@@ -149,6 +150,7 @@ const PoliticaPrivacidade: React.FC = () => {
               </ul>
             </section>
           </div>
+          <CompanyIdentity />
         </div>
       </div>
     </div>
