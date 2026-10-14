@@ -5,7 +5,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateSecret, recordEventIfNew, deleteEventRecord, getEventId } from "./lib.ts";
 import { HANDLERS } from "./handlers.ts";
 import { getSupabaseAdmin } from "../_shared/cakto.ts";
-import { emitOps, type EmitInput } from "../_shared/ops/emit.ts";
+import { createCappedEmitter } from "../_shared/ops/capped-emit.ts";
+import type { EmitInput } from "../_shared/ops/emit.ts";
 import {
   billingEventToOps,
   enrichWithSalesToday,
@@ -16,13 +17,11 @@ import {
   webhookRecordFailureToOps,
 } from "./ops.ts";
 
-// Fail-open: alerta nunca muda a resposta do webhook.
+// Fail-open: alerta nunca muda a resposta do webhook. Em segundo plano (waitUntil) ou com
+// teto de espera; o cliente e criado uma vez por isolate.
+const cappedEmit = createCappedEmitter({ getClient: () => getSupabaseAdmin() as any });
 async function emit(ev: EmitInput): Promise<void> {
-  try {
-    await emitOps(getSupabaseAdmin() as any, ev);
-  } catch (e) {
-    console.error("[cakto-webhook] emit falhou:", e instanceof Error ? e.message : "erro");
-  }
+  await cappedEmit(ev);
 }
 
 const invalidSecretState = { last: 0 };

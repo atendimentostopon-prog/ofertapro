@@ -351,3 +351,24 @@ Deno.test("shouldEmitInvalidSecret: libera na 1a, bloqueia em 60 s, libera depoi
   assertEquals(shouldEmitInvalidSecret(1_060_000, state), true);
   assertEquals(shouldEmitInvalidSecret(1_061_000, state), false);
 });
+
+Deno.test("enrichWithSalesToday: estouro do teto devolve o evento sem vendas do dia", async () => {
+  const ev = { severity: "business", category: "billing", title: "Venda aprovada", detail: { a: 1 } } as any;
+  const never = { rpc: () => new Promise(() => {}) } as any;
+  const t = Date.now();
+  const out = await enrichWithSalesToday(never, ev, 50);
+  assertEquals(out, ev);
+  assert(Date.now() - t < 500);
+});
+
+Deno.test("enrichWithSalesToday: resposta rapida ainda enriquece", async () => {
+  const ev = { severity: "business", category: "billing", title: "Venda", detail: {} } as any;
+  const ok = { rpc: () => Promise.resolve({ data: { vendas: 2, faturamento: 10 }, error: null }) } as any;
+  const out = await enrichWithSalesToday(ok, ev, 500);
+  assertEquals(out.detail, { vendas_hoje: 2, faturamento_hoje: 10 });
+});
+
+Deno.test("falhas leem message de objeto simples e toleram objeto sem prototipo", () => {
+  assertEquals(webhookRecordFailureToOps({ event: "x" }, { message: "pg fora" }).detail?.erro, "pg fora");
+  assertEquals(webhookFailureToOps("x", Object.create(null)).detail?.erro, "erro desconhecido");
+});

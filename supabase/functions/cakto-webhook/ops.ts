@@ -2,6 +2,7 @@
 // Mapeia eventos da Cakto para alertas operacionais. As funcoes de mapeamento sao puras;
 // enrichWithSalesToday so fala com o banco por meio do cliente recebido.
 import type { EmitInput } from "../_shared/ops/emit.ts";
+import { errorMessage } from "../_shared/ops/error-message.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -156,7 +157,7 @@ export function webhookFailureToOps(event: string, err: unknown, data?: any): Em
       cliente_nome: customer.nome,
       cliente_email: customer.email,
       plano: text(meta.plan_code, meta.plan, d.plan_code),
-      erro: err instanceof Error ? err.message : String(err),
+      erro: errorMessage(err),
       acao: "Verifique o webhook e reprocesse o evento em Cakto > Webhooks no painel admin",
       painel: panelUrl(userId),
     }),
@@ -212,9 +213,20 @@ export interface SalesRpcClient {
 
 // Acrescenta vendas_hoje e faturamento_hoje ao alerta. Nunca lanca e nunca muda o
 // objeto recebido: qualquer erro ou formato inesperado devolve o proprio `ev`.
-export async function enrichWithSalesToday(client: SalesRpcClient, ev: EmitInput): Promise<EmitInput> {
+export async function enrichWithSalesToday(
+  client: SalesRpcClient,
+  ev: EmitInput,
+  timeoutMs: number = 1500,
+): Promise<EmitInput> {
+  let timer: number | undefined;
   try {
-    const { data, error } = await client.rpc("ops_sales_today");
+    // Roda no caminho da resposta: no estouro devolve o evento sem as vendas do dia.
+    const timeout = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), timeoutMs) as unknown as number;
+    });
+    const result = await Promise.race([Promise.resolve(client.rpc("ops_sales_today")), timeout]);
+    if (result === null) return ev;
+    const { data, error } = result;
     if (error) return ev;
     const d = obj(data);
     const vendas = d.vendas;
@@ -232,6 +244,8 @@ export async function enrichWithSalesToday(client: SalesRpcClient, ev: EmitInput
     };
   } catch {
     return ev;
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 }
 
@@ -247,7 +261,7 @@ export function webhookRecordFailureToOps(payload: any, err: unknown): EmitInput
     detail: compact({
       evento: text(p.event) ?? "desconhecido",
       pedido: text(d.id, d.refId, d.order_id),
-      erro: err instanceof Error ? err.message : String(err),
+      erro: errorMessage(err),
     }),
   };
 }

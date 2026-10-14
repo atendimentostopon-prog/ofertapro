@@ -145,6 +145,8 @@ Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback e
 - Um reembolso ou chargeback gera o aviso do webhook e, depois, "Conta cancelada" pelo trigger de conta.
 - O healthcheck só enxerga jobs `active` em `cron.job`.
 - Ainda não há evento de "voltou ao normal".
+- JSON malformado enviado por um cliente em `public-api` e nas functions `api-key-*`, `enrich-product` e `evolution-*` hoje vira 500 e portanto dispara alerta 5xx sem causa no detalhe (o tratamento do handler está fora do escopo; correção futura: devolver 400).
+- O detalhe de um alerta repetido mostra a primeira ocorrência.
 
 **Silenciar um job:** a checagem "Cron parado" só considera jobs ativos; para silenciar um job desativado: `update cron.job set active = false where jobname = '<job>';`. Para parar o healthcheck inteiro: `select cron.unschedule('ops_healthcheck');`.
 
@@ -152,7 +154,7 @@ Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback e
 
 ### Erros de Edge Function (`withAlerts`)
 
-O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` e avisa quando a function responde 5xx ou lança exceção (categoria `edge_error`; a resposta e a exceção seguem idênticas, o alerta é fail-open e espera no máximo 1,5 s). O detalhe leva só função, método, rota (sem query string), mensagem e tipo do erro, nunca cabeçalhos nem corpo. Erros repetidos agrupam por título e avisam nas ocorrências 1, 5, 25 e 100.
+O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` e avisa quando a function responde 5xx ou lança exceção (categoria `edge_error`; a resposta e a exceção seguem idênticas, o alerta é fail-open). A emissão é assíncrona (`EdgeRuntime.waitUntil`), com fallback de espera limitada a 1,5 s quando `waitUntil` não existe. Há throttle de 1 aviso por 10 s por function e tipo (exceção ou 5xx) em cada instância. `critical` vale para exceções e também para respostas 5xx. O detalhe leva só função, método, rota (sem query string), mensagem e tipo do erro, nunca cabeçalhos nem corpo. Erros repetidos agrupam por título e avisam nas ocorrências 1, 5, 25 e 100.
 
 - Cobertas (severidade `critical` para exceções em `public-api`, `cakto-create-payment`, `cakto-cancel-subscription` e `evolution-webhook`): `public-api`, `enrich-product`, `evolution-webhook`, `evolution-groups-select`, `evolution-groups-sync`, `evolution-instance-create`, `evolution-instance-delete`, `evolution-instance-status`, `api-key-generate`, `api-key-reveal`, `api-key-revoke`, `cakto-create-payment`, `cakto-cancel-subscription`, `cleanup-storage`.
 - `cakto-webhook` tem alertas próprios: falha ao gravar `webhook_events` (critical / billing, "Webhook Cakto não gravou o evento") e secret inválido com no máximo 1 alerta por 60 s por instância.
