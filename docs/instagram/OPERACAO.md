@@ -120,9 +120,10 @@ cada um com autorização do dono):
    (roda em `BEGIN ... ROLLBACK`, não deixa dados). Conferir que nenhum assert falhou e
    ler os NOTICEs de blocos pulados (precisa de 2 linhas em `profiles`).
 3. Reaplicar a migration core no mesmo banco para confirmar que é idempotente.
-4. Conferir que `app.service_role_key` está configurado no banco de destino
-   (`select current_setting('app.service_role_key', true) is not null;`), igual ao ajuste
-   manual dos e-mails. Sem ele o cron só emite NOTICE e não chama as funções.
+4. Conferir que o segredo `app_service_role_key` existe no Vault do banco de destino
+   (`select count(*) from vault.decrypted_secrets where name = 'app_service_role_key';`
+   deve dar 1; é o mesmo usado pela central de alertas). Sem ele o cron só emite NOTICE
+   e não chama as funções. A migration do cron não usa `ALTER DATABASE SET`.
 5. Ordem em produção: migration core -> secrets (`docs/instagram/META_SETUP.md`) -> Edge
    Functions (lista abaixo) -> migration `20261013120100_instagram_cron.sql`.
 6. Depois da migration de cron: `select jobname, schedule, active from cron.job where jobname like 'ig_%';`
