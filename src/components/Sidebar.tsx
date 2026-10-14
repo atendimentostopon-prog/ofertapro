@@ -12,6 +12,7 @@ import { Avatar } from './ui/Avatar';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { toDisplayName } from '../lib/format';
 import { FEATURES } from '../config/features';
+import { CommunityCallout } from './community/CommunityCallout';
 
 interface SidebarProps {
   onLogout: () => void;
@@ -128,7 +129,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
 
       {/* User Profile */}
       <div className="p-3 border-t border-line flex-shrink-0">
-        <div className="flex items-center gap-2.5 mb-2.5 px-2">
+        <CommunityCallout variant="compact" onAfterJoin={handleLinkClick} />
+        <div className="flex items-center gap-2.5 mb-2.5 mt-3 px-2">
           <Avatar src={user.avatar_url} name={toDisplayName(user.preferred_name || user.full_name) || 'Usuário'} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-ink truncate">{toDisplayName(user.preferred_name || user.full_name) || 'Usuário'}</p>

@@ -1,0 +1,259 @@
+# Alertas operacionais (Telegram + Discord)
+
+Spec: `docs/superpowers/specs/2026-10-13-ops-alerts-design.md`.
+Estado: Fase 1 (central + negócio) e Fase 2 (saúde e erros) entregues. Fase 3 (segurança, Sentry, resumo diário) ainda não implementada.
+
+## Como funciona
+
+```
+trigger/cron (banco) ─┐
+Edge Functions ───────┴─> ops_emit() ─> ops_events ─(pg_net)─> notify ─> Discord / Telegram
+```
+
+- `ops_emit` deduplica: mesmo evento em 10 min vira 1 linha com contagem. Só notifica na 1ª ocorrência e nas de número 5, 25 e 100.
+- Com `dedupe_key` o evento é único para sempre (cadastro, trial).
+- Alertas são fail-open: se algo falhar, o cadastro ou o pagamento continuam normalmente.
+
+## O que alerta hoje
+
+| Evento | Severidade | Destino |
+|---|---|---|
+| Novo cadastro | business | Discord `#negocio` + Telegram |
+| E-mail confirmado (exige a migration `20261013000200_ops_rich_messages.sql`) | business | Discord `#negocio` + Telegram |
+| Venda aprovada, renovação, assinatura criada/cancelada, reembolso, chargeback, compra/renovação recusada | business | Discord `#negocio` + Telegram |
+| Trial termina em menos de 24h | business | Discord `#negocio` + Telegram |
+| Webhook da Cakto falhou ao processar | critical | Discord `#criticos` + Telegram |
+| Webhook da Cakto com secret inválido | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+
+## Mensagens
+
+Cada alerta é montado por `supabase/functions/_shared/ops/format.ts` a partir das chaves do `detail`. Rótulos em pt-BR, valores formatados (R$, telefone, data em America/Sao_Paulo), e-mail e telefone completos. Chaves vazias são omitidas e chaves desconhecidas aparecem depois das conhecidas, com o nome humanizado.
+
+| Chave | Rótulo | Formato |
+|---|---|---|
+| `nome`, `email`, `telefone` | Nome, E-mail, Telefone | telefone BR como `(11) 98765-4321` |
+| `origem` | Origem | `email` = E-mail e senha, `google` = Google |
+| `email_confirmado` | Confirmação | Confirmado / Aguardando confirmação |
+| `trial_termina` | Trial termina | `20/10 às 12:00` |
+| `confirmou_em_min` | Confirmou em | `4 min`, `1 h 20 min`, `< 1 min` |
+| `onboarding_passo` | Onboarding | `passo 1 de 4` |
+| `horas_restantes` | Restam | `18 h` ou `45 min` |
+| `dias_de_uso`, `bot_status`, `canais` | Dias de uso, Bot, Canais | texto |
+| `plano`, `ciclo` | Plano, Ciclo | Pro, Starter, Business (enterprise), Free; Mensal, Anual |
+| `valor`, `faturamento_hoje` | Valor, Faturamento hoje | `R$ 48,89` |
+| `forma_pagamento`, `parcelas` | Pagamento, Parcelas | Cartão, Pix, Boleto; `3x` |
+| `pedido`, `oferta`, `evento` | Pedido, Oferta, Evento | texto |
+| `cliente_nome`, `cliente_email`, `cliente_telefone` | Cliente, E-mail do cliente, Telefone do cliente | texto |
+| `acesso`, `motivo`, `erro`, `acao` | Acesso, Motivo, Erro, O que fazer | texto |
+| `vendas_hoje` | Vendas hoje | número |
+| `ip`, `pais`, `user_agent`, `rota` | IP, País, Navegador / cliente, Rota | texto |
+| `painel` | (link) | só `https://admin.aflyo.com.br/...` vira link: título do embed no Discord e "Abrir no painel" no Telegram; qualquer outro valor aparece como texto simples |
+
+`cadastro_numero`, `cadastros_hoje`, `confirmaram_hoje` e `taxa_confirmacao_7d` não são campos: entram na linha-resumo logo abaixo do título. Limites: Telegram até 4000 caracteres (corta por linha), Discord até 15 campos e embed abaixo de 5500 caracteres.
+
+Exemplos (Telegram):
+
+```
+🟢 Novo cadastro
+Cadastro nº 128 · 7 hoje
+Nome: Ana Silva
+E-mail: ana@exemplo.com
+Telefone: (11) 98765-4321
+Origem: Google
+Confirmação: Aguardando confirmação
+Trial termina: 20/10 às 12:00
+signup · 13/10/2026 12:00
+Abrir no painel
+```
+
+```
+🟢 E-mail confirmado
+5 confirmaram hoje · confirmação em 7 dias: 62,5%
+Nome: Ana Silva
+E-mail: ana@exemplo.com
+Confirmou em: 4 min
+Onboarding: passo 1 de 4
+```
+
+```
+🟢 Trial termina em menos de 24h
+Nome: Ana Silva
+Telefone: (11) 98765-4321
+Trial termina: 14/10 às 06:30
+Restam: 18 h
+Dias de uso: 6
+Bot: ativo
+Canais: 2
+```
+
+```
+🟢 Venda aprovada
+Pro mensal · R$ 48,89 · hoje: 4 vendas · R$ 1.234,50
+Plano: Pro
+Valor: R$ 48,89
+Pagamento: Cartão
+Parcelas: 3x
+Cliente: Ana Silva
+Acesso: liberado, bot retomado
+```
+
+```
+🟢 Reembolso
+Starter mensal · R$ 19,90
+Motivo: solicitado pelo cliente
+Acesso: revogado e bot pausado
+```
+
+```
+🔴 Webhook Cakto falhou: refund
+Evento: refund
+Pedido: ord_9
+Erro: profiles by id: timeout
+O que fazer: Verifique o webhook e reprocesse o evento em Cakto > Webhooks no painel admin
+```
+
+```
+🟠 Webhook Cakto com secret inválido
+IP: 203.0.113.9
+País: BR
+Navegador / cliente: curl/8.0
+Rota: /cakto-webhook
+```
+
+Requisitos: o alerta "E-mail confirmado" e os campos ricos de cadastro e trial dependem da migration `supabase/migrations/20261013000200_ops_rich_messages.sql`. Sem ela as mensagens continuam funcionando, só com menos campos. Os campos de cobrança vêm do próprio `cakto-webhook` (deploy da function).
+
+## Saúde (Fase 2)
+
+Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback em `supabase/rollbacks/20261014000000_ops_phase2_health_rollback.sql`, teste em `supabase/tests/manual/20261014000000_ops_phase2_health.test.sql`). O job `ops_healthcheck` roda a cada 5 minutos no `pg_cron` (agenda `2-59/5 * * * *`, minutos 2, 7, 12..., para fugir do minuto cheio onde os jobs de produção já estouram "job startup timeout") e cada checagem é isolada: uma falha não impede as outras.
+
+**Lembrete por hora:** cron falhando, cron parado, bots com erro, conexões e disco usam chave de deduplicação horária (fuso America/Sao_Paulo). Enquanto a condição persiste, há 1 aviso por hora; uma condição nova (outro job, por exemplo) não fica escondida atrás de uma antiga. Os títulos não têm números variáveis (a quantidade vai só no detalhe).
+
+| Alerta | Severidade / categoria | Quando |
+|---|---|---|
+| Job do cron falhou: `<job>` | error / cron | alguma execução com `status = 'failed'` nos últimos 15 min, exceto "job startup timeout" |
+| Cron com falhas de inicialização | error / cron | 5 ou mais falhas "job startup timeout" nas últimas 3 horas (agregado, lista até 8 jobs) |
+| Cron parado: `<job>` | error / cron | sem execução bem-sucedida dentro do intervalo máximo: `aflyo_expire_offers` 45 min, `expire_trials` e `ops_trial_expiring_scan` 3 h. Job que nunca rodou ou foi criado há menos que o intervalo não alerta |
+| Bots com erro | error / bot | `bot_configs` com `status = 'active'` e `last_error` preenchido (bots `pending` ou `paused` nunca alertam; `last_seen_at` não é usado) |
+| Conexões do banco acima de 80% | error / health | conexões de clientes em `pg_stat_activity` (`backend_type = 'client backend'`) acima de 80% de `max_connections` |
+| Banco perto do limite de disco | error / health | `pg_database_size` acima de 400 MB (limite Free: 500 MB) |
+| Trial expirou / Assinatura expirou / Conta cancelada | business / billing | trigger em `profiles` quando `account_status` passa a `expired` ou `canceled` (nunca de nulo para `trialing`/`active`); um alerta por transição |
+
+**Reenvio:** `ops_retry_undelivered()` roda dentro do healthcheck e reenvia eventos que nenhum canal recebeu: até 4 eventos por execução (`for update skip locked`, então execuções sobrepostas não reenviam o mesmo), `critical`/`error`/`business` com `notified_at` nulo, criados entre 2 minutos e 24 horas atrás, no máximo 3 tentativas com 5 minutos entre elas (`notify_attempts`, `last_notify_attempt_at`). Sem a chave no Vault nada é reenviado e nenhuma tentativa é contada.
+
+**Limitações conhecidas:**
+
+- Um reembolso ou chargeback gera o aviso do webhook e, depois, "Conta cancelada" pelo trigger de conta.
+- O healthcheck só enxerga jobs `active` em `cron.job`.
+- Ainda não há evento de "voltou ao normal".
+- JSON malformado enviado por um cliente em `public-api` e nas functions `api-key-*`, `enrich-product` e `evolution-*` hoje vira 500 e portanto dispara alerta 5xx sem causa no detalhe (o tratamento do handler está fora do escopo; correção futura: devolver 400).
+- O detalhe de um alerta repetido mostra a primeira ocorrência.
+
+**Silenciar um job:** a checagem "Cron parado" só considera jobs ativos; para silenciar um job desativado: `update cron.job set active = false where jobname = '<job>';`. Para parar o healthcheck inteiro: `select cron.unschedule('ops_healthcheck');`.
+
+**Uptime Kuma:** crie um monitor HTTP para `https://zuqaccivowbzdfrpgekz.supabase.co/rest/v1/rpc/ops_health?apikey=<publishable>` esperando HTTP 200 e corpo contendo `"ok":true`. `ops_health` não lê nenhuma tabela e é executável por `anon`.
+
+### Erros de Edge Function (`withAlerts`)
+
+O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` e avisa quando a function responde 5xx ou lança exceção (categoria `edge_error`; a resposta e a exceção seguem idênticas, o alerta é fail-open). A emissão é assíncrona (`EdgeRuntime.waitUntil`), com fallback de espera limitada a 1,5 s quando `waitUntil` não existe. Há throttle de 1 aviso por 10 s por function e tipo (exceção ou 5xx) em cada instância. `critical` vale para exceções e também para respostas 5xx. O detalhe leva só função, método, rota (sem query string), mensagem e tipo do erro, nunca cabeçalhos nem corpo. Erros repetidos agrupam por título e avisam nas ocorrências 1, 5, 25 e 100.
+
+- Cobertas (severidade `critical` para exceções em `public-api`, `cakto-create-payment`, `cakto-cancel-subscription` e `evolution-webhook`): `public-api`, `enrich-product`, `evolution-webhook`, `evolution-groups-select`, `evolution-groups-sync`, `evolution-instance-create`, `evolution-instance-delete`, `evolution-instance-status`, `api-key-generate`, `api-key-reveal`, `api-key-revoke`, `cakto-create-payment`, `cakto-cancel-subscription`, `cleanup-storage`.
+- `cakto-webhook` tem alertas próprios: falha ao gravar `webhook_events` (critical / billing, "Webhook Cakto não gravou o evento") e secret inválido com no máximo 1 alerta por 60 s por instância.
+- Excluídas de propósito: `admin-api` (tem tratamento próprio de erros), `send-email` e `email-hook` (caminho de e-mail do Auth, não pode ganhar dependência nova) e `notify` (não alerta sobre si mesmo).
+
+## Configuração (uma vez)
+
+1. **Telegram:** no @BotFather envie `/newbot`, guarde o token. Abra o bot e envie `/start`. Obtenha o `chat_id` com `https://api.telegram.org/bot<TOKEN>/getUpdates` (rode no seu navegador local; não cole o token em chats).
+2. **Discord:** crie os canais `#criticos`, `#erros`, `#negocio`, `#info`. Em cada um: Editar canal, Integrações, Webhooks, Novo webhook, Copiar URL.
+3. **Secrets do Supabase** (CLI logada no projeto `zuqaccivowbzdfrpgekz`):
+
+```bash
+supabase secrets set TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=...
+supabase secrets set DISCORD_WEBHOOK_CRITICAL=... DISCORD_WEBHOOK_ERRORS=... DISCORD_WEBHOOK_BUSINESS=... DISCORD_WEBHOOK_INFO=...
+```
+
+4. O segredo `app_service_role_key` já existe no Vault (recurso de e-mails). `ops_emit` lê a chave de lá e tem a URL do `notify` como constante na própria função. Se a chave for rotacionada, atualize com `select public.set_app_service_role_key('<nova chave>');` (função que já existe em produção).
+
+## Rollout (nesta ordem)
+
+1. Setar os secrets (acima).
+2. `supabase functions deploy notify`
+3. Aplicar `supabase/migrations/20261013000000_ops_events_and_emit.sql` no SQL Editor e rodar `supabase/tests/manual/20261013000000_ops_events_and_emit.test.sql`.
+4. `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/ops-test-alert.mjs` e conferir os 4 canais. Atenção: OK só prova que `ops_emit` devolveu um id; a entrega real é confirmada nos canais e com um cadastro real.
+5. Aplicar `supabase/migrations/20261013000100_ops_business_sources.sql` e rodar o teste manual correspondente.
+6. `supabase functions deploy cakto-webhook --no-verify-jwt`
+7. Fazer um cadastro de teste e conferir o aviso no `#negocio` e no Telegram.
+8. Migration 3 (mensagens ricas): aplicar `supabase/migrations/20261013000200_ops_rich_messages.sql` no SQL Editor, com o mesmo papel das anteriores, e rodar `supabase/tests/manual/20261013000200_ops_rich_messages.test.sql`. Verificações:
+
+   ```sql
+   -- 1) trigger existe (espera 1 linha)
+   select tgname from pg_trigger where tgrelid = 'auth.users'::regclass and tgname = 'trg_ops_email_confirmed';
+   -- 2) privilégios (espera false, false, true)
+   select has_function_privilege('anon', 'public.ops_sales_today()', 'execute'),
+          has_function_privilege('authenticated', 'public.ops_on_email_confirmed()', 'execute'),
+          has_function_privilege('service_role', 'public.ops_sales_today()', 'execute');
+   -- 3) vendas do dia (espera jsonb com "vendas" e "faturamento")
+   select public.ops_sales_today();
+   ```
+
+   Rollback: `supabase/rollbacks/20261013000200_ops_rich_messages_rollback.sql`. O `cakto-webhook` precisa ser reimplantado (`--no-verify-jwt`) para incluir "vendas hoje" nas vendas.
+
+Sobre o flag de JWT:
+
+- `cakto-webhook` DEVE ser implantada com `--no-verify-jwt`: a Cakto não envia JWT e, sem o flag, o gateway do Supabase responde 401 a todo webhook de pagamento e clientes que pagaram ficam sem acesso. A autenticidade é checada pelo `secret` dentro da function.
+- `notify` é implantada SEM o flag (`supabase functions deploy notify`): ela é chamada pelo `pg_net` com a service role key, como o `send-email`.
+
+Verificação pós-deploy do `cakto-webhook`:
+
+```bash
+curl -i -X POST <url>/cakto-webhook -H "Content-Type: application/json" -d '{"secret":"x","event":"ping","data":{}}'
+```
+
+Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria function. Se vier um JSON de erro do gateway (por exemplo `Invalid JWT`), o flag foi esquecido: reimplante com `--no-verify-jwt`.
+
+## Pontos de atenção na primeira aplicação
+
+- O segredo `app_service_role_key` precisa existir no Vault (confira com `select exists (select 1 from vault.secrets where name = 'app_service_role_key');`). Sem ele os eventos são gravados em `ops_events` mas não notificados.
+- Aplique as duas migrations com o mesmo papel no SQL Editor, para que `ops_emit` e `ops_on_signup` tenham o mesmo dono. Se os donos forem diferentes, a chamada do trigger a `ops_emit` falha com "permission denied" e vira apenas um warning (alerta de cadastro some em silêncio).
+- Na primeira aplicação, todo usuário em trial que termina em menos de 24h gera um aviso de uma vez (rajada única). O Discord limita webhooks (HTTP 429), então numa rajada alguns alertas podem não ser entregues; esses eventos são reenviados pelo healthcheck da Fase 2 (até 3 tentativas). Depois disso é no máximo um aviso por usuário.
+
+## Desligar / reverter
+
+- Parar só os avisos de cadastro: `drop trigger if exists trg_ops_signup on auth.users;`
+- Parar só os avisos de e-mail confirmado: `drop trigger if exists trg_ops_email_confirmed on auth.users;`
+- Não há interruptor no nível do banco na Fase 1 (veja `ops_settings.enabled` em Próximas fases).
+- Interruptor imediato (qualquer um dos dois):
+  - `supabase secrets unset TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID DISCORD_WEBHOOK_CRITICAL DISCORD_WEBHOOK_ERRORS DISCORD_WEBHOOK_BUSINESS DISCORD_WEBHOOK_INFO` (o `notify` passa a reportar tudo como ignorado);
+  - `supabase functions delete notify`.
+- Reverter tudo:
+  1. Rodar o rollback SQL `supabase/rollbacks/20261013000000_ops_alerts_rollback.sql`.
+  2. Reimplantar a versão anterior do `cakto-webhook` (`git checkout` da main anterior ao merge e `supabase functions deploy cakto-webhook --no-verify-jwt`).
+  3. Apagar a function `notify` (`supabase functions delete notify`).
+  4. Remover os secrets (`supabase secrets unset ...` acima).
+
+## Diagnóstico
+
+| Sintoma | Onde olhar |
+|---|---|
+| Evento gravado mas sem mensagem | `select * from net._http_response order by created desc limit 5;` (resposta do `notify`); logs da function `notify` |
+| `notify` responde 401 | Segredo `app_service_role_key` do Vault diferente da service role atual; atualize com `select public.set_app_service_role_key('<nova chave>');` |
+| `notify` responde 502 | Webhook do Discord revogado ou token do Telegram errado; rodar o smoke e ver qual canal falha |
+| Nenhum evento novo | `select * from public.ops_events order by created_at desc limit 5;` e `raise warning` de `ops_emit` nos logs do Postgres |
+| Notice `[ops_emit] app_service_role_key nao configurado no Vault` | Causa: segredo ausente no Vault. Ação: criar com `select public.set_app_service_role_key('<chave>');` |
+| Alerta de cadastro não chega, mas há linhas novas em ops_events | warnings do Postgres ('[ops_on_signup]', '[ops_emit]'), dono das funções, e a seção Pontos de atenção |
+
+## Segurança
+
+- Tokens e webhooks existem apenas como secrets das Edge Functions. Webhook do Discord é credencial: se vazar, apague e recrie.
+- `ops_events` nunca recebe headers, corpo bruto, chaves ou cartão. Tudo passa por `sanitizeDetail` com `keepEmails`: chaves sensíveis, JWT, Bearer, tokens do Telegram e webhooks do Discord são sempre redigidos e o tamanho é limitado. O e-mail NÃO é mascarado no detalhe (decisão do operador em 2026-10-13); só o título do alerta continua com e-mail mascarado.
+- Dados pessoais (LGPD): e-mail e telefone completos de usuários e clientes vão para o Discord, o Telegram e `ops_events.detail` por decisão do operador, porque os canais são privados. Mantenha os canais restritos à equipe e não os compartilhe.
+- `ops_events` tem RLS ligada e nenhuma policy; `ops_emit` só executa para `service_role`.
+- Check automático: `npm run check:ops-alerts`.
+
+## Próximas fases (pendências conhecidas)
+
+- Timeout nos envios (`fetch`) do `notify` (o `cakto-webhook` não faz `fetch` próprio; a emissão dos alertas das Edge Functions já tem teto de 1,5 s no `withAlerts`).
+- Interruptor imediato por tabela (`ops_settings.enabled` lido pelo `ops_emit`).
+- Nomes de chaves sensíveis em pt-BR no sanitize (senha, pwd, credential) antes do `withAlerts`.
+- Hook de "evento recebido".
+- Os contadores `count(*)` em `auth.users` dentro dos triggers de cadastro e de confirmação devem ser trocados por contador ou consulta indexada antes de ~100 mil usuários (e `query_canceled` não é capturado por `exception when others`).
+- "Faturamento hoje" soma o valor bruto pago pelo cliente (inclui a taxa de R$ 0,99 e é antes do corte da Cakto) e conta eventos de teste.

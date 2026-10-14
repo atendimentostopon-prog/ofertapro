@@ -8,6 +8,7 @@ import { ErrorState } from '../components/ui/ErrorState';
 import { LoadingState } from '../components/ui/LoadingState';
 import { PageHeader } from '../components/ui/PageHeader';
 import NewTicketModal from '../components/support/NewTicketModal';
+import { CommunityCallout } from '../components/community/CommunityCallout';
 
 type Ticket = {
   id: string;
@@ -87,6 +88,8 @@ export default function Suporte() {
           Novo ticket
         </button>
       </PageHeader>
+
+      <CommunityCallout variant="banner" />
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState message={error} onRetry={load} />}

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { withAlerts } from "../_shared/ops/with-alerts.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 // SEC-7: comparação constante em tempo. Faz SHA-256 dos dois lados (sempre
@@ -44,7 +45,7 @@ async function syncChannelsForInstance(
   console.log(`[WEBHOOK] ${channelIds.length} canal(is) sincronizado(s) para '${status}'.`)
 }
 
-serve(async (req) => {
+serve(withAlerts("evolution-webhook", async (req) => {
   // Webhooks geralmente são acionados apenas por requisições POST
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 })
@@ -171,4 +172,4 @@ serve(async (req) => {
     console.error('[WEBHOOK_INTERNAL] Erro crítico no webhook:', err.message)
     return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
-})
+}, { critical: true }))

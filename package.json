@@ -12,6 +12,7 @@
     "check:api-key-rollout": "node scripts/check-api-key-rollout.mjs",
     "check:ig-contract": "node scripts/check-ig-contract.mjs",
     "test:instagram": "node --test tests/instagram/*.test.mjs",
+    "check:ops-alerts": "node scripts/check-ops-alerts.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
