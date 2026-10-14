@@ -255,3 +255,23 @@ Deno.test("refund lancando em erro permanente nao impede o finish", async () => 
   assertEquals(r.outcome, "failed");
   assertEquals(log.includes("finish:dm:failed:100"), true);
 });
+
+Deno.test("envio ambiguo: falha sem liberar o claim, sem estorno e sem retry", async () => {
+  const { store, log } = fakeStore();
+  const { graph, sent } = fakeGraph({ ok: false, kind: "ambiguous", code: null, message: "network error: TimeoutError" });
+  const r = await processComment({ store, graph, random: () => 0 }, comment());
+  assertEquals(r, { outcome: "failed", reason: "ambiguous" });
+  assertEquals(log.includes("release:dm"), false);
+  assertEquals(log.includes("refund"), false);
+  assertEquals(log.includes("finish:dm:failed:ambiguous"), true);
+  assertEquals(sent.reply.length, 0);
+});
+
+Deno.test("envio ambiguo processado de novo nao reenvia (claim mantido)", async () => {
+  const { store } = fakeStore();
+  const { graph, sent } = fakeGraph({ ok: false, kind: "ambiguous", code: null, message: "x" });
+  await processComment({ store, graph }, comment());
+  const second = await processComment({ store, graph }, comment());
+  assertEquals(second.reason, "duplicate");
+  assertEquals(sent.dm.length, 1);
+});

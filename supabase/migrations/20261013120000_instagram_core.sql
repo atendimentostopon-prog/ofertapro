@@ -177,6 +177,10 @@ REVOKE ALL ON public.ig_accounts, public.ig_contacts, public.ig_message_log,
 REVOKE INSERT, UPDATE, DELETE ON public.ig_accounts, public.ig_contacts,
               public.ig_message_log, public.ig_usage_monthly FROM authenticated;
 REVOKE ALL ON public.ig_automations FROM anon;
+-- Privilegios que o cliente nunca usa (o default do Supabase concede tudo).
+REVOKE TRUNCATE, REFERENCES, TRIGGER ON public.ig_accounts, public.ig_automations,
+       public.ig_contacts, public.ig_message_log, public.ig_usage_monthly,
+       public.ig_pending_connections, public.ig_events FROM anon, authenticated;
 
 DROP POLICY IF EXISTS "ig_accounts leitura propria" ON public.ig_accounts;
 CREATE POLICY "ig_accounts leitura propria" ON public.ig_accounts
@@ -218,13 +222,13 @@ BEGIN
     SELECT 1 FROM public.ig_accounts a
     WHERE a.id = NEW.ig_account_id AND a.user_id = NEW.user_id
   ) THEN
-    RAISE EXCEPTION 'Conta de Instagram invalida para este usuario.'
+    RAISE EXCEPTION 'Conta de Instagram inválida para este usuário.'
       USING ERRCODE = 'check_violation';
   END IF;
 
   IF NEW.status = 'active' AND (TG_OP = 'INSERT' OR OLD.status IS DISTINCT FROM 'active') THEN
     IF NOT public.has_active_access(NEW.user_id) THEN
-      RAISE EXCEPTION 'Assine um plano para ativar automacoes.'
+      RAISE EXCEPTION 'Assine um plano para ativar automações.'
         USING ERRCODE = 'check_violation';
     END IF;
 
@@ -235,7 +239,7 @@ BEGIN
      WHERE p.id = NEW.user_id;
 
     IF NOT COALESCE(v_allow, false) THEN
-      RAISE EXCEPTION 'Seu plano nao inclui automacoes de Instagram.'
+      RAISE EXCEPTION 'Seu plano não inclui automações de Instagram.'
         USING ERRCODE = 'check_violation';
     END IF;
 
@@ -244,7 +248,7 @@ BEGIN
      WHERE user_id = NEW.user_id AND status = 'active' AND id <> NEW.id;
 
     IF v_count >= COALESCE(v_max, 0) THEN
-      RAISE EXCEPTION 'Limite de automacoes ativas do seu plano atingido.'
+      RAISE EXCEPTION 'Limite de automações ativas do seu plano atingido.'
         USING ERRCODE = 'check_violation';
     END IF;
 
@@ -306,7 +310,43 @@ REVOKE ALL ON FUNCTION public.set_ig_access_token(uuid, text) FROM public, anon,
 GRANT EXECUTE ON FUNCTION public.get_ig_access_token(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.set_ig_access_token(uuid, text) TO service_role;
 
+-- Ao apagar uma conta ou pendencia (direto ou em cascata: exclusao do
+-- perfil, replace_disconnected, ig_prune), o token no Vault e zerado. Assim
+-- nenhum segredo fica orfao no Vault depois que a linha dona some.
+CREATE OR REPLACE FUNCTION public.ig_blank_token_on_delete()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, vault
+AS $$
+DECLARE
+  v_name text := 'ig_access_token:' || OLD.id::text;
+  v_id   uuid;
+BEGIN
+  SELECT id INTO v_id FROM vault.secrets WHERE name = v_name;
+  IF v_id IS NOT NULL THEN
+    PERFORM vault.update_secret(v_id, '', v_name, 'Aflyo: token do Instagram (revogado)');
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.ig_blank_token_on_delete() FROM public, anon, authenticated;
+
+DROP TRIGGER IF EXISTS ig_accounts_blank_token ON public.ig_accounts;
+CREATE TRIGGER ig_accounts_blank_token
+AFTER DELETE ON public.ig_accounts
+FOR EACH ROW EXECUTE FUNCTION public.ig_blank_token_on_delete();
+
+DROP TRIGGER IF EXISTS ig_pending_connections_blank_token ON public.ig_pending_connections;
+CREATE TRIGGER ig_pending_connections_blank_token
+AFTER DELETE ON public.ig_pending_connections
+FOR EACH ROW EXECUTE FUNCTION public.ig_blank_token_on_delete();
+
 -- 6) Fila: reivindicar eventos ------------------------------------------
+-- Um evento preso em 'processing' (worker morreu) e reivindicado de novo
+-- depois de 5 minutos, mas so enquanto attempts < 5. Com 5 ou mais tentativas
+-- ele vira 'failed' (reason stale_max_attempts) e sai da fila.
 CREATE OR REPLACE FUNCTION public.ig_claim_events(p_limit int)
 RETURNS SETOF public.ig_events
 LANGUAGE plpgsql
@@ -314,6 +354,13 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  UPDATE public.ig_events
+     SET status = 'failed', reason = 'stale_max_attempts',
+         last_error = 'stale_max_attempts', processed_at = now(), locked_at = NULL
+   WHERE status = 'processing'
+     AND locked_at < now() - interval '5 minutes'
+     AND attempts >= 5;
+
   RETURN QUERY
   WITH claimed AS (
     UPDATE public.ig_events e
@@ -321,7 +368,8 @@ BEGIN
      WHERE e.id IN (
        SELECT id FROM public.ig_events
         WHERE (status = 'pending' AND run_at <= now())
-           OR (status = 'processing' AND locked_at < now() - interval '5 minutes')
+           OR (status = 'processing' AND locked_at < now() - interval '5 minutes'
+               AND attempts < 5)
         ORDER BY run_at
         LIMIT greatest(p_limit, 1)
         FOR UPDATE SKIP LOCKED)
@@ -404,7 +452,8 @@ GRANT EXECUTE ON FUNCTION public.ig_pause_automations_without_access() TO servic
 --  - conta desconectada pelo painel: a linha (e em cascata automacoes,
 --    contatos e log) e seus eventos somem 30 dias depois da desconexao.
 --    O token ja foi zerado na desconexao.
---  - pendencias vencidas: token zerado no Vault e linha apagada.
+--  - pendencias vencidas: apagadas (o trigger ig_blank_token_on_delete zera
+--    o token delas no Vault).
 CREATE OR REPLACE FUNCTION public.ig_prune()
 RETURNS void
 LANGUAGE plpgsql
@@ -426,14 +475,6 @@ BEGIN
    WHERE status = 'disconnected'
      AND updated_at < now() - interval '30 days';
 
-  -- revoga o token no Vault das pendencias vencidas ANTES de apagar as linhas
-  PERFORM vault.update_secret(s.id, '', s.name, 'Aflyo: token do Instagram (revogado)')
-     FROM vault.secrets s
-    WHERE s.name IN (
-      SELECT 'ig_access_token:' || p.id::text
-        FROM public.ig_pending_connections p
-       WHERE p.expires_at < now()
-    );
   DELETE FROM public.ig_pending_connections WHERE expires_at < now();
 END;
 $$;

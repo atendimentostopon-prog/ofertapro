@@ -27,9 +27,27 @@ serve(async (req) => {
   if (pendErr) return json({ error: "save_failed" }, 500);
   const p = pend as Row | null;
   if (!p) return json({ error: "invalid_pending" }, 404);
+
+  // Descarta a pendencia: primeiro zera o token no Vault e confere o erro
+  // (supabase-js nao lanca); so apaga a linha se o token foi zerado, para nunca
+  // deixar segredo orfao no Vault. Melhor esforco: nunca mascara a resposta
+  // de erro; o ig_prune e o trigger ig_blank_token_on_delete limpam o resto.
+  const discardPending = async () => {
+    try {
+      const { error: blankErr } = await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: "" });
+      if (blankErr) {
+        console.error("[ig-oauth-complete] zerar token pendente:", blankErr.message);
+        return;
+      }
+      const { error: delErr } = await admin.from("ig_pending_connections").delete().eq("id", pendingId);
+      if (delErr) console.error("[ig-oauth-complete] apagar pendencia:", delErr.message);
+    } catch (e) {
+      console.error("[ig-oauth-complete] descartar pendencia:", e instanceof Error ? e.message : e);
+    }
+  };
+
   if (new Date(String(p.expires_at)).getTime() < Date.now()) {
-    await admin.from("ig_pending_connections").delete().eq("id", pendingId);
-    await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: "" });
+    await discardPending();
     return json({ error: "expired" }, 410);
   }
 
@@ -62,12 +80,6 @@ serve(async (req) => {
     hasAccess: Boolean(has),
   });
   // Decisao terminal: descarta a pendencia e o token (nao fica token vivo no Vault).
-  const discardPending = async () => {
-    try {
-      await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: "" });
-      await admin.from("ig_pending_connections").delete().eq("id", pendingId);
-    } catch (_e) { /* melhor esforco; ig_prune limpa o que sobrar */ }
-  };
   if (decision === "not_allowed") { await discardPending(); return json({ error: "plan_not_allowed" }, 403); }
   if (decision === "in_use") { await discardPending(); return json({ error: "account_in_use" }, 409); }
   if (decision === "limit") { await discardPending(); return json({ error: "account_limit" }, 409); }
@@ -117,10 +129,17 @@ serve(async (req) => {
     accountId = (data as { id: string }).id;
   }
 
+  // Conta gravada mas sem token ou sem webhook: fica needs_reconnect e as
+  // automacoes ativas pausam (mesmo efeito de markAccountNeedsReconnect).
   const halfConnected = async (reason: string) => {
-    await admin.from("ig_accounts")
+    const { error: accErr } = await admin.from("ig_accounts")
       .update({ status: "needs_reconnect", last_error: reason, updated_at: new Date().toISOString() })
       .eq("id", accountId);
+    if (accErr) console.error("[ig-oauth-complete] needs_reconnect:", accErr.message);
+    const { error: autErr } = await admin.from("ig_automations")
+      .update({ status: "paused", paused_reason: "token_invalid" })
+      .eq("ig_account_id", accountId).eq("status", "active");
+    if (autErr) console.error("[ig-oauth-complete] pausar automacoes:", autErr.message);
     return json({ error: "webhook_failed" }, 502);
   };
 
@@ -133,8 +152,7 @@ serve(async (req) => {
   const sub = await graph.subscribeWebhooks({ token, igUserId });
   if (!sub.ok) return await halfConnected(`webhook_subscribe_failed:${sub.code ?? sub.kind}`);
 
-  await admin.from("ig_pending_connections").delete().eq("id", pendingId);
-  await admin.rpc("set_ig_access_token", { p_account_id: pendingId, p_token: "" });
+  await discardPending();
 
   return json({ success: true, accountId, username: fields.username });
 });

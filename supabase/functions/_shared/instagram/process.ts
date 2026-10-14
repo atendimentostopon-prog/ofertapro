@@ -80,7 +80,10 @@ export async function processComment(deps: ProcessDeps, c: NormalizedComment): P
 
   // Entre o claim e o envio, qualquer excecao libera o claim (e estorna a cota
   // se ja consumida) para o retry nao perder a DM. O envio em si segue a regra
-  // at-most-once: um envio ambiguo nunca e liberado.
+  // at-most-once: so libera o claim quando a Meta respondeu que NAO entregou
+  // (rate_limit/transient com resposta). Falha de rede ou timeout no POST da DM
+  // chega como `ambiguous`: a DM pode ter saido, entao o claim fica, a cota nao
+  // e estornada e nao ha retry (melhor perder uma DM que duplicar).
   let consumed = false;
   let text: string;
   try {
@@ -103,6 +106,15 @@ export async function processComment(deps: ProcessDeps, c: NormalizedComment): P
   const sent = await graph.sendPrivateReply({ token, igUserId: c.igUserId, commentId: c.commentId, text });
 
   if (!sent.ok) {
+    if (sent.kind === "ambiguous") {
+      try {
+        await store.finishMessage(ref("dm"), "failed", "ambiguous");
+      } catch (e) {
+        // A linha fica 'sending': ainda bloqueia reenvio (claim e once_per_contact).
+        console.error("[instagram] finishMessage (ambiguous) falhou", e);
+      }
+      return res("failed", "ambiguous");
+    }
     if (sent.kind === "rate_limit" || sent.kind === "transient") {
       await store.releaseMessage(ref("dm"));
       await safeRefund(store, account.user_id);

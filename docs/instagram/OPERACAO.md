@@ -16,11 +16,12 @@ Meta -> `ig-webhook` (HMAC, grava `ig_events`) -> `runWorker` (webhook e cron de
 | `ig_automations.paused_reason = account_disconnected` | conta foi desconectada | reconecte a conta em /instagram |
 | `ig_automations.paused_reason = token_invalid` | token inválido/expirado | reconecte a conta em /instagram |
 | `ig_events.status = pending` | na fila, aguardando execução | normal |
-| `ig_events.status = processing` | em execução | travado se > 5 min é re-reivindicado (attempts+1); falha só após 5 tentativas |
+| `ig_events.status = processing` | em execução | travado há > 5 min é re-reivindicado (attempts+1) enquanto `attempts < 5`; com 5 ou mais vira `failed` com `reason = 'stale_max_attempts'` |
 | `ig_events.status = done` | processado com sucesso | retém 30 dias, depois apaga |
 | `ig_events.status = ignored` | ignorado (sem match ou filtrado) | retém 30 dias, depois apaga |
 | `ig_events.status = blocked` | sem acesso ou cota esgotada | retém 30 dias, depois apaga |
-| `ig_events.status = failed` | erro permanente após 5 tentativas | ver `reason`/`last_error`, retém 30 dias, depois apaga |
+| `ig_events.status = failed` | erro permanente, 5 tentativas esgotadas ou envio ambíguo | ver `reason`/`last_error`, retém 30 dias, depois apaga |
+| `ig_events.reason = ambiguous` / `ig_message_log.meta_error_code = ambiguous` | timeout ou erro de rede no envio da DM (a Meta pode ter entregue) | sem retry e sem estorno de cota, de propósito: preferimos perder uma DM a duplicar. Muitos casos seguidos indicam instabilidade da Graph API (timeout de 15 s por chamada) |
 
 ## Consultas úteis
 

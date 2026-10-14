@@ -123,3 +123,42 @@ Deno.test("listMedia limita limit a 100", async () => {
   await createGraphClient({ fetch: f }).listMedia({ token: "T", igUserId: "1", limit: 9999 });
   assert(calls[0].url.endsWith("&limit=100"));
 });
+
+Deno.test("falha de rede em sendPrivateReply vira ambiguous (POST pode ter sido entregue)", async () => {
+  const { f } = fakeFetch([new TypeError("connection reset")]);
+  const g = createGraphClient({ fetch: f });
+  const r = await g.sendPrivateReply({ token: "T", igUserId: "1", commentId: "c", text: "x" });
+  assert(!r.ok);
+  if (!r.ok) assertEquals(r.kind, "ambiguous");
+});
+
+Deno.test("timeout em sendPrivateReply vira ambiguous", async () => {
+  const hang = ((_url: string | URL | Request, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted")));
+    })) as typeof fetch;
+  const g = createGraphClient({ fetch: hang, timeoutMs: 10 });
+  const r = await g.sendPrivateReply({ token: "T", igUserId: "1", commentId: "c", text: "x" });
+  assert(!r.ok);
+  if (!r.ok) assertEquals(r.kind, "ambiguous");
+});
+
+Deno.test("timeout em replyToComment continua transient", async () => {
+  const hang = ((_url: string | URL | Request, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted")));
+    })) as typeof fetch;
+  const g = createGraphClient({ fetch: hang, timeoutMs: 10 });
+  const r = await g.replyToComment({ token: "T", commentId: "c", text: "x" });
+  assert(!r.ok);
+  if (!r.ok) assertEquals(r.kind, "transient");
+});
+
+Deno.test("toda chamada leva um AbortSignal", async () => {
+  const { f, calls } = fakeFetch([{ status: 200, body: { id: "r" } }, { status: 200, body: { data: [] } }]);
+  const g = createGraphClient({ fetch: f });
+  await g.replyToComment({ token: "T", commentId: "c", text: "x" });
+  await g.listMedia({ token: "T", igUserId: "1" });
+  assert(calls[0].init.signal instanceof AbortSignal);
+  assert(calls[1].init.signal instanceof AbortSignal);
+});

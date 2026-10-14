@@ -1,7 +1,11 @@
 // supabase/functions/_shared/instagram/graph.ts
 // Cliente fino da Graph API do Instagram (Instagram Login). Premissas M1 a M10
 // em docs/instagram/META_PREMISSAS.md; ajustar aqui se a validacao divergir.
-export type GraphErrorKind = "token" | "rate_limit" | "transient" | "permanent";
+// "ambiguous": falha de rede ou timeout num POST que pode ter sido entregue
+// (hoje so sendPrivateReply). Nao vem de classifyGraphError: o proprio cliente
+// marca assim, porque sem resposta nao ha status nem codigo para classificar.
+// Quem recebe "ambiguous" nao deve reenviar (regra at-most-once da DM).
+export type GraphErrorKind = "token" | "rate_limit" | "transient" | "permanent" | "ambiguous";
 
 export type GraphResult<T> =
   | { ok: true; data: T }
@@ -69,16 +73,37 @@ function redact(text: string, secrets: string[]): string {
   return out.replace(/(access_token|client_secret)=[^&\s)]+/g, "$1=[redacted]");
 }
 
-export function createGraphClient(opts: { fetch?: typeof fetch; version?: string } = {}): InstagramApi {
+export const DEFAULT_GRAPH_TIMEOUT_MS = 15000;
+
+export function createGraphClient(
+  opts: { fetch?: typeof fetch; version?: string; timeoutMs?: number } = {},
+): InstagramApi {
   const f = opts.fetch ?? fetch;
   const v = opts.version ?? "v23.0";
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_GRAPH_TIMEOUT_MS;
 
-  async function request<T>(url: string, init: RequestInit, map: (body: Json) => T, secrets: string[] = []): Promise<GraphResult<T>> {
+  /**
+   * `ambiguousOnNetworkError`: para POSTs com efeito no destinatario (DM), uma
+   * falha de rede ou timeout nao diz se a Meta entregou ou nao. Nesses casos o
+   * resultado e `ambiguous` em vez de `transient`, para o chamador nao reenviar.
+   */
+  async function request<T>(
+    url: string,
+    init: RequestInit,
+    map: (body: Json) => T,
+    secrets: string[] = [],
+    ambiguousOnNetworkError = false,
+  ): Promise<GraphResult<T>> {
     let res: Response;
     try {
-      res = await f(url, init);
+      res = await f(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
     } catch (e) {
-      return { ok: false, kind: "transient", code: null, message: `network error: ${(e as Error)?.name ?? "Error"}` };
+      return {
+        ok: false,
+        kind: ambiguousOnNetworkError ? "ambiguous" : "transient",
+        code: null,
+        message: `network error: ${(e as Error)?.name ?? "Error"}`,
+      };
     }
     let body: Json = null;
     try {
@@ -104,7 +129,7 @@ export function createGraphClient(opts: { fetch?: typeof fetch; version?: string
         method: "POST",
         headers: bearer(token),
         body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text } }),
-      }, (b) => ({ id: b?.message_id ?? null }), [token]),
+      }, (b) => ({ id: b?.message_id ?? null }), [token], true),
 
     replyToComment: ({ token, commentId, text }) =>
       request(`${HOST}/${v}/${enc(commentId)}/replies`, {
