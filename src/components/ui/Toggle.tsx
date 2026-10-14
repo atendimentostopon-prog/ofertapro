@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 interface ToggleProps {
   label?: string;
+  /** Nome acessível quando não há `label` visível. */
+  ariaLabel?: string;
   description?: string;
   checked?: boolean;
   defaultChecked?: boolean;
@@ -13,6 +15,7 @@ interface ToggleProps {
 
 export const Toggle: React.FC<ToggleProps> = ({
   label,
+  ariaLabel,
   description,
   checked: controlledChecked,
   defaultChecked = false,
@@ -39,7 +42,7 @@ export const Toggle: React.FC<ToggleProps> = ({
       type="button"
       role="switch"
       aria-checked={isChecked}
-      aria-label={label}
+      aria-label={label ?? ariaLabel}
       id={id}
       disabled={disabled}
       onClick={handleToggle}

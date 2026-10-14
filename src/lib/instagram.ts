@@ -1,7 +1,7 @@
 // Validacao e preview do formulario de automacao. As variaveis de template
 // (usuario|link) devem ficar em paridade com
 // supabase/functions/_shared/instagram/template.ts (check:ig-contract).
-import type { IgMatchMode, IgTargetScope } from '../types/instagram';
+import type { IgAutomationStatus, IgMatchMode, IgTargetScope } from '../types/instagram';
 
 export const IG_DM_MAX_BYTES = 1000;
 export const IG_MAX_KEYWORDS = 20;
@@ -116,6 +116,19 @@ export function validateAutomation(v: AutomationFormValues): Record<string, stri
   }
 
   return errors;
+}
+
+/**
+ * Status gravado ao salvar no editor. Ligar o toggle ativa; deixar desligado
+ * mantém uma automação pausada como pausada (não vira rascunho) e deixa as
+ * demais como rascunho.
+ */
+export function resolveSaveStatus(
+  initialStatus: IgAutomationStatus | null,
+  active: boolean,
+): IgAutomationStatus {
+  if (active) return 'active';
+  return initialStatus === 'paused' ? 'paused' : 'draft';
 }
 
 export interface MediaRef {

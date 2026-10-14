@@ -49,6 +49,7 @@ export const AutomationList: React.FC<Props> = ({ automations, onToggle, onDelet
             </button>
             <Toggle
               checked={a.status === 'active'}
+              ariaLabel={`Ativar ${a.name}`}
               onChange={(checked) => void onToggle(a, checked)}
             />
             <button

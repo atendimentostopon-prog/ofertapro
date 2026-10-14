@@ -108,6 +108,27 @@ Três caminhos, com efeitos diferentes:
   - Os eventos ficam `pending` se o worker parar.
 - **Reverter o módulo para um usuário:** `update ig_automations set status='paused' where user_id = '...';`
 
+## Checklist antes de aplicar em produção
+
+O SQL deste módulo nunca foi executado em nenhum banco. Antes de produção (passos humanos,
+cada um com autorização do dono):
+
+1. Aplicar `20261013120000_instagram_core.sql` num branch do Supabase ou banco de dev
+   (nunca direto em produção).
+2. Rodar o teste manual nesse banco:
+   `psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/manual/20261013120000_instagram_core.test.sql`
+   (roda em `BEGIN ... ROLLBACK`, não deixa dados). Conferir que nenhum assert falhou e
+   ler os NOTICEs de blocos pulados (precisa de 2 linhas em `profiles`).
+3. Reaplicar a migration core no mesmo banco para confirmar que é idempotente.
+4. Conferir que `app.service_role_key` está configurado no banco de destino
+   (`select current_setting('app.service_role_key', true) is not null;`), igual ao ajuste
+   manual dos e-mails. Sem ele o cron só emite NOTICE e não chama as funções.
+5. Ordem em produção: migration core -> secrets (`docs/instagram/META_SETUP.md`) -> Edge
+   Functions (lista abaixo) -> migration `20261013120100_instagram_cron.sql`.
+6. Depois da migration de cron: `select jobname, schedule, active from cron.job where jobname like 'ig_%';`
+   deve listar `ig_process_events`, `ig_token_refresh`, `ig_pause_no_access` e `ig_prune`.
+7. Só depois do App Review aprovado: `VITE_FEATURE_INSTAGRAM=true` na Vercel e redeploy do front.
+
 ## Deploy (precisa de autorização)
 
 Ordem: migration `..._instagram_core` -> secrets -> funções -> migration `..._instagram_cron`
