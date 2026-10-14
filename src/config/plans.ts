@@ -55,9 +55,9 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     futureScheduling: true,
     allowShortener: false,
     allowInstagram: true,
-    maxIgAccounts: 1,
-    maxIgAutomations: 3,
-    maxIgDmsMonth: 1000,
+    maxIgAccounts: 2,
+    maxIgAutomations: 10,
+    maxIgDmsMonth: 5000,
   },
   pro: {
     name: 'pro',
@@ -73,9 +73,9 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     futureScheduling: true,
     allowShortener: true,
     allowInstagram: true,
-    maxIgAccounts: 2,
-    maxIgAutomations: 15,
-    maxIgDmsMonth: 10000,
+    maxIgAccounts: 3,
+    maxIgAutomations: 50,
+    maxIgDmsMonth: 50000,
   },
   enterprise: {
     name: 'enterprise',
@@ -91,9 +91,9 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     futureScheduling: true,
     allowShortener: true,
     allowInstagram: true,
-    maxIgAccounts: 5,
+    maxIgAccounts: 10,
     maxIgAutomations: Infinity,
-    maxIgDmsMonth: 50000,
+    maxIgDmsMonth: 250000,
   },
 };
 

@@ -23,9 +23,9 @@ INSERT INTO public.plan_limits
   (plan, allow_instagram, max_ig_accounts, max_ig_automations, max_ig_dms_month)
 VALUES
   ('free',        false, 0, 0,    0),
-  ('starter',     true,  1, 3,    1000),
-  ('pro',         true,  2, 15,   10000),
-  ('enterprise',  true,  5, 9999, 50000)
+  ('starter',     true,  2, 10,   5000),
+  ('pro',         true,  3, 50,   50000),
+  ('enterprise',  true,  10, 9999, 250000)
 ON CONFLICT (plan) DO UPDATE SET
   allow_instagram    = EXCLUDED.allow_instagram,
   max_ig_accounts    = EXCLUDED.max_ig_accounts,

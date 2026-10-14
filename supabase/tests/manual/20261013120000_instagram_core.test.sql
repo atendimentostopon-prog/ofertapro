@@ -32,8 +32,8 @@ begin
 
   -- limites propostos
   assert (select allow_instagram from plan_limits where plan = 'free') = false, 'free nao inclui instagram';
-  assert (select max_ig_dms_month from plan_limits where plan = 'starter') = 1000, 'starter 1000 DMs';
-  assert (select max_ig_accounts from plan_limits where plan = 'enterprise') = 5, 'enterprise 5 contas';
+  assert (select max_ig_dms_month from plan_limits where plan = 'starter') = 5000, 'starter 5000 DMs';
+  assert (select max_ig_accounts from plan_limits where plan = 'enterprise') = 10, 'enterprise 10 contas';
 
   -- anon e authenticated nao executam acessores do Vault nem a fila
   assert not has_function_privilege('anon', 'public.get_ig_access_token(uuid)', 'execute'), 'anon nao le token';
