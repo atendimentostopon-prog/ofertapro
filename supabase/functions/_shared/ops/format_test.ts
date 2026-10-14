@@ -466,3 +466,140 @@ Deno.test("1 confirmou e N confirmaram", () => {
   assertEquals(d(1), "1 confirmou hoje");
   assertEquals(d(2), "2 confirmaram hoje");
 });
+
+Deno.test("telegram conectado: canal, identificador, membros e quantidade; plano e trial do usuário", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "Telegram conectado",
+    detail: {
+      nome: "Ana Silva",
+      email: "ana@x.com",
+      telefone: "11987654321",
+      plano: "starter",
+      trial_termina: "2026-10-20T15:00:00.000Z",
+      canal_nome: "Ofertas da Ana",
+      identificador: "@ofertas_ana",
+      membros: 1250,
+      canais_telegram: 2,
+      painel: PAINEL,
+    },
+  }));
+  const f = fields(r);
+  assertEquals(f["Nome"], "Ana Silva");
+  assertEquals(f["E-mail"], "ana@x.com");
+  assertEquals(f["Telefone"], esc("(11) 98765-4321"));
+  assertEquals(f["Plano"], "Starter");
+  assertEquals(f["Canal"], "Ofertas da Ana");
+  assertEquals(f["Identificador"], esc("@ofertas_ana"));
+  assertEquals(f["Membros"], "1250");
+  assertEquals(f["Canais Telegram"], "2");
+  const keys = Object.keys(f);
+  assert(keys.indexOf("Telefone") < keys.indexOf("Canal"));
+  assert(keys.indexOf("Canal") < keys.indexOf("Canais Telegram"));
+  assertEquals(embed(r).url, PAINEL);
+  assert(r.telegram.includes("Canal: <b>Ofertas da Ana</b>"));
+});
+
+Deno.test("whatsapp conectado: número BR formatado, perfil e instância; vazios omitidos", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "WhatsApp conectado",
+    detail: {
+      nome: "Bruno",
+      email: "bruno@x.com",
+      numero_whatsapp: "5511912345678",
+      perfil_whatsapp: "Bruno Ofertas",
+      instancia: "aflyo_bruno_1",
+      membros: "",
+      painel: PAINEL,
+    },
+  }));
+  const f = fields(r);
+  assertEquals(f["Número"], esc("(11) 91234-5678"));
+  assertEquals(f["Perfil"], "Bruno Ofertas");
+  assertEquals(f["Instância"], esc("aflyo_bruno_1"));
+  assertEquals("Membros" in f, false);
+  assertEquals("Canal" in f, false);
+});
+
+Deno.test("bot ativado: grupos, canais de destino e marketplaces", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "Bot ativado",
+    detail: {
+      nome: "Carla",
+      email: "carla@x.com",
+      plano: "pro",
+      grupos_origem: 3,
+      canais_destino: 2,
+      marketplaces: "Shopee, Mercado Livre",
+      painel: PAINEL,
+    },
+  }));
+  const f = fields(r);
+  assertEquals(f["Plano"], "Pro");
+  assertEquals(f["Grupos de origem"], "3");
+  assertEquals(f["Canais de destino"], "2");
+  assertEquals(f["Marketplaces"], esc("Shopee, Mercado Livre"));
+  assertEquals(embed(r).description, undefined);
+  const keys = Object.keys(f);
+  assert(keys.indexOf("Plano") < keys.indexOf("Grupos de origem"));
+});
+
+Deno.test("primeira oferta: resumo com produto, marketplace, preço e desconto; chaves do resumo não repetem", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "Primeira oferta recebida",
+    detail: {
+      nome: "Diego",
+      email: "diego@x.com",
+      produto: "Fone Bluetooth XYZ",
+      marketplace: "Shopee",
+      preco: 89.9,
+      preco_original: 138.5,
+      desconto: 35,
+      minutos_ate_primeira_oferta: 135,
+      painel: PAINEL,
+    },
+  }));
+  assertEquals(embed(r).description, esc("Fone Bluetooth XYZ · Shopee · R$ 89,90 (-35%)"));
+  const f = fields(r);
+  for (const k of ["Produto", "Marketplace", "Preço", "Desconto"]) assertEquals(k in f, false, k);
+  assertEquals(f["Preço original"], esc("R$ 138,50"));
+  assertEquals(f["Desde a ativação do bot"], "2 h 15 min");
+  assert(r.telegram.includes("Fone Bluetooth XYZ · Shopee · R$ 89,90 (-35%)"));
+});
+
+Deno.test("primeira oferta: sem bot_started não há tempo desde a ativação; sem desconto e sem preço", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "Primeira oferta recebida",
+    detail: { nome: "Eva", produto: "Mouse", marketplace: "Amazon", preco: 49 },
+  }));
+  assertEquals(embed(r).description, esc("Mouse · Amazon · R$ 49,00"));
+  assertEquals("Desde a ativação do bot" in fields(r), false);
+
+  const r2 = render(ev({
+    category: "bot",
+    title: "Primeira oferta recebida",
+    detail: { nome: "Eva", produto: "Mouse" },
+  }));
+  assertEquals(embed(r2).description, "Mouse");
+});
+
+Deno.test("primeira oferta: produto malicioso é escapado no Discord e no Telegram", () => {
+  const r = render(ev({
+    category: "bot",
+    title: "Primeira oferta recebida",
+    detail: { produto: "[x](https://evil) <b>oi</b>", marketplace: "Shopee", preco: 10, preco_original: 20 },
+  }));
+  const d = embed(r).description as string;
+  assert(!d.includes("[x](https://evil)"));
+  assert(d.includes(esc("[x](https://evil)")));
+  assert(!r.telegram.includes("<b>oi</b>"));
+  assert(r.telegram.includes("&lt;b&gt;oi&lt;/b&gt;"));
+
+  // fora do resumo (outro título), o produto vira campo e também é escapado
+  const r2 = render(ev({ category: "bot", title: "Outro", detail: { produto: "[x](https://evil)" } }));
+  assertEquals(fields(r2)["Produto"], esc("[x](https://evil)"));
+});

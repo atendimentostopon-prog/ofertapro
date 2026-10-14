@@ -239,6 +239,22 @@ const FIELD_ORDER: [string, FieldSpec][] = [
   ["cliente_nome", { label: "Cliente" }],
   ["cliente_email", { label: "E-mail do cliente" }],
   ["cliente_telefone", { label: "Telefone do cliente", format: fmtPhone }],
+  ["canal_nome", { label: "Canal" }],
+  ["identificador", { label: "Identificador" }],
+  ["membros", { label: "Membros" }],
+  ["canais_telegram", { label: "Canais Telegram" }],
+  ["numero_whatsapp", { label: "Número", format: fmtPhone }],
+  ["perfil_whatsapp", { label: "Perfil" }],
+  ["instancia", { label: "Instância" }],
+  ["grupos_origem", { label: "Grupos de origem" }],
+  ["canais_destino", { label: "Canais de destino" }],
+  ["marketplaces", { label: "Marketplaces" }],
+  ["produto", { label: "Produto" }],
+  ["marketplace", { label: "Marketplace" }],
+  ["preco", { label: "Preço", format: fmtBRL }],
+  ["preco_original", { label: "Preço original", format: fmtBRL }],
+  ["desconto", { label: "Desconto", format: fmtPercent }],
+  ["minutos_ate_primeira_oferta", { label: "Desde a ativação do bot", format: fmtMinutes }],
   ["acesso", { label: "Acesso" }],
   ["motivo", { label: "Motivo" }],
   ["evento", { label: "Evento", format: (v) => EVENT_LABEL[asText(v).toLowerCase()] ?? asText(v) }],
@@ -309,6 +325,24 @@ function buildSummary(detail: Record<string, unknown>, ev: OpsEvent): Summary {
     }
     if (has("taxa_confirmacao_7d")) {
       parts.push(`confirmação em 7 dias: ${fmtPercent(detail.taxa_confirmacao_7d)}`);
+    }
+  } else if (title === "primeira oferta recebida") {
+    if (has("produto")) {
+      parts.push(asText(detail.produto));
+      consumed.add("produto");
+    }
+    if (has("marketplace")) {
+      parts.push(asText(detail.marketplace));
+      consumed.add("marketplace");
+    }
+    if (has("preco")) {
+      let price = fmtBRL(detail.preco);
+      consumed.add("preco");
+      if (has("desconto")) {
+        price += ` (-${fmtPercent(detail.desconto)})`;
+        consumed.add("desconto");
+      }
+      parts.push(price);
     }
   } else if (ev.category === "billing" && has("valor")) {
     const head: string[] = [];
