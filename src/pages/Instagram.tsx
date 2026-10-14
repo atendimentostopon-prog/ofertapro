@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MessageCircle, Plus } from 'lucide-react';
 import { AutomationList } from '../components/instagram/AutomationList';
 import { ConnectCard } from '../components/instagram/ConnectCard';
+import { GuideCard } from '../components/instagram/GuideCard';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorState } from '../components/ui/ErrorState';
@@ -151,6 +152,10 @@ const Instagram: React.FC = () => {
         <ErrorState message={error} onRetry={() => void refresh()} />
       ) : (
         <>
+          <GuideCard
+            defaultOpen={accounts.length === 0}
+            limits={{ maxIgAccounts: limits.maxIgAccounts, maxIgAutomations: limits.maxIgAutomations, maxIgDmsMonth: limits.maxIgDmsMonth }}
+          />
           <ConnectCard
             accounts={accounts}
             canConnectMore={canConnectMore}
