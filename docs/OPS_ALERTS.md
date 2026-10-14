@@ -1,7 +1,7 @@
 # Alertas operacionais (Telegram + Discord)
 
 Spec: `docs/superpowers/specs/2026-10-13-ops-alerts-design.md`.
-Estado: Fase 1 (central + negócio). Fases 2 e 3 (saúde, erros em todas as functions, uptime, segurança, Sentry, resumo diário) ainda não implementadas.
+Estado: Fase 1 (central + negócio) e Fase 2 (saúde, em andamento). Fase 3 (segurança, Sentry, resumo diário) ainda não implementada.
 
 ## Como funciona
 
@@ -122,6 +122,25 @@ Rota: /cakto-webhook
 
 Requisitos: o alerta "E-mail confirmado" e os campos ricos de cadastro e trial dependem da migration `supabase/migrations/20261013000200_ops_rich_messages.sql`. Sem ela as mensagens continuam funcionando, só com menos campos. Os campos de cobrança vêm do próprio `cakto-webhook` (deploy da function).
 
+## Saúde (Fase 2)
+
+Migration `supabase/migrations/20261014000000_ops_phase2_health.sql` (rollback em `supabase/rollbacks/20261014000000_ops_phase2_health_rollback.sql`, teste em `supabase/tests/manual/20261014000000_ops_phase2_health.test.sql`). O job `ops_healthcheck` roda a cada 5 minutos no `pg_cron` e cada checagem é isolada: uma falha não impede as outras.
+
+| Alerta | Severidade / categoria | Quando |
+|---|---|---|
+| Job do cron falhou: `<job>` | error / cron | alguma execução com `status = 'failed'` nos últimos 15 min |
+| Cron parado: `<job>` | error / cron | sem execução bem-sucedida dentro do intervalo máximo: `aflyo_expire_offers` 45 min, `expire_trials` e `ops_trial_expiring_scan` 3 h. Job que nunca rodou ou foi criado há menos que o intervalo não alerta |
+| Bots com erro: N | error / bot | `bot_configs` com `status = 'active'` e `last_error` preenchido (bots `pending` ou `paused` nunca alertam; `last_seen_at` não é usado) |
+| Conexões do banco acima de 80% | error / health | `pg_stat_activity` acima de 80% de `max_connections` |
+| Banco perto do limite de disco | error / health | `pg_database_size` acima de 400 MB (limite Free: 500 MB) |
+| Trial expirou / Assinatura expirou / Conta cancelada | business / billing | trigger em `profiles` quando `account_status` passa a `expired` ou `canceled` (nunca de nulo para `trialing`/`active`); um alerta por transição |
+
+**Reenvio:** `ops_retry_undelivered()` roda dentro do healthcheck e reenvia ao `notify` até 20 eventos `critical`/`error`/`business` com `notified_at` nulo, criados entre 2 minutos e 24 horas atrás, no máximo 3 tentativas com 5 minutos entre elas (`notify_attempts`, `last_notify_attempt_at`). Cobre os 429 do Discord em rajadas.
+
+**Silenciar um job:** a checagem "Cron parado" só considera jobs ativos; para silenciar um job desativado: `update cron.job set active = false where jobname = '<job>';`. Para parar o healthcheck inteiro: `select cron.unschedule('ops_healthcheck');`.
+
+**Uptime Kuma:** crie um monitor HTTP para `https://zuqaccivowbzdfrpgekz.supabase.co/rest/v1/rpc/ops_health?apikey=<publishable>` esperando HTTP 200 e corpo contendo `"ok":true`. `ops_health` não lê nenhuma tabela e é executável por `anon`.
+
 ## Configuração (uma vez)
 
 1. **Telegram:** no @BotFather envie `/newbot`, guarde o token. Abra o bot e envie `/start`. Obtenha o `chat_id` com `https://api.telegram.org/bot<TOKEN>/getUpdates` (rode no seu navegador local; não cole o token em chats).
@@ -176,7 +195,7 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 
 - O segredo `app_service_role_key` precisa existir no Vault (confira com `select exists (select 1 from vault.secrets where name = 'app_service_role_key');`). Sem ele os eventos são gravados em `ops_events` mas não notificados.
 - Aplique as duas migrations com o mesmo papel no SQL Editor, para que `ops_emit` e `ops_on_signup` tenham o mesmo dono. Se os donos forem diferentes, a chamada do trigger a `ops_emit` falha com "permission denied" e vira apenas um warning (alerta de cadastro some em silêncio).
-- Na primeira aplicação, todo usuário em trial que termina em menos de 24h gera um aviso de uma vez (rajada única). O Discord limita webhooks (HTTP 429), então numa rajada alguns alertas podem não ser entregues; esses eventos ficam deduplicados para sempre e não são reenviados até a Fase 2. Depois disso é no máximo um aviso por usuário.
+- Na primeira aplicação, todo usuário em trial que termina em menos de 24h gera um aviso de uma vez (rajada única). O Discord limita webhooks (HTTP 429), então numa rajada alguns alertas podem não ser entregues; esses eventos são reenviados pelo healthcheck da Fase 2 (até 3 tentativas). Depois disso é no máximo um aviso por usuário.
 
 ## Desligar / reverter
 
@@ -213,10 +232,8 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 
 ## Próximas fases (pendências conhecidas)
 
-- Alertas de expiração de assinatura/trial feitos por cron (hoje só chegam via webhook da Cakto).
 - Timeout nos envios (`fetch`) do `notify` e do `cakto-webhook`.
 - Interruptor imediato por tabela (`ops_settings.enabled` lido pelo `ops_emit`).
-- Reenvio de eventos com `notified_at is null`.
 - Limitação (throttle) do alerta de secret inválido do `cakto-webhook`.
 - Nomes de chaves sensíveis em pt-BR no sanitize (senha, pwd, credential) antes do `withAlerts`.
 - Alerta quando a gravação em `webhook_events` falha no `cakto-webhook`.

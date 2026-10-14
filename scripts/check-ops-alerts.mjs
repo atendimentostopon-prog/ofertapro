@@ -8,6 +8,7 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const core = read('supabase/migrations/20261013000000_ops_events_and_emit.sql');
 const sources = read('supabase/migrations/20261013000100_ops_business_sources.sql');
 const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
+const health = read('supabase/migrations/20261014000000_ops_phase2_health.sql');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
@@ -50,6 +51,20 @@ const richContracts = [
   /'email_confirmed:'/,
 ];
 for (const c of richContracts) assert.match(rich, c, `Contrato ausente na migration de mensagens ricas: ${c}`);
+
+const healthContracts = [
+  /ops_health/,
+  /grant execute on function public\.ops_health\(\) to anon/i,
+  /revoke all on function public\.ops_healthcheck/i,
+  /revoke all on function public\.ops_retry_undelivered/i,
+  /trg_ops_account_status/,
+  /'acct:'/,
+  /cron\.schedule\('ops_healthcheck'/,
+  /old\.account_status is distinct from new\.account_status/i,
+];
+for (const c of healthContracts) assert.match(health, c, `Contrato ausente na migration de saude: ${c}`);
+assert.doesNotMatch(health, /alter database/i, 'a migration de saude nao pode usar alter database');
+assert.doesNotMatch(health, /current_setting\('app\./i, 'a migration de saude nao pode ler app.* (producao usa Vault)');
 
 assert.match(handler, /timingSafeEqual/, 'notify precisa comparar a chave em tempo constante');
 assert.match(handler, /!deps\.serviceKey/, 'notify nao pode autorizar com serviceKey vazia');
