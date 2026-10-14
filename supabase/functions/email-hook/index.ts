@@ -5,7 +5,7 @@ import { sendEmail, type SendOpts, type SendResult } from "../_shared/emails/sen
 import { buildSendDeps } from "../_shared/emails/deps.ts";
 
 const FROM = "Aflyo <ola@send.aflyo.com.br>";
-const REPLY_TO = "suporte@aflyo.com.br";
+const REPLY_TO = "aflyoapp@gmail.com";
 
 // --- Standard Webhooks (esquema do Supabase Auth Hook) ---
 function b64ToBytes(b64: string): Uint8Array<ArrayBuffer> {

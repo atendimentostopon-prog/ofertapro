@@ -113,7 +113,7 @@ const PoliticaPrivacidade: React.FC = () => {
             <section className="space-y-3">
               <h2 className="text-base font-extrabold text-ink">8. Contato e Encarregado de Proteção de Dados (DPO)</h2>
               <p>
-                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo {APP_NAME}, envie um e-mail para <a href="mailto:privacidade@aflyo.com.br" className="text-mint-700 font-bold hover:underline">privacidade@aflyo.com.br</a>.
+                Se você tiver alguma dúvida sobre esta Política de Privacidade ou sobre o tratamento de seus dados pessoais pelo {APP_NAME}, envie um e-mail para <a href="mailto:aflyoapp@gmail.com" className="text-mint-700 font-bold hover:underline">aflyoapp@gmail.com</a>.
               </p>
             </section>
 

@@ -42,7 +42,7 @@ export async function sendBillingEmail(
         buildSendDeps(supabase, {
           apiKey: Deno.env.get("RESEND_API_KEY") ?? "",
           from: "Aflyo <ola@send.aflyo.com.br>",
-          replyTo: "suporte@aflyo.com.br",
+          replyTo: "aflyoapp@gmail.com",
         }),
         o,
       ));

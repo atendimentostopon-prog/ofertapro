@@ -7,6 +7,6 @@ export const COMPANY = {
   cnpj: '69.616.261/0001-37',
   city: 'Guarulhos',
   state: 'SP',
-  supportEmail: 'suporte@aflyo.com.br',
-  privacyEmail: 'privacidade@aflyo.com.br',
+  // E-mail único de contato, suporte e privacidade.
+  contactEmail: 'aflyoapp@gmail.com',
 } as const;
