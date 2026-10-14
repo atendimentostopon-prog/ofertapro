@@ -10,8 +10,7 @@ export const CompanyIdentity: React.FC = () => (
       {APP_NAME} é operado por {COMPANY.legalName}, CNPJ {COMPANY.cnpj}, {COMPANY.city}/{COMPANY.state}.
     </p>
     <p>
-      Contato: <a className="underline" href={`mailto:${COMPANY.supportEmail}`}>{COMPANY.supportEmail}</a>
-      {' '}| Privacidade: <a className="underline" href={`mailto:${COMPANY.privacyEmail}`}>{COMPANY.privacyEmail}</a>
+      Contato, suporte e privacidade: <a className="underline" href={`mailto:${COMPANY.contactEmail}`}>{COMPANY.contactEmail}</a>
     </p>
   </section>
 );

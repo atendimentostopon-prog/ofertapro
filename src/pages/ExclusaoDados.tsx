@@ -36,7 +36,7 @@ const ExclusaoDados: React.FC = () => {
             Se você apenas desconectar a conta no painel do {APP_NAME}, o token de acesso é apagado na hora e as automações ficam pausadas. Os demais dados (automações, contatos, registro de mensagens e eventos) são apagados 30 dias depois da desconexão. Se você reconectar a mesma conta antes disso, as automações voltam a aparecer pausadas.
           </p>
           <p>
-            Para solicitar a exclusão manualmente, envie um e-mail para <a className="underline" href="mailto:suporte@aflyo.com.br">suporte@aflyo.com.br</a> a partir do e-mail da sua conta, informando o usuário do Instagram. Respondemos em até 15 dias úteis.
+            Para solicitar a exclusão manualmente, envie um e-mail para <a className="underline" href="mailto:aflyoapp@gmail.com">aflyoapp@gmail.com</a> a partir do e-mail da sua conta, informando o usuário do Instagram. Respondemos em até 15 dias úteis.
           </p>
           <CompanyIdentity />
         </div>

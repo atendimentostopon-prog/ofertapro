@@ -6,7 +6,7 @@ import { sendEmail, type SendOpts, type SendResult } from "../_shared/emails/sen
 import { buildSendDeps } from "../_shared/emails/deps.ts";
 
 const FROM = "Aflyo <ola@send.aflyo.com.br>";
-const REPLY_TO = "suporte@aflyo.com.br";
+const REPLY_TO = "aflyoapp@gmail.com";
 
 function timingSafeEqual(a: string, b: string): boolean {
   const enc = new TextEncoder();
