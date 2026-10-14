@@ -9,6 +9,7 @@ const core = read('supabase/migrations/20261013000000_ops_events_and_emit.sql');
 const sources = read('supabase/migrations/20261013000100_ops_business_sources.sql');
 const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
 const health = read('supabase/migrations/20261014000000_ops_phase2_health.sql');
+const milestones = read('supabase/migrations/20261014010000_ops_user_milestones.sql');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
@@ -69,6 +70,37 @@ const healthContracts = [
 for (const c of healthContracts) assert.match(health, c, `Contrato ausente na migration de saude: ${c}`);
 assert.doesNotMatch(health, /'\*\/5 \* \* \* \*'/, 'healthcheck nao pode rodar no minuto cheio (usar 2-59/5)');
 assert.doesNotMatch(health, /alter database/i, 'a migration de saude nao pode usar alter database');
+
+const milestoneContracts = [
+  /create trigger trg_ops_channel_connected/i,
+  /create trigger trg_ops_whatsapp_connected/i,
+  /create trigger trg_ops_bot_started/i,
+  /create trigger trg_ops_first_offer/i,
+  /after insert or update of status on public\.channels[\s\S]*?when \(new\.type = 'telegram' and new\.status = 'connected'\)/i,
+  /after update of status on public\.bot_configs[\s\S]*?when \(new\.status = 'active' and old\.status is distinct from new\.status\)/i,
+  /revoke all on function public\.ops_user_snapshot\(uuid\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_on_channel_connected\(\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_on_whatsapp_connected\(\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_on_bot_started\(\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_on_first_offer\(\) from public, anon, authenticated/i,
+  /'k:first_offer:'/,
+  /'first_offer:'/,
+  /'tg_connected:'/,
+  /'wa_connected:'/,
+  /'bot_started:'/,
+  /exception when others then/i,
+  /insert into public\.ops_events[\s\S]*not exists/i,
+];
+for (const c of milestoneContracts) assert.match(milestones, c, `Contrato ausente na migration de marcos do usuario: ${c}`);
+assert.doesNotMatch(milestones, /alter database/i, 'a migration de marcos nao pode usar alter database');
+assert.doesNotMatch(milestones, /current_setting\('app\./i, 'a migration de marcos nao pode ler app.* (producao usa Vault)');
+// Triggers AFTER ... FOR EACH ROW so (nunca BEFORE): nao podem bloquear nem alterar a linha.
+assert.doesNotMatch(milestones, /create trigger[^;]*\bbefore\b/i, 'triggers de marcos precisam ser AFTER');
+assert.equal((milestones.match(/exception when others then/gi) ?? []).length >= 5, true, 'cada funcao de marco precisa de exception when others (fail-open)');
+// WHEN de trigger que cobre INSERT nao pode referenciar OLD.
+for (const m of milestones.matchAll(/after insert[^;]*?when \(([^)]*(?:\([^)]*\)[^)]*)*)\)/gi)) {
+  assert.doesNotMatch(m[1], /\bold\./i, `WHEN de trigger com INSERT nao pode referenciar OLD: ${m[1]}`);
+}
 
 // withAlerts: aplicado nas 14 functions previstas e ausente nas excluidas.
 const withAlertsFns = [

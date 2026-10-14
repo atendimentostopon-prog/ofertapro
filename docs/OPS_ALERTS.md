@@ -24,6 +24,7 @@ Edge Functions ───────┴─> ops_emit() ─> ops_events ─(pg_ne
 | Trial termina em menos de 24h | business | Discord `#negocio` + Telegram |
 | Webhook da Cakto falhou ao processar | critical | Discord `#criticos` + Telegram |
 | Webhook da Cakto com secret inválido | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| Telegram conectado, WhatsApp conectado, Bot ativado, Primeira oferta recebida (exige a migration `20261014010000_ops_user_milestones.sql`) | business | Discord `#negocio` + Telegram |
 
 ## Mensagens
 
@@ -46,6 +47,11 @@ Cada alerta é montado por `supabase/functions/_shared/ops/format.ts` a partir d
 | `cliente_nome`, `cliente_email`, `cliente_telefone` | Cliente, E-mail do cliente, Telefone do cliente | texto |
 | `acesso`, `motivo`, `erro`, `acao` | Acesso, Motivo, Erro, O que fazer | texto |
 | `vendas_hoje` | Vendas hoje | número |
+| `canal_nome`, `identificador`, `membros`, `canais_telegram` | Canal, Identificador, Membros, Canais Telegram | texto e números |
+| `numero_whatsapp`, `perfil_whatsapp`, `instancia` | Número, Perfil, Instância | número como `(11) 98765-4321` |
+| `grupos_origem`, `canais_destino`, `marketplaces` | Grupos de origem, Canais de destino, Marketplaces | contagens; `Shopee, Mercado Livre` |
+| `produto`, `marketplace`, `preco`, `preco_original`, `desconto` | Produto, Marketplace, Preço, Preço original, Desconto | `R$ 89,90`; `35%` |
+| `minutos_ate_primeira_oferta` | Desde a ativação do bot | `45 min`, `2 h 15 min`, `1 d 3 h` |
 | `ip`, `pais`, `user_agent`, `rota` | IP, País, Navegador / cliente, Rota | texto |
 | `painel` | (link) | só `https://admin.aflyo.com.br/...` vira link: título do embed no Discord e "Abrir no painel" no Telegram; qualquer outro valor aparece como texto simples |
 
@@ -160,6 +166,36 @@ O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` 
 - `cakto-webhook` tem alertas próprios: falha ao gravar `webhook_events` (critical / billing, "Webhook Cakto não gravou o evento") e secret inválido com no máximo 1 alerta por 60 s por instância.
 - Excluídas de propósito: `admin-api` (tem tratamento próprio de erros), `send-email` e `email-hook` (caminho de e-mail do Auth, não pode ganhar dependência nova) e `notify` (não alerta sobre si mesmo).
 
+## Marcos do usuário
+
+Migration `supabase/migrations/20261014010000_ops_user_milestones.sql` (rollback em `supabase/rollbacks/20261014010000_ops_user_milestones_rollback.sql`, teste em `supabase/tests/manual/20261014010000_ops_user_milestones.test.sql`). Todos são `business` / `bot`, vão para o `#negocio` e o Telegram, e levam nome, e-mail, telefone, plano, fim do trial e link do painel do usuário (`ops_user_snapshot`). Nenhum segredo entra no detalhe.
+
+| Alerta | Sinal | Regra |
+|---|---|---|
+| Telegram conectado | `channels` com `type = 'telegram'` entra em `status = 'connected'` (INSERT já conectado ou UPDATE vindo de outro status) | 1 aviso por canal (`tg_connected:<id>`); `connected` para `connected` não avisa; reconectar o mesmo canal depois não repete |
+| WhatsApp conectado | `whatsapp_instances.status` passa a `connected` (INSERT ou UPDATE) | 1 aviso por instância (`wa_connected:<id>`); `connected_at` nunca é preenchido, por isso o sinal é o status |
+| Bot ativado | `bot_configs.status` passa a `active` | só a 1ª ativação do usuário avisa (`bot_started:<user_id>`); reativações apenas somam `occurrences` |
+| Primeira oferta recebida | 1º INSERT em `offers` do usuário | 1 aviso por usuário, para sempre (`first_offer:<user_id>`); traz o tempo desde o `Bot ativado` quando esse evento existe |
+
+**Sem retroativo:** ao aplicar a migration, cada usuário que já tem ofertas ganha um evento `k:first_offer:<user_id>` já marcado como notificado (nenhum aviso sai). Isso evita que o TTL das ofertas faça um usuário antigo parecer "sem ofertas" e gere uma "Primeira oferta recebida" falsa. Canais, instâncias e bots que já estão conectados ou ativos também não avisam, porque só a mudança de estado dispara. Um usuário antigo cujo `bot_configs` nunca teve avisos e passa a `active` depois da migration gera 1 "Bot ativado".
+
+**Segurança de operação:** todos os triggers são `AFTER`, `security definer` e fail-open (erro vira `warning` e o INSERT/UPDATE segue). O de `offers` é caminho quente: faz primeiro uma consulta indexada em `ops_events` (usuários que já tiveram oferta saem aqui) e só depois procura outra oferta do usuário por `user_id` (índice `offers_user_created_idx`).
+
+**Limitações conhecidas:**
+
+- "Bot ativado" é a mudança de status em `bot_configs`, não prova que o processo do bot subiu: o bot externo não grava `last_started_at`.
+- `bot_configs` criado já com `status = 'active'` por INSERT não dispara (o trigger é só de UPDATE). O fluxo normal cria como `pending` e ativa depois.
+- Um canal ou instância que cai e reconecta com outro `id` avisa de novo; o mesmo `id` nunca repete.
+
+**Desligar:**
+
+```sql
+drop trigger if exists trg_ops_channel_connected on public.channels;
+drop trigger if exists trg_ops_whatsapp_connected on public.whatsapp_instances;
+drop trigger if exists trg_ops_bot_started on public.bot_configs;
+drop trigger if exists trg_ops_first_offer on public.offers;
+```
+
 ## Configuração (uma vez)
 
 1. **Telegram:** no @BotFather envie `/newbot`, guarde o token. Abra o bot e envie `/start`. Obtenha o `chat_id` com `https://api.telegram.org/bot<TOKEN>/getUpdates` (rode no seu navegador local; não cole o token em chats).
@@ -220,6 +256,7 @@ Esperado: status 401 com o corpo de texto simples `Unauthorized` da própria fun
 
 - Parar só os avisos de cadastro: `drop trigger if exists trg_ops_signup on auth.users;`
 - Parar só os avisos de e-mail confirmado: `drop trigger if exists trg_ops_email_confirmed on auth.users;`
+- Parar os avisos de marcos do usuário: veja os 4 `drop trigger` na seção Marcos do usuário.
 - Não há interruptor no nível do banco na Fase 1 (veja `ops_settings.enabled` em Próximas fases).
 - Interruptor imediato (qualquer um dos dois):
   - `supabase secrets unset TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID DISCORD_WEBHOOK_CRITICAL DISCORD_WEBHOOK_ERRORS DISCORD_WEBHOOK_BUSINESS DISCORD_WEBHOOK_INFO` (o `notify` passa a reportar tudo como ignorado);
