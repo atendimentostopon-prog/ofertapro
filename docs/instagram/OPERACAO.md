@@ -14,8 +14,9 @@ Meta -> `ig-webhook` (HMAC, grava `ig_events`) -> `runWorker` (webhook e cron de
 | `ig_accounts.status = disconnected` | conta desconectada | ver paused_reason das automações |
 | `ig_automations.paused_reason = access_revoked` | sem assinatura ativa | assine um plano e reative manualmente (trigger valida acesso ao ativar) |
 | `ig_automations.paused_reason = account_disconnected` | conta foi desconectada | reconecte a conta em /instagram |
+| `ig_automations.paused_reason = token_invalid` | token inválido/expirado | reconecte a conta em /instagram |
 | `ig_events.status = pending` | na fila, aguardando execução | normal |
-| `ig_events.status = processing` | em execução | travado se > 1 min (vira failed) |
+| `ig_events.status = processing` | em execução | travado se > 5 min é re-reivindicado (attempts+1); falha só após 5 tentativas |
 | `ig_events.status = done` | processado com sucesso | retém 30 dias, depois apaga |
 | `ig_events.status = ignored` | ignorado (sem match ou filtrado) | retém 30 dias, depois apaga |
 | `ig_events.status = blocked` | sem acesso ou cota esgotada | retém 30 dias, depois apaga |
@@ -41,7 +42,7 @@ select count(*), min(expires_at) from ig_pending_connections;
 ## Fluxo de OAuth (dois passos)
 
 1. Afiliado inicia em `/instagram` -> chama `ig-oauth-start` (com JWT, requer plano ativo com Instagram ativado)
-   - Valida acesso e limites
+   - Valida acesso ativo (has_active_access) e se plano permite Instagram (allow_instagram)
    - Gera `state`, redireciona para Meta
 2. Meta redireciona para `ig-oauth-callback` (publica, sem JWT)
    - Cria linha em `ig_pending_connections` (TTL 10 min, token em Vault sob o ID pendente)
@@ -74,14 +75,14 @@ select count(*), min(expires_at) from ig_pending_connections;
   - Deleta `ig_pending_connections` expiradas
 
 - `ig_pause_no_access` (cron a cada 15 min)
-  - Pausa automações ativas de usuários sem acesso (sem plano ou plano não suporta Instagram)
+  - Pausa automações ativas de usuários sem acesso ativo (assinatura/trial expirada)
   - Define `paused_reason = 'access_revoked'`
-  - Não reactiva automaticamente após novo plano (usuário deve reativar manualmente)
+  - Não reativa automaticamente após novo plano (usuário deve reativar manualmente)
 
 ## Reconexao de conta desconectada
 
 - Reconectar conta desconectada do mesmo usuário conta contra `max_ig_accounts`
-- Validar limite antes de chamar `ig-oauth-start`
+- Limite é validado em `ig-oauth-complete`, não em `ig-oauth-start`
 
 ## Incidentes
 
