@@ -4,7 +4,9 @@ import {
   enrichWithSalesToday,
   invalidSecretToOps,
   requestInfoFromHeaders,
+  shouldEmitInvalidSecret,
   webhookFailureToOps,
+  webhookRecordFailureToOps,
 } from "./ops.ts";
 
 const UID = "3f2b8c1e-9a4d-4e6f-8b1a-2c3d4e5f6a7b";
@@ -323,4 +325,50 @@ Deno.test("enrichWithSalesToday nao muta o objeto de entrada", async () => {
   assert(out !== ev);
   assertEquals(JSON.stringify(ev), snapshot);
   assertEquals("vendas_hoje" in (ev.detail as any), false);
+});
+
+Deno.test("webhookRecordFailureToOps: critical billing com evento, pedido e erro", () => {
+  const ev = webhookRecordFailureToOps(
+    { event: "purchase_approved", secret: "nao-vazar", data: { id: "ord_9", customer: { email: "a@x.com" } } },
+    new Error("db fora"),
+  );
+  assertEquals(ev.severity, "critical");
+  assertEquals(ev.category, "billing");
+  assertEquals(ev.title, "Webhook Cakto não gravou o evento");
+  assertEquals(ev.detail, { evento: "purchase_approved", pedido: "ord_9", erro: "db fora" });
+});
+
+Deno.test("webhookRecordFailureToOps: payload invalido nao lanca", () => {
+  const ev = webhookRecordFailureToOps(null, "falhou");
+  assertEquals(ev.detail, { evento: "desconhecido", erro: "falhou" });
+});
+
+Deno.test("shouldEmitInvalidSecret: libera na 1a, bloqueia em 60 s, libera depois", () => {
+  const state = { last: 0 };
+  assertEquals(shouldEmitInvalidSecret(1_000_000, state), true);
+  assertEquals(shouldEmitInvalidSecret(1_030_000, state), false);
+  assertEquals(shouldEmitInvalidSecret(1_059_999, state), false);
+  assertEquals(shouldEmitInvalidSecret(1_060_000, state), true);
+  assertEquals(shouldEmitInvalidSecret(1_061_000, state), false);
+});
+
+Deno.test("enrichWithSalesToday: estouro do teto devolve o evento sem vendas do dia", async () => {
+  const ev = { severity: "business", category: "billing", title: "Venda aprovada", detail: { a: 1 } } as any;
+  const never = { rpc: () => new Promise(() => {}) } as any;
+  const t = Date.now();
+  const out = await enrichWithSalesToday(never, ev, 50);
+  assertEquals(out, ev);
+  assert(Date.now() - t < 500);
+});
+
+Deno.test("enrichWithSalesToday: resposta rapida ainda enriquece", async () => {
+  const ev = { severity: "business", category: "billing", title: "Venda", detail: {} } as any;
+  const ok = { rpc: () => Promise.resolve({ data: { vendas: 2, faturamento: 10 }, error: null }) } as any;
+  const out = await enrichWithSalesToday(ok, ev, 500);
+  assertEquals(out.detail, { vendas_hoje: 2, faturamento_hoje: 10 });
+});
+
+Deno.test("falhas leem message de objeto simples e toleram objeto sem prototipo", () => {
+  assertEquals(webhookRecordFailureToOps({ event: "x" }, { message: "pg fora" }).detail?.erro, "pg fora");
+  assertEquals(webhookFailureToOps("x", Object.create(null)).detail?.erro, "erro desconhecido");
 });

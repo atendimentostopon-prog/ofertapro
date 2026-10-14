@@ -11,6 +11,7 @@
 // Auth e CORS seguem o padrao das outras edge functions autenticadas (JWT do
 // usuario via SUPABASE_ANON_KEY client + auth.getUser).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { withAlerts } from "../_shared/ops/with-alerts.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { caktoFetch, getSupabaseAdmin } from "../_shared/cakto.ts";
 
@@ -49,7 +50,7 @@ function toE164BR(raw: unknown): string {
   return d.length <= 11 ? "55" + d : d;
 }
 
-serve(async (req: Request) => {
+serve(withAlerts("cakto-create-payment", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
@@ -166,4 +167,4 @@ serve(async (req: Request) => {
   }
 
   return json({ status: order.status, order_id: order.id });
-});
+}, { critical: true }));
