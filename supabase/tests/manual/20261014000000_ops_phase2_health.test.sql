@@ -19,16 +19,33 @@ select has_function_privilege('anon',          'public.ops_healthcheck()',      
 
 -- (c) healthcheck devolve jsonb com a contagem por checagem
 --     ATENCAO: se houver falha de cron nos ultimos 15 min, isto emite alerta REAL.
---     As 39 falhas "job startup timeout" (ultima em 2026-10-13 10:45 UTC) so aparecem na
---     checagem 1 enquanto estiverem dentro da janela de 15 minutos; fora dela, espera 0.
+--     As falhas "job startup timeout" (39 em 48h ate 2026-10-13) sao agregadas na checagem
+--     1b (>= 5 em 3 h gera 1 aviso por hora), nao viram um alerta por job.
 select public.ops_healthcheck() as resultado;
-                                                                                           -- espera jsonb com cron_falhando, cron_parado, bots_com_erro, conexoes, disco, reenviados
+                                                                                           -- espera jsonb com cron_falhando, cron_parado, cron_timeouts, bots_com_erro, conexoes, disco, reenviados
+                                                                                           -- (falhas "job startup timeout" NAO contam em cron_falhando; so em cron_timeouts)
+
+-- (c2) leitura pura: quantas falhas "job startup timeout" nas ultimas 3 horas e qual
+--      seria a decisao da checagem agregada (alerta se >= 5)
+select count(*) as timeouts_3h,
+       count(*) >= 5 as alertaria,
+       (select coalesce(jsonb_agg(x.jobname), '[]'::jsonb)
+          from (select distinct j.jobname
+                  from cron.job_run_details d2
+                  join cron.job j on j.jobid = d2.jobid
+                 where d2.status = 'failed' and d2.return_message = 'job startup timeout'
+                   and d2.start_time > now() - interval '3 hours'
+                 order by j.jobname limit 8) x) as jobs
+  from cron.job_run_details d
+ where d.status = 'failed' and d.return_message = 'job startup timeout'
+   and d.start_time > now() - interval '3 hours';
+                                                                                           -- espera: timeouts_3h N, alertaria true/false conforme N >= 5
 select jsonb_typeof(public.ops_healthcheck()) = 'object' as ok;                            -- espera true
 
 -- (d) trigger e agendamento presentes; colunas de reenvio criadas
 select tgname from pg_trigger
  where tgrelid = 'public.profiles'::regclass and tgname = 'trg_ops_account_status';        -- espera 1 linha
-select jobname, schedule, active from cron.job where jobname = 'ops_healthcheck';          -- espera '*/5 * * * *', true
+select jobname, schedule, active from cron.job where jobname = 'ops_healthcheck';          -- espera '2-59/5 * * * *', true
 select column_name from information_schema.columns
  where table_schema = 'public' and table_name = 'ops_events'
    and column_name in ('notify_attempts', 'last_notify_attempt_at');                       -- espera 2 linhas

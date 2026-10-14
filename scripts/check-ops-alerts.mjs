@@ -53,17 +53,42 @@ const richContracts = [
 for (const c of richContracts) assert.match(rich, c, `Contrato ausente na migration de mensagens ricas: ${c}`);
 
 const healthContracts = [
-  /ops_health/,
+  /create or replace function public\.ops_health\(\)/i,
   /grant execute on function public\.ops_health\(\) to anon/i,
-  /revoke all on function public\.ops_healthcheck/i,
-  /revoke all on function public\.ops_retry_undelivered/i,
+  /revoke all on function public\.ops_healthcheck\(\)/i,
+  /revoke all on function public\.ops_retry_undelivered\(\)/i,
+  /revoke all on function public\.ops_on_account_status_change\(\)/i,
   /trg_ops_account_status/,
   /'acct:'/,
-  /cron\.schedule\('ops_healthcheck'/,
+  /cron\.schedule\('ops_healthcheck', '2-59\/5 \* \* \* \*'/,
+  /'cron_timeouts:'/,
+  /backend_type = 'client backend'/,
+  /for update skip locked/i,
   /old\.account_status is distinct from new\.account_status/i,
 ];
 for (const c of healthContracts) assert.match(health, c, `Contrato ausente na migration de saude: ${c}`);
+assert.doesNotMatch(health, /'\*\/5 \* \* \* \*'/, 'healthcheck nao pode rodar no minuto cheio (usar 2-59/5)');
 assert.doesNotMatch(health, /alter database/i, 'a migration de saude nao pode usar alter database');
+
+// withAlerts: aplicado nas 14 functions previstas e ausente nas excluidas.
+const withAlertsFns = [
+  'public-api', 'enrich-product', 'evolution-webhook', 'evolution-groups-select',
+  'evolution-groups-sync', 'evolution-instance-create', 'evolution-instance-delete',
+  'evolution-instance-status', 'api-key-generate', 'api-key-reveal', 'api-key-revoke',
+  'cakto-create-payment', 'cakto-cancel-subscription', 'cleanup-storage',
+];
+for (const fn of withAlertsFns) {
+  assert.ok(
+    read(`supabase/functions/${fn}/index.ts`).includes(`withAlerts("${fn}"`),
+    `function ${fn} precisa usar withAlerts("${fn}"`,
+  );
+}
+for (const fn of ['admin-api', 'send-email', 'email-hook', 'notify']) {
+  assert.ok(
+    !read(`supabase/functions/${fn}/index.ts`).includes('withAlerts('),
+    `function ${fn} nao pode usar withAlerts(`,
+  );
+}
 assert.doesNotMatch(health, /current_setting\('app\./i, 'a migration de saude nao pode ler app.* (producao usa Vault)');
 
 assert.match(handler, /timingSafeEqual/, 'notify precisa comparar a chave em tempo constante');

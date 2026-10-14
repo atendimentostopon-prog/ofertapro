@@ -4,6 +4,8 @@
 -- Depende de 20261013000000_ops_events_and_emit.sql (ops_events, ops_emit).
 -- ROLLBACK: supabase/rollbacks/20261014000000_ops_phase2_health_rollback.sql
 -- Aplicar no SQL Editor com o mesmo papel das migrations anteriores.
+-- O healthcheck roda em '2-59/5' (minutos 2, 7, 12...) para fugir do minuto cheio, onde os
+-- jobs de producao ja estouram "job startup timeout".
 
 -- 1) ops_health: sonda para o Uptime Kuma via PostgREST -------------------------------
 -- Nao le tabela nenhuma: responde 200 enquanto o PostgREST e o banco estiverem de pe.
@@ -57,7 +59,8 @@ begin
        and e.notify_attempts < 3
        and coalesce(e.last_notify_attempt_at, '-infinity'::timestamptz) < now() - interval '5 minutes'
      order by e.created_at
-     limit 20
+     limit 4
+       for update skip locked
   loop
     -- a tentativa e contada antes do envio: um erro no envio nao gera laco infinito
     update public.ops_events
@@ -107,8 +110,13 @@ declare
   v_ativas       int;
   v_maximo       int;
   v_bytes        bigint;
+  v_timeouts     int := 0;
+  v_timeout_jobs jsonb;
+  v_cron_timeout int := 0;
+  v_hora         text := to_char(now() at time zone 'America/Sao_Paulo', 'YYYYMMDDHH24');
 begin
-  -- 1) cron falhando nos ultimos 15 minutos
+  -- 1) cron falhando nos ultimos 15 minutos (exceto "job startup timeout", checagem 1b).
+  --    Chave horaria: a condicao persistente gera 1 aviso por hora.
   begin
     for r in
       select j.jobname,
@@ -119,6 +127,7 @@ begin
         join cron.job j on j.jobid = d.jobid
        where d.status = 'failed'
          and d.start_time > now() - interval '15 minutes'
+         and coalesce(d.return_message, '') <> 'job startup timeout'
        group by j.jobname
     loop
       perform public.ops_emit(
@@ -128,12 +137,49 @@ begin
           'falhas',   r.falhas,
           'ultima',   r.ultima,
           'mensagem', r.mensagem
-        ))
+        )),
+        null,
+        'cron_failed:' || r.jobname || ':' || v_hora
       );
       v_cron_falha := v_cron_falha + 1;
     end loop;
   exception when others then
     raise warning '[ops_healthcheck] cron falhando: %', sqlerrm;
+  end;
+
+  -- 1b) falhas de inicializacao agregadas: >= 5 "job startup timeout" nas ultimas 3 horas
+  begin
+    select count(*)::int into v_timeouts
+      from cron.job_run_details d
+     where d.status = 'failed'
+       and d.return_message = 'job startup timeout'
+       and d.start_time > now() - interval '3 hours';
+
+    if v_timeouts >= 5 then
+      select coalesce(jsonb_agg(x.jobname), '[]'::jsonb) into v_timeout_jobs
+        from (select distinct j2.jobname
+                from cron.job_run_details d2
+                join cron.job j2 on j2.jobid = d2.jobid
+               where d2.status = 'failed'
+                 and d2.return_message = 'job startup timeout'
+                 and d2.start_time > now() - interval '3 hours'
+               order by j2.jobname
+               limit 8) x;
+
+      perform public.ops_emit(
+        'error', 'cron', 'Cron com falhas de inicialização',
+        jsonb_build_object(
+          'quantidade',   v_timeouts,
+          'jobs',         v_timeout_jobs,
+          'janela_horas', 3
+        ),
+        null,
+        'cron_timeouts:' || v_hora
+      );
+      v_cron_timeout := 1;
+    end if;
+  exception when others then
+    raise warning '[ops_healthcheck] cron timeouts: %', sqlerrm;
   end;
 
   -- 2) cron parado: job ativo sem execucao bem-sucedida dentro do intervalo maximo.
@@ -163,7 +209,9 @@ begin
             'job',                r.jobname,
             'ultima_execucao_ok', r.ultima_ok,
             'esperado_a_cada',    r.maxi::text
-          ))
+          )),
+          null,
+          'cron_stalled:' || r.jobname || ':' || v_hora
         );
         v_cron_parado := v_cron_parado + 1;
       end if;
@@ -193,8 +241,10 @@ begin
         ) s;
 
       perform public.ops_emit(
-        'error', 'bot', 'Bots com erro: ' || v_bots_n::text,
-        jsonb_build_object('quantidade', v_bots_n, 'amostra', v_amostra)
+        'error', 'bot', 'Bots com erro',
+        jsonb_build_object('quantidade', v_bots_n, 'amostra', v_amostra),
+        null,
+        'bots_error:' || v_hora
       );
       v_bots := 1;
     end if;
@@ -204,7 +254,8 @@ begin
 
   -- 4) conexoes acima de 80% de max_connections
   begin
-    select count(*)::int into v_ativas from pg_stat_activity;
+    select count(*)::int into v_ativas
+      from pg_stat_activity where backend_type = 'client backend';
     v_maximo := current_setting('max_connections')::int;
     if v_maximo > 0 and v_ativas > (v_maximo * 0.8) then
       perform public.ops_emit(
@@ -213,7 +264,9 @@ begin
           'ativas',     v_ativas,
           'maximo',     v_maximo,
           'percentual', round(v_ativas * 100.0 / v_maximo, 1)
-        )
+        ),
+        null,
+        'db_connections:' || v_hora
       );
       v_conexoes := 1;
     end if;
@@ -230,7 +283,9 @@ begin
         jsonb_build_object(
           'tamanho_mb', round(v_bytes / 1048576.0, 1),
           'limite_mb',  v_limite_mb
-        )
+        ),
+        null,
+        'db_disk:' || v_hora
       );
       v_disco := 1;
     end if;
@@ -248,6 +303,7 @@ begin
   return jsonb_build_object(
     'cron_falhando', v_cron_falha,
     'cron_parado',   v_cron_parado,
+    'cron_timeouts', v_cron_timeout,
     'bots_com_erro', v_bots,
     'conexoes',      v_conexoes,
     'disco',         v_disco,
@@ -261,7 +317,7 @@ $$;
 
 revoke all on function public.ops_healthcheck() from public, anon, authenticated;
 
-select cron.schedule('ops_healthcheck', '*/5 * * * *', $$ select public.ops_healthcheck(); $$);
+select cron.schedule('ops_healthcheck', '2-59/5 * * * *', $$ select public.ops_healthcheck(); $$);
 
 -- 5) Expiracao e cancelamento de conta ------------------------------------------------
 -- Dispara so quando account_status passa a 'expired' ou 'canceled' (nunca NULL -> trialing/active).
