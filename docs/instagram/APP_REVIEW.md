@@ -69,7 +69,7 @@ when the DM arrives on the commenter's phone.
    account appears as connected.
 4. Click "Nova automação", choose a post, set the keyword "quero", write a message and save
    with "Ativar automação" on.
-5. From another Instagram account, comment "quero" on that post.
+5. From another Instagram account, comment "quero" on that post. Each commenter receives the message once per automation ("Send only once per person" is on by default), so to repeat the test use a different commenting account or turn that option off in the automation.
 6. Within seconds the public reply appears under the comment and the direct message is
    delivered (it may be in the Message Requests folder if the commenter does not follow the
    account).
@@ -103,6 +103,7 @@ Dicas: não corte a tela de autorização da Meta, mostre o nome do usuário que
   Instagram**, com o convite aceito, e **sem verificação em duas etapas** (o revisor precisa
   entrar).
 - Uma segunda conta de Instagram para o revisor comentar, se o formulário pedir.
+- Lembrete: cada pessoa recebe a DM **uma vez por automação** (opção ligada por padrão). Para o revisor repetir o teste, informe que ele deve usar outra conta para comentar, ou desmarcar "Enviar só uma vez por pessoa" na automação.
 
 ## 6. Motivos comuns de reprovação e como evitar
 
