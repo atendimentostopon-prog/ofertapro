@@ -13,6 +13,8 @@ import Channels from './pages/Channels';
 import Integrations from './pages/Integrations';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import Instagram from './pages/Instagram';
+import InstagramAutomationEditor from './pages/InstagramAutomationEditor';
 import Suporte from './pages/Suporte';
 import SuporteTicket from './pages/SuporteTicket';
 import PublicPage from './pages/PublicPage';
@@ -26,6 +28,7 @@ import { supabase } from './lib/supabase';
 import DebugSupabase from './pages/DebugSupabase';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import TermosUso from './pages/TermosUso';
+import ExclusaoDados from './pages/ExclusaoDados';
 import PoliticaCookies from './pages/PoliticaCookies';
 import ShopeeAutomationPage from './pages/ShopeeAutomationPage';
 import MercadoLivreAutomationPage from './pages/MercadoLivreAutomationPage';
@@ -34,10 +37,11 @@ import Checkout from './pages/Checkout';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
 import { APP_NAME } from './config/app';
+import { FEATURES } from './config/features';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
-  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/suporte'];
+  const privatePaths = ['/dashboard', '/offers', '/channels', '/integrations', '/history', '/settings', '/suporte', '/instagram'];
   return !privatePaths.some(p => path === p || path.startsWith(p + '/'));
 };
 
@@ -271,6 +275,7 @@ const App: React.FC = () => {
           {/* Legal Pages */}
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosUso />} />
+          <Route path="/exclusao-de-dados" element={<ExclusaoDados />} />
           <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
           <Route path="/automatizacao-shopee" element={<ShopeeAutomationPage />} />
           <Route path="/automatizacao-mercadolivre" element={<MercadoLivreAutomationPage />} />
@@ -305,6 +310,10 @@ const App: React.FC = () => {
             <Route path="/offers/new" element={<NewOfferPage />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/integrations" element={<Integrations />} />
+            {/* Instagram atrás de flag (VITE_FEATURE_INSTAGRAM) até o deploy e o App Review. */}
+            <Route path="/instagram" element={FEATURES.instagram ? <Instagram /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/instagram/automacoes/nova" element={FEATURES.instagram ? <InstagramAutomationEditor /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/instagram/automacoes/:id" element={FEATURES.instagram ? <InstagramAutomationEditor /> : <Navigate to="/dashboard" replace />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/suporte" element={<Suporte />} />

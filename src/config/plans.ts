@@ -16,6 +16,10 @@ export interface PlanLimits {
   advancedAnalytics: boolean;
   futureScheduling: boolean;
   allowShortener: boolean; // Encurtador automático próprio (go.aflyo.com.br/o/...)
+  allowInstagram: boolean; // Módulo de automações de Instagram (comentário para DM)
+  maxIgAccounts: number; // Contas de Instagram conectadas
+  maxIgAutomations: number; // Automações ativas
+  maxIgDmsMonth: number; // DMs automáticas por mês
 }
 
 export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
@@ -32,6 +36,10 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     advancedAnalytics: false,
     futureScheduling: false,
     allowShortener: false,
+    allowInstagram: false,
+    maxIgAccounts: 0,
+    maxIgAutomations: 0,
+    maxIgDmsMonth: 0,
   },
   starter: {
     name: 'starter',
@@ -46,6 +54,10 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     advancedAnalytics: false,
     futureScheduling: true,
     allowShortener: false,
+    allowInstagram: true,
+    maxIgAccounts: 2,
+    maxIgAutomations: 10,
+    maxIgDmsMonth: 5000,
   },
   pro: {
     name: 'pro',
@@ -60,6 +72,10 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     advancedAnalytics: true,
     futureScheduling: true,
     allowShortener: true,
+    allowInstagram: true,
+    maxIgAccounts: 3,
+    maxIgAutomations: 50,
+    maxIgDmsMonth: 50000,
   },
   enterprise: {
     name: 'enterprise',
@@ -74,6 +90,10 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     advancedAnalytics: true,
     futureScheduling: true,
     allowShortener: true,
+    allowInstagram: true,
+    maxIgAccounts: 10,
+    maxIgAutomations: Infinity,
+    maxIgDmsMonth: 250000,
   },
 };
 
@@ -95,6 +115,10 @@ export function getPlanLimits(plan: UserPlan = 'free'): PlanLimits {
       advancedAnalytics: true,
       futureScheduling: true,
       allowShortener: true,
+      allowInstagram: true,
+      maxIgAccounts: Infinity,
+      maxIgAutomations: Infinity,
+      maxIgDmsMonth: Infinity,
     };
   }
   return PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
