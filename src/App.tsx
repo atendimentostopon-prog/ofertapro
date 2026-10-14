@@ -37,6 +37,7 @@ import Checkout from './pages/Checkout';
 import CookieBanner from './components/CookieBanner';
 import FullPageLoader from './components/FullPageLoader';
 import { APP_NAME } from './config/app';
+import { FEATURES } from './config/features';
 
 const isPublicRoute = () => {
   const path = window.location.pathname;
@@ -309,9 +310,10 @@ const App: React.FC = () => {
             <Route path="/offers/new" element={<NewOfferPage />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/integrations" element={<Integrations />} />
-            <Route path="/instagram" element={<Instagram />} />
-            <Route path="/instagram/automacoes/nova" element={<InstagramAutomationEditor />} />
-            <Route path="/instagram/automacoes/:id" element={<InstagramAutomationEditor />} />
+            {/* Instagram atrás de flag (VITE_FEATURE_INSTAGRAM) até o deploy e o App Review. */}
+            <Route path="/instagram" element={FEATURES.instagram ? <Instagram /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/instagram/automacoes/nova" element={FEATURES.instagram ? <InstagramAutomationEditor /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/instagram/automacoes/:id" element={FEATURES.instagram ? <InstagramAutomationEditor /> : <Navigate to="/dashboard" replace />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/suporte" element={<Suporte />} />

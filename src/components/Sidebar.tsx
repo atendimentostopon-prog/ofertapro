@@ -11,6 +11,7 @@ import { APP_NAME, getShortlinkUrl } from '../config/app';
 import { Avatar } from './ui/Avatar';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { toDisplayName } from '../lib/format';
+import { FEATURES } from '../config/features';
 
 interface SidebarProps {
   onLogout: () => void;
@@ -38,7 +39,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, onCloseMobile }) => {
 
   if (!user) return null;
 
-  const activeNavItems = navItems;
+  const activeNavItems = FEATURES.instagram
+    ? navItems
+    : navItems.filter((item) => item.to !== '/instagram');
 
   const handleLinkClick = () => {
     if (onCloseMobile) {

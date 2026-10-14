@@ -109,7 +109,14 @@ Três caminhos, com efeitos diferentes:
 
 ## Deploy (precisa de autorização)
 
-Ordem: migration `..._instagram_core` -> secrets -> funções -> migration `..._instagram_cron`.
+Ordem: migration `..._instagram_core` -> secrets -> funções -> migration `..._instagram_cron`
+-> App Review aprovado -> `VITE_FEATURE_INSTAGRAM=true` na Vercel (produção) e redeploy do front.
+
+**Flag do front:** sem `VITE_FEATURE_INSTAGRAM=true` o item Instagram some da sidebar e as
+rotas `/instagram*` redirecionam para `/dashboard`. Ligar só depois de migration, funções e
+aprovação da Meta. Para o vídeo do App Review, ligar só no ambiente Preview da Vercel.
+Desligar a flag é o jeito mais rápido de esconder o módulo (não para os envios: para isso
+veja "Desligar o envio de emergência").
 
 **Funções sem verificação JWT:**
 ```bash

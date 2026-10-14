@@ -44,4 +44,15 @@ Comando (precisa de autorização do dono):
 `supabase secrets set IG_APP_ID=... IG_APP_SECRET=... IG_WEBHOOK_VERIFY_TOKEN=... IG_STATE_SECRET=... IG_REDIRECT_URI=... APP_URL=...`
 
 ## 6. Verificação de negócio e App Review
-Ver `docs/instagram/APP_REVIEW.md` (Task 26).
+Ver `docs/instagram/APP_REVIEW.md`.
+
+## 7. Flag do front (`VITE_FEATURE_INSTAGRAM`)
+O módulo fica escondido no app (item da sidebar e rotas `/instagram*` redirecionam
+para `/dashboard`) enquanto `VITE_FEATURE_INSTAGRAM` não for `true`. As páginas
+públicas (`/exclusao-de-dados`, política e termos) não dependem da flag.
+
+- Produção: definir `VITE_FEATURE_INSTAGRAM=true` na Vercel **só depois** de aplicar a
+  migration core, deployar as Edge Functions, aplicar a migration de cron e ter o
+  App Review aprovado. Precisa de novo deploy do front (variável de build).
+- Gravação do vídeo do App Review e testes com Instagram Testers: usar um deploy de
+  Preview da Vercel com a flag ligada só no ambiente Preview.

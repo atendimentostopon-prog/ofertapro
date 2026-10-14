@@ -7,6 +7,9 @@ export const FEATURES = {
   discord: true,       // Habilita canal Discord Webhooks
   feedback: false,     // Substituido pelo sistema de suporte (tickets)
   publicPage: true,     // Habilita a página pública sem restrições de autenticação
+  // Automações de Instagram: desligado por padrão. Ligar (VITE_FEATURE_INSTAGRAM=true
+  // na Vercel) só depois de migration + Edge Functions no ar + App Review aprovado.
+  instagram: import.meta.env.VITE_FEATURE_INSTAGRAM === 'true',
   useDirectAffiliateLinkInChannels: true, // Envia o link de afiliado direto nos canais (Telegram/Discord)
   // Encurtador de terceiro (is.gd / tinyurl / bitly) DESLIGADO para sempre.
   // Nos canais vai só o encurtador próprio (aflyo.com.br/o/<code>) ou o link
