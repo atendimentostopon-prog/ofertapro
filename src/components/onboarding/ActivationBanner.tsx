@@ -2,29 +2,34 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { useActivation } from '../../hooks/useActivation';
+import { useUser } from '../../context/UserContext';
 import { useAccountAccess } from '../../hooks/useAccountAccess';
 import { guideHref } from './StepGuide';
 
 const HIDDEN_PATHS = ['/dashboard', '/pricing', '/checkout'];
-const STORAGE_KEY = 'aflyo_activation_banner_dismissed';
+const storageKey = (userId: string) => `aflyo_activation_banner_dismissed_${userId}`;
 
-const readDismissed = (): boolean => {
-  try { return sessionStorage.getItem(STORAGE_KEY) === 'true'; } catch { return false; }
+const readDismissed = (userId: string | undefined): boolean => {
+  if (!userId) return false;
+  try { return sessionStorage.getItem(storageKey(userId)) === 'true'; } catch { return false; }
 };
 
 export const ActivationBanner: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const access = useAccountAccess();
-  const { state, loading } = useActivation();
-  const [dismissed, setDismissed] = useState(readDismissed);
+  const { user } = useUser();
+  const { state, loading, error } = useActivation();
+  const [dismissed, setDismissed] = useState(() => readDismissed(user?.id));
 
-  if (dismissed || loading || state.allDone || !state.next) return null;
+  // Todos os hooks ficam acima do primeiro return condicional.
+  if (dismissed || loading || error || state.allDone || !state.next) return null;
   if (!access.hasAccess || access.isExpired) return null;
+  if (!access.isTrialing && state.next.id === 'automatic_offer') return null;
   if (HIDDEN_PATHS.some(path => location.pathname.startsWith(path))) return null;
 
   const dismiss = () => {
-    try { sessionStorage.setItem(STORAGE_KEY, 'true'); } catch { /* sem storage: so some nesta sessao de render */ }
+    try { if (user?.id) sessionStorage.setItem(storageKey(user.id), 'true'); } catch { /* sem storage: so some nesta sessao de render */ }
     setDismissed(true);
   };
 

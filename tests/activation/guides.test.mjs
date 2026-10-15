@@ -19,13 +19,14 @@ test('getGuide devolve nulo para id desconhecido ou vazio', () => {
   assert.equal(getGuide('nope'), null);
   assert.equal(getGuide(''), null);
   assert.equal(getGuide(null), null);
+  for (const key of ['toString', '__proto__', 'constructor']) assert.equal(getGuide(key), null);
   assert.equal(getGuide('telegram')?.id, 'telegram');
 });
 
 test('links externos usam https e nenhum texto usa travessao', () => {
   for (const guide of Object.values(ACTIVATION_GUIDES)) {
     if (guide.link) assert.match(guide.link.href, /^https:\/\//);
-    const text = [guide.title, guide.intro, guide.tip ?? '', ...guide.steps.map(s => s.text)].join(' ');
+    const text = [guide.title, guide.intro, guide.tip ?? '', guide.link?.label ?? '', ...guide.steps.map(s => s.text)].join(' ');
     assert.doesNotMatch(text, /—/);
   }
 });

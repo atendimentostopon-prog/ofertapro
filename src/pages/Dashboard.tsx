@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <ActivationPanel />
+      {!access.isExpired && <ActivationPanel />}
 
       <BotStatusCard
         view={bot.view}

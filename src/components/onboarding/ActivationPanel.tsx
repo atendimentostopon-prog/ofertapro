@@ -56,7 +56,7 @@ const ActivationPanel: React.FC = () => {
               <Sparkles className="w-4 h-4 text-mint-700" />
               Primeiros Passos no {APP_NAME}
             </h2>
-            <p className="text-xs text-ink-secondary font-medium">Etapa {state.completed + 1} de {state.total}. Cada uma tem um passo a passo.</p>
+            <p className="text-xs text-ink-secondary font-medium">Etapa {state.milestones.findIndex(m => m.id === next.id) + 1} de {state.total}. Cada uma tem um passo a passo.</p>
           </div>
           <span className="text-xs font-bold text-mint-800 bg-ice border border-mint-200 px-2.5 py-1 rounded-md self-start">
             {state.percent}% Concluído
@@ -108,10 +108,11 @@ const ActivationPanel: React.FC = () => {
               return (
                 <li key={item.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg">
                   <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-ice text-mint-700' : 'bg-surface-1 text-ink-tertiary'}`}>
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon aria-hidden="true" className="w-3.5 h-3.5" />
                   </div>
                   <span className={`text-[11px] font-medium flex-1 min-w-0 truncate ${item.done ? 'text-ink-secondary line-through' : 'text-ink'}`}>
                     {item.title}
+                    {item.done && <span className="sr-only"> (concluído)</span>}
                   </span>
                   {!item.done && (
                     <button
@@ -123,7 +124,9 @@ const ActivationPanel: React.FC = () => {
                       Guia
                     </button>
                   )}
-                  {item.done ? <CheckCircle2 className="w-4 h-4 text-mint-700 flex-shrink-0" /> : <Circle className="w-4 h-4 text-ink-disabled flex-shrink-0" />}
+                  {item.done
+                    ? <CheckCircle2 aria-hidden="true" className="w-4 h-4 text-mint-700 flex-shrink-0" />
+                    : <Circle aria-hidden="true" className="w-4 h-4 text-ink-disabled flex-shrink-0" />}
                 </li>
               );
             })}

@@ -15,19 +15,25 @@ test('conta sem bot_configs: tudo pendente e proxima acao e conectar o Telegram'
   assert.equal(state.next?.id, 'telegram');
 });
 
-test('sessao do Telegram presente conclui o marco telegram', () => {
-  const state = deriveActivation({ ...empty, botConfig: { telegram_session: 'abc' } });
-  assert.deepEqual(doneIds(state), ['telegram']);
+test('status active ou paused conclui o marco telegram', () => {
+  for (const status of ['active', 'paused']) {
+    const state = deriveActivation({ ...empty, botConfig: { status } });
+    assert.deepEqual(doneIds(state), ['telegram']);
+  }
 });
 
-test('status active sem sessao tambem conclui telegram', () => {
-  const state = deriveActivation({ ...empty, botConfig: { status: 'active' } });
-  assert.deepEqual(doneIds(state), ['telegram']);
+test('status error, pending ou nulo nao conclui telegram', () => {
+  for (const status of ['error', 'pending', null, undefined]) {
+    const state = deriveActivation({ ...empty, botConfig: { status } });
+    assert.equal(doneIds(state).includes('telegram'), false);
+  }
 });
 
-test('sessao so com espacos nao conta', () => {
-  const state = deriveActivation({ ...empty, botConfig: { telegram_session: '   ' } });
-  assert.deepEqual(doneIds(state), []);
+test('shopee_app_id preenchido basta para marketplaces', () => {
+  const state = deriveActivation({ ...empty, botConfig: { shopee_app_id: '50493821034' } });
+  assert.deepEqual(doneIds(state), ['marketplaces']);
+  const blank = deriveActivation({ ...empty, botConfig: { shopee_app_id: '  ' } });
+  assert.deepEqual(doneIds(blank), []);
 });
 
 test('uma tag de afiliado basta para marketplaces', () => {
@@ -73,7 +79,7 @@ test('proxima acao e o primeiro pendente mesmo com marcos posteriores prontos', 
 
 test('tudo pronto: next nulo, 100% e allDone', () => {
   const state = deriveActivation({
-    botConfig: { telegram_session: 's', amazon_tag: 'a', grupos_origem: ['c'] },
+    botConfig: { status: 'active', amazon_tag: 'a', grupos_origem: ['c'] },
     connectedChannels: 1,
     successfulDispatches: 1,
     automaticDispatches: 1,

@@ -7,11 +7,11 @@ export type MilestoneId =
   | 'automatic_offer';
 
 export interface ActivationBotConfig {
-  telegram_session?: string | null;
   status?: string | null;
   grupos_origem?: string[] | null;
   amazon_tag?: string | null;
   mercadolivre_tag?: string | null;
+  shopee_app_id?: string | null;
 }
 
 export interface ActivationInput {
@@ -53,15 +53,15 @@ export function deriveActivation(input: ActivationInput): ActivationState {
       description: 'Informe API ID, API Hash e o código recebido para o bot ler seus canais.',
       actionLabel: 'Conectar',
       route: '/integrations?tab=bot',
-      done: filled(bot?.telegram_session) || bot?.status === 'active',
+      done: bot?.status === 'active' || bot?.status === 'paused',
     },
     {
       id: 'marketplaces',
       title: 'Configurar seus links de afiliado',
-      description: 'Salve ao menos uma tag de afiliado (Amazon ou Mercado Livre).',
+      description: 'Salve ao menos uma credencial de afiliado (Amazon, Mercado Livre ou Shopee).',
       actionLabel: 'Configurar',
       route: '/integrations?tab=bot',
-      done: filled(bot?.amazon_tag) || filled(bot?.mercadolivre_tag),
+      done: filled(bot?.amazon_tag) || filled(bot?.mercadolivre_tag) || filled(bot?.shopee_app_id),
     },
     {
       id: 'source',

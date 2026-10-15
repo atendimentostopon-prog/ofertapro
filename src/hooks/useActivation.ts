@@ -57,7 +57,7 @@ export function useActivation(): UseActivation {
       // caso o marco "oferta automatica" fica pendente, sem sinalizar erro.
       const [bot, channels, success, automatic] = await Promise.allSettled([
         supabase.from('bot_configs')
-          .select('telegram_session, status, grupos_origem, amazon_tag, mercadolivre_tag')
+          .select('status, grupos_origem, amazon_tag, mercadolivre_tag, shopee_app_id')
           .eq('user_id', userId).maybeSingle(),
         supabase.from('channels').select('id', { count: 'exact', head: true })
           .eq('user_id', userId).in('status', ['connected', 'active']),
