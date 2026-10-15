@@ -603,3 +603,149 @@ Deno.test("primeira oferta: produto malicioso é escapado no Discord e no Telegr
   const r2 = render(ev({ category: "bot", title: "Outro", detail: { produto: "[x](https://evil)" } }));
   assertEquals(fields(r2)["Produto"], esc("[x](https://evil)"));
 });
+
+// ---------- resumo diário, disparos, Evolution e WhatsApp caído ----------
+
+Deno.test("resumo diário: campos na ordem, vendas formatadas em BRL e sem linha de resumo", () => {
+  const r = render(ev({
+    category: "admin",
+    title: "Resumo diário",
+    detail: {
+      usuarios: "33 no total · +2 novos · 2 confirmaram",
+      trials: "5 ativos · 1 vence em 24h",
+      vendas_qtd: 2,
+      vendas_valor: 97.78,
+      reembolsos: "1 reembolso · 0 chargebacks · 2 recusas",
+      ofertas: "131 recebidas",
+      bots: "3 ativos",
+      disparos: "131 (90 ok · 38 parciais · 3 erro)",
+      alertas: "0 críticos · 5 erros",
+      whatsapp: "4 conectadas de 9 (2 com erro)",
+      cron: "3 falhas nas últimas 24 h",
+      banco: "42 MB de 500 · 13 conexões de 60",
+      entrega: "2 alertas pendentes de entrega",
+    },
+  }));
+  const e = embed(r);
+  assertEquals(e.title, "🟢 Resumo diário");
+  assertEquals(e.description, undefined);
+  const f = fields(r);
+  assertEquals(
+    Object.keys(f),
+    ["Usuários", "Trials", "Vendas", "Reembolsos e recusas", "Ofertas", "Bots", "Disparos",
+      "Alertas (24 h)", "WhatsApp", "Cron", "Banco", "Entrega de alertas"],
+  );
+  assertEquals(f["Vendas"], esc("2 · R$ 97,78 (bruto)"));
+  assertEquals(f["Disparos"], esc("131 (90 ok · 38 parciais · 3 erro)"));
+  assertEquals("Vendas_valor" in f, false);
+  assert(r.telegram.includes("Vendas: <b>2 · R$ 97,78 (bruto)</b>"));
+  assert(r.telegram.includes("Banco: <b>42 MB de 500 · 13 conexões de 60</b>"));
+  // 2º elemento do Telegram já é um campo, não um resumo
+  assertEquals(r.telegram.split("\n")[1], "Usuários: <b>33 no total · +2 novos · 2 confirmaram</b>");
+});
+
+Deno.test("resumo diário: métrica ausente some e o resto segue; vendas sem valor mostram só a quantidade", () => {
+  const r = render(ev({
+    category: "admin",
+    title: "Resumo diário",
+    detail: { usuarios: "10 no total · +0 novos · 0 confirmaram", vendas_qtd: 0, cron: "", banco: null },
+  }));
+  const f = fields(r);
+  assertEquals(Object.keys(f), ["Usuários", "Vendas"]);
+  assertEquals(f["Vendas"], "0");
+});
+
+Deno.test("disparos falhando: usuário, contagens e último erro escapado", () => {
+  const r = render(ev({
+    severity: "error",
+    category: "bot",
+    title: "Disparos falhando",
+    detail: {
+      nome: "Eva",
+      email: "eva@x.com",
+      plano: "pro",
+      painel: PAINEL,
+      disparos: 12,
+      falhas: 30,
+      ultimo_erro: "Falha no envio da API para: [x](https://evil) <b>oi</b>",
+    },
+  }));
+  const e = embed(r);
+  assertEquals(e.title, "🟠 Disparos falhando");
+  assertEquals(e.url, PAINEL);
+  const f = fields(r);
+  assertEquals(Object.keys(f), ["Nome", "E-mail", "Plano", "Disparos", "Falhas", "Último erro"]);
+  assertEquals(f["Disparos"], "12");
+  assertEquals(f["Falhas"], "30");
+  assert(!f["Último erro"].includes("[x](https://evil)"));
+  assert(f["Último erro"].includes(esc("[x](https://evil)")));
+  assert(!r.telegram.includes("<b>oi</b>"));
+  assert(r.telegram.includes("&lt;b&gt;oi&lt;/b&gt;"));
+});
+
+Deno.test("canal com falha persistente: canais e quantidade; vazio é omitido", () => {
+  const r = render(ev({
+    severity: "error",
+    category: "bot",
+    title: "Canal com falha persistente",
+    detail: { nome: "Eva", canais_com_falha: "Grupo Ofertas, Canal VIP", quantidade: 2, falhas: "" },
+  }));
+  const f = fields(r);
+  assertEquals(Object.keys(f), ["Nome", "Canais com falha", "Quantidade"]);
+  assertEquals(f["Canais com falha"], esc("Grupo Ofertas, Canal VIP"));
+  assertEquals(f["Quantidade"], "2");
+});
+
+Deno.test("taxa de falha de disparo alta: total, falhas e percentual com %", () => {
+  const r = render(ev({
+    severity: "error",
+    category: "health",
+    title: "Taxa de falha de disparo alta",
+    detail: { total: 14, falhas: 12, percentual: 86 },
+  }));
+  const f = fields(r);
+  assertEquals(Object.keys(f), ["Falhas", "Total", "Percentual"]);
+  assertEquals(f["Total"], "14");
+  assertEquals(f["Percentual"], "86%");
+  assert(r.telegram.includes("Percentual: <b>86%</b>"));
+});
+
+Deno.test("Evolution API instável: instâncias e exemplo de erro (HTML escapado)", () => {
+  const r = render(ev({
+    severity: "error",
+    category: "health",
+    title: "Evolution API instável",
+    detail: { instancias: 3, exemplo_erro: "Evolution API respondeu com status 530: <html>" },
+  }));
+  const f = fields(r);
+  assertEquals(Object.keys(f), ["Instâncias", "Exemplo de erro"]);
+  assertEquals(f["Instâncias"], "3");
+  assert(r.telegram.includes("&lt;html&gt;"));
+  assert(!r.telegram.includes("<html>"));
+});
+
+Deno.test("WhatsApp desconectado e com erro: número, perfil, instância e erro", () => {
+  for (const title of ["WhatsApp desconectado", "WhatsApp com erro"]) {
+    const r = render(ev({
+      severity: "error",
+      category: "bot",
+      title,
+      detail: {
+        nome: "Eva",
+        telefone: "11987654321",
+        numero_whatsapp: "5511987654321",
+        perfil_whatsapp: "Loja da Eva",
+        instancia: "eva-01",
+        erro: "Evolution API respondeu com status 530",
+        painel: PAINEL,
+      },
+    }));
+    assertEquals(embed(r).title, `🟠 ${title}`);
+    const f = fields(r);
+    assertEquals(f["Número"], esc("(11) 98765-4321"));
+    assertEquals(f["Perfil"], "Loja da Eva");
+    assertEquals(f["Instância"], "eva-01");
+    assertEquals(f["Erro"], "Evolution API respondeu com status 530");
+    assert(r.telegram.includes('<a href="' + PAINEL + '">Abrir no painel</a>'));
+  }
+});

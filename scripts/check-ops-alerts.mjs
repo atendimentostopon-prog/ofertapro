@@ -10,6 +10,7 @@ const sources = read('supabase/migrations/20261013000100_ops_business_sources.sq
 const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
 const health = read('supabase/migrations/20261014000000_ops_phase2_health.sql');
 const milestones = read('supabase/migrations/20261014010000_ops_user_milestones.sql');
+const resumo = read('supabase/migrations/20261015000000_ops_resumo_disparos_whatsapp.sql');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
@@ -100,6 +101,39 @@ assert.equal((milestones.match(/exception when others then/gi) ?? []).length >= 
 // WHEN de trigger que cobre INSERT nao pode referenciar OLD.
 for (const m of milestones.matchAll(/after insert[^;]*?when \(([^)]*(?:\([^)]*\)[^)]*)*)\)/gi)) {
   assert.doesNotMatch(m[1], /\bold\./i, `WHEN de trigger com INSERT nao pode referenciar OLD: ${m[1]}`);
+}
+
+const resumoContracts = [
+  /create trigger trg_ops_whatsapp_down/i,
+  /after update of status on public\.whatsapp_instances[\s\S]*?when \(old\.status = 'connected' and new\.status in \('disconnected', 'error'\)\)/i,
+  /drop trigger if exists trg_ops_whatsapp_down/i,
+  /cron\.schedule\('ops_healthcheck_dispatch', '4-59\/5 \* \* \* \*'/,
+  /cron\.schedule\('ops_daily_summary', '3 11 \* \* \*'/,
+  /revoke all on function public\.ops_on_whatsapp_down\(\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_healthcheck_dispatch\(\) from public, anon, authenticated/i,
+  /revoke all on function public\.ops_daily_summary\(\) from public, anon, authenticated/i,
+  /'wa_down:'/,
+  /'disp_falha:'/,
+  /'canal_falha:'/,
+  /'disp_taxa:'/,
+  /'evolution:'/,
+  /'daily:'/,
+  /having count\(\*\) >= 3[\s\S]*?sum\(coalesce\(h\.success_count, 0\)\) = 0/i,
+  /unnest\(coalesce\(h\.failed_channels/i,
+  /unnest\(coalesce\(h\.successful_channels/i,
+  /exception when others then/i,
+];
+for (const c of resumoContracts) assert.match(resumo, c, `Contrato ausente na migration de resumo/disparos/WhatsApp: ${c}`);
+assert.doesNotMatch(resumo, /'0 11 \* \* \*'/, 'o resumo diario nao pode rodar no minuto 0 (usar 3 11 * * *)');
+assert.doesNotMatch(resumo, /alter database/i, 'a migration de resumo nao pode usar alter database');
+assert.doesNotMatch(resumo, /current_setting\('app\./i, 'a migration de resumo nao pode ler app.* (producao usa Vault)');
+assert.doesNotMatch(resumo, /create or replace function public\.ops_healthcheck\(\)/i, 'a migration de resumo nao pode redefinir ops_healthcheck()');
+assert.doesNotMatch(resumo, /create trigger[^;]*\bbefore\b/i, 'trigger do WhatsApp precisa ser AFTER');
+assert.doesNotMatch(resumo, /2014/, 'texto ao operador nao pode ter travessao');
+assert.equal((resumo.match(/exception when others then/gi) ?? []).length >= 16, true, 'cada checagem e metrica precisa do proprio bloco exception when others');
+// Nenhum job novo no minuto 0 (inclusive o resumo diario, que roda 11:03 UTC).
+for (const m of resumo.matchAll(/cron\.schedule\('[^']+', '([^']+)'/g)) {
+  assert.ok(!/^0 /.test(m[1]), `cron nao pode rodar todo minuto 0: ${m[1]}`);
 }
 
 // withAlerts: aplicado nas 14 functions previstas e ausente nas excluidas.
