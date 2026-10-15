@@ -4,7 +4,7 @@ import { ArrowUpRight, Lightbulb, Clock, PackagePlus, Send } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useBotStatus } from '../hooks/useBotStatus';
-import OnboardingChecklist from '../components/onboarding/OnboardingChecklist';
+import ActivationPanel from '../components/onboarding/ActivationPanel';
 import { getPlanLimits } from '../config/plans';
 import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <OnboardingChecklist />
+      {!access.isExpired && <ActivationPanel />}
 
       <BotStatusCard
         view={bot.view}
