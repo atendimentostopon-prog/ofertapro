@@ -11,6 +11,7 @@
     "check:billing": "node scripts/check-billing-regressions.mjs",
     "check:api-key-rollout": "node scripts/check-api-key-rollout.mjs",
     "check:activation-contract": "node scripts/check-activation-contract.mjs",
+    "test:activation": "node --test tests/activation/*.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
