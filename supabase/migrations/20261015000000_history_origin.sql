@@ -1,5 +1,6 @@
--- Distingue disparo manual (feito pelo navegador do usuario, role
--- authenticated) de disparo automatico (bot/worker/API, role service_role).
+-- Distingue disparo manual (feito pelo usuario logado no navegador, role
+-- authenticated) de disparo automatico (qualquer outro caminho: service_role
+-- (bot/worker/API), conexao direta ao banco, cron).
 -- Usado pelo painel de ativacao para detectar "primeira oferta automatica".
 --
 -- Linhas legadas ficam com origin NULL (desconhecido). O front nao envia
@@ -11,23 +12,25 @@ ALTER TABLE public.history
   CHECK (origin IS NULL OR origin IN ('manual', 'automation'));
 
 COMMENT ON COLUMN public.history.origin IS
-  'manual = disparo feito pelo usuario no navegador; automation = bot/worker/API (service_role). NULL = legado.';
+  'manual = usuario logado no navegador (role authenticated); automation = qualquer outro caminho (service_role, conexao direta ao banco, cron). NULL = legado.';
 
 CREATE OR REPLACE FUNCTION public.set_history_origin()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-SET search_path = public
+SET search_path = public, pg_temp
 AS $$
 BEGIN
   IF NEW.origin IS NULL THEN
     NEW.origin := CASE
-      WHEN auth.role() = 'service_role' THEN 'automation'
-      ELSE 'manual'
+      WHEN auth.role() = 'authenticated' THEN 'manual'
+      ELSE 'automation'
     END;
   END IF;
   RETURN NEW;
 END;
 $$;
+
+DROP TRIGGER IF EXISTS set_history_origin_before_insert ON public.history;
 
 CREATE TRIGGER set_history_origin_before_insert
 BEFORE INSERT ON public.history

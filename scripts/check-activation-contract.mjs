@@ -10,8 +10,10 @@ const requiredContracts = [
   /ALTER TABLE public\.history[\s\S]*ADD COLUMN IF NOT EXISTS origin text/,
   /CHECK \(origin IS NULL OR origin IN \('manual', 'automation'\)\)/,
   /CREATE OR REPLACE FUNCTION public\.set_history_origin\(\)/,
-  /SET search_path = public/,
-  /auth\.role\(\) = 'service_role'/,
+  /SET search_path = public, pg_temp/,
+  /auth\.role\(\) = 'authenticated'/,
+  /ELSE 'automation'/,
+  /DROP TRIGGER IF EXISTS set_history_origin_before_insert ON public\.history/,
   /CREATE TRIGGER set_history_origin_before_insert[\s\S]*BEFORE INSERT ON public\.history/,
   /CREATE INDEX IF NOT EXISTS history_user_origin_idx/,
 ];
