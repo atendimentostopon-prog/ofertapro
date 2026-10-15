@@ -11,6 +11,9 @@ const rich = read('supabase/migrations/20261013000200_ops_rich_messages.sql');
 const health = read('supabase/migrations/20261014000000_ops_phase2_health.sql');
 const milestones = read('supabase/migrations/20261014010000_ops_user_milestones.sql');
 const resumo = read('supabase/migrations/20261015000000_ops_resumo_disparos_whatsapp.sql');
+const waSync = read('supabase/migrations/20261015010000_ops_wa_status_sync_cron.sql');
+const waHandler = read('supabase/functions/evolution-status-sync/handler.ts');
+const waIndex = read('supabase/functions/evolution-status-sync/index.ts');
 const handler = read('supabase/functions/notify/handler.ts');
 const deliver = read('supabase/functions/_shared/ops/deliver.ts');
 const emit = read('supabase/functions/_shared/ops/emit.ts');
@@ -156,6 +159,24 @@ for (const fn of ['admin-api', 'send-email', 'email-hook', 'notify']) {
   );
 }
 assert.doesNotMatch(health, /current_setting\('app\./i, 'a migration de saude nao pode ler app.* (producao usa Vault)');
+
+// Sincronizacao do status do WhatsApp (migration + Edge Function).
+const waSyncContracts = [
+  /revoke all on function public\.ops_invoke_wa_status_sync/i,
+  /'7-59\/15 \* \* \* \*'/,
+  /exception when others/i,
+  /vault\.decrypted_secrets/i,
+  /app_service_role_key/i,
+  /functions\.supabase\.co\/evolution-status-sync/i,
+];
+for (const c of waSyncContracts) assert.match(waSync, c, `Contrato ausente na migration de sync do WhatsApp: ${c}`);
+assert.doesNotMatch(waSync, /alter database/i, 'a migration de sync do WhatsApp nao pode usar alter database');
+assert.doesNotMatch(waSync, /current_setting\('app\./i, 'a migration de sync do WhatsApp nao pode ler app.* (producao usa Vault)');
+assert.match(waHandler, /timingSafeEqual/, 'evolution-status-sync precisa comparar a chave em tempo constante');
+assert.match(waHandler, /!deps\.serviceKey/, 'evolution-status-sync nao pode autorizar com serviceKey vazia');
+assert.match(waHandler, /dry_run/, 'evolution-status-sync precisa suportar dry_run');
+assert.doesNotMatch(waHandler, /EVOLUTION_API_KEY|apikey/i, 'o handler nunca pode tocar na chave da Evolution');
+assert.match(waIndex, /withAlerts\("evolution-status-sync"/, 'evolution-status-sync precisa usar withAlerts');
 
 assert.match(handler, /timingSafeEqual/, 'notify precisa comparar a chave em tempo constante');
 assert.match(handler, /!deps\.serviceKey/, 'notify nao pode autorizar com serviceKey vazia');

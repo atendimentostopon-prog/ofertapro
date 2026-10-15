@@ -193,7 +193,7 @@ Migration `supabase/migrations/20261015000000_ops_resumo_disparos_whatsapp.sql` 
 | Taxa de falha de disparo alta | 10 ou mais disparos na última hora e 50% ou mais com falha total | por hora |
 | Evolution API instável | 2 ou mais `whatsapp_instances` com `status = 'error'` atualizadas nos últimos 30 min | por hora |
 
-**WhatsApp caído.** O trigger `trg_ops_whatsapp_down` avisa só quando a instância passa de `connected` para `disconnected` ou `error` (UPDATE de `status`), com 1 aviso por instância e hora (`wa_down:<id>:<hora>`). `qrcode` para `error`, `disconnected` para `error` e a carga inicial não avisam. O texto de erro tem o HTML removido (as respostas de erro da Cloudflare vêm como página) e é cortado em 160 caracteres.
+**WhatsApp caído.** O trigger `trg_ops_whatsapp_down` avisa só quando a instância passa de `connected` para `disconnected` ou `error` (UPDATE de `status`), com 1 aviso por instância e hora (`wa_down:<id>:<hora>`). `qrcode` para `error`, `disconnected` para `error` e a carga inicial não avisam. O texto de erro tem o HTML removido (as respostas de erro da Cloudflare vêm como página) e é cortado em 160 caracteres. O status só é corrigido de forma confiável porque a função `evolution-status-sync` (seção abaixo) reconcilia as instâncias com a Evolution a cada 15 min; antes dela o status podia ficar desatualizado por dias e o aviso não disparava.
 
 **Limitação.** Falha parcial em um canal NÃO gera alerta (70% dos disparos têm alguma falha parcial, quase tudo de um único canal quebrado): só falha total do usuário na hora ou um canal que nunca entrega em 24 h.
 
@@ -226,6 +226,30 @@ drop trigger if exists trg_ops_whatsapp_connected on public.whatsapp_instances;
 drop trigger if exists trg_ops_bot_started on public.bot_configs;
 drop trigger if exists trg_ops_first_offer on public.offers;
 ```
+
+## Sincronização do status do WhatsApp
+
+**Por quê.** `whatsapp_instances.status` só mudava quando o cliente abria o painel (`evolution-instance-status`) ou quando a Evolution mandava `connection.update` ao `evolution-webhook`. Uma instância podia ficar `connected` por dias com os disparos falhando, e o aviso "WhatsApp desconectado" nunca saía.
+
+**O que roda.** O job `ops_wa_status_sync` (`7-59/15 * * * *`) chama `ops_invoke_wa_status_sync()`, que faz um POST (service role, lida do Vault) na Edge Function `evolution-status-sync`. A cada execução ela confere até 100 instâncias (as menos recentes primeiro, por `last_sync_at`) com `GET /instance/connectionState/<instancia>`; instâncias em `qrcode` (configuração em andamento) são ignoradas.
+
+| Resposta da Evolution | Resultado |
+| --- | --- |
+| `open` | `connected` (limpa `error_message` e `qr_code`) |
+| `close` | consulta de novo após 3 s; só vira `disconnected` se a segunda resposta também for `close` |
+| 404 (instância não existe) | `disconnected` |
+| `connecting` ou outro estado | sem mudança |
+| 401, 403, 5xx, rede ou timeout (8 s) | inconclusivo: não altera nada |
+
+**Regra do inconclusivo.** Uma queda da Evolution nunca marca ninguém como desconectado: sem resposta confiável o status fica como está. Quando o status muda, o espelho em `channels` segue a mesma regra do webhook, e uma falha nele não interrompe a execução. Linhas sem mudança só têm `last_sync_at` atualizado.
+
+**Limite de plano.** O trigger `whatsapp_instances_limit` recusa a volta de `disconnected` para conectado quando passaria do limite de instâncias do plano. Nesse caso a linha conta em `erros` (motivo `limite_de_plano`) e as demais seguem.
+
+**Simulação (dry run).** No SQL Editor: `select public.ops_invoke_wa_status_sync(true);` e leia `net._http_response` pelo id retornado. A simulação consulta a Evolution e lista as mudanças que seriam aplicadas, sem gravar nada. A resposta traz `verificadas`, `sem_mudanca`, `inconclusivas`, `erros` e `mudancas` (8 primeiros caracteres do id, sem dados pessoais).
+
+**Ordem de rollout.** Deploy da function com verificação de JWT (`supabase functions deploy evolution-status-sync`), depois a migration `20261015010000_ops_wa_status_sync_cron.sql`. Se a function ainda não estiver no ar, o cron só falha sem efeito. Na primeira execução real, instâncias que estavam desatualizadas passam a disparar os avisos de queda de uma vez.
+
+**Desligar.** `select cron.unschedule('ops_wa_status_sync');`. Reverter por completo: `supabase/rollbacks/20261015010000_ops_wa_status_sync_cron_rollback.sql`. Teste manual: `supabase/tests/manual/20261015010000_ops_wa_status_sync_cron.test.sql`.
 
 ## Configuração (uma vez)
 
