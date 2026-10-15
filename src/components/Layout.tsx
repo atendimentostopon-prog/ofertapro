@@ -10,6 +10,9 @@ import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { ActivationBanner } from './onboarding/ActivationBanner';
 import { StepGuide } from './onboarding/StepGuide';
+import { CommunityWelcomeModal } from './community/CommunityWelcomeModal';
+import CommunityFloatingButton from './community/CommunityFloatingButton';
+import { useCommunityGroup } from '../hooks/useCommunityGroup';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +37,10 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
     return () => { dialog.close(); previous?.focus(); desktop.removeEventListener('change', closeOnDesktop); };
   }, [sidebarOpen]);
   const needsSetup = needsPublicPageSetup(user);
+  // Convite do grupo: aparece uma vez, logo depois da página pública estar
+  // configurada. O guia de ativação é opcional e não bloqueia a navegação.
+  const community = useCommunityGroup(user?.id);
+  const showCommunityWelcome = !!user && !needsSetup && community.status === 'none';
 
   return (
     <div className="h-dvh overflow-hidden bg-surface-1 flex text-ink relative">
@@ -102,6 +109,8 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}
       <PublicPageSetupModal isOpen={needsSetup} />
       <StepGuide />
+      <CommunityWelcomeModal isOpen={showCommunityWelcome} onJoin={community.join} onDismiss={community.dismissWelcome} />
+      <CommunityFloatingButton />
       <FeedbackButton />
     </div>
   );
