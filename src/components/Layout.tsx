@@ -5,11 +5,11 @@ import TopBar from './TopBar';
 import NewOfferModal from './modals/NewOfferModal';
 import FeedbackButton from './feedback/FeedbackButton';
 import { useUser } from '../context/UserContext';
-import { useSubscription } from '../hooks/useSubscription';
 import { useAccountAccess } from '../hooks/useAccountAccess';
 import { needsPublicPageSetup } from '../lib/profile-utils';
 import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
-import { OnboardingWizardModal } from './onboarding/OnboardingWizardModal';
+import { ActivationBanner } from './onboarding/ActivationBanner';
+import { StepGuide } from './onboarding/StepGuide';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,7 +20,6 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const navigate = useNavigate();
   const access = useAccountAccess();
   const { user } = useUser();
-  const { data: subscription } = useSubscription();
   const [showNewOffer, setShowNewOffer] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const drawerRef = useRef<HTMLDialogElement>(null);
@@ -35,11 +34,6 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
     return () => { dialog.close(); previous?.focus(); desktop.removeEventListener('change', closeOnDesktop); };
   }, [sidebarOpen]);
   const needsSetup = needsPublicPageSetup(user);
-  // Tutorial guiado só faz sentido pra quem já é assinante -- sem essa
-  // checagem, o modal aparecia até em cima da tela de Planos pra quem
-  // ainda nem pagou, pedindo pra conectar bot/canal que ele não pode usar.
-  const isPaying = !!user && (user.plan !== 'free' || !!subscription);
-  const needsWizard = !!user && isPaying && !needsSetup && user.onboarded !== true;
 
   return (
     <div className="h-dvh overflow-hidden bg-surface-1 flex text-ink relative">
@@ -102,12 +96,12 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
             (fixed bottom-6 w-12 h-12) não cobrir o fim do conteúdo; md:p-6
             volta ao padding uniforme porque o botão já não fica tão perto
             do conteúdo em telas maiores. */}
-        <main className="flex-1 min-w-0 min-h-0 p-4 pb-24 md:p-6 overflow-y-auto"><div className="mx-auto w-full max-w-7xl">{children}</div></main>
+        <main className="flex-1 min-w-0 min-h-0 p-4 pb-24 md:p-6 overflow-y-auto"><div className="mx-auto w-full max-w-7xl"><ActivationBanner />{children}</div></main>
       </div>
 
       {showNewOffer && <NewOfferModal onClose={() => setShowNewOffer(false)} />}
       <PublicPageSetupModal isOpen={needsSetup} />
-      <OnboardingWizardModal isOpen={needsWizard} />
+      <StepGuide />
       <FeedbackButton />
     </div>
   );
