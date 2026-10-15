@@ -91,3 +91,12 @@ Deno.test("Discord: corpo enviado traz allowed_mentions vazio e @everyone nao pi
   assertEquals(d.body.allowed_mentions, { parse: [] });
   assert(Array.isArray(d.body.embeds));
 });
+
+Deno.test("silencio noturno: business as 23h BRT vai so ao Discord", async () => {
+  const { calls, fetchImpl } = recorder();
+  const night = new Date("2026-10-16T02:00:00Z");
+  const r = await deliver(ev({ severity: "business", occurrences: 1 }), env, fetchImpl, night);
+  assertEquals(r, { discord: "sent", telegram: "skipped", errors: [] });
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0].url, "https://discord.test/hook/business");
+});

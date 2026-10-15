@@ -33,6 +33,11 @@ Edge Functions ───────┴─> ops_emit() ─> ops_events ─(pg_ne
 | WhatsApp desconectado | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
 | WhatsApp com erro | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
 
+
+### Silêncio noturno do Telegram
+
+Entre 22h e 8h (Brasília, UTC-3 fixo) só alertas `critical` chegam ao Telegram. `business` e `error` seguem normalmente para o Discord, então nada se perde; só o celular deixa de tocar de madrugada. A regra fica em `supabase/functions/_shared/ops/routing.ts` (`isQuietHours`, `QUIET_START_HOUR`, `QUIET_END_HOUR`). Para mudar o horário, altere as constantes e faça o deploy da função `notify`.
+
 ## Mensagens
 
 Cada alerta é montado por `supabase/functions/_shared/ops/format.ts` a partir das chaves do `detail`. Rótulos em pt-BR, valores formatados (R$, telefone, data em America/Sao_Paulo), e-mail e telefone completos. Chaves vazias são omitidas e chaves desconhecidas aparecem depois das conhecidas, com o nome humanizado.
