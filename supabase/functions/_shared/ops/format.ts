@@ -266,6 +266,39 @@ const FIELD_ORDER: [string, FieldSpec][] = [
   ["pais", { label: "País" }],
   ["user_agent", { label: "Navegador / cliente" }],
   ["rota", { label: "Rota" }],
+  // Resumo diario (valores ja chegam como texto pt-BR do banco; vendas sao numericas)
+  ["usuarios", { label: "Usuários" }],
+  ["trials", { label: "Trials" }],
+  ["vendas", { label: "Vendas" }],
+  [
+    "vendas_qtd",
+    {
+      label: "Vendas",
+      format: (v, ev) => {
+        const valor = ev.detail?.vendas_valor;
+        const qtd = asText(v);
+        return isEmpty(valor) || asNumber(valor) === null ? qtd : `${qtd} · ${fmtBRL(valor)} (bruto)`;
+      },
+    },
+  ],
+  ["reembolsos", { label: "Reembolsos e recusas" }],
+  ["ofertas", { label: "Ofertas" }],
+  ["bots", { label: "Bots" }],
+  ["disparos", { label: "Disparos" }],
+  ["alertas", { label: "Alertas (24 h)" }],
+  ["whatsapp", { label: "WhatsApp" }],
+  ["cron", { label: "Cron" }],
+  ["banco", { label: "Banco" }],
+  ["entrega", { label: "Entrega de alertas" }],
+  // Disparos e Evolution
+  ["falhas", { label: "Falhas" }],
+  ["ultimo_erro", { label: "Último erro" }],
+  ["canais_com_falha", { label: "Canais com falha" }],
+  ["quantidade", { label: "Quantidade" }],
+  ["total", { label: "Total" }],
+  ["percentual", { label: "Percentual", format: fmtPercent }],
+  ["instancias", { label: "Instâncias" }],
+  ["exemplo_erro", { label: "Exemplo de erro" }],
 ];
 
 const FIELD_SPECS = new Map(FIELD_ORDER);
@@ -276,6 +309,7 @@ const SUMMARY_ONLY_KEYS = new Set([
   "cadastros_hoje",
   "confirmaram_hoje",
   "taxa_confirmacao_7d",
+  "vendas_valor",
   "painel",
 ]);
 

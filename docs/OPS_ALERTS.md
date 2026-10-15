@@ -25,6 +25,13 @@ Edge Functions ───────┴─> ops_emit() ─> ops_events ─(pg_ne
 | Webhook da Cakto falhou ao processar | critical | Discord `#criticos` + Telegram |
 | Webhook da Cakto com secret inválido | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
 | Telegram conectado, WhatsApp conectado, Bot ativado, Primeira oferta recebida (exige a migration `20261014010000_ops_user_milestones.sql`) | business | Discord `#negocio` + Telegram |
+| Resumo diário (08h BRT; exige a migration `20261015000000_ops_resumo_disparos_whatsapp.sql`) | business | Discord `#negocio` + Telegram |
+| Disparos falhando (3 ou mais disparos na última hora e nenhum entregue) | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| Canal com falha persistente (10 ou mais falhas em 24 h e nenhuma entrega) | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| Taxa de falha de disparo alta (10 ou mais disparos na hora, 50% ou mais com falha total) | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| Evolution API instável (2 ou mais instâncias em erro nos últimos 30 min) | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| WhatsApp desconectado | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
+| WhatsApp com erro | error | Discord `#erros` (Telegram a partir de 5 ocorrências) |
 
 ## Mensagens
 
@@ -53,6 +60,9 @@ Cada alerta é montado por `supabase/functions/_shared/ops/format.ts` a partir d
 | `produto`, `marketplace`, `preco`, `preco_original`, `desconto` | Produto, Marketplace, Preço, Preço original, Desconto | `R$ 89,90`; `35%` |
 | `minutos_ate_primeira_oferta` | Desde a ativação do bot | `45 min`, `2 h 15 min`, `1 d 3 h` |
 | `ip`, `pais`, `user_agent`, `rota` | IP, País, Navegador / cliente, Rota | texto |
+| `usuarios`, `trials`, `reembolsos`, `ofertas`, `bots`, `disparos`, `alertas`, `whatsapp`, `cron`, `banco`, `entrega` | Usuários, Trials, Reembolsos e recusas, Ofertas, Bots, Disparos, Alertas (24 h), WhatsApp, Cron, Banco, Entrega de alertas | texto já formatado pelo banco (Resumo diário) |
+| `vendas_qtd` (+ `vendas_valor`) | Vendas | `2 · R$ 97,78 (bruto)`; o valor é numérico e o formatador monta o texto |
+| `falhas`, `ultimo_erro`, `canais_com_falha`, `quantidade`, `total`, `percentual`, `instancias`, `exemplo_erro` | Falhas, Último erro, Canais com falha, Quantidade, Total, Percentual, Instâncias, Exemplo de erro | `86%` para percentual; o restante é texto ou número |
 | `painel` | (link) | só `https://admin.aflyo.com.br/...` vira link: título do embed no Discord e "Abrir no painel" no Telegram; qualquer outro valor aparece como texto simples |
 
 `cadastro_numero`, `cadastros_hoje`, `confirmaram_hoje` e `taxa_confirmacao_7d` não são campos: entram na linha-resumo logo abaixo do título. Limites: Telegram até 4000 caracteres (corta por linha), Discord até 15 campos e embed abaixo de 5500 caracteres.
@@ -165,6 +175,27 @@ O helper `supabase/functions/_shared/ops/with-alerts.ts` envolve o `serve(...)` 
 - Cobertas (severidade `critical` para exceções em `public-api`, `cakto-create-payment`, `cakto-cancel-subscription` e `evolution-webhook`): `public-api`, `enrich-product`, `evolution-webhook`, `evolution-groups-select`, `evolution-groups-sync`, `evolution-instance-create`, `evolution-instance-delete`, `evolution-instance-status`, `api-key-generate`, `api-key-reveal`, `api-key-revoke`, `cakto-create-payment`, `cakto-cancel-subscription`, `cleanup-storage`.
 - `cakto-webhook` tem alertas próprios: falha ao gravar `webhook_events` (critical / billing, "Webhook Cakto não gravou o evento") e secret inválido com no máximo 1 alerta por 60 s por instância.
 - Excluídas de propósito: `admin-api` (tem tratamento próprio de erros), `send-email` e `email-hook` (caminho de e-mail do Auth, não pode ganhar dependência nova) e `notify` (não alerta sobre si mesmo).
+
+## Resumo diário e vigia do vigia
+
+Migration `supabase/migrations/20261015000000_ops_resumo_disparos_whatsapp.sql` (rollback em `supabase/rollbacks/20261015000000_ops_resumo_disparos_whatsapp_rollback.sql`, teste em `supabase/tests/manual/20261015000000_ops_resumo_disparos_whatsapp.test.sql`). Ela não altera `ops_healthcheck()`: cria funções e jobs novos.
+
+**Resumo diário.** O job `ops_daily_summary` roda às `0 11 * * *` (11:00 UTC = 08:00 BRT; o Brasil não tem horário de verão) e emite 1 alerta `Resumo diário` (business / admin) com as últimas 24 h: usuários, trials, vendas, reembolsos e recusas, ofertas, bots, disparos, alertas, WhatsApp, falhas do cron, banco e alertas pendentes de entrega. Cada métrica é calculada num bloco isolado: se uma consulta falhar, aquela linha some e o resumo sai mesmo assim. Só contagens, sem dados pessoais. Dedupe diário (`daily:YYYYMMDD`).
+
+**Vigia do vigia.** Se o resumo das 08h não chegar, a própria central parou (cron, `ops_emit`, Vault, `notify` ou os webhooks). Confira nesta ordem: `select * from cron.job where jobname = 'ops_daily_summary';`, `select * from cron.job_run_details order by start_time desc limit 5;`, `select * from public.ops_events order by created_at desc limit 5;` e `net._http_response`.
+
+**Checagens de disparo e Evolution.** O job `ops_healthcheck_dispatch` roda em `4-59/5 * * * *` (fora do minuto 0), cada checagem isolada:
+
+| Alerta | Regra | Dedupe |
+|---|---|---|
+| Disparos falhando | por usuário, 3 ou mais linhas em `history` na última hora, soma de `success_count` igual a 0 e soma de `failure_count` maior que 0 | por usuário e hora |
+| Canal com falha persistente | por usuário, canal em `failed_channels` em 10 ou mais disparos nas últimas 24 h e nunca em `successful_channels` no período | por usuário e dia |
+| Taxa de falha de disparo alta | 10 ou mais disparos na última hora e 50% ou mais com falha total | por hora |
+| Evolution API instável | 2 ou mais `whatsapp_instances` com `status = 'error'` atualizadas nos últimos 30 min | por hora |
+
+**WhatsApp caído.** O trigger `trg_ops_whatsapp_down` avisa só quando a instância passa de `connected` para `disconnected` ou `error` (UPDATE de `status`), com 1 aviso por instância e hora (`wa_down:<id>:<hora>`). `qrcode` para `error`, `disconnected` para `error` e a carga inicial não avisam. O texto de erro tem o HTML removido (as respostas de erro da Cloudflare vêm como página) e é cortado em 160 caracteres.
+
+**Limitação.** Falha parcial em um canal NÃO gera alerta (70% dos disparos têm alguma falha parcial, quase tudo de um único canal quebrado): só falha total do usuário na hora ou um canal que nunca entrega em 24 h.
 
 ## Marcos do usuário
 
