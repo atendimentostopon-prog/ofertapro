@@ -108,7 +108,7 @@ const resumoContracts = [
   /after update of status on public\.whatsapp_instances[\s\S]*?when \(old\.status = 'connected' and new\.status in \('disconnected', 'error'\)\)/i,
   /drop trigger if exists trg_ops_whatsapp_down/i,
   /cron\.schedule\('ops_healthcheck_dispatch', '4-59\/5 \* \* \* \*'/,
-  /cron\.schedule\('ops_daily_summary', '0 11 \* \* \*'/,
+  /cron\.schedule\('ops_daily_summary', '3 11 \* \* \*'/,
   /revoke all on function public\.ops_on_whatsapp_down\(\) from public, anon, authenticated/i,
   /revoke all on function public\.ops_healthcheck_dispatch\(\) from public, anon, authenticated/i,
   /revoke all on function public\.ops_daily_summary\(\) from public, anon, authenticated/i,
@@ -124,15 +124,16 @@ const resumoContracts = [
   /exception when others then/i,
 ];
 for (const c of resumoContracts) assert.match(resumo, c, `Contrato ausente na migration de resumo/disparos/WhatsApp: ${c}`);
+assert.doesNotMatch(resumo, /'0 11 \* \* \*'/, 'o resumo diario nao pode rodar no minuto 0 (usar 3 11 * * *)');
 assert.doesNotMatch(resumo, /alter database/i, 'a migration de resumo nao pode usar alter database');
 assert.doesNotMatch(resumo, /current_setting\('app\./i, 'a migration de resumo nao pode ler app.* (producao usa Vault)');
 assert.doesNotMatch(resumo, /create or replace function public\.ops_healthcheck\(\)/i, 'a migration de resumo nao pode redefinir ops_healthcheck()');
 assert.doesNotMatch(resumo, /create trigger[^;]*\bbefore\b/i, 'trigger do WhatsApp precisa ser AFTER');
 assert.doesNotMatch(resumo, /2014/, 'texto ao operador nao pode ter travessao');
 assert.equal((resumo.match(/exception when others then/gi) ?? []).length >= 16, true, 'cada checagem e metrica precisa do proprio bloco exception when others');
-// Nenhum job novo no minuto 0 de hora em hora (o resumo diario das 11h UTC e a unica excecao).
+// Nenhum job novo no minuto 0 (inclusive o resumo diario, que roda 11:03 UTC).
 for (const m of resumo.matchAll(/cron\.schedule\('[^']+', '([^']+)'/g)) {
-  assert.ok(!/^0 \* /.test(m[1]) && !/^0,/.test(m[1]), `cron nao pode rodar todo minuto 0: ${m[1]}`);
+  assert.ok(!/^0 /.test(m[1]), `cron nao pode rodar todo minuto 0: ${m[1]}`);
 }
 
 // withAlerts: aplicado nas 14 functions previstas e ausente nas excluidas.

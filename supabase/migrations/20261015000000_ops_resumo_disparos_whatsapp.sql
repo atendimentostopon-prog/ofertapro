@@ -6,8 +6,8 @@
 -- 20261014010000_ops_user_milestones.sql (ops_user_snapshot).
 -- ROLLBACK: supabase/rollbacks/20261015000000_ops_resumo_disparos_whatsapp_rollback.sql
 -- Aplicar no SQL Editor com o mesmo papel das migrations anteriores.
--- NAO altera ops_healthcheck(): funcoes e jobs novos. Crons fora do minuto 0 (a unica
--- excecao e o resumo diario das 11:00 UTC = 08:00 BRT, pedido explicito do operador).
+-- NAO altera ops_healthcheck(): funcoes e jobs novos. Todos os crons fora do minuto 0
+-- (o resumo diario roda 11:03 UTC = 08:03 BRT).
 -- Falha PARCIAL em um canal nao gera alerta: so falha total do usuario na hora ou canal
 -- que falhou >= 10 vezes em 24 h e nunca entregou.
 
@@ -429,7 +429,7 @@ begin
     raise warning '[ops_daily_summary] entrega: %', sqlerrm;
   end;
 
-  -- emite sempre, mesmo com metricas ausentes (a chegada do resumo as 08h e o sinal de vida)
+  -- emite sempre, mesmo com metricas ausentes (a chegada do resumo por volta das 08h e o sinal de vida)
   begin
     perform public.ops_emit(
       'business', 'admin', 'Resumo diário',
@@ -454,5 +454,5 @@ $$;
 
 revoke all on function public.ops_daily_summary() from public, anon, authenticated;
 
--- 08:00 BRT = 11:00 UTC (o Brasil nao tem horario de verao)
-select cron.schedule('ops_daily_summary', '0 11 * * *', $$ select public.ops_daily_summary(); $$);
+-- 08:03 BRT = 11:03 UTC (fora do minuto cheio; o Brasil nao tem horario de verao)
+select cron.schedule('ops_daily_summary', '3 11 * * *', $$ select public.ops_daily_summary(); $$);

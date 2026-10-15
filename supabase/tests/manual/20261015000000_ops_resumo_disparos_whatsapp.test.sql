@@ -11,7 +11,7 @@ select tgname, tgrelid::regclass as tabela
 select jobname, schedule, active
   from cron.job
  where jobname in ('ops_healthcheck_dispatch', 'ops_daily_summary')
- order by jobname;                                                                         -- espera 2 linhas: '0 11 * * *' e '4-59/5 * * * *', active = true
+ order by jobname;                                                                         -- espera 2 linhas: '3 11 * * *' e '4-59/5 * * * *', active = true
 
 -- (b) privilegios: nenhuma funcao executavel por anon/authenticated
 select f.proname,
