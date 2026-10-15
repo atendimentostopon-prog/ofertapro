@@ -1,6 +1,6 @@
 # Ativação guiada (trial para bot funcionando)
 
-Data: 2026-10-15. Status: rascunho para revisão.
+Data: 2026-10-15. Status: Fase 1 implementada (aguardando migration `20261015000000_history_origin.sql` em ambiente dedicado e QA com conta real). Fases 2 e 3 pendentes.
 
 ## Contexto
 
