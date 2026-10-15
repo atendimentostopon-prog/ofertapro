@@ -54,8 +54,9 @@ export async function deliver(
   ev: OpsEvent,
   env: DeliverEnv,
   fetchImpl: typeof fetch = fetch,
+  now: Date = new Date(),
 ): Promise<DeliverResult> {
-  const route = routeFor(ev);
+  const route = routeFor(ev, now);
   const rendered = render(ev);
   const errors: string[] = [];
 
