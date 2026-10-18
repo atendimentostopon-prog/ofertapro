@@ -22,7 +22,7 @@
     const image = meta('meta[property="og:image"]');
     return {
       url: `${location.origin}${location.pathname}`,
-      title: title.replace(/\s*\|\s*Mercado Livre.*$/i, '').slice(0, 300),
+      title: title.replace(/\s*\|\s*Mercado Livre.*$/i, '').replace(/\s+[-–]\s*R\$\s*[\d.,]+\s*$/, '').slice(0, 300),
       price, original, image,
     };
   }

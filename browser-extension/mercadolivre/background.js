@@ -183,9 +183,10 @@ function waitTabComplete(tabId, ms) {
 }
 
 // Roda dentro da aba do ML (serializada pelo chrome.scripting): não pode usar nada de fora.
-async function pageGenerate(productUrl, tag) {
-  const RES = [/csrfToken[^"]*"([^"]+)"/, /name="csrf-token"\s+content="([^"]+)"/];
-  const token = async (url) => {
+// O ML aceita como x-csrf-token o cookie _csrf ou o token do HTML de qualquer página dele.
+async function pageGenerate(productUrl, tag, cookieCsrf) {
+  const RES = [/name="csrf-token"\s+content="([^"]+)"/, /csrfToken[^"]*"([^"]+)"/];
+  const pageToken = async (url) => {
     try {
       const r = await fetch(url, { credentials: 'include' });
       if (!r.ok) return null;
@@ -202,15 +203,25 @@ async function pageGenerate(productUrl, tag) {
     });
     return { status: r.status, text: await r.text() };
   };
-  let csrf = await token('/affiliate-program');
-  if (!csrf) return { error: 'no_csrf' };
-  let res = await post(csrf);
-  if (res.status === 401 && productUrl.startsWith(location.origin)) {
-    const alt = await token(productUrl);
-    if (alt && alt !== csrf) res = await post(alt);
+  const tried = new Set();
+  let last = null;
+  const sources = [
+    async () => cookieCsrf,
+    () => pageToken('/'),
+    async () => (productUrl.startsWith(location.origin) ? pageToken(productUrl) : null),
+  ];
+  for (const source of sources) {
+    const csrf = await source();
+    if (!csrf || tried.has(csrf)) continue;
+    tried.add(csrf);
+    last = await post(csrf);
+    if (last.status === 200) {
+      try { return { short_url: JSON.parse(last.text).short_url || null }; } catch { return { error: 'bad_json' }; }
+    }
+    if (last.status !== 401 && last.status !== 403) break;
   }
-  if (res.status !== 200) return { error: 'http', status: res.status };
-  try { return { short_url: JSON.parse(res.text).short_url || null }; } catch { return { error: 'bad_json' }; }
+  if (!last) return { error: 'no_csrf' };
+  return { error: 'http', status: last.status };
 }
 
 async function generateAffiliateLink(product) {
@@ -231,7 +242,8 @@ async function generateAffiliateLink(product) {
       tabId = t.id; temp = true;
       await waitTabComplete(tabId, 15000);
     }
-    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId }, func: pageGenerate, args: [url, tag] });
+    const csrfCookie = (await chrome.cookies.getAll({ domain: 'mercadolivre.com.br', name: '_csrf' }))[0]?.value || '';
+    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId }, func: pageGenerate, args: [url, tag, csrfCookie] });
     if (result?.short_url) {
       apiFetch('/ml-events', { method: 'POST', body: JSON.stringify({ short_url: result.short_url, product_name: product.title, source_url: url }) });
       return { ok: true, short_url: result.short_url };
