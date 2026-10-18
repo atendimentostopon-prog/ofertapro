@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_NAME } from '../config/app';
+import { ExtensionStatusCard } from '../components/integrations/ExtensionStatusCard';
 
 const EXTENSION_DOWNLOAD_URL = '/extensions/aflyo-mercadolivre-extension.zip';
 
@@ -61,14 +62,13 @@ export const MercadoLivreAutomationPage: React.FC = () => {
     {
       num: '03',
       title: 'Conectar a extensão',
-      desc: 'Com a chave em mãos, ative a sincronização:',
+      desc: 'Conecte a extensão à sua conta. O jeito mais rápido é pelo botão "Conectar extensão" no topo desta página:',
       bullets: [
-        'Clique no ícone do Aflyo na barra do Chrome para abrir a extensão.',
-        'Cole sua API Key no campo indicado.',
-        'Clique em "Conectar".',
+        'Clique no ícone do Aflyo na barra do Chrome e em "Conectar com minha conta Aflyo", ou use o cartão no topo desta página.',
+        'Prefere a chave manual? Cole sua API Key no campo do popup e clique em "Conectar com chave".',
         'Se ainda não estiver, faça login em mercadolivre.com.br numa aba do mesmo navegador.',
       ],
-      note: 'Clique em "Testar e sincronizar agora" para conferir: o popup mostra se você está logado no Mercado Livre, se a chave é válida, se a tag foi preenchida e se o Mercado Livre aceitou a sessão. Depois disso a extensão sincroniza sozinha sempre que seu login no Mercado Livre muda e, por garantia, a cada 25 minutos, enquanto o Chrome estiver aberto.',
+      note: 'A aba Status do popup mostra se você está logado no Mercado Livre, se a chave é válida, se a tag foi preenchida e se o Mercado Livre aceitou a sessão. Se algo falhar, o popup explica o que fazer e o ícone ganha um selo de aviso. A extensão sincroniza sozinha sempre que seu login muda e, por garantia, a cada 25 minutos, enquanto o Chrome estiver aberto. Nas páginas de produto do Mercado Livre há ainda o botão "Gerar link Aflyo".',
       buttonLabel: null,
       url: null,
     },
@@ -158,6 +158,8 @@ export const MercadoLivreAutomationPage: React.FC = () => {
             </a>
           </div>
         </section>
+
+        <ExtensionStatusCard />
 
         <section className="bg-warning-bg border border-warning/20 rounded-2xl p-6 sm:p-7 space-y-4">
           <div className="flex items-start gap-3">

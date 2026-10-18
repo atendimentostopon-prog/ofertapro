@@ -926,6 +926,84 @@ serve(withAlerts("public-api", async (req) => {
     }
 
     // ------------------------------------------
+    // ENDPOINT 2.6: Eventos do Mercado Livre (GET/POST /ml-events)
+    // ------------------------------------------
+    // Usado pelo popup da extensão: GET devolve o resumo de hoje (fuso de Brasília) e os
+    // últimos eventos (links automáticos e ofertas que foram pro manual, com o motivo).
+    // POST registra um link gerado pela própria extensão numa página de produto.
+    else if (pathname.endsWith('/ml-events') && (req.method === 'POST' || req.method === 'GET')) {
+      if (!scopes.includes('dispatch:write')) {
+        return new Response(
+          JSON.stringify({ error: 'Permissão negada. Escopo dispatch:write é obrigatório.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (req.method === 'GET') {
+        const limitParam = Number(url.searchParams.get('limit'))
+        const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(Math.floor(limitParam), 50) : 20
+
+        // Início do dia em Brasília (UTC-3, sem horário de verão).
+        const BRT_OFFSET_MS = 3 * 60 * 60 * 1000
+        const nowBrt = new Date(Date.now() - BRT_OFFSET_MS)
+        const startOfDayUtc = new Date(Date.UTC(nowBrt.getUTCFullYear(), nowBrt.getUTCMonth(), nowBrt.getUTCDate()) + BRT_OFFSET_MS)
+
+        const [todayRes, listRes] = await Promise.all([
+          supabaseAdmin.from('ml_link_events').select('outcome')
+            .eq('user_id', userId).gte('created_at', startOfDayUtc.toISOString()).limit(5000),
+          supabaseAdmin.from('ml_link_events')
+            .select('id, created_at, outcome, reason, product_name, source_url, short_url, source')
+            .eq('user_id', userId).order('created_at', { ascending: false }).limit(limit),
+        ])
+        if (todayRes.error || listRes.error) {
+          const msg = (todayRes.error || listRes.error)!.message
+          return new Response(
+            JSON.stringify({ error: `Erro ao ler eventos do Mercado Livre: ${msg}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        const rows = todayRes.data || []
+        const auto = rows.filter((r: any) => r.outcome === 'auto').length
+        const manual = rows.filter((r: any) => r.outcome === 'manual').length
+        return new Response(
+          JSON.stringify({
+            today: { auto, manual, total: auto + manual, rate: auto + manual > 0 ? Math.round((auto / (auto + manual)) * 100) : null },
+            events: listRes.data || [],
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const body = await req.json().catch(() => ({}))
+      const { short_url, product_name, source_url } = body
+      if (!isSafeHttpUrl(short_url)) {
+        return new Response(
+          JSON.stringify({ error: 'short_url inválido: use uma URL http:// ou https://.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const { error: insertError } = await supabaseAdmin.from('ml_link_events').insert({
+        user_id: userId,
+        outcome: 'auto',
+        reason: null,
+        product_name: typeof product_name === 'string' ? product_name.slice(0, 300) : null,
+        source_url: isSafeHttpUrl(source_url) ? String(source_url).slice(0, 500) : null,
+        short_url: String(short_url).slice(0, 300),
+        source: 'extension',
+      })
+      if (insertError) {
+        return new Response(
+          JSON.stringify({ error: `Erro ao registrar link: ${insertError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // ------------------------------------------
     // ENDPOINT 3: Disparar Oferta (POST /dispatch)
     // ------------------------------------------
     else if (pathname.endsWith('/dispatch') && req.method === 'POST') {

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Aflyo — Automação Mercado Livre",
-  "version": "1.1.0",
-  "description": "Conecta sua sessão do Mercado Livre ao Aflyo para gerar links de afiliado automaticamente nos disparos do seu bot.",
+  "version": "1.2.0",
+  "description": "Conecta sua sessão do Mercado Livre ao Aflyo: gera links de afiliado automaticamente nos disparos do seu bot e direto das páginas de produto.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -20,9 +20,44 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["cookies", "storage", "alarms"],
+  "permissions": [
+    "cookies",
+    "storage",
+    "alarms",
+    "notifications",
+    "scripting"
+  ],
   "host_permissions": [
     "*://*.mercadolivre.com.br/*",
     "https://zuqaccivowbzdfrpgekz.supabase.co/*"
-  ]
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://aflyo.com.br/*",
+        "https://www.aflyo.com.br/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.mercadolivre.com.br/*"
+      ],
+      "js": [
+        "ml-page.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+A"
+      },
+      "description": "Abrir a extensão Aflyo"
+    }
+  }
 }
