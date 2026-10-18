@@ -66,3 +66,47 @@ test('batimento do alarme (25 min após a última sync) nunca é pulado', () => 
   const lastSyncAt = now - (25 * 60 * 1000 - 3000); // sync terminou 3 s depois do disparo anterior
   assert.equal(shouldSync({ now, lastSyncAt, lastFingerprint: 'x', newFingerprint: 'x' }), true);
 });
+
+import { overallStatus, buildReport, isProductUrl, cleanProductUrl, parsePrice, isValidApiKey, maskKey, reasonLabel } from '../mercadolivre/lib.js';
+
+test('overallStatus', () => {
+  assert.equal(overallStatus({ hasKey: false, items: [] }), 'off');
+  assert.equal(overallStatus({ hasKey: true, items: [{ ok: true }, { ok: 'warn' }] }), 'warn');
+  assert.equal(overallStatus({ hasKey: true, items: [{ ok: 'warn' }, { ok: false }] }), 'bad');
+  assert.equal(overallStatus({ hasKey: true, items: [{ ok: true }] }), 'ok');
+});
+test('buildReport não vaza chave nem cookies', () => {
+  const r = buildReport({ version: '1.2.0', status: 'bad', lastSync: null, today: { auto: 3, manual: 1 }, userAgent: 'UA',
+    items: [{ ok: false, label: 'Sessão aceita pelo Mercado Livre', hint: 'Faça login de novo' }, { ok: true, label: 'Login' }] });
+  assert.match(r, /\[FALHA\] Sessão aceita pelo Mercado Livre — Faça login de novo/);
+  assert.match(r, /\[OK\] Login/);
+  assert.match(r, /Hoje: 3 automáticos, 1 no manual/);
+  assert.doesNotMatch(r, /lof_live|ssid/);
+});
+test('isProductUrl', () => {
+  assert.ok(isProductUrl('https://produto.mercadolivre.com.br/MLB-123-x-_JM'));
+  assert.ok(isProductUrl('https://www.mercadolivre.com.br/ssd-kingston/p/MLB39766120'));
+  assert.ok(isProductUrl('https://www.mercadolivre.com.br/x-y/up/MLBU5243750529'));
+  assert.equal(isProductUrl('https://www.mercadolivre.com.br/ofertas'), false);
+  assert.equal(isProductUrl('https://evil.com/?https://produto.mercadolivre.com.br/MLB-1'), false);
+});
+test('cleanProductUrl tira query e hash', () => {
+  assert.equal(cleanProductUrl('https://www.mercadolivre.com.br/a/p/MLB1?x=1#y'), 'https://www.mercadolivre.com.br/a/p/MLB1');
+  assert.equal(cleanProductUrl('nao-url'), null);
+});
+test('parsePrice', () => {
+  assert.equal(parsePrice('R$ 1.299,90'), 1299.9);
+  assert.equal(parsePrice('389,90'), 389.9);
+  assert.equal(parsePrice('389.9'), 389.9);
+  assert.equal(parsePrice('1.299.000'), 1299000);
+  assert.equal(parsePrice(''), null);
+  assert.equal(parsePrice(null), null);
+});
+test('chave: validação e máscara', () => {
+  const k = `lof_live_${'a1'.repeat(24)}`;
+  assert.ok(isValidApiKey(k));
+  assert.equal(isValidApiKey('lof_live_curta'), false);
+  assert.equal(maskKey(k), 'lof_…a1a1');
+  assert.equal(reasonLabel('produto_ambiguo'), 'Vários produtos parecidos na vitrine');
+  assert.equal(reasonLabel('x'), 'Motivo não identificado');
+});

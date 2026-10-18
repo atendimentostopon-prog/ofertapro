@@ -125,3 +125,82 @@ export function diagnose({ loggedIn, nick, connected, serverState, localState, n
   items.push({ id: 'session', ok: sessOk, label: 'Sessão aceita pelo Mercado Livre', hint: sessHint });
   return items;
 }
+
+// ---- v1.2: status geral, relatório, páginas de produto ----
+
+export const REASON_LABELS = {
+  produto_ambiguo: 'Vários produtos parecidos na vitrine',
+  sessao_recusada: 'Mercado Livre recusou a sessão',
+  sem_csrf: 'Sessão do Mercado Livre expirada',
+  erro_api: 'Erro no Mercado Livre',
+  sem_tag: 'Etiqueta de afiliado não preenchida',
+};
+
+export function reasonLabel(reason) {
+  return REASON_LABELS[reason] || 'Motivo não identificado';
+}
+
+export function isValidApiKey(key) {
+  return typeof key === 'string' && /^lof_live_[0-9a-f]{48}$/.test(key.trim());
+}
+
+export function maskKey(key) {
+  if (!key || key.length < 8) return '';
+  return `lof_…${key.slice(-4)}`;
+}
+
+// 'off' sem chave; 'bad' se algum item do checklist falhou; 'warn' se algum está incerto; senão 'ok'.
+export function overallStatus({ hasKey, items }) {
+  if (!hasKey) return 'off';
+  const list = items || [];
+  if (list.some((i) => i.ok === false)) return 'bad';
+  if (list.some((i) => i.ok === 'warn')) return 'warn';
+  return 'ok';
+}
+
+// Relatório para colar no suporte. Nunca inclui cookies nem a chave.
+export function buildReport({ version, status, items, lastSync, today, userAgent, now = Date.now() }) {
+  const mark = { true: 'OK', false: 'FALHA', warn: 'ATENÇÃO' };
+  const lines = [
+    `Aflyo · extensão Mercado Livre v${version}`,
+    `Status geral: ${status}`,
+    `Última sincronização: ${lastSync ? `${relativeTime(lastSync, now)} (${lastSync})` : 'nunca'}`,
+  ];
+  if (today) lines.push(`Hoje: ${today.auto} automáticos, ${today.manual} no manual`);
+  lines.push('');
+  for (const it of items || []) {
+    lines.push(`[${mark[String(it.ok)]}] ${it.label}${it.ok !== true && it.hint ? ` — ${it.hint}` : ''}`);
+  }
+  if (userAgent) lines.push('', `Navegador: ${userAgent}`);
+  return lines.join('\n');
+}
+
+const PRODUCT_PATTERNS = [
+  /^https:\/\/produto\.mercadolivre\.com\.br\/MLB-\d+/,
+  /^https:\/\/www\.mercadolivre\.com\.br\/[a-z0-9-]+\/up\/MLBU\d+/,
+  /^https:\/\/www\.mercadolivre\.com\.br\/[a-z0-9-]+\/p\/MLB\d+/,
+];
+
+export function isProductUrl(url) {
+  return typeof url === 'string' && PRODUCT_PATTERNS.some((r) => r.test(url));
+}
+
+export function cleanProductUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    return null;
+  }
+}
+
+// "1.299,90" / "R$ 389,90" / "389.9" -> número, ou null.
+export function parsePrice(text) {
+  if (text == null) return null;
+  let s = String(text).replace(/[^\d.,]/g, '');
+  if (!s) return null;
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+  const n = Number(s);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
