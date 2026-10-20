@@ -1,4 +1,4 @@
-// Roda só em aflyo.com.br. Deixa o site conversar com a extensão (status, sincronizar, conectar).
+// Roda só em app.aflyo.com.br (e aflyo.com.br). Deixa o site conversar com a extensão (status, sincronizar, conectar).
 // Protocolo: o site envia window.postMessage({ aflyo: 'site', id, type, key? }) e recebe
 // window.postMessage({ aflyo: 'ext', id, ok, ...resposta }).
 (() => {

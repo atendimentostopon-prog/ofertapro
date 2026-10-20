@@ -1,7 +1,7 @@
 import { relativeTime, buildReport, isProductUrl, reasonLabel, maskKey, isValidApiKey } from './lib.js';
 
-const PANEL_URL = 'https://www.aflyo.com.br/integrations?tab=bot';
-const CONNECT_URL = 'https://www.aflyo.com.br/automatizacao-mercadolivre?conectar=1';
+const PANEL_URL = 'https://app.aflyo.com.br/integrations?tab=bot';
+const CONNECT_URL = 'https://app.aflyo.com.br/automatizacao-mercadolivre?conectar=1';
 const ML_URL = 'https://www.mercadolivre.com.br/';
 
 const $ = (id) => document.getElementById(id);
