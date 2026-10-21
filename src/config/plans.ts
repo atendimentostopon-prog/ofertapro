@@ -20,6 +20,7 @@ export interface PlanLimits {
   maxIgAccounts: number; // Contas de Instagram conectadas
   maxIgAutomations: number; // Automações ativas
   maxIgDmsMonth: number; // DMs automáticas por mês
+  assistantDailyMessages: number; // Perguntas por dia ao assistente Lyo (plan_limits.assistant_daily_messages)
 }
 
 export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
@@ -40,6 +41,7 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     maxIgAccounts: 0,
     maxIgAutomations: 0,
     maxIgDmsMonth: 0,
+    assistantDailyMessages: 10,
   },
   starter: {
     name: 'starter',
@@ -58,6 +60,7 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     maxIgAccounts: 2,
     maxIgAutomations: 10,
     maxIgDmsMonth: 5000,
+    assistantDailyMessages: 50,
   },
   pro: {
     name: 'pro',
@@ -76,6 +79,7 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     maxIgAccounts: 3,
     maxIgAutomations: 50,
     maxIgDmsMonth: 50000,
+    assistantDailyMessages: 150,
   },
   enterprise: {
     name: 'enterprise',
@@ -94,6 +98,7 @@ export const PLAN_CONFIGS: Record<UserPlan, PlanLimits> = {
     maxIgAccounts: 10,
     maxIgAutomations: Infinity,
     maxIgDmsMonth: 250000,
+    assistantDailyMessages: 400,
   },
 };
 
@@ -119,6 +124,7 @@ export function getPlanLimits(plan: UserPlan = 'free'): PlanLimits {
       maxIgAccounts: Infinity,
       maxIgAutomations: Infinity,
       maxIgDmsMonth: Infinity,
+      assistantDailyMessages: Infinity,
     };
   }
   return PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
