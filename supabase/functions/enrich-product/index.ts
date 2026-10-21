@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { withAlerts } from "../_shared/ops/with-alerts.ts"
 import { assertPublicUrl } from "../_shared/ssrf.ts"
+import { timingSafeEqual } from "../_shared/timing.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -97,8 +98,11 @@ serve(withAlerts("enrich-product", async (req) => {
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     { global: { headers: { Authorization: authHeader } } }
   )
-  const { data: { user } } = await supabaseClient.auth.getUser()
-  if (!user) {
+  // Chamada interna (source-processor) usa a service role; só Edge Functions têm essa chave.
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const isInternal = serviceKey !== '' && await timingSafeEqual(authHeader.replace(/^Bearer\s+/i, ''), serviceKey)
+  const { data: { user } } = isInternal ? { data: { user: null } } : await supabaseClient.auth.getUser()
+  if (!user && !isInternal) {
     return new Response(
       JSON.stringify({ success: false, error: 'Não autorizado.' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

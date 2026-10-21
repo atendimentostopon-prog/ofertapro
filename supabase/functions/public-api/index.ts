@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { withAlerts } from "../_shared/ops/with-alerts.ts"
+import { internalUserId } from "../_shared/timing.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -585,6 +586,11 @@ serve(withAlerts("public-api", async (req) => {
 
   const token = authHeader.replace('Bearer ', '').trim()
   const isApiKey = token.startsWith('lof_live_')
+  // Chamada interna (source-processor): service role + x-aflyo-user-id. Só Edge Functions têm a chave.
+  const internalUser = isApiKey
+    ? null
+    : await internalUserId(token, req.headers.get('x-aflyo-user-id'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+  const isInternal = internalUser !== null
 
   try {
     const supabaseAdmin = createClient(
@@ -595,7 +601,9 @@ serve(withAlerts("public-api", async (req) => {
     let userId = ''
     let scopes = ['offers:write', 'offers:read', 'channels:read', 'dispatch:write', 'history:read']
 
-    if (isApiKey) {
+    if (isInternal) {
+      userId = internalUser
+    } else if (isApiKey) {
       // 2. Calcular o hash da chave recebida para autenticação segura
       const encoder = new TextEncoder()
       const keyData = encoder.encode(token)
@@ -1598,8 +1606,8 @@ serve(withAlerts("public-api", async (req) => {
         ? `Falha no envio da API para: ${failedChannels.join(', ')}`
         : undefined
 
-      // Gravar histórico apenas se a chamada for via API Key externa para evitar duplicidade
-      if (isApiKey) {
+      // Gravar histórico só em chamada via API Key ou interna (o painel grava o próprio histórico)
+      if (isApiKey || isInternal) {
         const historyPayload = {
           user_id: userId,
           offer_id: targetOffer.id,
@@ -1624,6 +1632,7 @@ serve(withAlerts("public-api", async (req) => {
         JSON.stringify({
           success: true,
           status: finalStatus,
+          offer_id: targetOffer.id,
           results: results
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
