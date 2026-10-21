@@ -15,7 +15,8 @@
     "check:ops-alerts": "node scripts/check-ops-alerts.mjs",
     "check:activation-contract": "node scripts/check-activation-contract.mjs",
     "test:activation": "node --test tests/activation/*.test.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:sources": "node --test tests/sources/*.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.15",
