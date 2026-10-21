@@ -80,6 +80,7 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li><strong>Supabase:</strong> Infraestrutura de banco de dados, armazenamento de perfis e serviço de autenticação com segurança de dados de ponta a ponta.</li>
                 <li><strong>Vercel / Cloudflare:</strong> Hospedagem web e entrega de conteúdo segura e otimizada globalmente.</li>
                 <li><strong>Cakto:</strong> Processamento de pagamentos e gestão de assinaturas. Recebe nome, CPF, telefone e dados do cartão para autorizar a cobrança; o {APP_NAME} não armazena dados de cartão.</li>
+                <li><strong>Google Gemini (assistente Lyo):</strong> quando você conversa com o assistente, sua pergunta, o histórico recente da conversa e um resumo da sua conta (plano, status do bot, canais conectados e falhas recentes de envio) são enviados ao Google Gemini para gerar a resposta. Não enviamos senhas, tokens nem dados de pagamento. As conversas ficam salvas por 90 dias e você pode apagá-las a qualquer momento pelo próprio assistente.</li>
               </ul>
             </section>
 
