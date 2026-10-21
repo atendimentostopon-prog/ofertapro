@@ -6,8 +6,9 @@ Assistente dentro do app logado. Responde dúvidas sobre o Aflyo e sobre a conta
 
 - Edge Function `supabase/functions/assistant-chat` (`index.ts` handler, `core.ts` lógica pura, `knowledge.ts` base de conhecimento). Envolvida em `withAlerts`, então erros 5xx (inclusive Gemini fora do ar) chegam na central de alertas.
 - Tabela `public.assistant_messages` (RLS: usuário lê e apaga as próprias; só a função insere).
+- Tabela `public.assistant_usage (user_id, day, count)` com a cota do dia (fuso America/Sao_Paulo). Separada das mensagens para "Limpar conversa" não zerar a cota. Sem acesso do usuário; a função usa as RPCs `assistant_reserve_quota` (reserva atômica antes do Gemini) e `assistant_release_quota` (devolve quando o Gemini falha), só `service_role`.
 - Coluna `public.plan_limits.assistant_daily_messages` (free 10, starter 50, pro 150, enterprise 400), espelho em `src/config/plans.ts`.
-- Job `pg_cron` `assistant_messages_retention` (04:15 UTC, apaga mensagens com mais de 90 dias).
+- Job `pg_cron` `assistant_messages_retention` (04:15 UTC, apaga mensagens e registros de cota com mais de 90 dias).
 - Front: `src/components/assistant/AssistantWidget.tsx`, `src/hooks/useAssistant.ts`, `src/services/AssistantService.ts`. O widget ocupa o canto inferior direito; o atalho do grupo de WhatsApp fica só na sidebar (`CommunityCallout`).
 
 ## Secrets e env da função

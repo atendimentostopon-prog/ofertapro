@@ -1,8 +1,8 @@
 import { assert, assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import {
   ACCOUNT_COLUMNS, FALLBACK_REPLY, MAX_REPLY_CHARS, buildAccountSnapshot, buildGeminiRequest,
-  buildSystemInstruction, messageRows, parseGeminiResponse, quotaState, resolvePlan,
-  sanitizeReply, startOfDaySaoPaulo, validateMessage, type AccountData,
+  buildSystemInstruction, messageRows, parseGeminiResponse, resolvePlan,
+  sanitizeReply, validateMessage, type AccountData,
 } from './core.ts';
 
 Deno.test('validateMessage: trim, vazio, limite de 1000', () => {
@@ -18,21 +18,6 @@ Deno.test('resolvePlan: nulo ou desconhecido vira free', () => {
   assertEquals(resolvePlan(undefined), 'free');
   assertEquals(resolvePlan('gold'), 'free');
   assertEquals(resolvePlan('enterprise'), 'enterprise');
-});
-
-Deno.test('startOfDaySaoPaulo: 23h em Brasília ainda é o mesmo dia', () => {
-  // 2026-10-21T02:00Z = 20/10 23:00 em Brasília
-  assertEquals(startOfDaySaoPaulo(new Date('2026-10-21T02:00:00Z')).toISOString(), '2026-10-20T03:00:00.000Z');
-  // 2026-10-21T03:00Z = 21/10 00:00 em Brasília
-  assertEquals(startOfDaySaoPaulo(new Date('2026-10-21T03:00:00Z')).toISOString(), '2026-10-21T03:00:00.000Z');
-  assertEquals(startOfDaySaoPaulo(new Date('2026-10-21T15:30:00Z')).toISOString(), '2026-10-21T03:00:00.000Z');
-});
-
-Deno.test('quotaState: limite exato bloqueia, remaining conta a pergunta atual', () => {
-  assertEquals(quotaState(10, 0), { allowed: true, remaining: 9 });
-  assertEquals(quotaState(10, 9), { allowed: true, remaining: 0 });
-  assertEquals(quotaState(10, 10), { allowed: false, remaining: 0 });
-  assertEquals(quotaState(0, 0), { allowed: false, remaining: 0 });
 });
 
 Deno.test('ACCOUNT_COLUMNS: nenhuma coluna sensível', () => {
@@ -94,12 +79,27 @@ Deno.test('buildGeminiRequest: mapeia papéis e descarta assistente no início',
   assertEquals(body.contents[2].parts[0].text, 'p2');
 });
 
+Deno.test('buildGeminiRequest: fixa raciocínio mínimo', () => {
+  const body = buildGeminiRequest({ system: 'S', history: [], message: 'p' }) as {
+    generationConfig: { thinkingConfig?: { thinkingLevel?: string } };
+  };
+  assertEquals(body.generationConfig.thinkingConfig?.thinkingLevel, 'minimal');
+});
+
 Deno.test('parseGeminiResponse: texto normal e tokens', () => {
   const r = parseGeminiResponse({
     candidates: [{ content: { parts: [{ text: 'pensando', thought: true }, { text: 'Olá! ' }, { text: 'Tudo certo.' }] } }],
     usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20 },
   });
   assertEquals(r, { text: 'Olá! Tudo certo.', tokensIn: 100, tokensOut: 20, blocked: false });
+});
+
+Deno.test('parseGeminiResponse: tokens de raciocínio entram em tokensOut', () => {
+  const r = parseGeminiResponse({
+    candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+    usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 20, thoughtsTokenCount: 5 },
+  });
+  assertEquals(r.tokensOut, 25);
 });
 
 Deno.test('parseGeminiResponse: bloqueado ou vazio vira resposta padrão', () => {
@@ -112,6 +112,12 @@ Deno.test('parseGeminiResponse: bloqueado ou vazio vira resposta padrão', () =>
 Deno.test('sanitizeReply: remove travessão e limita tamanho', () => {
   assertEquals(sanitizeReply('Pronto — agora conecte o bot.'), 'Pronto, agora conecte o bot.');
   assertEquals(sanitizeReply('a'.repeat(5000)).length, MAX_REPLY_CHARS);
+});
+
+Deno.test('sanitizeReply: corta por caractere, sem quebrar emoji no limite', () => {
+  const out = sanitizeReply('a'.repeat(MAX_REPLY_CHARS - 1) + '😀😀');
+  assertEquals(Array.from(out).length, MAX_REPLY_CHARS);
+  assert(out.endsWith('😀'), 'emoji cortado no meio');
 });
 
 Deno.test('messageRows: resposta sempre depois da pergunta', () => {

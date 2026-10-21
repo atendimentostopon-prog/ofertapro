@@ -43,6 +43,34 @@ begin
 
   assert exists (select 1 from cron.job where jobname = 'assistant_messages_retention'), 'cron de retencao ausente';
 
+  -- cota atômica: limite 2 reserva 1, 2 e depois NULL; release devolve 1
+  assert public.assistant_reserve_quota(v_a, 2) = 1, 'primeira reserva != 1';
+  assert public.assistant_reserve_quota(v_a, 2) = 2, 'segunda reserva != 2';
+  assert public.assistant_reserve_quota(v_a, 2) is null, 'terceira reserva deveria esgotar';
+  perform public.assistant_release_quota(v_a);
+  assert public.assistant_reserve_quota(v_a, 2) = 2, 'release nao devolveu a pergunta';
+  assert public.assistant_reserve_quota(v_b, 0) is null, 'limite 0 deveria bloquear';
+
+  -- apagar a conversa não zera a cota
+  delete from public.assistant_messages where user_id = v_a;
+  assert public.assistant_reserve_quota(v_a, 2) is null, 'apagar conversa zerou a cota';
+
+  -- usuário autenticado não chama as RPCs nem lê a tabela de uso
+  set local role authenticated;
+  begin
+    perform public.assistant_reserve_quota(v_a, 100);
+    assert false, 'authenticated conseguiu reservar cota';
+  exception when insufficient_privilege then
+    null; -- esperado
+  end;
+  begin
+    perform count(*) from public.assistant_usage;
+    assert false, 'authenticated conseguiu ler assistant_usage';
+  exception when insufficient_privilege then
+    null; -- esperado
+  end;
+  reset role;
+
   raise notice 'PASS assistant_lyo';
 end $$;
 

@@ -43,11 +43,56 @@ CREATE POLICY "assistant_messages apaga propria"
 
 -- Sem policy de INSERT/UPDATE: só a Edge Function assistant-chat grava (service_role),
 -- senão o browser forjaria respostas do assistente e burlaria a cota.
-REVOKE ALL ON public.assistant_messages FROM anon;
-REVOKE INSERT, UPDATE ON public.assistant_messages FROM authenticated;
+REVOKE ALL ON public.assistant_messages FROM anon, authenticated;
 GRANT SELECT, DELETE ON public.assistant_messages TO authenticated;
+
+-- Cota diária. Fica fora de assistant_messages de propósito: apagar a conversa
+-- ("Limpar conversa") não pode zerar a cota. Sem policy nem grant para o usuário.
+CREATE TABLE IF NOT EXISTS public.assistant_usage (
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  day     date NOT NULL,
+  count   int  NOT NULL DEFAULT 0 CHECK (count >= 0),
+  PRIMARY KEY (user_id, day)
+);
+
+ALTER TABLE public.assistant_usage ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.assistant_usage FROM anon, authenticated;
+
+-- Reserva 1 pergunta de forma atômica (requisições paralelas não furam o limite).
+-- Retorna o total usado no dia, ou NULL se a cota acabou.
+CREATE OR REPLACE FUNCTION public.assistant_reserve_quota(p_user uuid, p_limit int)
+RETURNS int
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_count int;
+BEGIN
+  IF p_limit IS NULL OR p_limit <= 0 THEN
+    RETURN NULL;
+  END IF;
+  INSERT INTO public.assistant_usage AS u (user_id, day, count)
+  VALUES (p_user, (now() AT TIME ZONE 'America/Sao_Paulo')::date, 1)
+  ON CONFLICT (user_id, day) DO UPDATE SET count = u.count + 1
+    WHERE u.count < p_limit
+  RETURNING u.count INTO v_count;
+  RETURN v_count;
+END;
+$$;
+
+-- Devolve a pergunta reservada quando o Gemini falha (a falha não consome cota).
+CREATE OR REPLACE FUNCTION public.assistant_release_quota(p_user uuid)
+RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE public.assistant_usage SET count = greatest(count - 1, 0)
+  WHERE user_id = p_user AND day = (now() AT TIME ZONE 'America/Sao_Paulo')::date;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.assistant_reserve_quota(uuid, int) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.assistant_release_quota(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.assistant_reserve_quota(uuid, int) TO service_role;
+GRANT EXECUTE ON FUNCTION public.assistant_release_quota(uuid) TO service_role;
 
 -- Retenção de 90 dias (LGPD). cron.schedule faz upsert por jobname.
 SELECT cron.schedule('assistant_messages_retention', '15 4 * * *', $RET$
   DELETE FROM public.assistant_messages WHERE created_at < now() - interval '90 days';
+  DELETE FROM public.assistant_usage WHERE day < current_date - 90;
 $RET$);

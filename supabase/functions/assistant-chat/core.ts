@@ -47,17 +47,6 @@ export function resolvePlan(plan: string | null | undefined): string {
   return plan && PLANS.includes(plan) ? plan : 'free';
 }
 
-// shortcut: Brasil sem horário de verão desde 2019, então UTC-3 fixo; se voltar, trocar por Intl com timeZone.
-export function startOfDaySaoPaulo(now: Date): Date {
-  const local = new Date(now.getTime() - 3 * 3600_000);
-  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 3));
-}
-
-export function quotaState(limit: number, used: number): { allowed: boolean; remaining: number } {
-  const allowed = used < limit;
-  return { allowed, remaining: allowed ? limit - used - 1 : 0 };
-}
-
 const cut = (v: string | null | undefined, n: number): string | null => (v == null ? null : String(v).slice(0, n));
 
 export function buildAccountSnapshot(d: AccountData, now: Date): string {
@@ -118,14 +107,16 @@ export function buildGeminiRequest(args: { system: string; history: StoredMessag
       ...turns.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
       { role: 'user', parts: [{ text: args.message }] },
     ],
-    generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+    // thinkingLevel explícito: tokens de raciocínio contam no maxOutputTokens e no custo.
+    generationConfig: { temperature: 0.3, maxOutputTokens: 800, thinkingConfig: { thinkingLevel: 'minimal' } },
   };
 }
 
 export interface ParsedReply { text: string; tokensIn: number | null; tokensOut: number | null; blocked: boolean }
 
 export function sanitizeReply(raw: string): string {
-  return raw.replace(/\s*—\s*/g, ', ').trim().slice(0, MAX_REPLY_CHARS);
+  // Corta por code point (o CHECK do banco usa char_length) para não partir emoji ao meio.
+  return Array.from(raw.replace(/\s*—\s*/g, ', ').trim()).slice(0, MAX_REPLY_CHARS).join('');
 }
 
 export function parseGeminiResponse(json: unknown): ParsedReply {
@@ -139,7 +130,9 @@ export function parseGeminiResponse(json: unknown): ParsedReply {
   const text = sanitizeReply(raw);
   const usage = j?.usageMetadata ?? {};
   const tokensIn = typeof usage.promptTokenCount === 'number' ? usage.promptTokenCount : null;
-  const tokensOut = typeof usage.candidatesTokenCount === 'number' ? usage.candidatesTokenCount : null;
+  const tokensOut = typeof usage.candidatesTokenCount === 'number'
+    ? usage.candidatesTokenCount + (typeof usage.thoughtsTokenCount === 'number' ? usage.thoughtsTokenCount : 0)
+    : null;
   if (!text) return { text: FALLBACK_REPLY, tokensIn, tokensOut, blocked: true };
   return { text, tokensIn, tokensOut, blocked: false };
 }

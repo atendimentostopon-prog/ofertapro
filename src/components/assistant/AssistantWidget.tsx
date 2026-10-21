@@ -128,7 +128,7 @@ const AssistantWidget: React.FC = () => {
                 key={m.id}
                 className={
                   m.role === 'user'
-                    ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-graphite px-3.5 py-2.5 text-[13px] text-ink-inverse'
+                    ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-mint-500 px-3.5 py-2.5 text-[13px] text-graphite'
                     : 'mr-auto max-w-[85%] rounded-2xl rounded-bl-sm bg-surface-1 px-3.5 py-2.5 text-[13px] text-ink'
                 }
               >
@@ -204,7 +204,7 @@ const AssistantWidget: React.FC = () => {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label="Abrir o Lyo, assistente do Aflyo"
-        className={`group fixed bottom-6 right-6 z-50 h-14 w-14 items-center justify-center rounded-full bg-graphite shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${open ? 'hidden sm:flex' : 'flex'}`}
+        className={`group fixed bottom-6 right-6 z-50 h-14 w-14 items-center justify-center rounded-full bg-graphite shadow-lg ring-1 ring-white/15 transition-transform hover:scale-105 active:scale-95 cursor-pointer ${open ? 'hidden sm:flex' : 'flex'}`}
       >
         <LyoMascot className="h-10 w-10" />
         <span className="pointer-events-none absolute right-16 whitespace-nowrap rounded-md border border-graphite-700 bg-graphite px-2.5 py-1.5 text-[11px] font-semibold tracking-tight text-ink-inverse opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100">

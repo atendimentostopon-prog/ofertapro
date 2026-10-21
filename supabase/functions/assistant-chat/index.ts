@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { KNOWLEDGE } from './knowledge.ts'
 import {
   ACCOUNT_COLUMNS, HISTORY_LIMIT, buildAccountSnapshot, buildGeminiRequest, buildSystemInstruction,
-  messageRows, parseGeminiResponse, quotaState, resolvePlan, startOfDaySaoPaulo, validateMessage,
+  messageRows, parseGeminiResponse, resolvePlan, validateMessage,
   type AccountData, type StoredMessage,
 } from './core.ts'
 
@@ -24,6 +24,8 @@ serve(withAlerts("assistant-chat", async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json(405, { code: 'method_not_allowed' })
 
+  // Definida depois da reserva; enquanto não for null, uma falha devolve a pergunta.
+  let releaseQuota: (() => Promise<void>) | null = null
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json(401, { code: 'unauthorized' })
@@ -46,19 +48,26 @@ serve(withAlerts("assistant-chat", async (req) => {
     }
     const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash-lite'
     const now = new Date()
+    // Só a função grava conversa e cota (sem policy de INSERT para authenticated).
+    const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+    const userId = user.id
 
     // Cota. Leituras com o JWT do usuário: RLS garante que só vê o que é dele.
-    const { data: profile } = await userClient.from('profiles').select(ACCOUNT_COLUMNS.profile).eq('id', user.id).maybeSingle()
+    const { data: profile } = await userClient.from('profiles').select(ACCOUNT_COLUMNS.profile).eq('id', userId).maybeSingle()
     const plan = resolvePlan(profile?.plan)
     const { data: limits } = await userClient.from('plan_limits').select('assistant_daily_messages').eq('plan', plan).maybeSingle()
-    // shortcut: contar e depois inserir não é atômico; 2 requisições simultâneas podem passar 1 do limite. Upgrade: RPC com advisory lock.
-    const { count } = await userClient.from('assistant_messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id).eq('role', 'user')
-      .gte('created_at', startOfDaySaoPaulo(now).toISOString())
     const limit = limits?.assistant_daily_messages ?? 0
-    const quota = quotaState(limit, count ?? 0)
-    if (!quota.allowed) return json(429, { code: 'quota_exceeded', limit })
+    // Reserva atômica antes de chamar o Gemini: requisições paralelas não furam o limite.
+    const { data: used, error: reserveError } = await admin.rpc('assistant_reserve_quota', { p_user: userId, p_limit: limit })
+    if (reserveError) {
+      console.error('[assistant-chat] falha ao reservar cota', reserveError.message)
+      return json(500, { code: 'internal' })
+    }
+    if (used == null) return json(429, { code: 'quota_exceeded', limit })
+    releaseQuota = async () => {
+      const { error } = await admin.rpc('assistant_release_quota', { p_user: userId })
+      if (error) console.error('[assistant-chat] falha ao devolver cota', error.message)
+    }
 
     const [historyRes, botRes, channelsRes, instancesRes, failuresRes] = await Promise.all([
       userClient.from('assistant_messages').select('role, content').eq('user_id', user.id)
@@ -95,23 +104,25 @@ serve(withAlerts("assistant-chat", async (req) => {
       })
     } catch (e) {
       console.error('[assistant-chat] falha/timeout no Gemini', e)
+      await releaseQuota()
       return json(502, { code: 'assistant_unavailable' })
     }
     if (!gemini.ok) {
       console.error('[assistant-chat] Gemini', gemini.status, (await gemini.text()).slice(0, 500))
+      await releaseQuota()
       return json(502, { code: 'assistant_unavailable' })
     }
 
     const reply = parseGeminiResponse(await gemini.json())
+    releaseQuota = null // o Gemini respondeu: a pergunta conta
 
-    // Só a função grava (sem policy de INSERT para authenticated).
-    const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
-    const { error: insertError } = await admin.from('assistant_messages').insert(messageRows(user.id, message, reply, now))
+    const { error: insertError } = await admin.from('assistant_messages').insert(messageRows(userId, message, reply, now))
     if (insertError) console.error('[assistant-chat] falha ao gravar conversa', insertError.message)
 
-    return json(200, { reply: reply.text, remaining: quota.remaining })
+    return json(200, { reply: reply.text, remaining: Math.max(0, limit - used) })
   } catch (e) {
     console.error('[assistant-chat] erro inesperado', e)
+    if (releaseQuota) await releaseQuota()
     return json(500, { code: 'internal' })
   }
 }))
