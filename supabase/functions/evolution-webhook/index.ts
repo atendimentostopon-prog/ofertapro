@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { withAlerts } from "../_shared/ops/with-alerts.ts"
+import { extractGroupMessage } from "../_shared/source/webhook.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 // SEC-7: comparação constante em tempo. Faz SHA-256 dos dois lados (sempre
@@ -69,9 +70,14 @@ serve(withAlerts("evolution-webhook", async (req) => {
     }
 
     const payload = await req.json()
-    console.log(`[WEBHOOK] Evento recebido da Evolution API:`, JSON.stringify(payload))
 
     const event = payload?.event // 'qrcode.updated', 'connection.update', etc
+    // Normaliza 'MESSAGES_UPSERT' e 'messages.upsert' (depende da config webhook_by_events).
+    const eventName = String(event ?? '').toLowerCase().replace(/_/g, '.')
+    // Mensagens não são logadas inteiras (volume e privacidade): só eventos de instância.
+    if (eventName !== 'messages.upsert' && eventName !== 'send.message') {
+      console.log(`[WEBHOOK] Evento recebido da Evolution API:`, JSON.stringify(payload))
+    }
     const instanceName = payload?.instance
     const data = payload?.data
 
@@ -97,6 +103,51 @@ serve(withAlerts("evolution-webhook", async (req) => {
       console.warn(`[WEBHOOK] Instância '${instanceName}' não cadastrada no banco local.`)
       return new Response('Instance not found in local db', { status: 200 }) // Retorna 200 para a Evolution não ficar retentando
     }
+
+    // Fontes WhatsApp: mensagem de grupo marcado como origem vai para a fila source_messages.
+    // Retorna antes do update de whatsapp_instances (mensagem não muda o estado da instância).
+    if (eventName === 'messages.upsert') {
+      const gm = extractGroupMessage(data)
+      if (!gm) return new Response('ignored', { status: 200 })
+
+      const { data: group } = await supabaseAdmin
+        .from('whatsapp_groups')
+        .select('id, user_id')
+        .eq('whatsapp_instance_id', instance.id)
+        .eq('evolution_group_id', gm.jid)
+        .eq('is_source', true)
+        .maybeSingle()
+      if (!group) return new Response('ignored', { status: 200 })
+
+      const { data: inserted, error: insertErr } = await supabaseAdmin
+        .from('source_messages')
+        .upsert(
+          { user_id: group.user_id, whatsapp_group_id: group.id, external_message_id: gm.messageId, raw_text: gm.text, media_key: gm.mediaKey },
+          { onConflict: 'whatsapp_group_id,external_message_id', ignoreDuplicates: true },
+        )
+        .select('id')
+        .maybeSingle()
+      if (insertErr) {
+        console.error('[WEBHOOK] Erro ao enfileirar mensagem de origem:', insertErr.message)
+        return new Response('Queue error', { status: 500 })
+      }
+
+      // Reentrega da Evolution cai no ignoreDuplicates e não volta id: nada a processar.
+      if (inserted?.id) {
+        const job = fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/source-processor`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: inserted.id }),
+        }).catch((e) => console.error('[WEBHOOK] source-processor:', e?.message))
+        // Sem waitUntil (teste local) o cron de varredura pega a mensagem em até 1 min.
+        const rt = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime
+        rt?.waitUntil?.(job)
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 })
+    }
+
+    // Eco dos nossos próprios envios: não muda nada na instância.
+    if (eventName === 'send.message') return new Response('ignored', { status: 200 })
 
     const updatePayload: any = {
       updated_at: new Date().toISOString()

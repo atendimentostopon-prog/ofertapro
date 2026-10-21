@@ -54,3 +54,8 @@
 **Decisão:** catálogo e interface oferecem somente mensal.  
 **Consequência:** não remover `yearly` do schema sem migração de compatibilidade.
 
+## ADR-010 - Origem WhatsApp no Supabase
+
+**Contexto:** o bot Python da VPS (Telegram) não está no repositório e converte links por conta própria. A Evolution já envia `messages.upsert` para o `evolution-webhook`.  
+**Decisão:** ler grupos de WhatsApp de origem no Supabase (`source_messages` + `source-processor`), converter o link com o contrato da extensão do Mercado Livre e as APIs da Amazon/Shopee, e disparar pelo mesmo `public-api /dispatch` com autenticação interna por service role.  
+**Consequência:** duas implementações de conversão de link (bot e Supabase) até o bot migrar; mudanças de contrato do Mercado Livre precisam ser feitas nos dois lados. O bot segue responsável pelo Telegram.

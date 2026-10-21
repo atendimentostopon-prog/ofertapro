@@ -71,6 +71,22 @@ A Vercel reescreve as rotas da SPA para `index.html` conforme `vercel.json`.
 - **Bitly:** token ainda é referenciado como fallback no enriquecimento/public API; o encurtador próprio é a estratégia vigente.
 - **LLM:** nenhuma integração com LLM foi encontrada no código atual.
 
+## Origem WhatsApp
+
+```mermaid
+flowchart LR
+    G[Grupo de WhatsApp de origem] --> EVO[Evolution API]
+    EVO -->|messages.upsert| EWH[evolution-webhook]
+    EWH -->|grupo com is_source| Q[(source_messages)]
+    EWH -->|waitUntil| SP[source-processor]
+    CRON[pg_cron a cada minuto] -->|sweep| SP
+    SP -->|converte link| AFF[Amazon / Shopee / Mercado Livre]
+    SP -->|service role + x-aflyo-user-id| API[public-api /dispatch]
+    API --> CH[Canais de destino]
+```
+
+O bot Python da VPS continua lendo o Telegram. A origem WhatsApp roda inteira no Supabase e termina no mesmo `/dispatch`. A `public-api` aceita chamada interna (`Authorization: Bearer <service_role>` + `x-aflyo-user-id`), grava `history` nesse caminho e devolve `offer_id`.
+
 ## Decisões relevantes
 
 - SPA Vite e backend Supabase, sem servidor Next.js.
