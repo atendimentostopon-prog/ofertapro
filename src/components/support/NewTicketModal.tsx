@@ -10,13 +10,15 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onCreated: (ticketId: string) => void;
+  initialTitle?: string;
+  initialMessage?: string;
 }
 
-export default function NewTicketModal({ open, onClose, onCreated }: Props) {
+export default function NewTicketModal({ open, onClose, onCreated, initialTitle, initialMessage }: Props) {
   const { user } = useUser();
   const { toast } = useToast();
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
+  const [title, setTitle] = useState(initialTitle ?? '');
+  const [message, setMessage] = useState(initialMessage ?? '');
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
