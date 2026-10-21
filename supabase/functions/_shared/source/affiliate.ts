@@ -73,7 +73,10 @@ async function mercadoLivre(url: string, c: AffiliateCreds, f: typeof fetch): Pr
     body: JSON.stringify({ url: canonicalUrl(url), tag: c.mercadolivre_tag.trim() }),
     signal: AbortSignal.timeout(8000),
   });
-  if (res.status === 401 || res.status === 403) throw new ConversionError("ml_session_invalid", `HTTP ${res.status}`);
+  if (res.status === 401) throw new ConversionError("ml_session_invalid", "HTTP 401");
+  // 403: o ML recusa cliente que não imita o TLS do Chrome mesmo com cookie válido (o bot usa
+  // curl_cffi por isso). Não é prova de sessão vencida: não marca ml_session.health.
+  if (res.status === 403) throw new ConversionError("conversion_failed", "HTTP 403 (cliente recusado pelo ML)");
   const j = await res.json().catch(() => ({}));
   if (!j?.short_url) throw new ConversionError("conversion_failed", `HTTP ${res.status}`);
   return j.short_url;

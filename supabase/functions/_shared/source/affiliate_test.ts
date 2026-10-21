@@ -59,3 +59,8 @@ Deno.test("ML com sessão inválida vira ml_session_invalid", async () => {
 Deno.test("Amazon sem ASIN não reaproveita o link (Review Focus 1)", async () => {
   await assertRejects(() => convertLink("https://amzn.to/x", "amazon", { ...none, amazon_tag: "meu-20" }), ConversionError, "conversion_failed");
 });
+
+Deno.test("ML 403 (bloqueio de cliente fora do Chrome) não acusa sessão inválida", async () => {
+  const fake = (async () => new Response("", { status: 403 })) as typeof fetch;
+  await assertRejects(() => convertLink("https://produto.mercadolivre.com.br/MLB-1234567-x", "mercadolivre", { ...none, mercadolivre_tag: "meutag", ml_session: mlSession }, fake), ConversionError, "conversion_failed");
+});
