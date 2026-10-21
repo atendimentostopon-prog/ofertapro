@@ -38,7 +38,8 @@ erDiagram
 | `user_settings` | `user_id` e preferências | configurações individuais |
 | `bot_configs` | `user_id`, estado, horários, grupos de origem, credencial protegida | automação |
 | `whatsapp_instances` | `user_id`, identificação Evolution, status | conexões WhatsApp |
-| `whatsapp_groups` | instância, grupo, seleção | grupos sincronizados |
+| `whatsapp_groups` | instância, grupo, seleção, `is_source` | grupos sincronizados; `is_source` marca grupo de origem |
+| `source_messages` | grupo de origem, id da mensagem, texto, `status`, `reason`, `dedupe_key`, `offer_id`, `attempts` | fila das mensagens lidas dos grupos de origem |
 | `message_templates` | `user_id`, nome, conteúdo, tipo | modelos de mensagem |
 | `api_keys` | `user_id`, hash/segredo protegido, prefixo, status | acesso à `public-api` |
 | `subscriptions` | `user_id`, `provider_subscription_id`, plano/ciclo/status, valor, período, graça | cobrança recorrente |
@@ -63,6 +64,7 @@ erDiagram
 - `support_tickets.status`: `open`, `in_progress`, `resolved`, `closed`; prioridade `low`, `normal`, `high`, `urgent`.
 - `support_messages.author_role`: `user`, `support`, `admin`.
 - `api_keys.status`: `active`, `revoked`.
+- `source_messages.status`: `pending`, `processing`, `dispatched`, `skipped`, `failed`.
 
 ## RLS resumida
 
@@ -76,6 +78,7 @@ erDiagram
 | `pending_subscriptions`, `webhook_events` | sem policy de cliente | serviço |
 | `plan_limits` | qualquer autenticado | apenas `service_role` |
 | `whatsapp_*` | dono | dono ou função privilegiada, conforme operação |
+| `source_messages` | dono | só `service_role` (evolution-webhook e source-processor) |
 | `api_keys` | dono | funções dedicadas de gerar/revelar/revogar |
 | `support_tickets` | dono | policy atual é `FOR ALL` do dono |
 | `support_messages` | usuário do ticket | insert como papel `user`; admin usa serviço |
@@ -89,6 +92,8 @@ As migrations `20260831010000` e `20260920160000` substituem acesso público dir
 - `handle_new_user`/`profiles_trial_defaults`: cria/completa perfil e defaults do trial.
 - `has_active_access`: decisão canônica de acesso.
 - `enforce_whatsapp_instance_limit`, `enforce_channel_limit`, `enforce_source_group_limit`: direitos por plano.
+- `count_source_groups(uid)` e `enforce_whatsapp_source_limit`: limite de grupos monitorados somando Telegram e WhatsApp.
+- `source_processor_sweep` (cron a cada minuto) e `source_messages_retention` (diário, 30 dias): fila da origem WhatsApp.
 - `offers_validate_affiliate_link`: bloqueia protocolos inválidos.
 - `clicks_set_offer_owner` e `clicks_increment_offer`: derivam tenant e incrementam contador.
 - `bot_configs_block_reactivate`: impede reativação sem acesso.
