@@ -17,7 +17,7 @@ export const ACCOUNT_COLUMNS = {
   channels: 'name, type, status',
   instances: 'name, status, error_message',
   failures: 'sent_at, offer_name, marketplace, status, error',
-};
+} as const; // literal: o supabase-js tipa o resultado do select a partir da string
 
 export interface AccountData {
   profile: { plan: string | null; account_status: string | null; trial_ends_at: string | null } | null;
