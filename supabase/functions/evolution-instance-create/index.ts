@@ -100,7 +100,8 @@ serve(withAlerts("evolution-instance-create", async (req) => {
 
     // Gerar webhook URL baseado no projeto Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook?secret=${encodeURIComponent(webhookSecret)}`
+    // SEC-7: o secret vai só no header x-webhook-secret; na URL ele vazava para logs de acesso.
+    const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`
 
     // 4. Criar a instância no banco primeiro com status 'creating'
     const { data: dbInstance, error: dbError } = await supabaseAdmin
