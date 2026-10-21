@@ -11,6 +11,7 @@ export const REASON_LABELS: Record<string, string> = {
   duplicate: 'Oferta repetida nas últimas 6 horas.',
   no_destination: 'Nenhum destino configurado. Marque os canais de destino na aba Bot.',
   no_price: 'Não encontramos o preço da oferta.',
+  all_channels_failed: 'Nenhum destino recebeu a oferta. Veja o motivo em Histórico.',
 };
 
 const FALLBACK = 'Falha temporária. O Aflyo tenta de novo sozinho.';

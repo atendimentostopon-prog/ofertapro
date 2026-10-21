@@ -64,20 +64,12 @@ export const SourceGroupService = {
     return Number(data) || 0;
   },
 
-  /** Liga/desliga a leitura de um grupo. O limite do plano é validado no banco (trigger). */
-  async setSource(userId: string, groupId: string, enabled: boolean): Promise<void> {
-    if (enabled) {
-      // O processador lê tags, horário e destinos de bot_configs: garante a linha.
-      const { error: cfgError } = await supabase
-        .from('bot_configs')
-        .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: true });
-      if (cfgError) throw cfgError;
-    }
-    const { error } = await supabase
-      .from('whatsapp_groups')
-      .update({ is_source: enabled })
-      .eq('id', groupId)
-      .eq('user_id', userId);
+  /**
+   * Liga/desliga a leitura de um grupo. A RPC valida o dono, cria bot_configs se faltar
+   * (o processador lê tags, horário e destinos dali) e o trigger aplica o limite do plano.
+   */
+  async setSource(groupId: string, enabled: boolean): Promise<void> {
+    const { error } = await supabase.rpc('set_whatsapp_source', { p_group_id: groupId, p_enabled: enabled });
     if (error) throw error;
   },
 

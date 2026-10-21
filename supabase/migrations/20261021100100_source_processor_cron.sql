@@ -30,7 +30,7 @@ begin
      where status = 'pending' and attempts < 3 and created_at < now() - interval '1 minute'
   ) and not exists (
     select 1 from public.source_messages
-     where status = 'processing' and created_at < now() - interval '5 minutes'
+     where status = 'processing' and claimed_at < now() - interval '5 minutes'
   ) then
     return null;
   end if;

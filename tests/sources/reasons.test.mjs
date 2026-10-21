@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { reasonLabel, REASON_LABELS, statusLabel } from '../../src/lib/sourceReasons.ts';
 
 const REASONS = ['no_access', 'bot_paused', 'outside_hours', 'no_link', 'unsupported_marketplace', 'missing_credentials',
-  'ml_session_invalid', 'conversion_failed', 'duplicate', 'no_destination', 'no_price'];
+  'ml_session_invalid', 'conversion_failed', 'duplicate', 'no_destination', 'no_price', 'all_channels_failed'];
 
 test('todo motivo do processador tem texto em pt-BR sem travessão', () => {
   for (const k of REASONS) {

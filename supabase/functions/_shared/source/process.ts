@@ -2,12 +2,15 @@
 // Toda E/S entra por ProcessDeps (testável sem rede nem banco).
 import { type AffiliateCreds, ConversionError, type ConversionCode } from "./affiliate.ts";
 import { withinHours } from "./hours.ts";
-import { detectMarketplace, productKey, type SourceMarketplace } from "./links.ts";
+import { detectMarketplace, isShortener, productKey, type SourceMarketplace } from "./links.ts";
 import { parseOfferText } from "./parse.ts";
 
 export type SkipReason =
   | "no_access" | "bot_paused" | "outside_hours" | "no_link" | "unsupported_marketplace"
   | ConversionCode | "duplicate" | "no_destination" | "no_price";
+
+// Motivo de falha definitiva que a UI conhece (os outros erros viram "falha temporária").
+export const ALL_CHANNELS_FAILED = "all_channels_failed";
 
 export interface SourceRow {
   id: string;
@@ -59,7 +62,8 @@ export interface ProcessDeps {
   claim(id: string): Promise<SourceRow | null>;
   loadContext(userId: string, groupId: string): Promise<SourceContext>;
   hasAccess(userId: string): Promise<boolean>;
-  recentlyDispatched(userId: string, key: string): Promise<boolean>;
+  /** Reserva a oferta para esta mensagem (atômico no banco). false = outra mensagem já tem a mesma oferta. */
+  reserveDedupe(messageId: string, key: string): Promise<boolean>;
   enrich(url: string): Promise<Enriched>;
   fetchMediaUrl(row: SourceRow): Promise<string | null>;
   dispatch(userId: string, body: DispatchBody): Promise<{ offer_id: string | null; status: string }>;
@@ -110,10 +114,11 @@ export async function processSourceMessage(d: ProcessDeps, id: string) {
       }
     }
     if (!url || !mp) return skip("unsupported_marketplace");
+    if (isShortener(url)) return skip("conversion_failed", { marketplace: mp });
 
     const dedupeKey = productKey(url, mp);
     const base = { marketplace: mp, dedupe_key: dedupeKey };
-    if (await d.recentlyDispatched(row.user_id, dedupeKey)) return skip("duplicate", base);
+    if (!(await d.reserveDedupe(row.id, dedupeKey))) return skip("duplicate", { marketplace: mp });
 
     const channels = (ctx.routeChannelIds?.length ? ctx.routeChannelIds : ctx.defaultChannelIds)
       .filter((c) => c !== ctx.ownChannelId);
@@ -154,6 +159,11 @@ export async function processSourceMessage(d: ProcessDeps, id: string) {
       },
       source: { type: "whatsapp", key: ctx.groupId },
     });
+    if (result.status === "error") {
+      // Nenhum canal recebeu: não é "Enviada". Não repete (o /dispatch já tentou cada canal).
+      await d.finish(id, { status: "failed", reason: ALL_CHANNELS_FAILED, offer_id: result.offer_id, processed_at: d.now().toISOString(), ...base });
+      return "failed" as const;
+    }
     await d.finish(id, { status: "dispatched", reason: null, offer_id: result.offer_id, processed_at: d.now().toISOString(), ...base });
     return "dispatched" as const;
   } catch (e) {

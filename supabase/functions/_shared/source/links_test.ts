@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.168.0/testing/asserts.ts";
-import { canonicalUrl, detectMarketplace, expandUrl, productKey } from "./links.ts";
+import { canonicalUrl, detectMarketplace, expandUrl, isShortener, productKey } from "./links.ts";
 
 Deno.test("detecta marketplaces e encurtadores", () => {
   assertEquals(detectMarketplace("https://www.amazon.com.br/dp/B0ABCDEF12"), "amazon");
@@ -42,4 +42,13 @@ Deno.test("expandUrl valida cada hop com a guarda", async () => {
       : new Response("ok")) as typeof fetch;
   await expandUrl("https://amzn.to/x", fake, async (u) => { seen.push(u); });
   assertEquals(seen, ["https://amzn.to/x", "https://amzn.to/dp/B0ABCDEF12"]);
+});
+
+Deno.test("isShortener reconhece encurtadores dos marketplaces", () => {
+  for (const u of ["https://amzn.to/x", "https://a.co/d/x", "https://s.shopee.com.br/x", "https://shope.ee/x", "https://meli.la/x", "https://mercadolivre.com/sec/x"]) {
+    assertEquals(isShortener(u), true, u);
+  }
+  for (const u of ["https://www.amazon.com.br/dp/B0ABCDEF12", "https://shopee.com.br/x-i.1.2", "https://produto.mercadolivre.com.br/MLB-1-x"]) {
+    assertEquals(isShortener(u), false, u);
+  }
 });

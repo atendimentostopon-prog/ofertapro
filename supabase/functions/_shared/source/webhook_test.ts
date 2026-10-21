@@ -30,3 +30,17 @@ Deno.test("aceita data como array (algumas versões da Evolution)", () => {
 Deno.test("corta texto gigante em 8000", () => {
   assertEquals(extractGroupMessage({ key, message: { conversation: "https://a.co/x " + "a".repeat(9000) } })?.text.length, 8000);
 });
+
+Deno.test("mensagem temporária e visualização única são desembrulhadas", () => {
+  assertEquals(extractGroupMessage({ key, message: { ephemeralMessage: { message: { extendedTextMessage: { text: "A https://amzn.to/x" } } } } })?.text, "A https://amzn.to/x");
+  assertEquals(extractGroupMessage({ key, message: { viewOnceMessageV2: { message: { imageMessage: { caption: "B https://amzn.to/x" } } } } })?.mediaKey, key);
+  assertEquals(extractGroupMessage({ key, message: { documentWithCaptionMessage: { message: { documentMessage: { caption: "C https://amzn.to/x" } } } } })?.text, "C https://amzn.to/x");
+});
+
+Deno.test("mensagem antiga (fila offline após reconectar) é ignorada", () => {
+  const now = 1_800_000_000;
+  assertEquals(extractGroupMessage({ ...base, messageTimestamp: now - 3600 }, now), null);
+  assertEquals(extractGroupMessage({ ...base, messageTimestamp: now - 60 }, now)?.messageId, "ABC");
+  assertEquals(extractGroupMessage({ ...base, messageTimestamp: String(now - 60) }, now)?.messageId, "ABC");
+  assertEquals(extractGroupMessage(base, now)?.messageId, "ABC"); // sem timestamp: aceita
+});

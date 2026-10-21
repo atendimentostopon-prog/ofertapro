@@ -19,6 +19,19 @@ export function detectMarketplace(url: string): SourceMarketplace | "other" | nu
   return HOSTS.find(([re]) => re.test(host))?.[1] ?? "other";
 }
 
+// Encurtadores dos marketplaces. Se depois de expandir a URL ainda é um deles, a expansão
+// falhou (rate limit, página intermediária) e o link ainda carrega a comissão de outra pessoa.
+const SHORTENERS = /^(amzn\.to|amzn\.com|a\.co|s\.shopee\.com\.br|shope\.ee|meli\.la)$/i;
+
+export function isShortener(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return SHORTENERS.test(u.hostname) || (/(^|\.)mercadolivre\.com$/i.test(u.hostname) && u.pathname.startsWith("/sec/"));
+  } catch {
+    return false;
+  }
+}
+
 export function canonicalUrl(url: string): string {
   const u = new URL(url);
   return u.origin + u.pathname;

@@ -28,7 +28,9 @@ function amazon(url: string, tag: string | null): string {
   if (!tag?.trim()) throw new ConversionError("missing_credentials");
   const u = new URL(url);
   const asin = u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i)?.[1];
-  const out = new URL(asin ? `${u.origin}/dp/${asin.toUpperCase()}` : canonicalUrl(url));
+  // Sem ASIN não dá para garantir que a tag de terceiro saiu (ex.: link curto não expandido).
+  if (!asin) throw new ConversionError("conversion_failed", "ASIN não encontrado");
+  const out = new URL(`${u.origin}/dp/${asin.toUpperCase()}`);
   out.searchParams.set("tag", tag.trim());
   return out.toString();
 }

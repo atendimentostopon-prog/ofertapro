@@ -74,7 +74,7 @@ export const WhatsAppSourceGroups: React.FC<{ onChange?: () => void }> = ({ onCh
     }
     setSavingId(group.id);
     try {
-      await SourceGroupService.setSource(user.id, group.id, enabled);
+      await SourceGroupService.setSource(group.id, enabled);
       setGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, is_source: enabled } : g)));
       setSourceCount((c) => c + (enabled ? 1 : -1));
       toast(enabled ? `O Aflyo vai ler as ofertas de "${group.name}".` : `"${group.name}" não é mais lido.`, 'success');

@@ -11,8 +11,9 @@ import { timingSafeEqual } from "../_shared/timing.ts";
 
 const URL_BASE = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const DEDUPE_WINDOW_MS = 6 * 3600_000;
-const SWEEP_BATCH = 25;
+const SWEEP_BATCH = 10;
+// Para de pegar linhas novas perto do limite de execução da Edge Function; o próximo minuto continua.
+const SWEEP_BUDGET_MS = 90_000;
 
 // Sem tipos gerados do banco neste repo: o client fica sem schema tipado, como nas outras functions.
 // deno-lint-ignore no-explicit-any
@@ -28,17 +29,9 @@ function base64ToBytes(b64: string): Uint8Array {
 function buildDeps(admin: Admin): ProcessDeps {
   return {
     async claim(id) {
-      const { data } = await admin
-        .from("source_messages")
-        .update({ status: "processing" })
-        .eq("id", id)
-        .eq("status", "pending")
-        .select("id, user_id, whatsapp_group_id, raw_text, media_key, attempts")
-        .maybeSingle();
-      if (!data) return null;
-      const attempts = (data.attempts ?? 0) + 1;
-      await admin.from("source_messages").update({ attempts }).eq("id", id);
-      return { ...data, attempts };
+      const { data, error } = await admin.rpc("claim_source_message", { p_id: id });
+      if (error) throw new Error(`claim: ${error.message}`);
+      return Array.isArray(data) && data.length > 0 ? data[0] : null;
     },
 
     async loadContext(userId, groupId) {
@@ -50,6 +43,12 @@ function buildDeps(admin: Admin): ProcessDeps {
           .maybeSingle(),
         admin.from("whatsapp_groups").select("id, channel_id").eq("id", groupId).maybeSingle(),
       ]);
+      // Canal apagado continua em channel_ids_destino e faria o /dispatch recusar tudo (403).
+      const wanted: string[] = cfg?.channel_ids_destino ?? [];
+      const { data: owned } = wanted.length
+        ? await admin.from("channels").select("id").eq("user_id", userId).in("id", wanted)
+        : { data: [] };
+      const ownedIds = new Set((owned ?? []).map((c: { id: string }) => c.id));
       return {
         creds: {
           amazon_tag: cfg?.amazon_tag ?? null,
@@ -61,7 +60,7 @@ function buildDeps(admin: Admin): ProcessDeps {
         ativo: cfg?.ativo !== false,
         horario_inicio: cfg?.horario_inicio ?? null,
         horario_fim: cfg?.horario_fim ?? null,
-        defaultChannelIds: cfg?.channel_ids_destino ?? [],
+        defaultChannelIds: wanted.filter((id) => ownedIds.has(id)),
         ownChannelId: group?.channel_id ?? null,
         routeChannelIds: null, // Fase 2 (source_routes)
         routeCategory: null, // Fase 2 (source_routes)
@@ -75,17 +74,10 @@ function buildDeps(admin: Admin): ProcessDeps {
       return data === true;
     },
 
-    async recentlyDispatched(userId, key) {
-      const since = new Date(Date.now() - DEDUPE_WINDOW_MS).toISOString();
-      const { count, error } = await admin
-        .from("source_messages")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("dedupe_key", key)
-        .eq("status", "dispatched")
-        .gte("processed_at", since);
+    async reserveDedupe(messageId, key) {
+      const { data, error } = await admin.rpc("reserve_source_dedupe", { p_id: messageId, p_key: key });
       if (error) throw new Error(`dedupe: ${error.message}`);
-      return (count ?? 0) > 0;
+      return data === true;
     },
 
     async enrich(url) {
@@ -194,12 +186,13 @@ serve(withAlerts("source-processor", async (req) => {
   if (typeof body?.id === "string") {
     ids = [body.id];
   } else if (body?.sweep === true) {
-    // Destrava "processing" preso (função morreu no meio) e pega "pending" com mais de 1 min.
+    // Destrava "processing" preso (função morreu no meio): conta pelo claimed_at, não pelo created_at,
+    // para nunca devolver à fila uma linha que ainda está em processamento.
     const stale = new Date(Date.now() - 5 * 60_000).toISOString();
     await admin.from("source_messages").update({ status: "pending" })
-      .eq("status", "processing").lt("created_at", stale).lt("attempts", 3);
+      .eq("status", "processing").lt("claimed_at", stale).lt("attempts", 3);
     await admin.from("source_messages").update({ status: "failed", reason: "Excedeu o número de tentativas." })
-      .eq("status", "processing").lt("created_at", stale).gte("attempts", 3);
+      .eq("status", "processing").lt("claimed_at", stale).gte("attempts", 3);
     const cutoff = new Date(Date.now() - 60_000).toISOString();
     const { data } = await admin.from("source_messages").select("id")
       .eq("status", "pending").lt("created_at", cutoff).lt("attempts", 3)
@@ -209,8 +202,10 @@ serve(withAlerts("source-processor", async (req) => {
     return Response.json({ error: "Envie { id } ou { sweep: true }." }, { status: 400 });
   }
 
+  const started = Date.now();
   let processed = 0;
   for (const id of ids) {
+    if (body?.sweep === true && Date.now() - started > SWEEP_BUDGET_MS) break;
     await processSourceMessage(deps, id);
     processed++;
   }

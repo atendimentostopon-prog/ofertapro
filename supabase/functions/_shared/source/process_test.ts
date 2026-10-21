@@ -21,7 +21,7 @@ function deps(over: Partial<ProcessDeps> = {}, c = ctx()) {
     claim: async () => ({ ...row }),
     loadContext: async () => c,
     hasAccess: async () => true,
-    recentlyDispatched: async () => false,
+    reserveDedupe: async () => true,
     enrich: async () => ({ image: "https://img/x.jpg" }),
     fetchMediaUrl: async () => null,
     dispatch: async (_u, body) => { dispatched.push(body); return { offer_id: "o1", status: "success" }; },
@@ -62,8 +62,8 @@ Deno.test("mensagem já reivindicada por outro worker não faz nada", async () =
   assertEquals(finished.length, 0);
 });
 
-Deno.test("dedupe 6h (Review Focus 2)", async () => {
-  const { d, finished, dispatched } = deps({ recentlyDispatched: async () => true });
+Deno.test("dedupe: chave já reservada por outra mensagem (Review Focus 2)", async () => {
+  const { d, finished, dispatched } = deps({ reserveDedupe: async () => false });
   assertEquals(await processSourceMessage(d, "m1"), "skipped");
   assertEquals(finished[0].reason, "duplicate");
   assertEquals(dispatched.length, 0);
@@ -144,4 +144,28 @@ Deno.test("primeiro link suportado vence quando há vários", async () => {
     expand: async (u) => (u.includes("bit.ly") ? "https://chat.whatsapp.com/abc" : "https://www.amazon.com.br/dp/B0ABCDEF12"),
   });
   assertEquals(await processSourceMessage(x.d, "m1"), "dispatched");
+});
+
+Deno.test("reserva a chave da oferta para a própria mensagem antes de converter", async () => {
+  const calls: string[] = [];
+  const x = deps({
+    reserveDedupe: async (id, key) => { calls.push(`reserve:${id}:${key}`); return true; },
+    convert: async (url) => { calls.push("convert"); return `${url}?tag=meu-20`; },
+  });
+  await processSourceMessage(x.d, "m1");
+  assertEquals(calls, ["reserve:m1:amazon:B0ABCDEF12", "convert"]);
+});
+
+Deno.test("encurtador que não expandiu não é convertido (Review Focus 1)", async () => {
+  const x = deps({ expand: async (u) => u });
+  assertEquals(await processSourceMessage(x.d, "m1"), "skipped");
+  assertEquals(x.finished[0].reason, "conversion_failed");
+  assertEquals(x.dispatched.length, 0);
+});
+
+Deno.test("disparo sem nenhum canal entregue vira falha, não Enviada", async () => {
+  const x = deps({ dispatch: async () => ({ offer_id: "o1", status: "error" }) });
+  assertEquals(await processSourceMessage(x.d, "m1"), "failed");
+  assertEquals(x.finished[0].status, "failed");
+  assertEquals(x.finished[0].reason, "all_channels_failed");
 });

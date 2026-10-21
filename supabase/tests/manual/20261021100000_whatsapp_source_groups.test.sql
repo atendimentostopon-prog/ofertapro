@@ -74,3 +74,64 @@ DO $$ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 ROLLBACK;
+
+-- Claim atômico, reserva de dedupe e set_whatsapp_source (correções da revisão).
+BEGIN;
+DO $$
+DECLARE u uuid := gen_random_uuid(); inst uuid; g uuid; m1 uuid; m2 uuid; m3 uuid; r record;
+BEGIN
+  INSERT INTO auth.users (id, email) VALUES (u, 'claim-test@example.com');
+  UPDATE public.profiles SET plan = 'pro' WHERE id = u;
+  INSERT INTO public.whatsapp_instances (user_id, instance_name, status) VALUES (u, 'claim_inst', 'connected') RETURNING id INTO inst;
+  INSERT INTO public.whatsapp_groups (user_id, whatsapp_instance_id, evolution_group_id, name, is_source)
+    VALUES (u, inst, 'k@g.us', 'K', true) RETURNING id INTO g;
+  INSERT INTO public.source_messages (user_id, whatsapp_group_id, external_message_id, raw_text) VALUES (u, g, 'A', 'x') RETURNING id INTO m1;
+  INSERT INTO public.source_messages (user_id, whatsapp_group_id, external_message_id, raw_text) VALUES (u, g, 'B', 'x') RETURNING id INTO m2;
+  INSERT INTO public.source_messages (user_id, whatsapp_group_id, external_message_id, raw_text) VALUES (u, g, 'C', 'x') RETURNING id INTO m3;
+
+  SELECT * INTO r FROM public.claim_source_message(m1);
+  ASSERT r.id = m1 AND r.attempts = 1, 'claim devolve a linha com attempts + 1';
+  ASSERT (SELECT status = 'processing' AND claimed_at IS NOT NULL FROM public.source_messages WHERE id = m1), 'claim marca processing e claimed_at';
+  SELECT * INTO r FROM public.claim_source_message(m1);
+  ASSERT r.id IS NULL, 'segundo claim da mesma linha não devolve nada';
+
+  -- Duas mensagens com a mesma oferta: só a primeira reserva a chave.
+  PERFORM public.claim_source_message(m2);
+  PERFORM public.claim_source_message(m3);
+  ASSERT public.reserve_source_dedupe(m1, 'amazon:B0X') = true, 'primeira reserva passa';
+  ASSERT public.reserve_source_dedupe(m2, 'amazon:B0X') = false, 'segunda em voo é duplicada';
+  -- A primeira foi ignorada (ex.: sem credencial): a chave fica livre de novo.
+  UPDATE public.source_messages SET status = 'skipped' WHERE id = m1;
+  ASSERT public.reserve_source_dedupe(m2, 'amazon:B0X') = true, 'chave liberada quando a dona foi ignorada';
+  UPDATE public.source_messages SET status = 'dispatched', processed_at = now() WHERE id = m2;
+  ASSERT public.reserve_source_dedupe(m3, 'amazon:B0X') = false, 'já enviada nas últimas 6 h';
+  UPDATE public.source_messages SET processed_at = now() - interval '7 hours' WHERE id = m2;
+  ASSERT public.reserve_source_dedupe(m3, 'amazon:B0X') = true, 'janela de 6 h expirou';
+END $$;
+
+-- set_whatsapp_source: só o dono, cria bot_configs e respeita o limite.
+DO $$
+DECLARE u uuid := gen_random_uuid(); other uuid := gen_random_uuid(); inst uuid; g uuid;
+BEGIN
+  INSERT INTO auth.users (id, email) VALUES (u, 'set-src@example.com'), (other, 'other@example.com');
+  UPDATE public.profiles SET plan = 'starter' WHERE id = u;
+  INSERT INTO public.whatsapp_instances (user_id, instance_name, status) VALUES (u, 'set_inst', 'connected') RETURNING id INTO inst;
+  INSERT INTO public.whatsapp_groups (user_id, whatsapp_instance_id, evolution_group_id, name) VALUES (u, inst, 's@g.us', 'S') RETURNING id INTO g;
+
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', other)::text, true);
+  PERFORM set_config('request.jwt.claim.sub', other::text, true); -- auth.uid() antigo lê esta chave
+  BEGIN
+    PERFORM public.set_whatsapp_source(g, true);
+    RAISE EXCEPTION 'outro usuário não pode marcar o grupo';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', u)::text, true);
+  PERFORM set_config('request.jwt.claim.sub', u::text, true); -- auth.uid() antigo lê esta chave
+  ASSERT NOT EXISTS (SELECT 1 FROM public.bot_configs WHERE user_id = u), 'pré-condição: sem bot_configs';
+  PERFORM public.set_whatsapp_source(g, true);
+  ASSERT (SELECT is_source FROM public.whatsapp_groups WHERE id = g), 'marcou';
+  ASSERT EXISTS (SELECT 1 FROM public.bot_configs WHERE user_id = u), 'criou bot_configs';
+  PERFORM public.set_whatsapp_source(g, false);
+  ASSERT NOT (SELECT is_source FROM public.whatsapp_groups WHERE id = g), 'desmarcou';
+END $$;
+ROLLBACK;
