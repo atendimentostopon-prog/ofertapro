@@ -38,7 +38,7 @@ function buildDeps(admin: Admin): ProcessDeps {
       const [{ data: cfg }, { data: group }] = await Promise.all([
         admin
           .from("bot_configs")
-          .select("amazon_tag, shopee_app_id, shopee_app_secret, mercadolivre_tag, ml_session, ativo, horario_inicio, horario_fim, channel_ids_destino")
+          .select("amazon_tag, shopee_app_id, mercadolivre_tag, ml_session, ativo, horario_inicio, horario_fim, channel_ids_destino")
           .eq("user_id", userId)
           .maybeSingle(),
         admin.from("whatsapp_groups").select("id, channel_id").eq("id", groupId).maybeSingle(),
@@ -49,11 +49,15 @@ function buildDeps(admin: Admin): ProcessDeps {
         ? await admin.from("channels").select("id").eq("user_id", userId).in("id", wanted)
         : { data: [] };
       const ownedIds = new Set((owned ?? []).map((c: { id: string }) => c.id));
+      // O trigger bot_configs_seal_secrets move o secret da Shopee para o Vault: a coluna fica NULL.
+      const { data: shopeeSecret } = cfg?.shopee_app_id
+        ? await admin.rpc("get_bot_shopee_app_secret", { p_user_id: userId })
+        : { data: null };
       return {
         creds: {
           amazon_tag: cfg?.amazon_tag ?? null,
           shopee_app_id: cfg?.shopee_app_id ?? null,
-          shopee_app_secret: cfg?.shopee_app_secret ?? null,
+          shopee_app_secret: shopeeSecret ?? null,
           mercadolivre_tag: cfg?.mercadolivre_tag ?? null,
           ml_session: cfg?.ml_session ?? null,
         },
