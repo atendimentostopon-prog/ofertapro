@@ -11,7 +11,7 @@ import { PublicPageSetupModal } from './onboarding/PublicPageSetupModal';
 import { ActivationBanner } from './onboarding/ActivationBanner';
 import { StepGuide } from './onboarding/StepGuide';
 import { CommunityWelcomeModal } from './community/CommunityWelcomeModal';
-import CommunityFloatingButton from './community/CommunityFloatingButton';
+import AssistantWidget from './assistant/AssistantWidget';
 import { useCommunityGroup } from '../hooks/useCommunityGroup';
 
 interface LayoutProps {
@@ -110,7 +110,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
       <PublicPageSetupModal isOpen={needsSetup} />
       <StepGuide />
       <CommunityWelcomeModal isOpen={showCommunityWelcome} onJoin={community.join} onDismiss={community.dismissWelcome} />
-      <CommunityFloatingButton />
+      <AssistantWidget />
       <FeedbackButton />
     </div>
   );
