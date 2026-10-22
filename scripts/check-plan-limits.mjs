@@ -11,6 +11,11 @@ const migration = readFileSync(
   join(root, 'supabase/migrations/20260831000000_plan_limits_table.sql'),
   'utf8',
 );
+// assistant_daily_messages vem de migration própria (UPDATE ... CASE plan WHEN ... THEN n).
+const assistantMigration = readFileSync(
+  join(root, 'supabase/migrations/20261021000000_assistant_lyo.sql'),
+  'utf8',
+);
 
 // front campo -> banco coluna. maxTelegramConnections é só front (sem trigger).
 const MAP = {
@@ -33,7 +38,7 @@ function parseFront() {
     const body = (plansTs.match(re) || [])[1];
     if (!body) { out[plan] = null; continue; }
     const fields = {};
-    for (const key of Object.keys(MAP)) {
+    for (const key of [...Object.keys(MAP), 'assistantDailyMessages']) {
       const m = body.match(new RegExp(`${key}:\\s*(Infinity|true|false|\\d+)`));
       if (m) fields[key] = m[1];
     }
@@ -78,6 +83,18 @@ for (const plan of PLANS) {
     if (norm(fv) !== norm(dv)) {
       problems.push(`${plan}.${frontKey} (front=${fv}) != ${dbCol} (banco=${dv})`);
     }
+  }
+}
+
+const assistantDb = {};
+for (const m of assistantMigration.matchAll(/WHEN '(free|starter|pro|enterprise)' THEN (\d+)/g)) {
+  assistantDb[m[1]] = m[2];
+}
+for (const plan of PLANS) {
+  const fv = front[plan]?.assistantDailyMessages;
+  const dv = assistantDb[plan];
+  if (fv === undefined || dv === undefined || Number(fv) !== Number(dv)) {
+    problems.push(`${plan}.assistantDailyMessages (front=${fv}) != assistant_daily_messages (banco=${dv})`);
   }
 }
 
