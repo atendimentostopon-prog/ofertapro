@@ -7,7 +7,8 @@ import { Toggle } from '../ui/Toggle';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { APP_NAME, getShortlinkHost } from '../../config/app';
-import { TemplateService } from '../../services/TemplateService';
+import { TemplateService, AiSettings } from '../../services/TemplateService';
+import { Select } from '../ui/Select';
 import { sendTelegramPhoto } from '../../lib/telegram';
 import { sender } from '../../lib/sender';
 import { normalizeMarketplace } from '../../lib/marketplace';
@@ -61,6 +62,26 @@ const mockCupomOffer = {
   affiliateLink: 'https://www.mercadolivre.com.br/ofertas',
 };
 
+const AI_TONE_OPTIONS = [
+  { value: 'padrao', label: 'Padrão' },
+  { value: 'urgente', label: 'Urgente' },
+  { value: 'divertido', label: 'Divertido' },
+  { value: 'direto', label: 'Direto' },
+];
+
+const DEFAULT_AI: AiSettings = { use_ai: false, ai_tone: 'padrao' };
+
+// Oferta de exemplo do preview no formato que a ai-compose-message recebe.
+const mockAiOffer = {
+  name: mockOffer.name,
+  sale_price: parseFloat(mockOffer.salePrice),
+  original_price: parseFloat(mockOffer.originalPrice),
+  coupon: mockOffer.coupon,
+  marketplace: mockOffer.marketplace,
+  category: mockOffer.category,
+  discount: mockOffer.discount,
+};
+
 export const TemplatesTab: React.FC = () => {
   const { user } = useUser();
   const { toast } = useToast();
@@ -81,6 +102,12 @@ export const TemplatesTab: React.FC = () => {
   const [shortenerMap, setShortenerMap] = useState<Record<string, boolean>>({});
   const [savingShortenerId, setSavingShortenerId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // IA por canal (só template de oferta). Salva na hora, como o encurtador.
+  const [aiSettings, setAiSettings] = useState<Record<string, AiSettings>>({});
+  const [savingAi, setSavingAi] = useState(false);
+  const [aiPreview, setAiPreview] = useState<Record<string, { chamada: string; titulo?: string }>>({});
+  const [aiUnavailableFor, setAiUnavailableFor] = useState<string | null>(null);
+  const [testingAi, setTestingAi] = useState(false);
 
   const CHANNELS: ChannelKind[] = ['whatsapp', 'telegram', 'discord'];
   const templateKey = (channel: ChannelKind, kind: MessageKind) => `${channel}__${kind}`;
@@ -89,10 +116,12 @@ export const TemplatesTab: React.FC = () => {
     if (!user) return;
     try {
       setLoadingTemplates(true);
-      const [ofertaTemplates, cupomTemplates] = await Promise.all([
+      const [ofertaTemplates, cupomTemplates, ai] = await Promise.all([
         TemplateService.getTemplates(user.id, 'oferta'),
         TemplateService.getTemplates(user.id, 'cupom'),
+        TemplateService.getAiSettings(user.id),
       ]);
+      setAiSettings(ai);
       const next: Record<string, string> = {};
       for (const channel of CHANNELS) {
         next[templateKey(channel, 'oferta')] = ofertaTemplates[channel] || TemplateService.getDefaultTemplate(channel, 'oferta');
@@ -351,6 +380,46 @@ export const TemplatesTab: React.FC = () => {
     }
   };
 
+  const updateActiveAi = async (patch: Partial<AiSettings>) => {
+    if (!user) return;
+    const channel = currentEditingTemplateTab;
+    const previous = aiSettings[channel] || DEFAULT_AI;
+    const next = { ...previous, ...patch };
+    setAiSettings(prev => ({ ...prev, [channel]: next }));
+    setAiUnavailableFor(null);
+    setSavingAi(true);
+    try {
+      await TemplateService.saveAiSettings(user.id, channel, next);
+      if (patch.use_ai !== undefined) {
+        toast(next.use_ai ? `IA ativada no ${channel}.` : `IA desativada no ${channel}.`, 'success');
+      }
+    } catch (err) {
+      console.error('Erro ao salvar config de IA:', err);
+      setAiSettings(prev => ({ ...prev, [channel]: previous }));
+      toast('Não foi possível salvar a configuração de IA. Tente novamente.', 'error');
+    } finally {
+      setSavingAi(false);
+    }
+  };
+
+  const handleTestAi = async () => {
+    const channel = currentEditingTemplateTab;
+    setTestingAi(true);
+    setAiUnavailableFor(null);
+    const result = await TemplateService.composeWithAi({
+      channel_type: channel,
+      preview: true,
+      tone: (aiSettings[channel] || DEFAULT_AI).ai_tone,
+      offer: mockAiOffer,
+    });
+    if (result.used && result.chamada) {
+      setAiPreview(prev => ({ ...prev, [channel]: { chamada: result.chamada!, titulo: result.titulo } }));
+    } else {
+      setAiUnavailableFor(channel);
+    }
+    setTestingAi(false);
+  };
+
   const injectVariable = (variable: string) => {
     const textarea = textareaRef.current;
     if (!textarea) {
@@ -418,9 +487,18 @@ export const TemplatesTab: React.FC = () => {
     public_display_name: user?.public_display_name || 'Best Promos',
     username: user?.username || 'bestpromos',
   };
+  const activeAi = aiSettings[currentEditingTemplateTab] || DEFAULT_AI;
+  const showAi = messageKind === 'oferta';
+  const activeAiPreview = showAi && activeAi.use_ai ? aiPreview[currentEditingTemplateTab] : undefined;
   const renderedPreview = TemplateService.renderTemplate(
-    activeContent || activePlaceholder,
-    messageKind === 'cupom' ? mockCupomOffer : mockOffer,
+    activeAiPreview
+      ? TemplateService.withChamadaLine(activeContent || activePlaceholder)
+      : activeContent || activePlaceholder,
+    messageKind === 'cupom'
+      ? mockCupomOffer
+      : activeAiPreview
+        ? { ...mockOffer, description: activeAiPreview.chamada, name: activeAiPreview.titulo || mockOffer.name }
+        : mockOffer,
     mockProfile,
     messageKind === 'cupom' ? mockCupomOffer.affiliate_link : 'https://amzn.to/exemplo',
     currentEditingTemplateTab
@@ -526,6 +604,50 @@ export const TemplatesTab: React.FC = () => {
               <div className="flex items-center gap-2 p-2.5 bg-danger-bg border border-danger/20 rounded-xl text-danger-ink text-[11px] font-bold">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{validation.error}</span>
+              </div>
+            )}
+
+            {showAi && (
+              <div className="p-3.5 bg-surface-1 rounded-xl border border-line space-y-3">
+                <Toggle
+                  id={`use-ai-${currentEditingTemplateTab}`}
+                  label="Usar IA (Gemini)"
+                  description="A IA escreve a chamada e encurta o título de cada oferta. Preço, cupom e link continuam exatos. Se a IA falhar, usa o texto padrão."
+                  checked={activeAi.use_ai}
+                  onChange={(next) => updateActiveAi({ use_ai: next })}
+                  disabled={loadingTemplates || savingAi}
+                />
+                {activeAi.use_ai && (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+                      <div className="sm:w-48">
+                        <Select
+                          id={`ai-tone-${currentEditingTemplateTab}`}
+                          label="Tom"
+                          options={AI_TONE_OPTIONS}
+                          value={activeAi.ai_tone}
+                          onChange={e => updateActiveAi({ ai_tone: e.target.value })}
+                          disabled={savingAi}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={testingAi}
+                        onClick={handleTestAi}
+                        className="px-3.5 py-2.5 bg-ice hover:bg-mint-100 border border-mint-200 hover:border-mint-300 text-mint-700 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {testingAi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                        Testar com IA
+                      </button>
+                    </div>
+                    {aiUnavailableFor === currentEditingTemplateTab && (
+                      <p className="text-[11px] text-warning-ink font-medium">IA indisponível agora, será usado o texto padrão.</p>
+                    )}
+                    {!(activeContent || activePlaceholder).includes('{chamada}') && (
+                      <p className="text-[11px] text-ink-tertiary font-medium">A IA vai inserir a chamada acima do título automaticamente.</p>
+                    )}
+                  </>
+                )}
               </div>
             )}
 

@@ -65,9 +65,10 @@ export const Toggle: React.FC<ToggleProps> = ({
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <div className="min-w-0">
+        {/* Sem htmlFor: o label já chama handleToggle; com htmlFor o browser
+            repassa o clique pro botão e o toggle inverte duas vezes. */}
         {label && (
           <label
-            htmlFor={id}
             onClick={handleToggle}
             className={`text-sm font-medium text-ink select-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >

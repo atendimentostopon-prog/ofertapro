@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { evolution } from './evolution';
 import { sender } from './sender';
 import { sendTelegramMessage, sendTelegramPhoto } from './telegram';
-import { TemplateService } from '../services/TemplateService';
+import { TemplateService, AiCompose } from '../services/TemplateService';
 import { DispatchResult, HistoryStatus, ChannelType } from '../types';
 import { withTimeout } from './utils';
 import { FEATURES } from '../config/features';
@@ -149,11 +149,12 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
       onStepChange('Carregando informações do perfil e canais...');
     }
 
-    const [profileRes, templates, channelsRes, settingsRes] = await Promise.all([
+    const [profileRes, templates, channelsRes, settingsRes, aiSettings] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
       TemplateService.getTemplates(userId),
       supabase.from('channels').select('*').in('id', channelIds),
-      supabase.from('user_settings').select('shortener_marketplaces').eq('user_id', userId).maybeSingle()
+      supabase.from('user_settings').select('shortener_marketplaces').eq('user_id', userId).maybeSingle(),
+      TemplateService.getAiSettings(userId)
     ]);
 
     if (channelsRes.error) throw channelsRes.error;
@@ -168,6 +169,33 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
     const trackingLink = (useShortener && shortCode)
       ? `${getShortlinkUrl()}/o/${shortCode}`
       : finalAffiliateLink;
+
+    // IA de mensagens (opcional por canal): uma chamada por tipo de canal no
+    // disparo. Falha/timeout/used:false => renderiza exatamente como antes.
+    const aiByType: Record<string, Promise<AiCompose>> = {};
+    const renderForChannel = async (type: 'discord' | 'telegram') => {
+      let template = templates?.[type] || TemplateService.getDefaultTemplate(type);
+      let offer: Record<string, any> = { ...params, offerName: normalizeProductTitle(offerName) };
+      if (aiSettings[type]?.use_ai) {
+        aiByType[type] ??= TemplateService.composeWithAi({
+          channel_type: type,
+          offer: {
+            name: offer.offerName,
+            sale_price: params.salePrice,
+            original_price: params.originalPrice,
+            coupon: params.coupon,
+            marketplace,
+            discount: params.discount,
+          },
+        });
+        const ai = await aiByType[type];
+        if (ai.used) {
+          offer = { ...offer, description: ai.chamada, offerName: ai.titulo || offer.offerName };
+          template = TemplateService.withChamadaLine(template);
+        }
+      }
+      return TemplateService.renderTemplate(template, offer, profile, trackingLink, type);
+    };
 
     console.log("[DISPATCH] channels count", channels.length);
     const results: DispatchResult[] = [];
@@ -225,14 +253,7 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
             throw new Error('Webhook do Discord inválido (URL ausente ou incorreta).');
           }
 
-          const template = templates?.discord || TemplateService.getDefaultTemplate('discord');
-          renderedMessage = TemplateService.renderTemplate(
-            template,
-            { ...params, offerName: normalizeProductTitle(offerName) },
-            profile,
-            trackingLink,
-            'discord'
-          );
+          renderedMessage = await renderForChannel('discord');
 
           try {
             await executeWithRetry(async () => {
@@ -264,14 +285,7 @@ export const dispatchOffer = async (params: DispatchParams): Promise<DispatchOut
             throw new Error('Configuração do Telegram incompleta: token ou chat_id ausente.');
           }
 
-          const template = templates?.telegram || TemplateService.getDefaultTemplate('telegram');
-          renderedMessage = TemplateService.renderTemplate(
-            template,
-            { ...params, offerName: normalizeProductTitle(offerName) },
-            profile,
-            trackingLink,
-            'telegram'
-          );
+          renderedMessage = await renderForChannel('telegram');
 
           const hasImage = offerImage &&
             offerImage.trim() !== '' &&

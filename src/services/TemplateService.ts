@@ -1,6 +1,14 @@
 import { ChannelType } from '../types';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, withTimeout } from '../lib/utils';
 import { supabase } from '../lib/supabase';
+
+export type AiTone = 'padrao' | 'urgente' | 'divertido' | 'direto';
+export interface AiSettings { use_ai: boolean; ai_tone: string }
+// Resposta da Edge Function ai-compose-message. used:false = seguir sem IA.
+export interface AiCompose { used: boolean; chamada?: string; titulo?: string }
+
+const AI_CHANNELS = ['telegram', 'discord', 'whatsapp'] as const;
+const DEFAULT_AI_SETTINGS: AiSettings = { use_ai: false, ai_tone: 'padrao' };
 
 function escapeHTML(text: string): string {
   if (!text) return '';
@@ -210,6 +218,100 @@ export const TemplateService = {
     }
 
     return templates;
+  },
+
+  /**
+   * Config de IA (use_ai/ai_tone) por canal, só do template de oferta.
+   * Qualquer falha devolve tudo desligado: sem IA = comportamento atual.
+   */
+  async getAiSettings(userId: string): Promise<Record<string, AiSettings>> {
+    const settings: Record<string, AiSettings> = {};
+    for (const channel of AI_CHANNELS) settings[channel] = { ...DEFAULT_AI_SETTINGS };
+
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('message_templates')
+          .select('channel_type, template_type, use_ai, ai_tone')
+          .eq('user_id', userId),
+        6000,
+        'Config de IA'
+      );
+      if (error) throw error;
+      (data || []).forEach((row: any) => {
+        // Linhas antigas não têm template_type -- tratadas como 'oferta' (igual getTemplates).
+        if (!row.channel_type || (row.template_type || 'oferta') !== 'oferta') return;
+        settings[row.channel_type] = {
+          use_ai: row.use_ai === true,
+          ai_tone: row.ai_tone || DEFAULT_AI_SETTINGS.ai_tone,
+        };
+      });
+    } catch (err) {
+      console.warn('[TemplateService] Config de IA indisponível, seguindo sem IA:', err);
+    }
+    return settings;
+  },
+
+  /**
+   * Salva só use_ai/ai_tone do template de oferta do canal, sem tocar em
+   * template_text. Sem linha ainda: cria com o template padrão do canal.
+   */
+  async saveAiSettings(userId: string, channelType: string, ai: AiSettings): Promise<void> {
+    const { data, error } = await supabase
+      .from('message_templates')
+      .update({ use_ai: ai.use_ai, ai_tone: ai.ai_tone, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('channel_type', channelType)
+      .eq('template_type', 'oferta')
+      .select('id');
+    if (error) throw new Error(`Erro ao salvar config de IA: ${error.message}`);
+    if (data && data.length > 0) return;
+
+    const { error: insertError } = await supabase
+      .from('message_templates')
+      .insert({
+        user_id: userId,
+        channel_type: channelType,
+        template_text: this.getDefaultTemplate(channelType as ChannelType, 'oferta'),
+        template_type: 'oferta',
+        status: 'active',
+        use_ai: ai.use_ai,
+        ai_tone: ai.ai_tone,
+      });
+    if (insertError) throw new Error(`Erro ao salvar config de IA: ${insertError.message}`);
+  },
+
+  /**
+   * Chama a Edge Function ai-compose-message. Nunca lança: erro, timeout (10s)
+   * ou resposta sem chamada viram { used: false } e o envio segue sem IA.
+   */
+  async composeWithAi(body: Record<string, unknown>): Promise<AiCompose> {
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke('ai-compose-message', { body }),
+        10000,
+        'IA de mensagens'
+      );
+      if (error || !data?.used || !data.chamada) return { used: false };
+      return { used: true, chamada: String(data.chamada), titulo: data.titulo ? String(data.titulo) : undefined };
+    } catch (err) {
+      console.warn('[TemplateService] IA indisponível, usando texto padrão:', err);
+      return { used: false };
+    }
+  },
+
+  /**
+   * Template sem {chamada}: devolve uma cópia com a linha "{chamada}" e uma
+   * linha em branco logo acima da linha do {titulo} (só em memória, o
+   * template salvo não muda).
+   */
+  withChamadaLine(template: string): string {
+    if (template.includes('{chamada}')) return template;
+    const lines = template.split('\n');
+    const tituloIdx = lines.findIndex(line => line.includes('{titulo}'));
+    if (tituloIdx === -1) return `{chamada}\n${template}`;
+    lines.splice(tituloIdx, 0, '{chamada}', '');
+    return lines.join('\n');
   },
 
   /**
