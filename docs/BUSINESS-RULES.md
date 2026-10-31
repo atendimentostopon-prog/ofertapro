@@ -45,6 +45,20 @@ Ofertas são ilimitadas em todos os planos. Triggers de banco aplicam limites de
 - [NÃO CONFIRMADO] `history.channel_count` não tem definição única: o cliente registra sucessos e a `public-api` registra tentativas.
 - O WhatsApp usa Evolution API. Telegram/Discord ainda possuem caminhos iniciados pelo browser; a checagem de acesso no cliente não substitui autorização do servidor.
 
+## Origem WhatsApp (grupos de origem)
+
+- O usuário liga grupos de WhatsApp como origem em Integrações, aba Fontes e rotas (`whatsapp_groups.is_source`).
+- O limite `max_source_groups` soma grupos do Telegram (`bot_configs.grupos_origem`) e de WhatsApp; os dois triggers aplicam a soma.
+- Só entram na fila mensagens de grupo de origem que tenham link. Mensagens enviadas pela própria instância (`fromMe`) são ignoradas, o que também evita loop com os nossos disparos.
+- O link é convertido para o afiliado DO USUÁRIO: Amazon (tag), Shopee (Open API com App ID/Secret) e Mercado Livre (sessão da extensão + etiqueta). Sem credencial ou com falha de conversão, a oferta é ignorada: nunca se dispara o link de terceiro.
+- Outras lojas: ignoradas (`unsupported_marketplace`).
+- Mesma oferta (mesmo produto) já enviada nas últimas 6 horas: ignorada (`duplicate`).
+- Respeita `has_active_access`, `bot_configs.ativo` e o horário de funcionamento (fuso de São Paulo). Não exige Telegram conectado.
+- Destinos: `bot_configs.channel_ids_destino`, sem o canal do próprio grupo de origem.
+- Sem preço de venda (texto nem `enrich-product`): ignorada (`no_price`).
+- Cada mensagem fica em `source_messages` com status e motivo, visíveis na aba Fontes e rotas. Retenção de 30 dias.
+- O disparo usa o mesmo `POST /dispatch` da `public-api` que o bot usa; o `history` sai com `origin = 'automation'`.
+
 ## Permissões
 
 - Usuário lê/escreve apenas dados com seu `user_id`, conforme RLS.

@@ -118,6 +118,8 @@ export const BotTab: React.FC = () => {
   const [horarioInicio, setHorarioInicio] = useState('');
   const [horarioFim, setHorarioFim] = useState('');
   const [savingHorario, setSavingHorario] = useState(false);
+  // Grupos de WhatsApp de origem (aba Fontes e rotas): somam no limite e liberam destinos/tags sem Telegram.
+  const [whatsappSourceCount, setWhatsappSourceCount] = useState(0);
 
   // Paywall state
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -186,10 +188,20 @@ export const BotTab: React.FC = () => {
     }
   };
 
+  const loadWhatsappSources = async () => {
+    if (!user) return;
+    const { count, error } = await supabase
+      .from('whatsapp_groups')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_source', true);
+    if (!error) setWhatsappSourceCount(count ?? 0);
+  };
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([loadConfig(), loadChannels()]);
+      await Promise.all([loadConfig(), loadChannels(), loadWhatsappSources()]);
       setLoading(false);
     };
     init();
@@ -417,7 +429,7 @@ export const BotTab: React.FC = () => {
       toast('Este grupo já está na lista.', 'info');
       return;
     }
-    if (!canAddSourceGroup(gruposOrigem.length, user?.plan)) {
+    if (!canAddSourceGroup(gruposOrigem.length + whatsappSourceCount, user?.plan)) {
       setPaywallFeature('adicionar outro grupo');
       setPaywallOpen(true);
       return;
@@ -563,6 +575,56 @@ export const BotTab: React.FC = () => {
   }
 
   const showConnectionForm = !config || config.status !== 'active' || isReconnecting;
+  // Sem Telegram conectado, quem lê grupos de WhatsApp ainda precisa de destinos, tags, pausa e horário.
+  const showSettings = !!config && (!showConnectionForm || whatsappSourceCount > 0);
+  const showWhatsappOnlyControls = !!config && showConnectionForm && whatsappSourceCount > 0;
+
+  const operationControls = (
+    <>
+              <div className="border-t border-line pt-4">
+                <Toggle
+                  id="bot-ativo"
+                  label={botAtivo ? 'Bot ativo' : 'Bot pausado'}
+                  description={
+                    botAtivo
+                      ? 'Processando novas ofertas dos grupos monitorados normalmente.'
+                      : 'Continua conectado, mas ignora novas ofertas até você reativar.'
+                  }
+                  checked={botAtivo}
+                  onChange={handleToggleAtivo}
+                  disabled={savingAtivo}
+                />
+              </div>
+
+              <Disclosure title="Horário de funcionamento">
+<div className="border-t border-line pt-4 space-y-4">
+                <h4 className="text-sm font-bold text-ink">Horário de funcionamento (opcional)</h4>
+                <p className="text-xs text-ink-secondary">
+                  Defina uma janela em que o bot deve processar ofertas (horário de Brasília). Deixe em branco pra rodar o dia todo.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Começar às"
+                    type="time"
+                    value={horarioInicio}
+                    onChange={e => setHorarioInicio(e.target.value)}
+                  />
+                  <Input
+                    label="Parar às"
+                    type="time"
+                    value={horarioFim}
+                    onChange={e => setHorarioFim(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" icon={Save} isLoading={savingHorario} onClick={handleSaveHorario}>
+                    Salvar horário
+                  </Button>
+                </div>
+              </div>
+              </Disclosure>
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -687,48 +749,17 @@ export const BotTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border-t border-line pt-4">
-                <Toggle
-                  id="bot-ativo"
-                  label={botAtivo ? 'Bot ativo' : 'Bot pausado'}
-                  description={
-                    botAtivo
-                      ? 'Processando novas ofertas dos grupos monitorados normalmente.'
-                      : 'Continua conectado no Telegram, mas ignora novas ofertas até você reativar.'
-                  }
-                  checked={botAtivo}
-                  onChange={handleToggleAtivo}
-                  disabled={savingAtivo}
-                />
-              </div>
+              {operationControls}
+            </Section>
+          )}
 
-              <Disclosure title="Horário de funcionamento">
-<div className="border-t border-line pt-4 space-y-4">
-                <h4 className="text-sm font-bold text-ink">Horário de funcionamento (opcional)</h4>
-                <p className="text-xs text-ink-secondary">
-                  Defina uma janela em que o bot deve processar ofertas (horário de Brasília). Deixe em branco pra rodar o dia todo.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Começar às"
-                    type="time"
-                    value={horarioInicio}
-                    onChange={e => setHorarioInicio(e.target.value)}
-                  />
-                  <Input
-                    label="Parar às"
-                    type="time"
-                    value={horarioFim}
-                    onChange={e => setHorarioFim(e.target.value)}
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <Button size="sm" icon={Save} isLoading={savingHorario} onClick={handleSaveHorario}>
-                    Salvar horário
-                  </Button>
-                </div>
-              </div>
-              </Disclosure>
+          {showWhatsappOnlyControls && (
+            <Section
+              title="Funcionamento"
+              description="Vale para as ofertas lidas dos seus grupos de WhatsApp de origem."
+              icon={Bot}
+            >
+              {operationControls}
             </Section>
           )}
 
@@ -857,8 +888,9 @@ export const BotTab: React.FC = () => {
             </Section>
           )}
 
-          {!showConnectionForm && config && (
+          {showSettings && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {!showConnectionForm && (
               <Section
                 title="Grupos de Origem"
                 description="IDs dos grupos do Telegram que o bot monitora."
@@ -914,7 +946,14 @@ export const BotTab: React.FC = () => {
                     Adicionar
                   </Button>
                 </div>
+                <p className="mt-3 text-xs text-ink-secondary">
+                  Também dá para ler grupos de WhatsApp.{' '}
+                  <Link to="/integrations?tab=fontes" className="font-bold text-mint-700 hover:text-mint-800">
+                    Abrir Fontes e rotas
+                  </Link>
+                </p>
               </Section>
+              )}
 
               <Section
                 title="Canais de Destino"
@@ -981,7 +1020,7 @@ export const BotTab: React.FC = () => {
             </div>
           )}
 
-          {!showConnectionForm && config && (
+          {showSettings && (
             <Section
               title="Configurações Adicionais"
               description="Associe suas tags e chaves de afiliado para substituição automática de links."
